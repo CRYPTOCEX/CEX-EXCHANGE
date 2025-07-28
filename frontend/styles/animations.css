@@ -1,0 +1,793 @@
+/* =================== Animated Image Grid & UI Animations =================== */
+
+/* ---------------------------------------------------------------------------
+   KEYFRAMES
+   --------------------------------------------------------------------------- */
+
+/* Fade In / Out */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Slide/Scroll Animations (for image grid, etc) */
+@keyframes grid-slideUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+@keyframes grid-slideDown {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Entrance Slide Animations (with fade) */
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideLeft {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideRight {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* In/Out - for panel/side UI */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-10%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideInRight {
+  from {
+    transform: translateX(10%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideInTop {
+  from {
+    transform: translateY(-10%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideInBottom {
+  from {
+    transform: translateY(10%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Marquee / Row */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+@keyframes row-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse/Glow/Bounce */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+}
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes bounce-subtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Zoom */
+@keyframes zoomIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes zoomOut {
+  from {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes zoomIn95 {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Panel effects */
+@keyframes panel-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes panel-slide-in-right {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes panel-slide-in-left {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes panel-slide-in-top {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes panel-slide-in-bottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes panel-collapse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0.98);
+  }
+}
+@keyframes panel-expand {
+  from {
+    transform: scale(0.98);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* FX: flip, shake, swing, tada, wobble, jello, heartBeat, rubberBand */
+@keyframes flipX {
+  from {
+    transform: perspective(400px) rotateX(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: perspective(400px) rotateX(0);
+    opacity: 1;
+  }
+}
+@keyframes flipY {
+  from {
+    transform: perspective(400px) rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: perspective(400px) rotateY(0);
+    opacity: 1;
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+@keyframes swing {
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+@keyframes tada {
+  0% {
+    transform: scale(1);
+  }
+  10%,
+  20% {
+    transform: scale(0.9) rotate(-3deg);
+  }
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: scale(1.1) rotate(3deg);
+  }
+  40%,
+  60%,
+  80% {
+    transform: scale(1.1) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes wobble {
+  0% {
+    transform: translateX(0%);
+  }
+  15% {
+    transform: translateX(-25%) rotate(-5deg);
+  }
+  30% {
+    transform: translateX(20%) rotate(3deg);
+  }
+  45% {
+    transform: translateX(-15%) rotate(-3deg);
+  }
+  60% {
+    transform: translateX(10%) rotate(2deg);
+  }
+  75% {
+    transform: translateX(-5%) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+@keyframes jello {
+  0%,
+  11.1%,
+  100% {
+    transform: none;
+  }
+  22.2% {
+    transform: skewX(-12.5deg) skewY(-12.5deg);
+  }
+  33.3% {
+    transform: skewX(6.25deg) skewY(6.25deg);
+  }
+  44.4% {
+    transform: skewX(-3.125deg) skewY(-3.125deg);
+  }
+  55.5% {
+    transform: skewX(1.5625deg) skewY(1.5625deg);
+  }
+  66.6% {
+    transform: skewX(-0.78125deg) skewY(-0.78125deg);
+  }
+  77.7% {
+    transform: skewX(0.390625deg) skewY(0.390625deg);
+  }
+  88.8% {
+    transform: skewX(-0.1953125deg) skewY(-0.1953125deg);
+  }
+}
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+@keyframes rubberBand {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scaleX(1.25) scaleY(0.75);
+  }
+  40% {
+    transform: scaleX(0.75) scaleY(1.25);
+  }
+  50% {
+    transform: scaleX(1.15) scaleY(0.85);
+  }
+  65% {
+    transform: scaleX(0.95) scaleY(1.05);
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Panel flash & highlight (with theme variants) */
+@keyframes flash-green {
+  0% {
+    background-color: rgba(34, 197, 94, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes flash-red {
+  0% {
+    background-color: rgba(239, 68, 68, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes flash-green-dark {
+  0% {
+    background-color: rgba(34, 197, 94, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes flash-red-dark {
+  0% {
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes flash-green-light {
+  0% {
+    background-color: rgba(22, 163, 74, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes flash-red-light {
+  0% {
+    background-color: rgba(220, 38, 38, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   ANIMATION CLASSES
+   --------------------------------------------------------------------------- */
+
+/* Grid sliding (image grid/loopers) */
+.animate-slide-up {
+  animation: grid-slideUp 30s linear infinite;
+}
+.animate-slide-down {
+  animation: grid-slideDown 30s linear infinite;
+}
+.animate-slide-up-slow {
+  animation: grid-slideUp 45s linear infinite;
+}
+.animate-slide-down-slow {
+  animation: grid-slideDown 45s linear infinite;
+}
+.animate-slide-up-fast {
+  animation: grid-slideUp 20s linear infinite;
+}
+.animate-slide-down-fast {
+  animation: grid-slideDown 20s linear infinite;
+}
+
+/* Marquee / subtle bounce / pulse / glow */
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s infinite;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+.animate-flash-green {
+  animation: flash-green 1s ease-out;
+}
+.animate-flash-red {
+  animation: flash-red 1s ease-out;
+}
+.dark .animate-flash-green {
+  animation: flash-green-dark 1s ease-out;
+}
+.dark .animate-flash-red {
+  animation: flash-red-dark 1s ease-out;
+}
+.light .animate-flash-green {
+  animation: flash-green-light 1s ease-out;
+}
+.light .animate-flash-red {
+  animation: flash-red-light 1s ease-out;
+}
+
+/* UI Slide / Fade / Panel / Row */
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.order-card-enter {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.order-card-exit {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+.order-card-update {
+  animation: pulse 0.5s ease-in-out;
+}
+.slide-panel-enter {
+  animation: slideIn 0.3s ease-out forwards;
+}
+.slide-panel-exit {
+  animation: slideOut 0.3s ease-in forwards;
+}
+.panel-animate-in {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+.panel-fade-in {
+  animation-name: panel-fade-in;
+}
+.panel-slide-in-right {
+  animation-name: panel-slide-in-right;
+}
+.panel-slide-in-left {
+  animation-name: panel-slide-in-left;
+}
+.panel-slide-in-top {
+  animation-name: panel-slide-in-top;
+}
+.panel-slide-in-bottom {
+  animation-name: panel-slide-in-bottom;
+}
+.panel-delay-100 {
+  animation-delay: 100ms;
+}
+.panel-delay-200 {
+  animation-delay: 200ms;
+}
+.panel-delay-300 {
+  animation-delay: 300ms;
+}
+.row-appear {
+  animation: row-appear 0.2s ease-out forwards;
+}
+
+/* Entrance and FX classes */
+.fade-in {
+  animation-name: fadeIn;
+}
+.zoom-in-95 {
+  transform-origin: top left;
+  animation-name: zoomIn95;
+}
+.duration-100 {
+  animation-duration: 100ms;
+}
+
+/* ------------------ HOVER & INTERACTION EFFECTS ------------------ */
+
+/* Gradient hover transitions */
+.hover-gradient-transition {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+.hover-gradient-transition::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.hover-gradient-transition:hover::before {
+  opacity: 1;
+}
+
+/* Text gradient hover effect */
+.text-gradient-hover {
+  position: relative;
+  z-index: 1;
+}
+.text-gradient-hover .hover-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.text-gradient-hover:hover .hover-text {
+  opacity: 1;
+}
+.text-gradient-hover:hover .default-text {
+  opacity: 0;
+}
+
+/* Gradient border hover effect */
+.gradient-border-hover {
+  position: relative;
+  z-index: 1;
+}
+.gradient-border-hover::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+.gradient-border-hover:hover::before {
+  opacity: 1;
+}
+
+/* Add hover effect styles */
+.hover-elevate {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.hover-elevate:hover {
+  transform: translateY(calc(-4px * var(--hover-intensity, 1)));
+  box-shadow: 0 calc(10px * var(--hover-intensity, 1))
+    calc(20px * var(--hover-intensity, 1)) rgba(0, 0, 0, 0.1);
+}
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+.hover-scale:hover {
+  transform: scale(calc(1 + (0.1 * var(--hover-intensity, 1))));
+}
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 calc(15px * var(--hover-intensity, 1))
+    rgba(124, 58, 237, calc(0.5 * var(--hover-intensity, 1)));
+}
+.hover-tilt {
+  transition: transform 0.3s ease;
+}
+.hover-tilt:hover {
+  transform: perspective(1000px) rotateX(calc(5deg * var(--hover-intensity, 1)))
+    rotateY(calc(5deg * var(--hover-intensity, 1)));
+}
+
+/* ------------------ SELECT & DROPDOWN STYLES FOR DARK ------------------ */
+.dark select option {
+  background-color: #27272a;
+  color: #e4e4e7;
+}
+
+/* Firefox fix for dark select */
+@-moz-document url-prefix() {
+  .dark select {
+    background-color: #27272a;
+    color: #e4e4e7;
+  }
+}
+
+/* Utility: quick-in, fade, zoom, etc */
+.animate-in {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+/* Utility: for order cards */
+.order-card-enter {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.order-card-exit {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+.order-card-update {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* Utility: slide panel */
+.slide-panel-enter {
+  animation: slideIn 0.3s ease-out forwards;
+}
+.slide-panel-exit {
+  animation: slideOut 0.3s ease-in forwards;
+}

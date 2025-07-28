@@ -1,0 +1,233 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">📦</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Product Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for managing your ecommerce catalog</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Product System Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The product management system allows you to create, organize, and maintain your complete product catalog. You can manage both physical and downloadable products with basic inventory tracking.
+        </p>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🏷️ Product Categories</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Creating Categories</h3>
+            <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>1. Navigate to <strong>Ecommerce → Categories</strong></li>
+                <li>2. Click "Create Category"</li>
+                <li>3. Fill in category details:</li>
+                <ul class="ml-4 mt-2 space-y-1">
+                    <li>• <strong>Name:</strong> Category display name</li>
+                    <li>• <strong>Slug:</strong> URL-friendly identifier</li>
+                    <li>• <strong>Description:</strong> Category description</li>
+                    <li>• <strong>Image:</strong> Category banner/icon</li>
+                    <li>• <strong>Status:</strong> Active/Inactive</li>
+                </ul>
+                <li>4. Save the category</li>
+            </ol>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Category Structure</h3>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 text-sm font-mono">
+                Electronics<br>
+                ├── Smartphones<br>
+                ├── Laptops<br>
+                └── Accessories<br>
+                <br>
+                Digital Products<br>
+                ├── Software<br>
+                ├── eBooks<br>
+                └── Courses
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <p class="text-blue-800 dark:text-blue-200 text-sm">
+            <strong>💡 Best Practice:</strong> Create a logical hierarchy with clear categories. Keep category names concise and user-friendly.
+        </p>
+    </div>
+</div>
+
+<!-- Products Section -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📦 Product Management</h2>
+    
+    <!-- Product Creation -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Creating Products</h3>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Required Fields</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <h5 class="font-medium mb-2 text-zinc-800 dark:text-zinc-200">Basic Information</h5>
+                    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                        <li>• <strong>Name:</strong> Product title</li>
+                        <li>• <strong>Price:</strong> Product price</li>
+                        <li>• <strong>Currency:</strong> Price currency</li>
+                        <li>• <strong>Wallet Type:</strong> FIAT, SPOT, or ECO</li>
+                        <li>• <strong>Inventory Quantity:</strong> Available stock</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-medium mb-2 text-zinc-800 dark:text-zinc-200">Optional Fields</h5>
+                    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                        <li>• <strong>Slug:</strong> URL-friendly identifier</li>
+                        <li>• <strong>Description:</strong> Detailed product info</li>
+                        <li>• <strong>Short Description:</strong> Brief summary</li>
+                        <li>• <strong>Image:</strong> Product photo URL</li>
+                        <li>• <strong>Category:</strong> Product classification</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Product Types</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <h5 class="font-medium text-blue-900 dark:text-blue-100 mb-2">📦 Physical Products</h5>
+                    <p class="text-blue-800 dark:text-blue-200 text-sm mb-2">Tangible items that require shipping</p>
+                    <ul class="text-blue-700 dark:text-blue-300 text-xs space-y-1">
+                        <li>• Requires inventory tracking</li>
+                        <li>• Subject to shipping costs</li>
+                        <li>• Can have weight/dimensions</li>
+                    </ul>
+                </div>
+                
+                <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <h5 class="font-medium text-green-900 dark:text-green-100 mb-2">💾 Downloadable Products</h5>
+                    <p class="text-green-800 dark:text-green-200 text-sm mb-2">Digital files delivered electronically</p>
+                    <ul class="text-green-700 dark:text-green-300 text-xs space-y-1">
+                        <li>• No shipping required</li>
+                        <li>• Requires file path configuration</li>
+                        <li>• Instant delivery after payment</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Wallet Types</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
+                    <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-1">FIAT</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Traditional currencies (USD, EUR, etc.)</p>
+                </div>
+                <div class="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
+                    <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-1">SPOT</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Cryptocurrency spot trading</p>
+                </div>
+                <div class="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
+                    <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-1">ECO</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Ecosystem token payments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Management -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Inventory Management</h3>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Stock Tracking</h4>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                The system tracks inventory quantity for each product. Set the available stock when creating or editing products.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+                    <span class="text-sm font-medium text-green-800 dark:text-green-200">✅ In Stock</span>
+                    <p class="text-xs text-green-700 dark:text-green-300">Quantity > 0</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                    <span class="text-sm font-medium text-red-800 dark:text-red-200">❌ Out of Stock</span>
+                    <p class="text-xs text-red-700 dark:text-red-300">Quantity = 0</p>
+                </div>
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                    <span class="text-sm font-medium text-blue-800 dark:text-blue-200">📊 Track Inventory</span>
+                    <p class="text-xs text-blue-700 dark:text-blue-300">Monitor stock levels</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Status -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Product Status</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Control product visibility and availability with status settings:
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <h4 class="font-semibold text-green-900 dark:text-green-100 mb-2">🟢 Active Status</h4>
+                <ul class="text-green-800 dark:text-green-200 text-sm space-y-1">
+                    <li>• Product is visible to customers</li>
+                    <li>• Available for purchase</li>
+                    <li>• Appears in search results</li>
+                    <li>• Included in category listings</li>
+                </ul>
+            </div>
+            
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <h4 class="font-semibold text-red-900 dark:text-red-100 mb-2">🔴 Inactive Status</h4>
+                <ul class="text-red-800 dark:text-red-200 text-sm space-y-1">
+                    <li>• Product is hidden from customers</li>
+                    <li>• Not available for purchase</li>
+                    <li>• Excluded from search results</li>
+                    <li>• Not shown in category listings</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Product Setup</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Use clear, descriptive product names</li>
+                <li>• Write detailed product descriptions</li>
+                <li>• Add high-quality product images</li>
+                <li>• Set appropriate categories</li>
+                <li>• Configure proper inventory quantities</li>
+                <li>• Choose the correct wallet type</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Catalog Management</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Regular inventory updates</li>
+                <li>• Monitor product performance</li>
+                <li>• Update product information as needed</li>
+                <li>• Remove or deactivate discontinued items</li>
+                <li>• Test product pages before going live</li>
+                <li>• Keep product images up to date</li>
+            </ul>
+        </div>
+    </div> 

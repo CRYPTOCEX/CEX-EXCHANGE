@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-07-25T08:03:59.527Z",
+  "totalBadKeys": 9,
+  "badKeys": [
+    {
+      "path": "dashboard.import_currencies",
+      "key": "import_currencies",
+      "currentValue": "import_currencies",
+      "namespace": "dashboard",
+      "suggestedValue": "Import Currencies",
+      "needsManualReview": false
+    },
+    {
+      "path": "ext.allow_custom_payment_methods",
+      "key": "allow_custom_payment_methods",
+      "currentValue": "allow_custom_payment_methods",
+      "namespace": "ext",
+      "suggestedValue": "Allow Custom Payment Methods",
+      "needsManualReview": false
+    },
+    {
+      "path": "ext.allow_users_to_create_custom_payment_methods",
+      "key": "allow_users_to_create_custom_payment_methods",
+      "currentValue": "allow_users_to_create_custom_payment_methods",
+      "namespace": "ext",
+      "suggestedValue": "Allow users to create custom payment methods",
+      "needsManualReview": false
+    },
+    {
+      "path": "ext.when_disabled_users_cannot_create_custom_payment_methods",
+      "key": "when_disabled_users_cannot_create_custom_payment_methods",
+      "currentValue": "when_disabled_users_cannot_create_custom_payment_methods",
+      "namespace": "ext",
+      "suggestedValue": "When disabled, users cannot create custom payment methods",
+      "needsManualReview": false
+    },
+    {
+      "path": "ext.These validators participate_stakers proportionally",
+      "key": "These validators participate_stakers proportionally",
+      "currentValue": "These validators participate_stakers proportionally",
+      "namespace": "ext",
+      "suggestedValue": "These validators participate with stakers proportionally",
+      "needsManualReview": false
+    },
+    {
+      "path": "binary/components/header/market-selector.add_to_trading",
+      "key": "add_to_trading",
+      "currentValue": "add_to_trading",
+      "namespace": "binary/components/header/market-selector",
+      "suggestedValue": "Add to Trading",
+      "needsManualReview": false
+    },
+    {
+      "path": "finance/deposit.refresh_page",
+      "key": "refresh_page",
+      "currentValue": "refresh_page",
+      "namespace": "finance/deposit",
+      "suggestedValue": "Refresh Page",
+      "needsManualReview": false
+    },
+    {
+      "path": "[pageId].loading_page_content",
+      "key": "loading_page_content",
+      "currentValue": "loading_page_content",
+      "namespace": "[pageId]",
+      "suggestedValue": "Loading page content...",
+      "needsManualReview": false
+    },
+    {
+      "path": "components/blocks/docs/DocumentationHeader.%_complete",
+      "key": "%_complete",
+      "currentValue": "%_complete",
+      "namespace": "components/blocks/docs/DocumentationHeader",
+      "suggestedValue": "% Complete",
+      "needsManualReview": false
+    }
+  ]
+}

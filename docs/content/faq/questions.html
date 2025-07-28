@@ -1,0 +1,238 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">❓</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">FAQ Questions</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Create and manage your knowledge base content</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Question Management Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            FAQ questions are the core content of your knowledge base. Each question includes an answer, category, and optional metadata to help users find information quickly.
+        </p>
+    </div>
+</div>
+
+<!-- Creating Questions -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">➕ Creating FAQ Questions</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Step-by-Step Process</h3>
+        
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Navigate to FAQ Management</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Go to <strong>FAQ → Manage</strong> in your admin panel</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Click "Add FAQ"</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Start creating a new FAQ entry</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Complete FAQ Details</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Fill in all required fields</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Save & Publish</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Review content and make it live</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Form Fields -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Required Fields</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Question</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Clear, concise question from user perspective</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Answer</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Comprehensive answer text</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Category</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Category name for organization</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Page Path</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">URL path for the FAQ page</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Optional Fields</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Image</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Optional image URL</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Tags</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Array of tags for better searchability</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Status</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Active (true) or Inactive (false)</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Sort Order</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Numeric order for display priority</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Related FAQ IDs</label>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Array of related FAQ question IDs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Questions -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">👥 User Questions</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Users can submit questions that administrators can review and convert into FAQs or answer directly.
+        </p>
+        
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Question Management</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <h4 class="font-medium text-yellow-900 dark:text-yellow-100 mb-2">⏳ Pending</h4>
+                <p class="text-yellow-800 dark:text-yellow-200 text-sm">New questions awaiting review</p>
+            </div>
+            
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <h4 class="font-medium text-green-900 dark:text-green-100 mb-2">✅ Answered</h4>
+                <p class="text-green-800 dark:text-green-200 text-sm">Questions that have been answered</p>
+            </div>
+            
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <h4 class="font-medium text-red-900 dark:text-red-100 mb-2">❌ Rejected</h4>
+                <p class="text-red-800 dark:text-red-200 text-sm">Questions that were declined</p>
+            </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">Question Fields</h4>
+            <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-1">
+                <li>• <strong>Name:</strong> User's name</li>
+                <li>• <strong>Email:</strong> Contact email</li>
+                <li>• <strong>Question:</strong> The question text</li>
+                <li>• <strong>Answer:</strong> Admin's response (optional)</li>
+                <li>• <strong>Status:</strong> PENDING, ANSWERED, or REJECTED</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Content Guidelines -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📝 Content Writing Guidelines</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Writing Effective Questions</h3>
+            <div class="space-y-3">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <p class="font-medium text-blue-900 dark:text-blue-100 text-sm">Use Natural Language</p>
+                    <p class="text-blue-700 dark:text-blue-300 text-xs">Write questions as users would ask them</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                    <p class="font-medium text-green-900 dark:text-green-100 text-sm">Be Specific</p>
+                    <p class="text-green-700 dark:text-green-300 text-xs">Focus on specific problems or topics</p>
+                </div>
+                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+                    <p class="font-medium text-purple-900 dark:text-purple-100 text-sm">Keep it Concise</p>
+                    <p class="text-purple-700 dark:text-purple-300 text-xs">Avoid unnecessarily long questions</p>
+                </div>
+                <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded">
+                    <p class="font-medium text-orange-900 dark:text-orange-100 text-sm">Include Keywords</p>
+                    <p class="text-orange-700 dark:text-orange-300 text-xs">Use terms users might search for</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Writing Helpful Answers</h3>
+            <div class="space-y-3">
+                <div class="p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded">
+                    <p class="font-medium text-cyan-900 dark:text-cyan-100 text-sm">Step-by-Step</p>
+                    <p class="text-cyan-700 dark:text-cyan-300 text-xs">Break down complex processes</p>
+                </div>
+                <div class="p-3 bg-pink-50 dark:bg-pink-900/20 rounded">
+                    <p class="font-medium text-pink-900 dark:text-pink-100 text-sm">Use Examples</p>
+                    <p class="text-pink-700 dark:text-pink-300 text-xs">Provide real-world scenarios</p>
+                </div>
+                <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                    <p class="font-medium text-yellow-900 dark:text-yellow-100 text-sm">Be Clear</p>
+                    <p class="text-yellow-700 dark:text-yellow-300 text-xs">Use simple, clear language</p>
+                </div>
+                <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                    <p class="font-medium text-red-900 dark:text-red-100 text-sm">Link Related</p>
+                    <p class="text-red-700 dark:text-red-300 text-xs">Reference related questions using IDs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Organization</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Use consistent category names</li>
+                    <li>• Set logical sort orders</li>
+                    <li>• Link related FAQs using IDs</li>
+                    <li>• Use descriptive page paths</li>
+                    <li>• Tag questions appropriately</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Content Management</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Review user questions regularly</li>
+                    <li>• Update answers when needed</li>
+                    <li>• Keep content current</li>
+                    <li>• Monitor FAQ views</li>
+                    <li>• Activate useful FAQs</li>
+                </ul>
+            </div>
+        </div>
+    </div> 

@@ -1,0 +1,257 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⚡</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Order Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">View and monitor futures trading orders</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Order Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Order management provides visibility into all futures trading orders across your platform. Monitor order execution, view order details, and track trading activity for all users.
+        </p>
+    </div>
+</div>
+
+<!-- Order Types -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Order Types</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100 text-blue-600 dark:text-blue-400">Market Orders</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Execute immediately at current market price</p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>• Immediate execution</li>
+                <li>• No price guarantee</li>
+                <li>• High fill probability</li>
+                <li>• Used for quick entries/exits</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100 text-green-600 dark:text-green-400">Limit Orders</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Execute only at specified price or better</p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>• Price protection</li>
+                <li>• May not fill immediately</li>
+                <li>• Queue-based execution</li>
+                <li>• Better price control</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Order Processing -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Order Processing</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Order Lifecycle</h3>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold text-sm">1</span>
+                    </div>
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Received</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-xs">Order submitted</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-green-600 dark:text-green-400 font-bold text-sm">2</span>
+                    </div>
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Validated</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-xs">Risk checks passed</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-yellow-600 dark:text-yellow-400 font-bold text-sm">3</span>
+                    </div>
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Queued</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-xs">In order book</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-purple-600 dark:text-purple-400 font-bold text-sm">4</span>
+                    </div>
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Matched</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-xs">Counterparty found</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-orange-600 dark:text-orange-400 font-bold text-sm">5</span>
+                    </div>
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Settled</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-xs">Trade completed</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Risk Validation</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Margin Check</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Sufficient margin for position</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Position Limits</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Within allowed position size</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Market Status</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Market open for trading</span>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Price Limits</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Within daily price bands</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">User Status</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Account in good standing</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Order Size</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Minimum/maximum limits</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Management Dashboard -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Order Management Dashboard</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Access Order Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Navigate to the futures order management section:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+                Admin Panel → Futures → Orders
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Order States</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <div>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100">Open</p>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Active in order book</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <div>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100">Filled</p>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Completely executed</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                    <div>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100">Partial</p>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Partially filled</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                    <div>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100">Cancelled</p>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Order cancelled</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Administrative Actions -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Administrative Actions</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <button class="text-left p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+            <div class="font-medium text-red-900 dark:text-red-100">Cancel Order</div>
+            <div class="text-sm text-red-700 dark:text-red-300">Remove order from book</div>
+        </button>
+        
+        <button class="text-left p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+            <div class="font-medium text-blue-900 dark:text-blue-100">Modify Order</div>
+            <div class="text-sm text-blue-700 dark:text-blue-300">Change price or quantity</div>
+        </button>
+        
+        <button class="text-left p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+            <div class="font-medium text-green-900 dark:text-green-100">Force Fill</div>
+            <div class="text-sm text-green-700 dark:text-green-300">Manually execute order</div>
+        </button>
+        
+        <button class="text-left p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+            <div class="font-medium text-purple-900 dark:text-purple-100">Hold Order</div>
+            <div class="text-sm text-purple-700 dark:text-purple-300">Suspend order processing</div>
+        </button>
+        
+        <button class="text-left p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
+            <div class="font-medium text-yellow-900 dark:text-yellow-100">Audit Trail</div>
+            <div class="text-sm text-yellow-700 dark:text-yellow-300">View order history</div>
+        </button>
+        
+        <button class="text-left p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
+            <div class="font-medium text-orange-900 dark:text-orange-100">Bulk Actions</div>
+            <div class="text-sm text-orange-700 dark:text-orange-300">Mass order operations</div>
+        </button>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">✅ Do's</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Implement robust risk checks</li>
+                <li>• Monitor order book health</li>
+                <li>• Maintain audit trails</li>
+                <li>• Set appropriate timeouts</li>
+                <li>• Handle edge cases properly</li>
+                <li>• Test matching engine regularly</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">❌ Don'ts</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Don't skip validation steps</li>
+                <li>• Avoid manual order interventions</li>
+                <li>• Don't ignore system latency</li>
+                <li>• Avoid complex order logic</li>
+                <li>• Don't neglect error handling</li>
+                <li>• Avoid inadequate monitoring</li>
+            </ul>
+        </div>
+    </div>
+</div> 

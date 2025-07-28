@@ -1,0 +1,140 @@
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Trading interface elements */
+.order-panel-container {
+  position: relative;
+  z-index: 50;
+}
+
+.order-panel-dropdown {
+  z-index: 100;
+}
+
+.trade-confirmation-modal {
+  z-index: 200;
+}
+
+/* Trading history footer styles */
+.trading-history-footer {
+  background: linear-gradient(to right, #1a1d29, #131722);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.trading-history-footer:hover {
+  background: linear-gradient(to right, #1e2235, #171b2a);
+}
+
+.trading-history-toggle {
+  background: rgba(30, 33, 48, 0.8);
+  border: 1px solid rgba(42, 46, 57, 0.8);
+  transition: all 0.2s ease;
+}
+
+.trading-history-toggle:hover {
+  background: rgba(36, 39, 56, 0.9);
+  transform: scale(1.05);
+}
+
+/* Add these styles to ensure proper spacing with the trading history footer */
+.pb-trading-history {
+  padding-bottom: 40px;
+}
+
+.trading-history-visible {
+  margin-bottom: 40px;
+}
+
+/* Add a class to create space for the trading buttons */
+.trading-buttons-container {
+  margin-bottom: 60px;
+}
+
+/* Glass morphism effects */
+.glass-morphism {
+  background: rgba(30, 33, 48, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Button press effect */
+.press-effect:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+/* Orderbook animations */
+@keyframes flash-green {
+  0% {
+    background-color: rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flash-red {
+  0% {
+    background-color: rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-flash-green {
+  animation: flash-green 1s ease-out;
+}
+
+.animate-flash-red {
+  animation: flash-red 1s ease-out;
+}
+
+/* Price level transitions */
+.price-level {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.price-increase {
+  transition: color 0.2s ease;
+  color: #10b981;
+}
+
+.price-decrease {
+  transition: color 0.2s ease;
+  color: #ef4444;
+}
+
+/* Custom scrollbar styles for orderbook */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-gray-500::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Ensure orderbook sections have proper height */
+.orderbook-section {
+  max-height: 100%;
+  overflow-y: auto;
+}

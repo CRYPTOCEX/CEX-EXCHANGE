@@ -1,0 +1,118 @@
+import type { Section } from "@/types/builder";
+import { generateId } from "@/store/builder-store";
+
+export const minimalHero: Section = {
+  id: `section-${generateId("section")}`,
+  type: "regular",
+  rows: [
+    {
+      id: `row-${generateId("row")}`,
+      columns: [
+        {
+          id: `column-${generateId("column")}`,
+          width: 100,
+          elements: [
+            {
+              id: `element-${generateId("element")}-1`,
+              type: "heading",
+              content: "Crypto Trading. Simplified.",
+              settings: {
+                fontSize: 68,
+                fontWeight: "300",
+                textAlign: "center",
+                paddingTop: 0,
+                paddingRight: 0,
+                paddingBottom: 0,
+                paddingLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 32,
+                marginLeft: 0,
+                color: { light: "zinc-900", dark: "white" },
+                lineHeight: 1.1,
+                letterSpacing: "-0.04em",
+              },
+            },
+            {
+              id: `element-${generateId("element")}-2`,
+              type: "text",
+              content:
+                "Experience the future of cryptocurrency trading with our elegant, powerful platform designed for both beginners and professionals.",
+              settings: {
+                fontSize: 20,
+                textAlign: "center",
+                paddingTop: 0,
+                paddingRight: 0,
+                paddingBottom: 0,
+                paddingLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 48,
+                marginLeft: 0,
+                color: { light: "zinc-600", dark: "zinc-300" },
+                lineHeight: 1.6,
+              },
+            },
+            {
+              id: `element-${generateId("element")}-3`,
+              type: "button",
+              content: "Start Trading",
+              settings: {
+                backgroundColor: "#000000",
+                hoverBackgroundColor: "#27272a",
+                color: "#ffffff",
+                fontSize: 16,
+                fontWeight: "normal",
+                textAlign: "center",
+                paddingTop: 16,
+                paddingRight: 32,
+                paddingBottom: 16,
+                paddingLeft: 32,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0,
+                marginLeft: 0,
+                borderRadius: 0,
+              },
+            },
+          ],
+          settings: {
+            paddingTop: 120,
+            paddingRight: 24,
+            paddingBottom: 120,
+            paddingLeft: 24,
+            textAlign: "center",
+          },
+          nestingLevel: 1,
+        },
+      ],
+      settings: {
+        paddingTop: 0,
+        paddingRight: 16,
+        paddingBottom: 0,
+        paddingLeft: 16,
+      },
+      nestingLevel: 1,
+    },
+  ],
+  settings: {
+    backgroundColor: { light: "white", dark: "zinc-900" },
+    paddingTop: 40,
+    paddingRight: 16,
+    paddingBottom: 40,
+    paddingLeft: 16,
+    marginTop: 0,
+    marginRight: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    minHeight: "600px",
+  },
+  name: "Minimal Hero",
+  description:
+    "Clean, minimal hero section with elegant typography and understated design",
+  category: "hero",
+  snapshots: {
+    card: "",
+    preview: "",
+  },
+};

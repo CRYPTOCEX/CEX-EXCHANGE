@@ -1,0 +1,277 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">📊</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Staking Position Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">View & Manage User Staking Positions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Position Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Staking positions represent individual user stakes in staking pools. The system tracks basic position information including staked amounts, start/end dates, status, and withdrawal requests. Administrators can view and manage all positions from the admin panel.
+        </p>
+    </div>
+</div>
+
+<!-- Position Status Types -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📈 Position Status Types</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-green-600 dark:text-green-400">✅</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">ACTIVE</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Position is currently staking and earning rewards</p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-blue-600 dark:text-blue-400">✔️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">COMPLETED</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Staking period finished, rewards distributed</p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-red-600 dark:text-red-400">❌</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">CANCELLED</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Position was cancelled before completion</p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-orange-600 dark:text-orange-400">⏳</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">PENDING_WITHDRAWAL</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">User requested early withdrawal</p>
+        </div>
+    </div>
+</div>
+
+<!-- Position Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Position Management</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Access Position Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Navigate to the position management dashboard:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+                Admin Panel → Staking → Positions
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                View all user positions with filtering and sorting options.
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Position Information</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Each position displays the following information:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <strong class="text-blue-800 dark:text-blue-200 block">Basic Details</strong>
+                    <ul class="text-blue-600 dark:text-blue-400 text-sm space-y-1 mt-2">
+                        <li>• Position ID and user information</li>
+                        <li>• Pool name and token details</li>
+                        <li>• Staked amount</li>
+                        <li>• Current status</li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <strong class="text-green-800 dark:text-green-200 block">Timeline Information</strong>
+                    <ul class="text-green-600 dark:text-green-400 text-sm space-y-1 mt-2">
+                        <li>• Start date and end date</li>
+                        <li>• Withdrawal request status</li>
+                        <li>• Withdrawal request date</li>
+                        <li>• Completion date (if completed)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Admin Actions</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Available administrative actions for positions:
+            </p>
+            <div class="space-y-2">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">View Position Details:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Access comprehensive position information</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Update Status:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Change position status when needed</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Add Admin Notes:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Record administrative notes for positions</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Delete Position:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Remove positions if necessary</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Position Data Model -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Position Model Structure</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">stakingPosition Fields</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Field</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">id</td>
+                        <td class="py-2">UUID</td>
+                        <td class="py-2">Unique position identifier</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">userId</td>
+                        <td class="py-2">UUID</td>
+                        <td class="py-2">Reference to the user who owns this position</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">poolId</td>
+                        <td class="py-2">UUID</td>
+                        <td class="py-2">Reference to the staking pool</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">amount</td>
+                        <td class="py-2">Float</td>
+                        <td class="py-2">Amount of tokens staked</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">startDate</td>
+                        <td class="py-2">Date</td>
+                        <td class="py-2">When the staking period started</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">endDate</td>
+                        <td class="py-2">Date</td>
+                        <td class="py-2">When the staking period ends</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">status</td>
+                        <td class="py-2">Enum</td>
+                        <td class="py-2">ACTIVE | COMPLETED | CANCELLED | PENDING_WITHDRAWAL</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">withdrawalRequested</td>
+                        <td class="py-2">Boolean</td>
+                        <td class="py-2">Whether user requested early withdrawal</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">withdrawalRequestDate</td>
+                        <td class="py-2">Date</td>
+                        <td class="py-2">When withdrawal was requested (optional)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">adminNotes</td>
+                        <td class="py-2">Text</td>
+                        <td class="py-2">Administrative notes (optional)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">completedAt</td>
+                        <td class="py-2">Date</td>
+                        <td class="py-2">When position was completed (optional)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- API Integration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Integration</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Available Endpoints</h3>
+            <div class="space-y-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <code class="text-blue-800 dark:text-blue-200 font-mono text-sm">GET /api/admin/staking/position/all</code>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm mt-1">Get all staking positions</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                    <code class="text-purple-800 dark:text-purple-200 font-mono text-sm">GET /api/admin/staking/position/{id}</code>
+                    <p class="text-purple-600 dark:text-purple-400 text-sm mt-1">Get specific position details</p>
+                </div>
+                <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                    <code class="text-orange-800 dark:text-orange-200 font-mono text-sm">PUT /api/admin/staking/position/status</code>
+                    <p class="text-orange-600 dark:text-orange-400 text-sm mt-1">Update position status</p>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded p-3">
+                    <code class="text-red-800 dark:text-red-200 font-mono text-sm">DELETE /api/admin/staking/position/{id}</code>
+                    <p class="text-red-600 dark:text-red-400 text-sm mt-1">Delete a staking position</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Position Relationships -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔗 Position Relationships</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Database Relationships</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <strong class="text-blue-800 dark:text-blue-200 block">Pool Association</strong>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm mt-1">Each position belongs to a staking pool via poolId</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <strong class="text-green-800 dark:text-green-200 block">Earning Records</strong>
+                    <p class="text-green-600 dark:text-green-400 text-sm mt-1">Positions have many earning records for reward tracking</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="space-y-4">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Position Monitoring</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Regularly review position statuses and handle withdrawal requests promptly.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Status Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Keep position statuses updated to reflect current state accurately.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Admin Notes</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Use admin notes to document any special circumstances or actions taken.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Data Integrity</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Ensure dates and amounts are accurate and consistent across related records.</p>
+        </div>
+    </div>
+</div> 

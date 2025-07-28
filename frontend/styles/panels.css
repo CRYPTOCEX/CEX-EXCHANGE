@@ -1,0 +1,614 @@
+/* Panel layout and behavior */
+.panel-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Panel resize styles */
+.resize-handle {
+  position: relative;
+}
+
+.resize-handle:hover::after,
+.resize-handle.resizing::after {
+  content: "";
+  position: absolute;
+  background-color: hsl(var(--primary));
+  opacity: 0.2;
+}
+
+.resize-handle-horizontal:hover::after,
+.resize-handle-horizontal.resizing::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  transform: translateX(-50%);
+}
+
+.resize-handle-vertical:hover::after,
+.resize-handle-vertical.resizing::after {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+}
+
+/* Prevent text selection during resize */
+.user-select-none {
+  user-select: none;
+}
+
+/* Panel transitions */
+.panel-transition {
+  transition:
+    width 0.2s ease,
+    height 0.2s ease;
+}
+
+/* Panel resize animation effects */
+.panel-resizing {
+  transition: transform 0.1s ease-out;
+}
+
+/* Add a subtle scale effect during panel resize */
+.resize-handle.resizing + div .panel-resizing {
+  transform: scale(0.995);
+}
+
+/* Improve panel collapse/expand animations */
+[data-collapsed="true"] {
+  animation: panel-collapse 0.3s ease forwards;
+}
+
+[data-collapsed="false"] {
+  animation: panel-expand 0.3s ease forwards;
+}
+
+/* Add a subtle shadow effect to panels during hover */
+.panel-hover-effect:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Optimize animations for performance */
+.panel-animate-in,
+.panel-resizing,
+[data-collapsed="true"],
+[data-collapsed="false"] {
+  will-change: transform, opacity;
+}
+
+/* Side collapse animation */
+.side-collapsed {
+  transition:
+    width 0.3s ease-in-out,
+    flex-basis 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.side-collapsed:hover {
+  opacity: 0.8;
+}
+
+/* Panel group collapse transitions */
+.panel-group-collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.panel-group-expanded {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Style for the collapse button hover effect */
+.panel-group-collapse-button {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.panel-group:hover .panel-group-collapse-button {
+  opacity: 1;
+}
+
+/* Collapsed panel styling */
+.collapsed-panel {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Light theme collapsed panel */
+:root:not(.dark) .collapsed-panel {
+  background-color: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+  color: #71717a !important;
+}
+
+:root:not(.dark) .collapsed-panel:hover {
+  background-color: #e4e4e7 !important;
+}
+
+:root:not(.dark) .collapsed-panel:hover .collapsed-panel-title,
+:root:not(.dark) .collapsed-panel:hover .collapsed-panel-icon {
+  color: #27272a !important;
+}
+
+/* Dark theme collapsed panel */
+:root.dark .collapsed-panel {
+  background-color: #121212;
+  border-color: rgba(82, 82, 82, 0.2);
+  border-top: 1px solid rgba(82, 82, 82, 0.2);
+  color: #888;
+}
+
+:root.dark .collapsed-panel:hover {
+  background-color: #1a1a1a;
+}
+
+:root.dark .collapsed-panel:hover .collapsed-panel-title,
+:root.dark .collapsed-panel:hover .collapsed-panel-icon {
+  color: #fff;
+}
+
+.collapsed-panel-vertical {
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  flex-basis: 24px !important;
+}
+
+.collapsed-panel-horizontal {
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  flex-basis: 24px !important;
+}
+
+.collapsed-panel-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin: 1rem 0;
+  text-transform: uppercase;
+}
+
+/* Light theme collapsed panel title */
+:root:not(.dark) .collapsed-panel-title {
+  color: #71717a;
+}
+
+/* Dark theme collapsed panel title */
+:root.dark .collapsed-panel-title {
+  color: #888;
+}
+
+.collapsed-panel-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+/* Light theme collapsed panel icon */
+:root:not(.dark) .collapsed-panel-icon {
+  color: #71717a;
+}
+
+:root:not(.dark) .collapsed-panel-icon:hover {
+  color: #27272a;
+}
+
+/* Dark theme collapsed panel icon */
+:root.dark .collapsed-panel-icon {
+  color: #888;
+}
+
+:root.dark .collapsed-panel-icon:hover {
+  color: #fff;
+}
+
+.collapsed-panel-icon svg {
+  transition: transform 0.3s ease;
+}
+
+.collapsed-panel-icon.left svg {
+  transform: rotate(0deg);
+}
+
+.collapsed-panel-icon.right svg {
+  transform: rotate(180deg);
+}
+
+.collapsed-panel-icon.top svg {
+  transform: rotate(90deg);
+}
+
+.collapsed-panel-icon.bottom svg {
+  transform: rotate(-90deg);
+}
+
+/* Panel transition animations */
+.panel-expanding,
+.panel-collapsing {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Panel collapse button styles */
+.panel-collapse-button {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+  opacity: 0;
+}
+
+/* Light theme panel collapse button */
+:root:not(.dark) .panel-collapse-button {
+  background-color: #f4f4f5;
+  border: 1px solid rgba(228, 228, 231, 0.8);
+  color: #71717a;
+}
+
+:root:not(.dark) .panel-collapse-button:hover {
+  background-color: #e4e4e7;
+  color: #27272a;
+}
+
+/* Dark theme panel collapse button */
+:root.dark .panel-collapse-button {
+  background-color: #121212;
+  border: 1px solid rgba(82, 82, 82, 0.2);
+  color: #888;
+}
+
+:root.dark .panel-collapse-button:hover {
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+/* Show collapse button on hover only when panel is not collapsed */
+[data-collapsed="false"]:hover .panel-collapse-button {
+  opacity: 1;
+}
+
+/* Position variants - more compact with no padding */
+.panel-collapse-button-right {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 12px;
+  height: 40px;
+}
+
+.panel-collapse-button-left {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  width: 12px;
+  height: 40px;
+}
+
+.panel-collapse-button-top {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  width: 40px;
+  height: 12px;
+}
+
+.panel-collapse-button-bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 40px;
+  height: 12px;
+}
+
+/* Button text for tooltip */
+.panel-collapse-tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Light theme tooltip */
+:root:not(.dark) .panel-collapse-tooltip {
+  background-color: rgba(244, 244, 245, 0.9);
+  color: #27272a;
+}
+
+/* Dark theme tooltip */
+:root.dark .panel-collapse-tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+}
+
+.panel-collapse-button:hover .panel-collapse-tooltip {
+  opacity: 1;
+}
+
+/* Different tooltip positions */
+.tooltip-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+}
+
+.tooltip-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+}
+
+.tooltip-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+}
+
+.tooltip-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+/* Update these styles for the unified collapse buttons */
+.collapse-button {
+  position: absolute;
+  z-index: 20;
+  transition: all 0.2s ease;
+  opacity: 0; /* Hidden by default */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Light theme collapse button */
+:root:not(.dark) .collapse-button {
+  background-color: rgba(244, 244, 245, 0.8);
+  border-color: rgba(228, 228, 231, 0.8);
+  color: rgba(113, 113, 122, 0.8);
+}
+
+:root:not(.dark) .collapse-button:hover {
+  background-color: rgba(228, 228, 231, 0.9);
+  color: rgba(39, 39, 42, 0.9);
+}
+
+/* Dark theme collapse button */
+:root.dark .collapse-button {
+  background-color: rgba(39, 39, 42, 0.8);
+  border-color: rgba(63, 63, 70, 0.5);
+  color: rgba(161, 161, 170, 0.8);
+}
+
+:root.dark .collapse-button:hover {
+  background-color: rgba(63, 63, 70, 0.9);
+  color: rgba(212, 212, 216, 0.9);
+}
+
+.collapse-button-left {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 0 4px 4px 0;
+  border: 1px solid;
+  border-left: none;
+  width: 14px;
+  height: 36px;
+}
+
+.collapse-button-right {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 4px 0 0 4px;
+  border: 1px solid;
+  border-right: none;
+  width: 14px;
+  height: 36px;
+}
+
+.collapse-button-top {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0 0 4px 4px;
+  border: 1px solid;
+  border-top: none;
+  height: 14px;
+  width: 36px;
+}
+
+.collapse-button-bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 4px 4px 0 0;
+  border: 1px solid;
+  border-bottom: none;
+  height: 14px;
+  width: 36px;
+}
+
+/* Show panel collapse button on hover */
+.panel:hover .panel-collapse-button {
+  opacity: 1;
+}
+
+/* Reset all collapse button styles to ensure they're hidden by default */
+.panel-collapse-button,
+.panel-group-collapse-button {
+  opacity: 0 !important;
+  transition: opacity 0.2s ease;
+}
+
+/* Only show the specific panel group's collapse button when hovering that group */
+.panel-group[data-group-id="left"][data-hovered="true"]
+  > .panel-group-collapse-button.group-left,
+.panel-group[data-group-id="right"][data-hovered="true"]
+  > .panel-group-collapse-button.group-right,
+.panel-group[data-group-id="top"][data-hovered="true"]
+  > .panel-group-collapse-button.group-top,
+.panel-group[data-group-id="bottom"][data-hovered="true"]
+  > .panel-group-collapse-button.group-bottom {
+  opacity: 0.7 !important;
+}
+
+/* Make sure hover on a specific button makes it fully visible */
+.panel-group-collapse-button:hover {
+  opacity: 1 !important;
+}
+
+/* Panel collapse button visibility - only show on direct parent hover */
+[data-panel-id]:hover > .panel-collapse-button {
+  opacity: 1 !important;
+}
+
+.collapse-tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* Light theme collapse tooltip */
+:root:not(.dark) .collapse-tooltip {
+  background-color: rgba(244, 244, 245, 0.9);
+  color: #27272a;
+}
+
+/* Dark theme collapse tooltip */
+:root.dark .collapse-tooltip {
+  background-color: rgba(24, 24, 27, 0.9);
+  color: #f4f4f5;
+}
+
+.tooltip-left {
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip-right {
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip-top {
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tooltip-bottom {
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Add these styles to better handle collapsed panels */
+.panel-collapsed {
+  min-height: 28px !important;
+  max-height: 28px !important;
+  overflow: hidden;
+}
+
+/* Collapsed panel sizing */
+.collapsed-panel {
+  transition: all 0.3s ease;
+}
+
+.collapsed-panel-vertical {
+  min-width: 30px;
+  max-width: 30px;
+  height: 100%;
+}
+
+.collapsed-panel-horizontal {
+  min-height: 30px;
+  max-height: 30px;
+  width: 100%;
+}
+
+/* Specific fix for the Orders panel at the bottom */
+[data-panel-id="orders"] .collapsed-panel,
+[aria-label="Expand Orders panel"] {
+  border-top: 1px solid;
+}
+
+:root:not(.dark) [data-panel-id="orders"] .collapsed-panel,
+:root:not(.dark) [aria-label="Expand Orders panel"] {
+  border-color: #e4e4e7 !important;
+  background-color: #f4f4f5 !important;
+}
+
+:root.dark [data-panel-id="orders"] .collapsed-panel,
+:root.dark [aria-label="Expand Orders panel"] {
+  border-color: rgba(82, 82, 82, 0.2) !important;
+  background-color: #121212 !important;
+}
+
+/* Fix for collapsed panels to prevent black lines in light mode */
+:root:not(.dark) [data-collapsed-side] {
+  background-color: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+  color: #71717a !important;
+}
+
+:root.dark [data-collapsed-side] {
+  background-color: #18181b !important;
+  border-color: rgba(82, 82, 82, 0.2) !important;
+  color: #a1a1aa !important;
+}

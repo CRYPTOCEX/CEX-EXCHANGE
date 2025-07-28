@@ -1,0 +1,48 @@
+import { Shield, ClipboardList } from "lucide-react";
+
+export const columns: ColumnDefinition[] = [
+  {
+    key: "id",
+    title: "ID",
+    type: "text",
+    icon: Shield,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Unique duration ID",
+    priority: 3,
+    expandedOnly: true,
+  },
+  {
+    key: "duration",
+    title: "Duration",
+    type: "number",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    editable: true,
+    usedInCreate: true,
+    description: "Duration value",
+    priority: 1,
+  },
+  {
+    key: "timeframe",
+    title: "Timeframe",
+    type: "select",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    editable: true,
+    usedInCreate: true,
+    description: "HOUR, DAY, WEEK, or MONTH",
+    options: [
+      { value: "HOUR", label: "Hour" },
+      { value: "DAY", label: "Day" },
+      { value: "WEEK", label: "Week" },
+      { value: "MONTH", label: "Month" },
+    ],
+    priority: 1,
+  },
+];

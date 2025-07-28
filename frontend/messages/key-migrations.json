@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-25T08:05:40.882Z",
+  "migrations": {
+    "dashboard.Manage binary trading markets imported from exchange spot markets": "dashboard.manage_binary_trading_markets",
+    "dashboard.Files and images submitted with the application": "dashboard.files_and_images_submitted_with_the_application",
+    "dashboard.Basic personal details provided by the applicant": "dashboard.basic_personal_details_provided_by_the_applicant",
+    "ext.Flexible term • High liquidity • Instant rewards": "ext.flexible_term_•_high_liquidity_•_instant_rewards",
+    "ext.This is clearly displayed on the pool details page": "ext.this_is_clearly_displayed_on_the_pool_details_page",
+    "ext.These validators participate_stakers proportionally": "ext.these_validators_participate_stakers_proportionally",
+    "ext.No hidden charges, all fees are clearly displayed": "ext.no_hidden_charges_all_fees_are_clearly_displayed",
+    "ext.You've reached the maximum number of team members for your plan": "ext.youve_reached_the_maximum",
+    "nft/details.New bid placed: {amount} {currency}": "nft/details.new_bid_placed_{amount}_{currency}",
+    "[pageId]": "[pageid]",
+    "components/blocks/docs/DocumentationHeader": "components/blocks/docs/documentationheader",
+    "components/blocks/docs/DocumentationSection": "components/blocks/docs/documentationsection"
+  }
+}

@@ -1,0 +1,1 @@
+The PayPal DOM error occurs when the amount changes because the PayPal SDK tries to clean up DOM elements that React has already modified. The solution is to prevent PayPal from re-initializing when the amount changes by removing the amount dependency from the PayPal effects.

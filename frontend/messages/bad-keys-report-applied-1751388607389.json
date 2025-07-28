@@ -1,0 +1,134 @@
+{
+  "timestamp": "2025-07-01T16:48:58.116Z",
+  "totalBadKeys": 16,
+  "badKeys": [
+    {
+      "path": "ext.These validators participate_stakers proportionally",
+      "key": "These validators participate_stakers proportionally",
+      "currentValue": "These validators participate_stakers proportionally",
+      "namespace": "ext",
+      "suggestedValue": "These validators participate and reward stakers proportionally",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/create.creator_hub",
+      "key": "creator_hub",
+      "currentValue": "creator_hub",
+      "namespace": "nft/create",
+      "suggestedValue": "Creator Hub",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/dashboard.please_sign_in_to_view_your_nft_dashboard",
+      "key": "please_sign_in_to_view_your_nft_dashboard",
+      "currentValue": "please_sign_in_to_view_your_nft_dashboard",
+      "namespace": "nft/dashboard",
+      "suggestedValue": "Please sign in to view your NFT dashboard",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/dashboard.sign_in",
+      "key": "sign_in",
+      "currentValue": "sign_in",
+      "namespace": "nft/dashboard",
+      "suggestedValue": "Sign In",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/dashboard.loading_dashboard",
+      "key": "loading_dashboard",
+      "currentValue": "loading_dashboard",
+      "namespace": "nft/creator/dashboard",
+      "suggestedValue": "Loading dashboard...",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/dashboard.setup_profile",
+      "key": "setup_profile",
+      "currentValue": "setup_profile",
+      "namespace": "nft/creator/dashboard",
+      "suggestedValue": "Setup Profile",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/dashboard.welcome_to_creator_hub",
+      "key": "welcome_to_creator_hub",
+      "currentValue": "welcome_to_creator_hub",
+      "namespace": "nft/creator/dashboard",
+      "suggestedValue": "Welcome to Creator Hub",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/dashboard.setup_your_creator_profile",
+      "key": "setup_your_creator_profile",
+      "currentValue": "setup_your_creator_profile",
+      "namespace": "nft/creator/dashboard",
+      "suggestedValue": "Setup Your Creator Profile",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/dashboard.view_public_profile",
+      "key": "view_public_profile",
+      "currentValue": "view_public_profile",
+      "namespace": "nft/creator/dashboard",
+      "suggestedValue": "View Public Profile",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/profile/edit.please_sign_in_to_access_creator_profile_settings",
+      "key": "please_sign_in_to_access_creator_profile_settings",
+      "currentValue": "please_sign_in_to_access_creator_profile_settings",
+      "namespace": "nft/creator/profile/edit",
+      "suggestedValue": "Please sign in to access creator profile settings",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/profile/edit.sign_in",
+      "key": "sign_in",
+      "currentValue": "sign_in",
+      "namespace": "nft/creator/profile/edit",
+      "suggestedValue": "Sign In",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/profile.no_bio_own_profile",
+      "key": "no_bio_own_profile",
+      "currentValue": "no_bio_own_profile",
+      "namespace": "nft/creator/profile",
+      "suggestedValue": "You haven't added a bio to your profile yet",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/profile.add_bio_now",
+      "key": "add_bio_now",
+      "currentValue": "add_bio_now",
+      "namespace": "nft/creator/profile",
+      "suggestedValue": "Add Bio Now",
+      "needsManualReview": true
+    },
+    {
+      "path": "nft/creator/profile.edit_profile",
+      "key": "edit_profile",
+      "currentValue": "edit_profile",
+      "namespace": "nft/creator/profile",
+      "suggestedValue": "Edit Profile",
+      "needsManualReview": true
+    },
+    {
+      "path": "[pageId].loading_page_content",
+      "key": "loading_page_content",
+      "currentValue": "loading_page_content",
+      "namespace": "[pageId]",
+      "suggestedValue": "Loading page content...",
+      "needsManualReview": true
+    },
+    {
+      "path": "components/blocks/docs/DocumentationHeader.%_complete",
+      "key": "%_complete",
+      "currentValue": "%_complete",
+      "namespace": "components/blocks/docs/DocumentationHeader",
+      "suggestedValue": "% Complete",
+      "needsManualReview": true
+    }
+  ]
+}

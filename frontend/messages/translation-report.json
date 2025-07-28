@@ -1,0 +1,4644 @@
+{
+  "summary": {
+    "totalNamespaces": 189,
+    "totalKeys": 7423,
+    "totalFiles": 683,
+    "locales": 57,
+    "timestamp": "2025-07-19T01:04:51.773Z"
+  },
+  "locales": {
+    "af": {
+      "totalKeys": 7423,
+      "untranslated": 1757,
+      "translated": 5666,
+      "coverage": 76
+    },
+    "am": {
+      "totalKeys": 7423,
+      "untranslated": 1757,
+      "translated": 5666,
+      "coverage": 76
+    },
+    "ar": {
+      "totalKeys": 7423,
+      "untranslated": 1642,
+      "translated": 5781,
+      "coverage": 78
+    },
+    "bn": {
+      "totalKeys": 7423,
+      "untranslated": 1647,
+      "translated": 5776,
+      "coverage": 78
+    },
+    "bg": {
+      "totalKeys": 7423,
+      "untranslated": 1656,
+      "translated": 5767,
+      "coverage": 78
+    },
+    "ca": {
+      "totalKeys": 7423,
+      "untranslated": 1796,
+      "translated": 5627,
+      "coverage": 76
+    },
+    "hr": {
+      "totalKeys": 7423,
+      "untranslated": 1754,
+      "translated": 5669,
+      "coverage": 76
+    },
+    "cs": {
+      "totalKeys": 7423,
+      "untranslated": 1726,
+      "translated": 5697,
+      "coverage": 77
+    },
+    "da": {
+      "totalKeys": 7423,
+      "untranslated": 1827,
+      "translated": 5596,
+      "coverage": 75
+    },
+    "nl": {
+      "totalKeys": 7423,
+      "untranslated": 1805,
+      "translated": 5618,
+      "coverage": 76
+    },
+    "en": {
+      "totalKeys": 7423,
+      "untranslated": 0,
+      "translated": 7423,
+      "coverage": 100
+    },
+    "et": {
+      "totalKeys": 7423,
+      "untranslated": 1743,
+      "translated": 5680,
+      "coverage": 77
+    },
+    "fj": {
+      "totalKeys": 7423,
+      "untranslated": 1952,
+      "translated": 5471,
+      "coverage": 74
+    },
+    "fi": {
+      "totalKeys": 7423,
+      "untranslated": 1723,
+      "translated": 5700,
+      "coverage": 77
+    },
+    "fr": {
+      "totalKeys": 7423,
+      "untranslated": 1825,
+      "translated": 5598,
+      "coverage": 75
+    },
+    "gl": {
+      "totalKeys": 7423,
+      "untranslated": 1741,
+      "translated": 5682,
+      "coverage": 77
+    },
+    "ka": {
+      "totalKeys": 7423,
+      "untranslated": 1697,
+      "translated": 5726,
+      "coverage": 77
+    },
+    "de": {
+      "totalKeys": 7423,
+      "untranslated": 1770,
+      "translated": 5653,
+      "coverage": 76
+    },
+    "el": {
+      "totalKeys": 7423,
+      "untranslated": 1665,
+      "translated": 5758,
+      "coverage": 78
+    },
+    "gu": {
+      "totalKeys": 7423,
+      "untranslated": 1710,
+      "translated": 5713,
+      "coverage": 77
+    },
+    "hi": {
+      "totalKeys": 7423,
+      "untranslated": 1622,
+      "translated": 5801,
+      "coverage": 78
+    },
+    "hu": {
+      "totalKeys": 7423,
+      "untranslated": 1722,
+      "translated": 5701,
+      "coverage": 77
+    },
+    "is": {
+      "totalKeys": 7423,
+      "untranslated": 1729,
+      "translated": 5694,
+      "coverage": 77
+    },
+    "id": {
+      "totalKeys": 7423,
+      "untranslated": 1801,
+      "translated": 5622,
+      "coverage": 76
+    },
+    "ga": {
+      "totalKeys": 7423,
+      "untranslated": 1705,
+      "translated": 5718,
+      "coverage": 77
+    },
+    "it": {
+      "totalKeys": 7423,
+      "untranslated": 1751,
+      "translated": 5672,
+      "coverage": 76
+    },
+    "ja": {
+      "totalKeys": 7423,
+      "untranslated": 1633,
+      "translated": 5790,
+      "coverage": 78
+    },
+    "kn": {
+      "totalKeys": 7423,
+      "untranslated": 1710,
+      "translated": 5713,
+      "coverage": 77
+    },
+    "km": {
+      "totalKeys": 7423,
+      "untranslated": 1664,
+      "translated": 5759,
+      "coverage": 78
+    },
+    "ko": {
+      "totalKeys": 7423,
+      "untranslated": 1642,
+      "translated": 5781,
+      "coverage": 78
+    },
+    "lv": {
+      "totalKeys": 7423,
+      "untranslated": 1739,
+      "translated": 5684,
+      "coverage": 77
+    },
+    "lt": {
+      "totalKeys": 7423,
+      "untranslated": 1708,
+      "translated": 5715,
+      "coverage": 77
+    },
+    "ms": {
+      "totalKeys": 7423,
+      "untranslated": 1775,
+      "translated": 5648,
+      "coverage": 76
+    },
+    "ml": {
+      "totalKeys": 7423,
+      "untranslated": 1900,
+      "translated": 5523,
+      "coverage": 74
+    },
+    "mt": {
+      "totalKeys": 7423,
+      "untranslated": 1753,
+      "translated": 5670,
+      "coverage": 76
+    },
+    "mr": {
+      "totalKeys": 7423,
+      "untranslated": 1711,
+      "translated": 5712,
+      "coverage": 77
+    },
+    "nb": {
+      "totalKeys": 7423,
+      "untranslated": 1774,
+      "translated": 5649,
+      "coverage": 76
+    },
+    "fa": {
+      "totalKeys": 7423,
+      "untranslated": 1635,
+      "translated": 5788,
+      "coverage": 78
+    },
+    "pl": {
+      "totalKeys": 7423,
+      "untranslated": 1711,
+      "translated": 5712,
+      "coverage": 77
+    },
+    "pt": {
+      "totalKeys": 7423,
+      "untranslated": 1772,
+      "translated": 5651,
+      "coverage": 76
+    },
+    "pa": {
+      "totalKeys": 7423,
+      "untranslated": 1707,
+      "translated": 5716,
+      "coverage": 77
+    },
+    "ro": {
+      "totalKeys": 7423,
+      "untranslated": 1823,
+      "translated": 5600,
+      "coverage": 75
+    },
+    "ru": {
+      "totalKeys": 7423,
+      "untranslated": 1637,
+      "translated": 5786,
+      "coverage": 78
+    },
+    "sk": {
+      "totalKeys": 7423,
+      "untranslated": 1733,
+      "translated": 5690,
+      "coverage": 77
+    },
+    "sl": {
+      "totalKeys": 7423,
+      "untranslated": 1738,
+      "translated": 5685,
+      "coverage": 77
+    },
+    "es": {
+      "totalKeys": 7423,
+      "untranslated": 1758,
+      "translated": 5665,
+      "coverage": 76
+    },
+    "sw": {
+      "totalKeys": 7423,
+      "untranslated": 1751,
+      "translated": 5672,
+      "coverage": 76
+    },
+    "sv": {
+      "totalKeys": 7423,
+      "untranslated": 1751,
+      "translated": 5672,
+      "coverage": 76
+    },
+    "ta": {
+      "totalKeys": 7423,
+      "untranslated": 1646,
+      "translated": 5777,
+      "coverage": 78
+    },
+    "te": {
+      "totalKeys": 7423,
+      "untranslated": 1844,
+      "translated": 5579,
+      "coverage": 75
+    },
+    "th": {
+      "totalKeys": 7423,
+      "untranslated": 1640,
+      "translated": 5783,
+      "coverage": 78
+    },
+    "tr": {
+      "totalKeys": 7423,
+      "untranslated": 1675,
+      "translated": 5748,
+      "coverage": 77
+    },
+    "uk": {
+      "totalKeys": 7423,
+      "untranslated": 1645,
+      "translated": 5778,
+      "coverage": 78
+    },
+    "ur": {
+      "totalKeys": 7423,
+      "untranslated": 1855,
+      "translated": 5568,
+      "coverage": 75
+    },
+    "vi": {
+      "totalKeys": 7423,
+      "untranslated": 1727,
+      "translated": 5696,
+      "coverage": 77
+    },
+    "cy": {
+      "totalKeys": 7423,
+      "untranslated": 1689,
+      "translated": 5734,
+      "coverage": 77
+    },
+    "zu": {
+      "totalKeys": 7423,
+      "untranslated": 1725,
+      "translated": 5698,
+      "coverage": 77
+    }
+  },
+  "namespaces": [
+    "components/error-block",
+    "home",
+    "components/auth/auth-header-controls",
+    "components/auth/auth-modal",
+    "components/auth/delete-confirmation-dialog",
+    "components/auth/forgot-password-form",
+    "components/auth/login-form",
+    "components/auth/register-form",
+    "components/auth/register-success",
+    "components/auth/reset-password-form",
+    "components/auth/two-factor-form",
+    "components/auth/unauthorized-access",
+    "components/auth/wallet-login-form",
+    "components/ui/confirm-dialog",
+    "components/ui/countdown",
+    "components/ui/error-display",
+    "components/ui/icon-picker",
+    "components/ui/image-upload",
+    "components/ui/object-table",
+    "components/ui/pagination",
+    "components/ui/stepper",
+    "components/ui/tag-input",
+    "dashboard",
+    "ext",
+    "auth/login",
+    "market",
+    "auth/reset",
+    "support",
+    "[pageId]",
+    "components/blocks/data-table/index",
+    "components/blocks/docs/DocumentationHeader",
+    "components/blocks/docs/DocumentationSection",
+    "components/blocks/kyc/built-in-fields",
+    "components/blocks/kyc/custom-options",
+    "components/blocks/kyc/kyc-required-notice",
+    "components/blocks/support/chat-header",
+    "components/blocks/support/support-chat",
+    "components/blocks/support/ticket-details",
+    "components/partials/dashboard/dynamic-menu",
+    "components/partials/footer/mobile-footer",
+    "components/partials/footer/user-footer",
+    "components/partials/header/full-screen",
+    "components/partials/header/index",
+    "components/partials/header/notification-bell",
+    "components/partials/header/profile-info",
+    "components/partials/header/site-header",
+    "components/partials/sidebar/add-block",
+    "blog",
+    "nft",
+    "binary/orders",
+    "utility",
+    "error-page/401",
+    "error-page/403",
+    "error-page/419",
+    "error-page/404",
+    "error-page/429",
+    "error-page/500",
+    "finance/history/columns",
+    "finance/deposit",
+    "finance/transfer/client",
+    "error-page/503",
+    "finance/wallet/client",
+    "finance/wallet/columns",
+    "finance/withdraw/client",
+    "investment/components/cta-section",
+    "investment/components/featured-plans-section",
+    "investment/components/features-section",
+    "investment/components/hero-section",
+    "investment/components/how-it-works-section",
+    "investment/dashboard/client",
+    "investment/plan/client",
+    "support/ticket",
+    "trade/components/trading-layout",
+    "components/blocks/advanced-chart/canvas/index",
+    "components/blocks/data-table/analytics/charts",
+    "components/blocks/data-table/analytics/index",
+    "components/blocks/data-table/content/table-header",
+    "components/blocks/data-table/drawers/drawer-form",
+    "components/blocks/data-table/drawers/edit-create-drawer",
+    "components/blocks/data-table/header/header-create-button",
+    "components/blocks/data-table/pagination/pagination-info",
+    "components/blocks/data-table/pagination/pagination-size-selector",
+    "components/blocks/data-table/toolbar/column-toggle",
+    "components/blocks/data-table/toolbar/filter-button",
+    "components/blocks/data-table/toolbar/selected-items-actions",
+    "components/blocks/data-table/toolbar/show-deleted-button",
+    "components/blocks/data-table/states/no-access-state",
+    "nft/create",
+    "nft/components/collection-card",
+    "nft/components/nft-card",
+    "nft/marketplace",
+    "nft/dashboard",
+    "nft/details",
+    "binary/components/chart/chart-container",
+    "binary/components/chart/price-indicator",
+    "binary/components/guide/guide-modal",
+    "binary/components/header/header",
+    "binary/components/header/market-selector-modal",
+    "binary/components/header/market-selector",
+    "binary/components/header/mobile-header",
+    "binary/components/layout/mobile-layout",
+    "binary/components/trading/quick-trade-buttons",
+    "binary/components/positions/active-positions",
+    "binary/components/positions/mobile-positions-panel",
+    "binary/orders/detail",
+    "finance/wallet/components/pending-transactions",
+    "finance/wallet/components/wallet-actions",
+    "finance/wallet/components/wallet-list",
+    "finance/wallet/components/wallet-overview",
+    "binary/components/order/order-panel",
+    "binary/components/order/profit-display",
+    "binary/components/order/risk-calculator",
+    "binary/components/order/templates-selector",
+    "binary/components/order/trade-confirmation",
+    "binary/components/order/trading-buttons",
+    "investment/plan/[id]/client",
+    "support/ticket/components/live-chat",
+    "support/ticket/components/pagination",
+    "trade/components/alerts/alerts-panel",
+    "binary/components/navigation/mobile-navigation",
+    "trade/components/layout/layout-dropdown",
+    "trade/components/layout/mobile-layout",
+    "trade/components/header/trading-header",
+    "trade/components/chart/chart-panel",
+    "trade/components/orderbook/orderbook-panel",
+    "trade/components/markets/connection-status-indicator",
+    "trade/components/markets/empty-search-state",
+    "trade/components/markets/market-item",
+    "trade/components/markets/markets-panel",
+    "trade/components/markets/watchlist-empty-state",
+    "trade/components/markets/watchlist-header",
+    "trade/components/markets/watchlist-sort-buttons",
+    "trade/components/panel/resize-handle",
+    "trade/components/status/status-bar",
+    "components/blocks/data-table/drawers/form-controls/date",
+    "components/blocks/data-table/drawers/form-controls/multi-select-form-control",
+    "components/blocks/data-table/drawers/form-controls/select",
+    "components/blocks/data-table/toolbar/sort/sorting-direction",
+    "components/blocks/data-table/toolbar/sort/sorting-field",
+    "components/blocks/data-table/toolbar/sort/sorting-status",
+    "nft/collection",
+    "nft/modals/list",
+    "nft/modals/offer",
+    "nft/token",
+    "nft/creator/dashboard",
+    "finance/wallet/[type]/[currency]/client",
+    "nft/creator/profile",
+    "nft/user/profile",
+    "trade/components/trading/ai-investment/amount-input",
+    "trade/components/trading/ai-investment/duration-selector",
+    "trade/components/trading/ai-investment/expected-profit-display",
+    "trade/components/trading/ai-investment/index",
+    "trade/components/trading/ai-investment/investment-button",
+    "trade/components/trading/ai-investment/plan-selector",
+    "components/blocks/data-table/analytics/charts/area/index",
+    "components/blocks/data-table/analytics/charts/bar/index",
+    "trade/components/trading/futures/balance-display",
+    "trade/components/trading/futures/funding-info",
+    "trade/components/trading/futures/index",
+    "trade/components/trading/futures/leverage-slider",
+    "trade/components/trading/futures/limit-order-form",
+    "trade/components/trading/futures/limit-price-input",
+    "trade/components/trading/futures/market-order-form",
+    "trade/components/trading/futures/order-type-selector",
+    "trade/components/trading/futures/position-info",
+    "trade/components/trading/futures/stop-loss-take-profit",
+    "trade/components/trading/futures/trading-buttons",
+    "trade/components/trading/spot/balance-display",
+    "trade/components/trading/spot/index",
+    "trade/components/trading/spot/limit-order-form",
+    "trade/components/trading/spot/market-order-form",
+    "trade/components/trading/spot/stop-order-form",
+    "components/blocks/data-table/analytics/charts/donut/center-content",
+    "components/blocks/data-table/analytics/charts/line/index",
+    "components/blocks/data-table/analytics/charts/stacked-bar/index",
+    "components/blocks/advanced-chart/canvas/render/footer/error-display",
+    "components/blocks/advanced-chart/canvas/render/footer/loading-indicator",
+    "components/blocks/data-table/content/rows/cells/tags",
+    "components/blocks/data-table/content/rows/actions/delete",
+    "components/blocks/data-table/content/rows/actions/edit",
+    "components/blocks/data-table/content/rows/actions/permanent-delete",
+    "components/blocks/data-table/content/rows/actions/restore",
+    "components/blocks/data-table/content/rows/actions/view",
+    "components/blocks/advanced-chart/canvas/render/toolbar/chart-toolbar",
+    "components/blocks/advanced-chart/canvas/render/toolbar/indicator-panel",
+    "components/blocks/advanced-chart/canvas/render/toolbar/settings-panel",
+    "components/blocks/data-table/content/rows/view/hidden-columns",
+    "nft/creator/profile/edit",
+    "admin"
+  ],
+  "files": [
+    {
+      "file": "components/error-block.tsx",
+      "namespaces": [
+        "components/error-block"
+      ]
+    },
+    {
+      "file": "app/[locale]/home.tsx",
+      "namespaces": [
+        "home"
+      ]
+    },
+    {
+      "file": "components/auth/auth-header-controls.tsx",
+      "namespaces": [
+        "components/auth/auth-header-controls"
+      ]
+    },
+    {
+      "file": "components/auth/auth-modal.tsx",
+      "namespaces": [
+        "components/auth/auth-modal"
+      ]
+    },
+    {
+      "file": "components/auth/delete-confirmation-dialog.tsx",
+      "namespaces": [
+        "components/auth/delete-confirmation-dialog"
+      ]
+    },
+    {
+      "file": "components/auth/forgot-password-form.tsx",
+      "namespaces": [
+        "components/auth/forgot-password-form"
+      ]
+    },
+    {
+      "file": "components/auth/login-form.tsx",
+      "namespaces": [
+        "components/auth/login-form"
+      ]
+    },
+    {
+      "file": "components/auth/register-form.tsx",
+      "namespaces": [
+        "components/auth/register-form"
+      ]
+    },
+    {
+      "file": "components/auth/register-success.tsx",
+      "namespaces": [
+        "components/auth/register-success"
+      ]
+    },
+    {
+      "file": "components/auth/reset-password-form.tsx",
+      "namespaces": [
+        "components/auth/reset-password-form"
+      ]
+    },
+    {
+      "file": "components/auth/two-factor-form.tsx",
+      "namespaces": [
+        "components/auth/two-factor-form"
+      ]
+    },
+    {
+      "file": "components/auth/unauthorized-access.tsx",
+      "namespaces": [
+        "components/auth/unauthorized-access"
+      ]
+    },
+    {
+      "file": "components/auth/wallet-login-form.tsx",
+      "namespaces": [
+        "components/auth/wallet-login-form"
+      ]
+    },
+    {
+      "file": "components/ui/confirm-dialog.tsx",
+      "namespaces": [
+        "components/ui/confirm-dialog"
+      ]
+    },
+    {
+      "file": "components/ui/countdown.tsx",
+      "namespaces": [
+        "components/ui/countdown"
+      ]
+    },
+    {
+      "file": "components/ui/error-display.tsx",
+      "namespaces": [
+        "components/ui/error-display"
+      ]
+    },
+    {
+      "file": "components/ui/icon-picker.tsx",
+      "namespaces": [
+        "components/ui/icon-picker"
+      ]
+    },
+    {
+      "file": "components/ui/image-upload.tsx",
+      "namespaces": [
+        "components/ui/image-upload"
+      ]
+    },
+    {
+      "file": "components/ui/object-table.tsx",
+      "namespaces": [
+        "components/ui/object-table"
+      ]
+    },
+    {
+      "file": "components/ui/pagination.tsx",
+      "namespaces": [
+        "components/ui/pagination"
+      ]
+    },
+    {
+      "file": "components/ui/stepper.tsx",
+      "namespaces": [
+        "components/ui/stepper"
+      ]
+    },
+    {
+      "file": "components/ui/tag-input.tsx",
+      "namespaces": [
+        "components/ui/tag-input"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/error.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/navbar.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/components/mobile-app-section.tsx",
+      "namespaces": [
+        "home"
+      ]
+    },
+    {
+      "file": "app/[locale]/login/page.tsx",
+      "namespaces": [
+        "auth/login"
+      ]
+    },
+    {
+      "file": "app/[locale]/market/page.tsx",
+      "namespaces": [
+        "market"
+      ]
+    },
+    {
+      "file": "app/[locale]/reset/page.tsx",
+      "namespaces": [
+        "auth/reset"
+      ]
+    },
+    {
+      "file": "app/[locale]/support/page.tsx",
+      "namespaces": [
+        "support"
+      ]
+    },
+    {
+      "file": "app/[locale]/[pageId]/page.tsx",
+      "namespaces": [
+        "[pageId]"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/index"
+      ]
+    },
+    {
+      "file": "components/blocks/docs/DocumentationHeader.tsx",
+      "namespaces": [
+        "components/blocks/docs/DocumentationHeader"
+      ]
+    },
+    {
+      "file": "components/blocks/docs/DocumentationSection.tsx",
+      "namespaces": [
+        "components/blocks/docs/DocumentationSection"
+      ]
+    },
+    {
+      "file": "components/blocks/kyc/built-in-fields.tsx",
+      "namespaces": [
+        "components/blocks/kyc/built-in-fields"
+      ]
+    },
+    {
+      "file": "components/blocks/kyc/custom-options.tsx",
+      "namespaces": [
+        "components/blocks/kyc/custom-options"
+      ]
+    },
+    {
+      "file": "components/blocks/kyc/kyc-required-notice.tsx",
+      "namespaces": [
+        "components/blocks/kyc/kyc-required-notice"
+      ]
+    },
+    {
+      "file": "components/blocks/support/chat-header.tsx",
+      "namespaces": [
+        "components/blocks/support/chat-header"
+      ]
+    },
+    {
+      "file": "components/blocks/support/support-chat.tsx",
+      "namespaces": [
+        "components/blocks/support/support-chat"
+      ]
+    },
+    {
+      "file": "components/blocks/support/ticket-details.tsx",
+      "namespaces": [
+        "components/blocks/support/ticket-details"
+      ]
+    },
+    {
+      "file": "components/partials/dashboard/dynamic-menu.tsx",
+      "namespaces": [
+        "components/partials/dashboard/dynamic-menu"
+      ]
+    },
+    {
+      "file": "components/partials/footer/mobile-footer.tsx",
+      "namespaces": [
+        "components/partials/footer/mobile-footer"
+      ]
+    },
+    {
+      "file": "components/partials/footer/user-footer.tsx",
+      "namespaces": [
+        "components/partials/footer/user-footer"
+      ]
+    },
+    {
+      "file": "components/partials/header/full-screen.tsx",
+      "namespaces": [
+        "components/partials/header/full-screen"
+      ]
+    },
+    {
+      "file": "components/partials/header/index.tsx",
+      "namespaces": [
+        "components/partials/header/index"
+      ]
+    },
+    {
+      "file": "components/partials/header/notification-bell.tsx",
+      "namespaces": [
+        "components/partials/header/notification-bell"
+      ]
+    },
+    {
+      "file": "components/partials/header/profile-info.tsx",
+      "namespaces": [
+        "components/partials/header/profile-info"
+      ]
+    },
+    {
+      "file": "components/partials/header/site-header.tsx",
+      "namespaces": [
+        "components/partials/header/site-header"
+      ]
+    },
+    {
+      "file": "components/partials/sidebar/add-block.tsx",
+      "namespaces": [
+        "components/partials/sidebar/add-block"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/not-found.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/not-found.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/client.tsx",
+      "namespaces": [
+        "nft"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/orders/page.tsx",
+      "namespaces": [
+        "binary/orders"
+      ]
+    },
+    {
+      "file": "app/[locale]/(utility)/comming-soon/page.tsx",
+      "namespaces": [
+        "utility"
+      ]
+    },
+    {
+      "file": "app/[locale]/(utility)/maintinance/page.tsx",
+      "namespaces": [
+        "utility"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/401/page.tsx",
+      "namespaces": [
+        "error-page/401"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/403/page.tsx",
+      "namespaces": [
+        "error-page/403"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/419/page.tsx",
+      "namespaces": [
+        "error-page/419"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/404/page.tsx",
+      "namespaces": [
+        "error-page/404"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/429/page.tsx",
+      "namespaces": [
+        "error-page/429"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/500/page.tsx",
+      "namespaces": [
+        "error-page/500"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/history/columns.tsx",
+      "namespaces": [
+        "finance/history/columns"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/deposit/client.tsx",
+      "namespaces": [
+        "finance/deposit"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/transfer/client.tsx",
+      "namespaces": [
+        "finance/transfer/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/error-page/503/page.tsx",
+      "namespaces": [
+        "error-page/503"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/client.tsx",
+      "namespaces": [
+        "finance/wallet/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/columns.tsx",
+      "namespaces": [
+        "finance/wallet/columns"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/withdraw/client.tsx",
+      "namespaces": [
+        "finance/withdraw/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/components/cta-section.tsx",
+      "namespaces": [
+        "investment/components/cta-section"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/components/featured-plans-section.tsx",
+      "namespaces": [
+        "investment/components/featured-plans-section"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/components/features-section.tsx",
+      "namespaces": [
+        "investment/components/features-section"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/components/hero-section.tsx",
+      "namespaces": [
+        "investment/components/hero-section"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/components/how-it-works-section.tsx",
+      "namespaces": [
+        "investment/components/how-it-works-section"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/dashboard/client.tsx",
+      "namespaces": [
+        "investment/dashboard/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/plan/client.tsx",
+      "namespaces": [
+        "investment/plan/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/support/ticket/page.tsx",
+      "namespaces": [
+        "support/ticket"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading-layout.tsx",
+      "namespaces": [
+        "trade/components/trading-layout"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/index.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/index"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/index"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/table-header.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/table-header"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/drawers/drawer-form.tsx",
+      "namespaces": [
+        "components/blocks/data-table/drawers/drawer-form"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/drawers/edit-create-drawer.tsx",
+      "namespaces": [
+        "components/blocks/data-table/drawers/edit-create-drawer"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/header/header-create-button.tsx",
+      "namespaces": [
+        "components/blocks/data-table/header/header-create-button"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/pagination/pagination-info.tsx",
+      "namespaces": [
+        "components/blocks/data-table/pagination/pagination-info"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/pagination/pagination-size-selector.tsx",
+      "namespaces": [
+        "components/blocks/data-table/pagination/pagination-size-selector"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/column-toggle.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/column-toggle"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/filter-button.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/filter-button"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/selected-items-actions.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/selected-items-actions"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/show-deleted-button.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/show-deleted-button"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/states/no-access-state.tsx",
+      "namespaces": [
+        "components/blocks/data-table/states/no-access-state"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/admin/blog/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/author/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/category/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/author-application.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/blog-list.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/blog-nav.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/comment-form.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/comment-list.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/pagination.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/post/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/tag/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/[slug]/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/affiliate/condition/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/affiliate/referral-generator/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/affiliate/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/dashboard-client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/forex/navbar.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/category/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/category/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/category-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/product-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/product-reviews.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/product/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/product/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/[id]/not-found.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/ask-question-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/faq-accordion.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/faq-feedback-summary.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/faq-feedback.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/faq-thumbs.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/faq-wizard.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/faq/components/media-renderer.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/wishlist/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/forex/components/cta-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/forex/components/how-it-works-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/forex/dashboard/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/about/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/countdown-timer.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/platform-announcement.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/portfolio-performance.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/user-portfolio.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/dashboard/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/components/maintenance-banner.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/components/platform-disabled-banner.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/dashboard/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guide/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guided-matching/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/components/animated-pool-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/components/pool-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/components/position-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/components/staking-hero.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/guide/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/dashboard/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/pool/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/create/client.tsx",
+      "namespaces": [
+        "nft/create"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/components/collection-card.tsx",
+      "namespaces": [
+        "nft/components/collection-card"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/components/nft-card.tsx",
+      "namespaces": [
+        "nft/components/nft-card"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/marketplace/client.tsx",
+      "namespaces": [
+        "nft/marketplace"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/dashboard/client.tsx",
+      "namespaces": [
+        "nft/dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/[id]/client.tsx",
+      "namespaces": [
+        "nft/details"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/chart/chart-container.tsx",
+      "namespaces": [
+        "binary/components/chart/chart-container"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/chart/price-indicator.tsx",
+      "namespaces": [
+        "binary/components/chart/price-indicator"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/guide/guide-modal.tsx",
+      "namespaces": [
+        "binary/components/guide/guide-modal"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/header/header.tsx",
+      "namespaces": [
+        "binary/components/header/header"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/header/market-selector-modal.tsx",
+      "namespaces": [
+        "binary/components/header/market-selector-modal"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/header/market-selector.tsx",
+      "namespaces": [
+        "binary/components/header/market-selector"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/header/mobile-header.tsx",
+      "namespaces": [
+        "binary/components/header/mobile-header"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/layout/mobile-layout.tsx",
+      "namespaces": [
+        "binary/components/layout/mobile-layout"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/trading/quick-trade-buttons.tsx",
+      "namespaces": [
+        "binary/components/trading/quick-trade-buttons"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/positions/active-positions.tsx",
+      "namespaces": [
+        "binary/components/positions/active-positions"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/positions/mobile-positions-panel.tsx",
+      "namespaces": [
+        "binary/components/positions/mobile-positions-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/orders/[id]/page.tsx",
+      "namespaces": [
+        "binary/orders/detail"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/components/pending-transactions.tsx",
+      "namespaces": [
+        "finance/wallet/components/pending-transactions"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/components/wallet-actions.tsx",
+      "namespaces": [
+        "finance/wallet/components/wallet-actions"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/components/wallet-list.tsx",
+      "namespaces": [
+        "finance/wallet/components/wallet-list"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/components/wallet-overview.tsx",
+      "namespaces": [
+        "finance/wallet/components/wallet-overview"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/order-panel.tsx",
+      "namespaces": [
+        "binary/components/order/order-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/profit-display.tsx",
+      "namespaces": [
+        "binary/components/order/profit-display"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/risk-calculator.tsx",
+      "namespaces": [
+        "binary/components/order/risk-calculator"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/templates-selector.tsx",
+      "namespaces": [
+        "binary/components/order/templates-selector"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/trade-confirmation.tsx",
+      "namespaces": [
+        "binary/components/order/trade-confirmation"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/order/trading-buttons.tsx",
+      "namespaces": [
+        "binary/components/order/trading-buttons"
+      ]
+    },
+    {
+      "file": "app/[locale]/investment/plan/[id]/client.tsx",
+      "namespaces": [
+        "investment/plan/[id]/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/support/ticket/components/live-chat.tsx",
+      "namespaces": [
+        "support/ticket/components/live-chat"
+      ]
+    },
+    {
+      "file": "app/[locale]/support/ticket/components/pagination.tsx",
+      "namespaces": [
+        "support/ticket/components/pagination"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/alerts/alerts-panel.tsx",
+      "namespaces": [
+        "trade/components/alerts/alerts-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/binary/components/navigation/mobile-navigation.tsx",
+      "namespaces": [
+        "binary/components/navigation/mobile-navigation"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/layout/layout-dropdown.tsx",
+      "namespaces": [
+        "trade/components/layout/layout-dropdown"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/layout/mobile-layout.tsx",
+      "namespaces": [
+        "trade/components/layout/mobile-layout"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/header/trading-header.tsx",
+      "namespaces": [
+        "trade/components/header/trading-header"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/chart/chart-panel.tsx",
+      "namespaces": [
+        "trade/components/chart/chart-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/orderbook/orderbook-panel.tsx",
+      "namespaces": [
+        "trade/components/orderbook/orderbook-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/connection-status-indicator.tsx",
+      "namespaces": [
+        "trade/components/markets/connection-status-indicator"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/empty-search-state.tsx",
+      "namespaces": [
+        "trade/components/markets/empty-search-state"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/market-item.tsx",
+      "namespaces": [
+        "trade/components/markets/market-item"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/markets-panel.tsx",
+      "namespaces": [
+        "trade/components/markets/markets-panel"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/watchlist-empty-state.tsx",
+      "namespaces": [
+        "trade/components/markets/watchlist-empty-state"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/watchlist-header.tsx",
+      "namespaces": [
+        "trade/components/markets/watchlist-header"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/markets/watchlist-sort-buttons.tsx",
+      "namespaces": [
+        "trade/components/markets/watchlist-sort-buttons"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/panel/resize-handle.tsx",
+      "namespaces": [
+        "trade/components/panel/resize-handle"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/status/status-bar.tsx",
+      "namespaces": [
+        "trade/components/status/status-bar"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/drawers/form-controls/date.tsx",
+      "namespaces": [
+        "components/blocks/data-table/drawers/form-controls/date"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/drawers/form-controls/multi-select-form-control.tsx",
+      "namespaces": [
+        "components/blocks/data-table/drawers/form-controls/multi-select-form-control"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/drawers/form-controls/select.tsx",
+      "namespaces": [
+        "components/blocks/data-table/drawers/form-controls/select"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/sort/sorting-direction.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/sort/sorting-direction"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/sort/sorting-field.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/sort/sorting-field"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/toolbar/sort/sorting-status.tsx",
+      "namespaces": [
+        "components/blocks/data-table/toolbar/sort/sorting-status"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notification-card.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notification-item.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-empty.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-filters.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-header.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-list.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/notification/components/notifications-timeline.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/profile-content.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/profile-sidebar.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/two-factor-setup-flow.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/admin/blog/components/charts.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/admin/blog/settings/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/api/key/columns.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/ai-section-generator.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/preview-mode.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/theme-toggle.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/[id]/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/support/columns.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/support/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/columns.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/wallet/columns.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/author/apply/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/author/[id]/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/category/[slug]/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/extension/license-verification.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/extension/top-bar.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/settings/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/log/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/upgrade-helper/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/update/license-verification.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/update/top-bar.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/update/update-actions.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/update/update-info.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/tag/[slug]/client.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/home/categories-section.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/home/cta-section.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/home/hero-section.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/home/recent-articles.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/components/home/tags-section.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/affiliate/network/components/network-graph.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/affiliate/network/components/referral-tree.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/affiliate/settings/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/ai/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/feedback/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/components/admin-navbar.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/settings/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/(overview)/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/position/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/position/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/earning/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/settings/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/activity/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/category/[slug]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/product/[slug]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/categories-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/cta-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/features-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/hero-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/testimonials-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ecommerce/components/landing/trending-products-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/forex/plan/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/forex/trading/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/components/investors-list.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/components/performance-chart.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/components/stats.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/landing/how-it-works.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/landing/newsletter-signup.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/landing/stats.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/components/landing/testimonials.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token-simulator/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/[id]/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/components/active-offers.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/components/completed-offers.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/components/offers-filter.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/components/offers-pagination.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/components/upcoming-offers.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/transaction/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/transaction/[id]/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guide/components/buyers-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guide/components/overview-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guide/components/safety-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/guide/components/sellers-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/dashboard/components/dashboard-hero.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/dashboard/components/portfolio-chart.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/components/guided-matching-wizard.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/components/offers-cta.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/components/offers-hero.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/active-trades-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/dashboard-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/error-display.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/pending-trades-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/recent-activity.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/safety-tips.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/search-filters.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/components/stats-overview.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/dashboard/components/position-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/collection/[id]/client.tsx",
+      "namespaces": [
+        "nft/collection"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/components/position-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/components/position-details-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/components/positions-empty-state.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/components/positions-filters.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/position/components/positions-summary.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/components/modals/list-nft-modal.tsx",
+      "namespaces": [
+        "nft/modals/list"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/components/modals/make-offer-modal.tsx",
+      "namespaces": [
+        "nft/modals/offer"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/pool/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/token/[id]/client.tsx",
+      "namespaces": [
+        "nft/token"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/creator/dashboard/client.tsx",
+      "namespaces": [
+        "nft/creator/dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/finance/wallet/[type]/[currency]/client.tsx",
+      "namespaces": [
+        "finance/wallet/[type]/[currency]/client"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/creator/[id]/client.tsx",
+      "namespaces": [
+        "nft/creator/profile"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/user/[id]/client.tsx",
+      "namespaces": [
+        "nft/user/profile"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/amount-input.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/amount-input"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/duration-selector.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/duration-selector"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/expected-profit-display.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/expected-profit-display"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/index.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/index"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/investment-button.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/investment-button"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/ai-investment/plan-selector.tsx",
+      "namespaces": [
+        "trade/components/trading/ai-investment/plan-selector"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts/area/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts/area/index"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts/bar/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts/bar/index"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/balance-display.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/balance-display"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/funding-info.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/funding-info"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/index.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/index"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/leverage-slider.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/leverage-slider"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/limit-order-form.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/limit-order-form"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/limit-price-input.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/limit-price-input"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/market-order-form.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/market-order-form"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/order-type-selector.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/order-type-selector"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/position-info.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/position-info"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/stop-loss-take-profit.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/stop-loss-take-profit"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/futures/trading-buttons.tsx",
+      "namespaces": [
+        "trade/components/trading/futures/trading-buttons"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/spot/balance-display.tsx",
+      "namespaces": [
+        "trade/components/trading/spot/balance-display"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/spot/index.tsx",
+      "namespaces": [
+        "trade/components/trading/spot/index"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/spot/limit-order-form.tsx",
+      "namespaces": [
+        "trade/components/trading/spot/limit-order-form"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/spot/market-order-form.tsx",
+      "namespaces": [
+        "trade/components/trading/spot/market-order-form"
+      ]
+    },
+    {
+      "file": "app/[locale]/trade/components/trading/spot/stop-order-form.tsx",
+      "namespaces": [
+        "trade/components/trading/spot/stop-order-form"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts/donut/center-content.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts/donut/center-content"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts/line/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts/line/index"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/analytics/charts/stacked-bar/index.tsx",
+      "namespaces": [
+        "components/blocks/data-table/analytics/charts/stacked-bar/index"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/render/footer/error-display.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/render/footer/error-display"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/render/footer/loading-indicator.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/render/footer/loading-indicator"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/cells/tags.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/cells/tags"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/actions/delete.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/actions/delete"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/actions/edit.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/actions/edit"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/actions/permanent-delete.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/actions/permanent-delete"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/actions/restore.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/actions/restore"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/actions/view.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/actions/view"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/render/toolbar/chart-toolbar.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/render/toolbar/chart-toolbar"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/render/toolbar/indicator-panel.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/render/toolbar/indicator-panel"
+      ]
+    },
+    {
+      "file": "components/blocks/advanced-chart/canvas/render/toolbar/settings-panel.tsx",
+      "namespaces": [
+        "components/blocks/advanced-chart/canvas/render/toolbar/settings-panel"
+      ]
+    },
+    {
+      "file": "components/blocks/data-table/content/rows/view/hidden-columns.tsx",
+      "namespaces": [
+        "components/blocks/data-table/content/rows/view/hidden-columns"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/apply/[id]/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/components/dynamic-form/file-field.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/components/dynamic-form/image-field.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/components/dynamic-form/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/application/[id]/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/dashboard-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/notifications-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/personal-info-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/phone-verification-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/security-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/profile/components/tabs/wallet-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/canvas/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/header/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/modals/add-content-modal.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/modals/element-selector.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/modals/section-selector.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/modals/virtualized-element-grid.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/section-renderer.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/shared/element-preview.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/shared/scrollable-snapshot.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/application/loading.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/nft/creator/profile/client.tsx",
+      "namespaces": [
+        "nft/creator/profile/edit"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/binary/market/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/support/[id]/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/exchange/[id]/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/deposit/log/columns.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/currency/spot/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/components/metadata-display.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/components/reject-dialog.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/components/transaction-edit.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/components/transaction-header.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/transaction/components/transaction-summary.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(blog)/blog/author/manage/components/post-editor.tsx",
+      "namespaces": [
+        "blog"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/components/connection-status.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/components/cron-card.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/components/health.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/components/status-tabs.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/cron/components/timeline-view.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/extension/[id]/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/extension/[id]/top-bar.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/database/backup/backup-modal.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/database/backup/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/database/backup/restore-modal.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/affiliate/settings/components/commission.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/affiliate/settings/components/general.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/settings/components/logo-field.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/settings/components/tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/feedback/components/feedback-details-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/blockchain/[productId]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/question/components/answer-question-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/question/components/convert-to-faq-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/[id]/faq-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/components/step-1.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/components/step-2.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/components/step-3.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/market/components/step-4.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/components/step-1.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/components/step-2.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/components/step-3.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecosystem/token/components/step-4.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/order/[id]/download-options.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/settings/components/display.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ecommerce/settings/components/general.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/transaction/[id]/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/components/actions.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/components/stats-cards.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/components/status-chart.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/components/step-1.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/components/step-2.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/components/step-3.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/[id]/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/futures/market/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/template/create/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/template/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/components/analytics/analytics-cards.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/components/pool-form-basic-info.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/components/pool-form-description.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/components/pool-form-page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/components/pool-form-preview.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/components/pool-form-profit-settings.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/[id]/page.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/components/add-targets.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/components/controls.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/components/progress.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/components/settings.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/mailwizard/campaign/components/targets.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/components/cards/pool-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/settings/components/earning.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/settings/components/platform.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/(overview)/components/activity.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/(overview)/components/extra-metrics.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/(overview)/components/header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/(overview)/components/metrics.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/position/components/details.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/components/fees.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/components/platform.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/components/security.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/components/trading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/settings/components/ui.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/trade/[id]/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/launch-requirements.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token-simulator/components/distribution-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token-simulator/components/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token-simulator/components/projection-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token-simulator/components/simulator-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/[id]/components/investment-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/offer/[id]/components/token-details.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/dashboard/components/transaction/columns.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/not-found.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-actions.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-alerts.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-chat.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-details-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-details-wrapper.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-details.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-escrow.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-info.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-payment.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-progress.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-rating.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/trade/[id]/components/trade-timeline.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/dashboard/components/overview/performance-chart.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/dashboard/components/overview/portfolio-overview.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/trading-wizard.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/edit/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/components/error-state.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/components/loading-state.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/components/offer-hero.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/components/seller-information.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/[id]/components/trade-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/staking/pool/[id]/components/stake-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/canvas/components/measurement-label.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/user/kyc/application/[id]/update/client.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/canvas/structure/reorder-controls.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/content-elements.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/element-cache.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/media-elements.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/preview-renderer.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/text-elements.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/renderers/elements/trending-markets.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/ui/panel-header.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/application/components/application-details-tab.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/application/components/fields.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/application/components/sidebar.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/application/components/user-profile.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/builder-content.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/builder-footer.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/builder-header.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/feature-management.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/form-preview.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/exchange/[id]/fee/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/exchange/[id]/balance/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/exchange/[id]/market/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/exchange/[id]/license/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/advanced-search.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/faq-bulk-actions.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/faq-empty-state.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/faq-filters.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/faq-tag-input.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/features/page-actions-menu.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/dialogs/bulk-action-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/dialogs/delete-faq-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/dialogs/delete-page-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/faq/manage/components/dialogs/preview-faq-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/system/notification/template/[id]/page.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/blockchain/dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/blockchain/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/components/manage/funding.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/offer/components/manage/metrics.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/type/dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/type/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/platform/announcement-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/platform/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/platform/investment-limits-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/platform/platform-features-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/platform/platform-fees-section.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/action-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/activity-log-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/admin-notes-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/offer-details-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/offer-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/related-trades-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/components/user-info-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/edit/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/back-button.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/dispute-breadcrumb.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/dispute-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/dispute-status-badge.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/dispute-tabs.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/error-display.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/loading-skeleton.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/messages-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/overview-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/priority-badge.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/resolution-details.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/resolution-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/trade-details-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/dispute/[id]/components/user-history.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/[id]/release/client.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/[id]/components/pool-analytics-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/[id]/components/pool-details-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/[id]/components/pool-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/staking/pool/[id]/components/pool-positions-tab.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/trade/[id]/components/trade-dispute-view.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/trade/[id]/components/trade-messages-view.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/trade/[id]/components/trade-timeline-view.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/release/release-drawer.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/release/token-phase-card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/delete-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/grid.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/list.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/team/search.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/card.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/delete-dialog.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/stats.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/timeline.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/components/roadmap/toolbar.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/amount-price-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/location-settings-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/payment-methods-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/review-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/select-crypto-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/trade-settings-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/trade-type-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/p2p/offer/create/components/steps/user-requirements-step.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/animations.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/attributes.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/css-id-classes.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/custom-css.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/position.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/scroll-effects.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/transitions.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/advanced-tab/visibility.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/alignment.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/appearance.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/border.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/box-shadow.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/filters.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/sizing.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/spacing.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/transform.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/design-tab/typography.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/left-sidebar/field-library-panel.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/left-sidebar/settings-panel.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/deposit/gateway/[id]/edit/client.tsx",
+      "namespaces": [
+        "admin"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-summary.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/header.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/no-field-selected.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/structure-tab/column-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/structure-tab/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/structure-tab/row-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/structure-tab/section-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/launch/plan/form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/ico/settings/components/launch/plan/index.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/admin/p2p/offer/[id]/edit/components/edit-header.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/token/[id]/plan/upgrade/loading.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/offering-structure.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/payment.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/roadmap.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/success.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/team-members.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/token-configuration.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/steps/token-resources.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/components/phase-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/components/roadmap-item-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(ext)/ico/creator/launch/components/stepped-launch-form/components/team-member-form.tsx",
+      "namespaces": [
+        "ext"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/card-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/feature-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/gallery-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/icon-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/image-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/list-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/notification-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/builder/components/settings-panel/tabs/content-tab/elements/pricing-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/deposit/gateway/[id]/edit/components/edit-header.tsx",
+      "namespaces": [
+        "admin"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/finance/deposit/gateway/[id]/edit/components/gateway-edit-form.tsx",
+      "namespaces": [
+        "admin"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-editor/basic-fields.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-editor/conditional-fields.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-editor/field-type-settings.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-editor/index.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    },
+    {
+      "file": "app/[locale]/(dashboard)/admin/crm/kyc/components/level-builder/right-sidebar/field-editor/validation-fields.tsx",
+      "namespaces": [
+        "dashboard"
+      ]
+    }
+  ]
+}

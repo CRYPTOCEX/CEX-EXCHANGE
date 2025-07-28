@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Bicrypto V5</title>
+    
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta name="cache-version" content="1.0.959549">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="assets/layout.js?v=1.0.959549"></script>
+    <script src="assets/patch-notes.js?v=1.0.959549"></script>
+    <link rel="stylesheet" href="assets/styles.css?v=1.0.959549">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        zinc: {
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            300: '#d4d4d8',
+                            400: '#a1a1aa',
+                            500: '#71717a',
+                            600: '#52525b',
+                            700: '#3f3f46',
+                            800: '#27272a',
+                            900: '#18181b',
+                            950: '#09090b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #52525b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #71717a;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-200" 
+      x-data="{ 
+          darkMode: localStorage.getItem('bicrypto-theme') === 'dark' || (!localStorage.getItem('bicrypto-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+          sidebarOpen: false,
+          searchQuery: '',
+          init() {
+              // Sync Alpine.js state with system theme changes
+              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                  if (!localStorage.getItem('bicrypto-theme')) {
+                      this.darkMode = e.matches;
+                  }
+              });
+              
+              // Watch for theme changes from localStorage (from other tabs/windows)
+              window.addEventListener('storage', (e) => {
+                  if (e.key === 'bicrypto-theme') {
+                      this.darkMode = e.newValue === 'dark';
+                  }
+              });
+          }
+      }">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Title - Left Side -->
+                <div class="flex items-center space-x-4">
+                    <button @click="sidebarOpen = !sidebarOpen" 
+                            class="lg:hidden p-2 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-zinc-300 dark:border-zinc-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">V5</span>
+                        </div>
+                        <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100">Documentation</h1>
+                    </div>
+                </div>
+
+                <!-- Right Side Controls -->
+                <div class="flex items-center space-x-4">
+                    <!-- Support and Demo Buttons -->
+                    <div class="hidden md:flex items-center space-x-3">
+                        <a href="#" 
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            Support
+                        </a>
+                        <a href="https://mash3div.com/en" 
+                           target="_blank"
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                            Demo
+                        </a>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="relative hidden sm:block">
+                        <input type="text" 
+                               x-model="searchQuery"
+                               data-search-input
+                               placeholder="Search docs..." 
+                               class="w-64 px-4 py-2 pl-10 text-sm bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-zinc-500 dark:placeholder-zinc-400">
+                        <svg class="absolute left-3 top-2.5 w-4 h-4 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Mobile Menu for Support/Demo (visible on smaller screens) -->
+                    <div class="md:hidden relative" x-data="{ mobileMenuOpen: false }">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen"
+                                class="p-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                        <div x-show="mobileMenuOpen" 
+                             @click.away="mobileMenuOpen = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 py-2 z-50">
+                            <a href="#" class="flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                Support
+                            </a>
+                            <a href="https://mash3div.com/en" target="_blank" class="flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                Demo
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Cache Refresh Button -->
+                    <button @click="window.docsLayout && window.docsLayout.forceReload()"
+                            title="Force refresh (clear cache)"
+                            class="p-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button @click="window.docsLayout && window.docsLayout.toggleTheme(); darkMode = !darkMode"
+                            class="p-2 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                        <svg x-show="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+               x-show="sidebarOpen || window.innerWidth >= 1024"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 transform -translate-x-full"
+               x-transition:enter-end="opacity-100 transform translate-x-0"
+               x-transition:leave="transition ease-in duration-200"
+               x-transition:leave-start="opacity-100 transform translate-x-0"
+               x-transition:leave-end="opacity-0 transform -translate-x-full">
+            
+            <div class="flex flex-col h-full bg-white dark:bg-zinc-900 lg:bg-zinc-50/50 lg:dark:bg-zinc-900/50 border-r border-zinc-200 dark:border-zinc-800 shadow-xl lg:shadow-none">
+                <div class="flex-1 flex flex-col pt-6 pb-6 overflow-y-auto">
+                    <div class="px-4 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
+                                <span class="text-white font-bold text-xs">V5</span>
+                            </div>
+                            <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Bicrypto Docs</span>
+                        </div>
+                    </div>
+                    <nav class="flex-1 px-3 space-y-1" data-sidebar-nav>
+                        <!-- Navigation will be populated by JavaScript -->
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex items-center space-x-2 px-3 py-2">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                    <span class="text-sm text-zinc-500 dark:text-zinc-400">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             class="fixed inset-0 z-30 bg-black/50 lg:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-0">
+            <div class="px-4 sm:px-6 lg:px-8 py-8 xl:mr-96">
+                <!-- Loading indicator -->
+                <div id="loading-indicator" class="hidden flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-3 text-zinc-600 dark:text-zinc-400">Loading...</span>
+                </div>
+                
+                <!-- Dynamic content area -->
+                <div id="dynamic-content" data-content-area>
+                    <!-- Default content will be loaded by JavaScript -->
+                </div>
+            </div>
+        </main>
+        
+        <!-- Table of Contents -->
+        <div class="hidden xl:block fixed top-20 right-8 w-64 z-20">
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm max-h-[calc(100vh-6rem)] flex flex-col">
+                <div class="p-4 border-b border-zinc-200 dark:border-zinc-700">
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100">On this page</h4>
+                </div>
+                <nav class="flex-1 overflow-y-auto p-4 space-y-1" data-table-of-contents>
+                    <!-- Table of contents will be generated dynamically -->
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-200 dark:border-zinc-800 mt-16">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <p class="text-zinc-600 dark:text-zinc-400">
+                    Built with ❤️ for the Bicrypto V5
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the layout system
+            const layout = new DocsLayout();
+            
+            // Configure the layout
+            layout.init({
+                title: 'V5 Documentation',
+                logo: 'V5',
+                searchEnabled: true
+            });
+
+            // Navigation is now automatically set up in layout.init()
+            layout.setCurrentPage('index.html');
+            layout.setupContentFeatures();
+
+            // Initialize highlight.js
+            hljs.highlightAll();
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Close mobile sidebar when clicking on links
+            document.querySelectorAll('aside a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 1024) {
+                        Alpine.store('sidebarOpen', false);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

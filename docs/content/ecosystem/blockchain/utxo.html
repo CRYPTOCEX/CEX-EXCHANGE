@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTXO Networks Integration Guide | Bicrypto Documentation</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="docs-container">
+        <div class="blockchain-header utxo-theme">
+            <div class="blockchain-icon">₿</div>
+            <div class="blockchain-info">
+                <h1>UTXO Networks Integration Guide</h1>
+                <p class="blockchain-subtitle">Bitcoin • Litecoin • Dogecoin • Dash</p>
+                <div class="blockchain-badges">
+                    <span class="badge">Bitcoin (BTC)</span>
+                    <span class="badge">Litecoin (LTC)</span>
+                    <span class="badge">Dogecoin (DOGE)</span>
+                    <span class="badge">Dash (DASH)</span>
+                    <span class="badge">Provider: BlockCypher</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-intro">
+            <p>
+                This guide shows you how to integrate UTXO-based networks—Bitcoin (BTC), Litecoin (LTC), Dogecoin (DOGE), and Dash (DASH)—into your Bicrypto Ecosystem. You'll add UTXO credentials in <code>.env</code>, specify node providers (e.g., BlockCypher), and then configure master wallets and tokens in the admin panel. Unlike EVM-compatible chains, UTXO networks handle transactions differently (no "permit" tokens, different address management, etc.).
+            </p>
+        </div>
+
+        <div class="steps-container">
+            <!-- Step 1: Configure Environment Variables -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>Configure Environment Variables</h3>
+                </div>
+                <div class="step-content">
+                    <div id="env-file-editing"></div>
+                    
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            <span class="code-title">Add to .env file</span>
+                            <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        </div>
+                        <pre class="code-block"><code># UTXO Networks (mainnet only)
+BTC_NETWORK="mainnet"
+LTC_NETWORK="mainnet"
+DOGE_NETWORK="mainnet"
+DASH_NETWORK="mainnet"
+
+# BTC Node Provider (blockcypher, haskoin)
+BTC_NODE="blockcypher"
+# BTC FEE RATE PRIORITY (regular, priority) *priority uses higher fees for faster mining
+BTC_FEE_RATE_PRIORITY="regular"
+
+# LTC, DOGE, DASH Node Provider (blockcypher)
+LTC_NODE="blockcypher"
+DOGE_NODE="blockcypher"
+DASH_NODE="blockcypher"
+
+# BlockCypher API (For UTXO Networks websocket)
+BLOCKCYPHER_TOKEN="YOUR_BLOCKCYPHER_TOKEN"  # e.g., 7f7a58e15fe34d18bcfce0...</code></pre>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h4>🔑 Environment Variables</h4>
+                            <ul>
+                                <li><strong>Network Settings:</strong> Currently, only <code>mainnet</code> is supported for all UTXO coins</li>
+                                <li><strong>BTC_NODE:</strong> Choose <code>blockcypher</code> or <code>haskoin</code> (if supported)</li>
+                                <li><strong>BTC_FEE_RATE_PRIORITY:</strong> Set <code>regular</code> or <code>priority</code> for transaction speed</li>
+                                <li><strong>BLOCKCYPHER_TOKEN:</strong> Your API token from <a href="https://www.blockcypher.com/" target="_blank">BlockCypher</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Acquire Node Provider & API Tokens -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>Acquire Node Provider & API Tokens</h3>
+                </div>
+                <div class="step-content">
+                    <div class="provider-section">
+                        <h4>🔗 BlockCypher Account</h4>
+                        <p>If you're using <a href="https://www.blockcypher.com/" target="_blank">BlockCypher</a> for LTC, DOGE, DASH (and optionally BTC):</p>
+                        <ul>
+                            <li>Create an account at BlockCypher</li>
+                            <li>Navigate to your dashboard</li>
+                            <li>Generate an API token</li>
+                            <li>Insert it into <code>BLOCKCYPHER_TOKEN</code></li>
+                        </ul>
+                        
+                        <div class="image-container">
+                            <img src="storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="BlockCypher dashboard showing how to create an API token">
+                        </div>
+                    </div>
+
+                    <div class="provider-section">
+                        <h4>🏗️ Optional BTC Node Provider</h4>
+                        <p>If you prefer <code>haskoin</code> or run your own node:</p>
+                        <ul>
+                            <li>Adapt <code>BTC_NODE</code> accordingly</li>
+                            <li>Check your provider's documentation for setup instructions</li>
+                            <li>Ensure proper authentication and endpoint configuration</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ Fee Priority:</strong> <em>Priority</em> mode uses higher fees for faster confirmations but increases operational costs.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Apply Environment Updates -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>Apply Environment Updates</h3>
+                </div>
+                <div class="step-content">
+                    <div id="apply-env-updates"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Configure Master Wallet -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>Configure Master Wallet</h3>
+                </div>
+                <div class="step-content">
+                    <p>Unlike EVM chains, UTXO-based coins (BTC, LTC, DOGE, DASH) manage addresses differently. However, Bicrypto's <strong>Master Wallet</strong> concept still applies for deposit and withdrawal flows.</p>
+                    
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-number">1</div>
+                            <div class="process-content">
+                                <h4>Navigate to Master Wallet</h4>
+                                <p>Go to <strong>Admin → Extensions → Ecosystem → Master Wallet</strong></p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/11dfcfa7-ec52-4c02-ba66-3e151674057b.png" alt="Navigating to Ecosystem Master Wallet in Bicrypto">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">2</div>
+                            <div class="process-content">
+                                <h4>Generate Master Wallets</h4>
+                                <p><strong>Generate a New Master Wallet</strong> for each UTXO coin you want to enable (BTC, LTC, DOGE, DASH). These wallets hold addresses and manage incoming/outgoing transactions for each coin.</p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/8bde9ffa-8147-411e-89d6-384f9b7fd95c.png" alt="Generate Master Wallet button">
+                                    <img src="storage/article_images/719b78c1-d5d6-43dd-871a-34870411d262.png" alt="Master Wallet creation process">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>Important:</strong> Each UTXO coin requires its own master wallet due to different address formats and transaction structures.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Enable UTXO Coins and Configure Fees -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">5</span>
+                    <h3>Enable UTXO Coins and Configure Fees</h3>
+                </div>
+                <div class="step-content">
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-number">1</div>
+                            <div class="process-content">
+                                <h4>Enable UTXO Coins</h4>
+                                <p>Go to <strong>Admin → Extensions → Ecosystem → Tokens</strong> and enable the UTXO coins (BTC, LTC, DOGE, DASH) you plan to support. They appear as "native" tokens since they're not ERC-20 or token contracts.</p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/c8b015f9-e872-48a8-8f50-bb8220369aee.png" alt="List of tokens in Bicrypto Ecosystem">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">2</div>
+                            <div class="process-content">
+                                <h4>Configure Fees and Limits</h4>
+                                <p><strong>Click the 3 dots</strong> next to a coin and select <strong>Edit</strong> to configure:</p>
+                                
+                                <div class="config-section">
+                                    <h5>💰 Fee Configuration</h5>
+                                    <ul>
+                                        <li><strong>Minimum Fee:</strong> If your percentage fee (e.g., 1%) results in a very low fee (like $1 on $100 withdrawal), set a minimum fee (e.g., $5) to ensure you cover network transaction fees or operational overhead.</li>
+                                        <li><strong>Percentage Fee:</strong> The standard withdrawal fee based on a percentage of the withdrawn amount.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="config-section">
+                                    <h5>📊 Limits</h5>
+                                    <ul>
+                                        <li><strong>Deposit Limits:</strong> The minimum/maximum amount a user can deposit for that coin.</li>
+                                        <li><strong>Withdraw Limits:</strong> The minimum/maximum amount a user can withdraw for that coin.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="image-container">
+                                    <img src="storage/article_images/f6ecee92-81f0-4a73-be4d-592e67fcf140.png" alt="Coin edit form showing fee and limit configuration">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Notes & Best Practices -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">✅</span>
+                    <h3>Final Notes & Best Practices</h3>
+                </div>
+                <div class="step-content">
+                    <div class="additional-tips">
+                        <div class="tip-card">
+                            <h4>🔐 Security</h4>
+                            <p>Storing private keys for UTXO coins is a critical responsibility. Always secure your wallet seeds/keys in a safe environment with proper backup procedures.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>⛽ Fee Rate Priority</h4>
+                            <p>BTC has a <code>BTC_FEE_RATE_PRIORITY</code> setting. If you notice slow confirmations, consider <code>priority</code>. For LTC, DOGE, and DASH, typical fees are lower.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>💰 Monitoring Balances</h4>
+                            <p>Check your Master Wallet balances regularly to ensure you have enough coin for withdrawal fees (especially if <code>BTC_FEE_RATE_PRIORITY</code> is <code>priority</code>).</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>📈 Scaling</h4>
+                            <p>If high volume is expected, explore solutions like batching withdrawals or using a separate hot/cold wallet architecture for better security.</p>
+                        </div>
+                    </div>
+
+                    <div class="utxo-differences">
+                        <h4>🔄 UTXO vs EVM Differences</h4>
+                        <div class="difference-cards">
+                            <div class="difference-card">
+                                <h5>Address Management</h5>
+                                <p>UTXO coins generate new addresses for each transaction, enhancing privacy but requiring different tracking mechanisms.</p>
+                            </div>
+                            <div class="difference-card">
+                                <h5>Transaction Structure</h5>
+                                <p>Transactions are built from unspent outputs (UTXOs) rather than account balances, requiring specialized handling logic.</p>
+                            </div>
+                            <div class="difference-card">
+                                <h5>No Smart Contracts</h5>
+                                <p>These coins don't support complex smart contracts or permit-style transactions like EVM chains.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-message">
+                        <p><em>By configuring these UTXO environment variables, generating Master Wallets for BTC, LTC, DOGE, or DASH, and adjusting deposit/withdrawal fees and limits, you can effectively manage UTXO-based coins within your Bicrypto Ecosystem.</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/layout.js"></script>
+</body>
+</html> 

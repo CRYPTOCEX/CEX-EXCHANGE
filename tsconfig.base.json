@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "target": "ES2018",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "incremental": true,
+    "strictNullChecks": true,
+    "paths": {
+      "@/*": ["./frontend/*"],
+      "@b/*": ["./backend/src/*"],
+      "@db/*": ["./backend/models/*"]
+    },
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "types/**/*.d.ts", "./backend/types/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

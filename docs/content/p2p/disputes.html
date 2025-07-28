@@ -1,0 +1,462 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⚖️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">P2P Dispute Resolution</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Manage peer-to-peer trading disputes</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Dispute Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The P2P dispute system handles conflicts between trading parties when trades encounter issues. Each dispute includes basic information about the trade, involved parties, reason for dispute, priority level, and resolution tracking. The system provides a structured approach to conflict resolution with evidence collection and administrative oversight.
+        </p>
+    </div>
+</div>
+
+<!-- Dispute Structure -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🏗️ Dispute Structure</h2>
+    
+    <!-- Core Information -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Core Dispute Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Dispute Identifiers</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Dispute ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID primary key for the dispute</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Trade ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Link to the disputed P2P trade</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Amount</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Disputed amount (string field)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Involved Parties</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Reported By ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID of user who filed the dispute</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Against ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID of user the dispute is against</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Filed On</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Date when dispute was created</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dispute Details -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Dispute Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Issue Description</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Reason</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Primary reason for the dispute (text field, required)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Details</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Additional details about the issue (text field, optional)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Classification</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Priority</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">HIGH, MEDIUM, or LOW priority level</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Status</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">PENDING, IN_PROGRESS, or RESOLVED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolution Data -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Resolution and Evidence Management</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Resolution Tracking</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Resolution</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">JSON object with resolution details (optional)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Resolved On</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Timestamp of dispute resolution (optional)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Evidence and Communication</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Messages</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">JSON array of dispute communications (optional)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Evidence</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">JSON object storing evidence files and data (optional)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status System -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Dispute Status System</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Available Status Types</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-yellow-600 dark:text-yellow-400 font-bold text-lg">⏳</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">PENDING</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Dispute filed, awaiting initial review</p>
+            </div>
+            
+            <div class="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-blue-600 dark:text-blue-400 font-bold text-lg">🔄</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">IN_PROGRESS</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Under active investigation and mediation</p>
+            </div>
+            
+            <div class="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-green-600 dark:text-green-400 font-bold text-lg">✅</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">RESOLVED</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Dispute concluded with final resolution</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Priority Levels -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚨 Priority Levels</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Dispute Priority Classification</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center p-6 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-red-600 dark:text-red-400 font-bold text-lg">🔴</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">HIGH</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Urgent issues requiring immediate attention</p>
+                <div class="mt-3 text-xs text-red-600 dark:text-red-400">
+                    Large amounts, fraud suspicion, urgent timeouts
+                </div>
+            </div>
+            
+            <div class="text-center p-6 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-orange-600 dark:text-orange-400 font-bold text-lg">🟡</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">MEDIUM</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Standard disputes with moderate complexity</p>
+                <div class="mt-3 text-xs text-orange-600 dark:text-orange-400">
+                    Payment delays, communication issues, minor disputes
+                </div>
+            </div>
+            
+            <div class="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-green-600 dark:text-green-400 font-bold text-lg">🟢</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-lg mb-2">LOW</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Minor issues with simple resolution</p>
+                <div class="mt-3 text-xs text-green-600 dark:text-green-400">
+                    Information requests, clarifications, minor concerns
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dispute Lifecycle -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔄 Dispute Lifecycle</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Typical Resolution Process</h3>
+        <div class="space-y-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Dispute Filing (PENDING)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        User files a dispute with reason, details, and priority assignment. The dispute is linked to the specific trade and parties involved.
+                    </p>
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded p-3">
+                        <span class="text-yellow-800 dark:text-yellow-200 text-sm">Dispute created with PENDING status, awaiting admin review</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Investigation Phase (IN_PROGRESS)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Admin reviews the dispute, collects evidence, and facilitates communication between parties through the messages system.
+                    </p>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                        <span class="text-blue-800 dark:text-blue-200 text-sm">Status updated to IN_PROGRESS with evidence collection and messaging</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Resolution (RESOLVED)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Final decision made and recorded in resolution field, with timestamp marking completion of the dispute process.
+                    </p>
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                        <span class="text-green-800 dark:text-green-200 text-sm">Status set to RESOLVED with resolution details and completion timestamp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evidence and Messages -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Evidence and Communication</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Messages System -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Messages (JSON)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                The messages field stores communication history during dispute resolution:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4 font-mono text-sm mb-4">
+[<br/>
+&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"timestamp": "2024-01-15T10:30:00Z",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"from": "admin",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"message": "Please provide payment proof",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"type": "request"<br/>
+&nbsp;&nbsp;}<br/>
+]
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Chronological message tracking</li>
+                <li>• Multi-party communication support</li>
+                <li>• Message type categorization</li>
+                <li>• Audit trail for resolution process</li>
+            </ul>
+        </div>
+        
+        <!-- Evidence System -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Evidence (JSON)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                The evidence field stores supporting documentation and files:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4 font-mono text-sm mb-4">
+{<br/>
+&nbsp;&nbsp;"files": [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "payment_receipt.jpg",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "/uploads/evidence/...",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;],<br/>
+&nbsp;&nbsp;"notes": "Additional context..."<br/>
+}
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• File attachment support</li>
+                <li>• Evidence categorization</li>
+                <li>• Admin notes and context</li>
+                <li>• Structured evidence organization</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Resolution Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Resolution Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Resolution Structure (JSON)</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            The resolution field stores the final decision and outcome details:
+        </p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4 font-mono text-sm mb-6">
+{<br/>
+&nbsp;&nbsp;"decision": "favor_buyer",<br/>
+&nbsp;&nbsp;"reasoning": "Payment proof confirmed, seller failed to release",<br/>
+&nbsp;&nbsp;"actions": [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"release_funds_to_buyer",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"warning_to_seller"<br/>
+&nbsp;&nbsp;],<br/>
+&nbsp;&nbsp;"compensation": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"amount": "0.1",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"currency": "BTC",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"recipient": "buyer"<br/>
+&nbsp;&nbsp;}<br/>
+}
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Resolution Components</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• <strong>Decision</strong>: Final ruling on the dispute</li>
+                    <li>• <strong>Reasoning</strong>: Explanation of the decision</li>
+                    <li>• <strong>Actions</strong>: Steps taken to resolve the issue</li>
+                    <li>• <strong>Compensation</strong>: Financial adjustments if applicable</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Resolution Tracking</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Resolved timestamp recording</li>
+                    <li>• Decision audit trail</li>
+                    <li>• Action item completion</li>
+                    <li>• Outcome validation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Administrative Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Administrative Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Admin Operations</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Dispute Management</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• View all active and resolved disputes</li>
+                    <li>• Filter by status, priority, date range</li>
+                    <li>• Review dispute details and evidence</li>
+                    <li>• Monitor dispute progression timelines</li>
+                    <li>• Track resolution outcomes and patterns</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Resolution Actions</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Review and update dispute status</li>
+                    <li>• Facilitate communication between parties</li>
+                    <li>• Collect and organize evidence</li>
+                    <li>• Make resolution decisions</li>
+                    <li>• Document outcomes and reasoning</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Relationships -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔗 Database Associations</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Dispute Relationships</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Core Relationships</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• <strong>Trade</strong>: One-to-one relationship with P2P trade</li>
+                    <li>• <strong>Reporter</strong>: User who filed the dispute</li>
+                    <li>• <strong>Against</strong>: User the dispute is filed against</li>
+                    <li>• <strong>Cascading</strong>: Delete on trade/user removal</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Data Integrity</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• UUID validation for all foreign keys</li>
+                    <li>• Required fields enforced at database level</li>
+                    <li>• Enum validation for status and priority</li>
+                    <li>• Automatic timestamp management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Dispute Handling</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Prioritize high-priority disputes for immediate review</li>
+                    <li>• Collect comprehensive evidence before making decisions</li>
+                    <li>• Maintain clear communication with all parties</li>
+                    <li>• Document reasoning for all resolution decisions</li>
+                    <li>• Follow consistent resolution procedures</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Administrative Guidelines</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Update dispute status promptly as cases progress</li>
+                    <li>• Use structured JSON for evidence and messages</li>
+                    <li>• Maintain detailed resolution records</li>
+                    <li>• Monitor dispute trends and patterns</li>
+                    <li>• Ensure fair and impartial resolution process</li>
+                </ul>
+            </div>
+        </div>
+    </div> 

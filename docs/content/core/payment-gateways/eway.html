@@ -1,0 +1,185 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">💳</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">eWAY Payment Gateway</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide to integrating eWAY Australia/New Zealand payment solutions</p>
+        </div>
+    </div>
+</div>
+
+<!-- eWAY Overview -->
+<div class="mb-12">
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center mb-4">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-white font-bold text-lg">E</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">eWAY - ANZ Payment Leader</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Trusted payment solutions for Australia and New Zealand</p>
+            </div>
+        </div>
+        
+        <!-- Feature Grid -->
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">🌏 ANZ Focus</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Australia & New Zealand</li>
+                    <li>• Local acquiring banks</li>
+                    <li>• AUD & NZD currencies</li>
+                    <li>• Regional compliance</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">💳 Payment Options</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Credit & Debit Cards</li>
+                    <li>• Apple Pay & Google Pay</li>
+                    <li>• Transparent Redirect</li>
+                    <li>• Responsive Shared Page</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Creation Guide -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔑 How to Create eWAY Account</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Sign Up for eWAY</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Visit <a href="https://www.eway.com.au/signup" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">eWAY Signup</a> and create a new account.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Complete Business Verification</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Provide business documentation and complete the verification process.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Access MyeWAY</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Log into your <a href="https://myeway.com.au/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">MyeWAY Dashboard</a> to access API credentials.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Get API Credentials</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Navigate to "Developer" section to get your API key and password.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Environment Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Add these environment variables to your .env file:</p>
+        <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">APP_EWAY_API_KEY="your_api_key"
+APP_EWAY_PASSWORD="your_password"
+APP_EWAY_SANDBOX="true"</code>
+        <p class="text-zinc-500 dark:text-zinc-400 text-xs mt-2">
+            Note: Set SANDBOX to "false" for production environment.
+        </p>
+    </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Endpoints</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/eway/</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Creates eWAY payment with Transparent Redirect</p>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Request Body:</p>
+                <code class="text-xs block">
+{
+  "amount": 100.00,
+  "currency": "AUD",
+  "customer": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com"
+  }
+}
+                </code>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/eway/verify</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Verifies eWAY payment status using access code</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded text-xs font-medium mr-3">GET</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/eway/status</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Checks eWAY payment status by transaction ID</p>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✨ Supported Features</h2>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Payment Methods</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Visa & Mastercard</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>American Express</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Diners Club</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Apple Pay & Google Pay</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Supported Currencies</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>AUD (Australian Dollar)</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>NZD (New Zealand Dollar)</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>USD (US Dollar)</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>EUR (Euro)</li>
+            </ul>
+        </div>
+    </div>
+</div>

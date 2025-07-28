@@ -1,0 +1,332 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🏊‍♂️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Staking Pool Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Create & Manage Basic Staking Pools</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Pool Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The staking system provides basic pool management functionality where administrators can create staking pools with defined parameters like APR rates, lock periods, and minimum stakes. Users can stake tokens in these pools and earn rewards based on the configured rates.
+        </p>
+    </div>
+</div>
+
+<!-- Pool Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Pool Features</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3 text-blue-600 dark:text-blue-400">🎯</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Basic Pool Configuration</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Simple pool setup with essential parameters</p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>• Pool name and description</li>
+                <li>• Token symbol and icon</li>
+                <li>• APR rate configuration</li>
+                <li>• Lock period settings</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3 text-green-600 dark:text-green-400">📊</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Pool Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Administrative controls for pool operations</p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>• Pool status control (Active/Inactive/Coming Soon)</li>
+                <li>• Minimum/maximum stake limits</li>
+                <li>• Early withdrawal fees</li>
+                <li>• Admin fee percentages</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Creating Pools -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">➕ Creating Staking Pools</h2>
+    
+    <div class="space-y-6">
+        <!-- Step 1 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Access Pool Management</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Navigate to the pool management section:
+                    </p>
+                    <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+                        Admin Panel → Staking → Pools
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click the "Create New Pool" button to start creating your staking pool.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Basic Pool Information</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Configure the basic pool details:
+                    </p>
+                    <div class="space-y-2">
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Name:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Pool display name (e.g., "Bitcoin Staking Pool")</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Token & Symbol:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Token name and symbol for the pool</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Description:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Brief description of the pool</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Icon:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Optional icon URL for the pool</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Financial Parameters</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Set the pool's financial terms:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                            <strong class="text-green-800 dark:text-green-200 block">APR Rate</strong>
+                            <span class="text-green-600 dark:text-green-400 text-sm">Annual percentage rate (e.g., 12.5%)</span>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                            <strong class="text-blue-800 dark:text-blue-200 block">Lock Period</strong>
+                            <span class="text-blue-600 dark:text-blue-400 text-sm">Days tokens are locked (e.g., 30, 90, 365)</span>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                            <strong class="text-purple-800 dark:text-purple-200 block">Min/Max Stake</strong>
+                            <span class="text-purple-600 dark:text-purple-400 text-sm">Minimum and optional maximum stake amounts</span>
+                        </div>
+                        <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                            <strong class="text-orange-800 dark:text-orange-200 block">Fees</strong>
+                            <span class="text-orange-600 dark:text-orange-400 text-sm">Early withdrawal and admin fee percentages</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Pool Settings</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Configure additional pool options:
+                    </p>
+                    <div class="space-y-2">
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Status:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> ACTIVE, INACTIVE, or COMING_SOON</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Earning Frequency:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> DAILY, WEEKLY, MONTHLY, or END_OF_TERM</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Auto Compound:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Enable automatic reward reinvestment</span>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                            <strong class="text-zinc-900 dark:text-zinc-100">Promoted:</strong>
+                            <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Mark pool as promoted/featured</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pool Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Pool Management</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Pool Listing & Overview</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                The pool management interface provides:
+            </p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• <strong>Pool List:</strong> View all created pools with basic information</li>
+                <li>• <strong>Status Control:</strong> Change pool status between Active, Inactive, and Coming Soon</li>
+                <li>• <strong>Pool Details:</strong> View detailed information about each pool</li>
+                <li>• <strong>Pool Editing:</strong> Modify pool parameters (where allowed)</li>
+                <li>• <strong>Pool Ordering:</strong> Reorder pools for display priority</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Pool Status Management</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-4">
+                    <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">ACTIVE</h4>
+                    <p class="text-green-600 dark:text-green-400 text-sm">Pool is open for new stakes and active rewards</p>
+                </div>
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded p-4">
+                    <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">INACTIVE</h4>
+                    <p class="text-yellow-600 dark:text-yellow-400 text-sm">Pool is closed for new stakes but existing positions remain</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-4">
+                    <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">COMING_SOON</h4>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm">Pool is announced but not yet available for staking</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Integration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Integration</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Available Endpoints</h3>
+            <div class="space-y-4">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <code class="text-green-800 dark:text-green-200 font-mono text-sm">POST /api/admin/staking/pool</code>
+                    <p class="text-green-600 dark:text-green-400 text-sm mt-1">Create a new staking pool</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <code class="text-blue-800 dark:text-blue-200 font-mono text-sm">GET /api/admin/staking/pool/all</code>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm mt-1">Get all staking pools</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                    <code class="text-purple-800 dark:text-purple-200 font-mono text-sm">GET /api/admin/staking/pool/{id}</code>
+                    <p class="text-purple-600 dark:text-purple-400 text-sm mt-1">Get specific pool details</p>
+                </div>
+                <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                    <code class="text-orange-800 dark:text-orange-200 font-mono text-sm">PUT /api/admin/staking/pool/status</code>
+                    <p class="text-orange-600 dark:text-orange-400 text-sm mt-1">Update pool status</p>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded p-3">
+                    <code class="text-red-800 dark:text-red-200 font-mono text-sm">DELETE /api/admin/staking/pool/{id}</code>
+                    <p class="text-red-600 dark:text-red-400 text-sm mt-1">Delete a staking pool</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Structure -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Pool Model Structure</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">stakingPool Fields</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Field</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">id</td>
+                        <td class="py-2">UUID</td>
+                        <td class="py-2">Unique pool identifier</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">name</td>
+                        <td class="py-2">String</td>
+                        <td class="py-2">Pool display name</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">token, symbol</td>
+                        <td class="py-2">String</td>
+                        <td class="py-2">Token name and symbol</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">apr</td>
+                        <td class="py-2">Float</td>
+                        <td class="py-2">Annual percentage rate</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">lockPeriod</td>
+                        <td class="py-2">Integer</td>
+                        <td class="py-2">Lock period in days</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">minStake, maxStake</td>
+                        <td class="py-2">Float</td>
+                        <td class="py-2">Minimum and maximum stake amounts</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">status</td>
+                        <td class="py-2">Enum</td>
+                        <td class="py-2">ACTIVE | INACTIVE | COMING_SOON</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">earningFrequency</td>
+                        <td class="py-2">Enum</td>
+                        <td class="py-2">DAILY | WEEKLY | MONTHLY | END_OF_TERM</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">autoCompound</td>
+                        <td class="py-2">Boolean</td>
+                        <td class="py-2">Enable automatic reinvestment</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="space-y-4">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">APR Setting</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Set realistic APR rates that can be sustained by your platform's revenue model.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Lock Periods</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Offer varied lock periods to accommodate different user preferences and risk tolerances.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Pool Monitoring</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Regularly monitor pool performance and user engagement to optimize pool parameters.</p>
+        </div>
+    </div>
+</div> 

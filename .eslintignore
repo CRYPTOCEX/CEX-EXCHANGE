@@ -1,0 +1,52 @@
+# Ignore all node_modules folders (both backend and frontend)
+node_modules
+**/node_modules
+
+# Ignore backend build/dist output
+backend/dist
+backend/build
+
+# Ignore frontend build output (Next.js)
+frontend/.next
+frontend/out
+
+# If using Vercel, ignore these
+.vercel
+.vercel_build_output
+
+# General build artifacts
+dist
+build
+
+# Coverage directories (if you're generating coverage)
+coverage
+**/coverage
+
+# Environment files
+.env
+.env.* 
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Optionally ignore config files if you don't want to lint them
+*.config.js
+*.config.cjs
+*.config.mjs
+*.config.ts
