@@ -138,16 +138,19 @@ export default async (data: Handler) => {
   // -------------------------------
   // 🟢 Validation: Amount, Precision, Min/Max
   // -------------------------------
+  // Get precision from exchange currency configuration
   const precision =
     (exchangeCurrency.networks &&
       exchangeCurrency.networks[chain]?.precision) ??
     exchangeCurrency.precision ??
     currencyData.precision ??
-    6;
-  if (countDecimals(amount) > precision) {
+    8; // Default to 8 decimals if no precision is configured
+
+  const actualDecimals = countDecimals(amount);
+  if (actualDecimals > precision) {
     throw createError({
       statusCode: 400,
-      message: `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${precision}.`,
+      message: `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${precision} decimal places. Your amount has ${actualDecimals} decimal places.`,
     });
   }
   const netConf = exchangeCurrency.networks?.[chain] ?? {};
@@ -300,6 +303,23 @@ export default async (data: Handler) => {
       : netWithdrawAmount;
 
     try {
+      // Pre-validate exchange balance before attempting withdrawal
+      let exchangeBalance;
+      try {
+        const balance = await exchange.fetchBalance();
+        exchangeBalance = balance.free[currency] || 0;
+        
+        if (exchangeBalance < providerWithdrawAmount) {
+          throw createError({
+            statusCode: 400,
+            message: `Insufficient exchange balance. Available: ${exchangeBalance} ${currency}, Required: ${providerWithdrawAmount} ${currency}. Please contact support to refill the exchange account.`
+          });
+        }
+      } catch (balanceError) {
+        console.warn(`Could not fetch exchange balance for ${currency}:`, balanceError.message);
+        // Continue with withdrawal attempt, let exchange handle balance validation
+      }
+
       switch (provider) {
         case "kucoin":
           try {
@@ -376,7 +396,20 @@ export default async (data: Handler) => {
               throw new Error("Withdrawal response invalid");
             }
           } catch (error) {
-            throw new Error("Withdrawal failed: " + error.message);
+            // Enhanced error handling for Binance-specific errors
+            if (error.message && error.message.includes('-4026')) {
+              throw createError({
+                statusCode: 400,
+                message: `Insufficient balance on ${provider} exchange. Available: ${exchangeBalance || 'Unknown'} ${currency}. Please contact support to refill the exchange account.`
+              });
+            } else if (error.message && error.message.includes('insufficient')) {
+              throw createError({
+                statusCode: 400,
+                message: `Exchange has insufficient balance for this withdrawal. Please contact support.`
+              });
+            } else {
+              throw new Error(`${provider} withdrawal failed: ${error.message}`);
+            }
           }
           break;
         case "xt":

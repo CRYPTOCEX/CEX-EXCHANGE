@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useRouter } from "@/i18n/routing";
+import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { format, formatDistanceToNow, subDays, subMonths } from "date-fns";
 import {
@@ -191,6 +191,7 @@ const BLOCK_REASONS = [
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations();
   const { isExtensionAvailable } = useExtensionChecker();
@@ -211,12 +212,9 @@ export default function UserDetailPage() {
 
   // Function to handle tab changes and update URL
   const handleTabChange = (tabValue: string) => {
-    if (typeof window === 'undefined') return;
-    
-    const currentPath = window.location.pathname;
-    const currentParams = new URLSearchParams(window.location.search);
+    const currentParams = new URLSearchParams(searchParams.toString());
     currentParams.set('tab', tabValue);
-    router.push(`${currentPath}?${currentParams.toString()}`, { scroll: false });
+    router.push(`${pathname}?${currentParams.toString()}`, { scroll: false });
   };
 
   // Function to handle category changes and switch to first tab in category

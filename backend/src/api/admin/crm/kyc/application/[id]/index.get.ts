@@ -86,6 +86,7 @@ export default async (data: Handler) => {
     {
       model: models.kycLevel,
       as: "level",
+      paranoid: false, // kycLevel doesn't have soft deletes
       includeModels: [
         {
           model: models.kycVerificationService,

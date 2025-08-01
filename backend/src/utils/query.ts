@@ -599,7 +599,7 @@ function resolveIncludes(includes?: includeModel[]): any[] | undefined {
   }
 
   return includes.map((include) => {
-    const { model, as, attributes, includeModels, through, required } = include;
+    const { model, as, attributes, includeModels, through, required, paranoid } = include;
 
     const resolvedInclude: any = {
       model,
@@ -609,6 +609,10 @@ function resolveIncludes(includes?: includeModel[]): any[] | undefined {
       ),
       required,
     };
+
+    if (paranoid !== undefined) {
+      resolvedInclude.paranoid = paranoid;
+    }
 
     if (includeModels) {
       resolvedInclude.include = resolveIncludes(includeModels);

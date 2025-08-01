@@ -40,6 +40,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslations } from "next-intl";
+import { 
+  countDecimals, 
+  getCurrencyPrecision, 
+  validateDecimalPrecision 
+} from "@/lib/precision-utils";
 
 const fadeInUp = {
   initial: {
@@ -87,6 +92,9 @@ export function WithdrawForm() {
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();
+  
+  // Add precision validation state
+  const [precisionError, setPrecisionError] = useState<string | null>(null);
   const {
     walletType,
     currency,
@@ -317,6 +325,9 @@ export function WithdrawForm() {
   const getDisabledReason = () => {
     if (!hasKyc) return "KYC verification required";
     if (!amount || Number(amount) <= 0) return "Enter valid amount";
+
+    // Check for precision errors first
+    if (precisionError) return "Fix decimal precision error";
 
     // Use wallet store balance as primary source
     let balance = 0;
@@ -830,15 +841,64 @@ export function WithdrawForm() {
                       type="number"
                       placeholder="0.00"
                       value={amount || ""}
-                      onChange={(e) => setAmount(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        
+                        // Clear previous precision error when user starts typing
+                        if (precisionError) {
+                          setPrecisionError(null);
+                        }
+                        
+                        // Allow empty value
+                        if (value === "" || value === "0") {
+                          setAmount(value);
+                          return;
+                        }
+                        
+                        const numValue = parseFloat(value);
+                        
+                        // Validate that it's a valid positive number
+                        if (isNaN(numValue) || numValue < 0) {
+                          return; // Don't update for invalid values
+                        }
+                        
+                        // Get the selected withdrawal method for network information
+                        const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
+                        const selectedNetwork = method?.network || network;
+                        
+                        // Get precision for this currency and network
+                        const maxPrecision = getCurrencyPrecision(currency, selectedNetwork);
+                        
+                        // Validate decimal precision
+                        const validation = validateDecimalPrecision(value, maxPrecision);
+                        
+                        if (!validation.isValid) {
+                          setPrecisionError(
+                            `${currency} on ${selectedNetwork || 'this network'} supports maximum ${validation.maxDecimals} decimal places. You entered ${validation.actualDecimals} decimal places.`
+                          );
+                          // Still update the value but show error
+                          setAmount(value);
+                        } else {
+                          setAmount(value);
+                        }
+                      }}
                       min="0"
                       step="0.00000001"
-                      className="text-lg pr-16"
+                      className={`text-lg pr-16 ${precisionError ? 'border-red-500 focus:border-red-500' : ''}`}
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
                       {currency}
                     </div>
                   </div>
+                  {/* Precision Error Alert */}
+                  {precisionError && (
+                    <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      <AlertDescription className="text-red-700 dark:text-red-300 text-sm">
+                        {precisionError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
                     <span>
                       {t("available")}{" "}

@@ -31,6 +31,7 @@ export const getUserById = async (id: string) => {
             model: models.kycLevel,
             as: "level",
             attributes: ["id", "name", "level", "features"],
+            paranoid: false, // kycLevel doesn't have soft deletes
           },
         ],
       },

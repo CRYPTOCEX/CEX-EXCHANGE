@@ -298,18 +298,4 @@ export const columns: ColumnDefinition[] = [
     },
     priority: 2,
   },
-  {
-    key: "updatedAt",
-    title: "Last Updated",
-    type: "date",
-    icon: Clock,
-    sortable: true,
-    filterable: true,
-    description: "Date when the user was last updated",
-    render: {
-      type: "date",
-      format: "PPP HH:mm",
-    },
-    priority: 3,
-  },
 ];

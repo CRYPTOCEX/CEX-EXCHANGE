@@ -145,6 +145,50 @@ export function getStepSize(metadata?: MarketMetadata, type: "price" | "amount" 
 }
 
 /**
+ * Count decimal places in a number
+ */
+export function countDecimals(value: number | string): number {
+  const str = value.toString();
+  if (Math.floor(Number(str)) === Number(str)) return 0;
+  
+  const scientificNotationMatch = /^(\d+\.?\d*|\.\d+)e([+-]\d+)$/.exec(str);
+  
+  if (scientificNotationMatch) {
+    const decimalStr = scientificNotationMatch[1].split(".")[1] || "";
+    let decimalCount = decimalStr.length + parseInt(scientificNotationMatch[2]);
+    decimalCount = Math.abs(decimalCount);
+    return Math.min(decimalCount, 8);
+  } else {
+    const decimalStr = str.split(".")[1] || "";
+    return Math.min(decimalStr.length, 8);
+  }
+}
+
+/**
+ * Get precision for a specific currency and network
+ * Note: This should be replaced by fetching from token configuration
+ */
+export function getCurrencyPrecision(currency: string, network?: string): number {
+  // Default to 8 decimal places - should be fetched from token config in practice
+  return 8;
+}
+
+/**
+ * Validate if amount has acceptable decimal precision
+ */
+export function validateDecimalPrecision(
+  amount: number | string, 
+  precision: number
+): { isValid: boolean; actualDecimals: number; maxDecimals: number } {
+  const actualDecimals = countDecimals(amount);
+  return {
+    isValid: actualDecimals <= precision,
+    actualDecimals,
+    maxDecimals: precision
+  };
+}
+
+/**
  * Round number to market precision
  */
 export function roundToPrecision(

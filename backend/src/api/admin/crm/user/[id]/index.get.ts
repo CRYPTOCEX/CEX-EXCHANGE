@@ -145,7 +145,8 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
     if (extensions.has("futures")) {
       try {
         // Try to get futures data from ScyllaDB
-        const { query } = await import("@b/api/(ext)/ecosystem/utils/scylla/queries");
+        const scyllaQueriesPath = "@b/api/(ext)/ecosystem/utils/scylla/queries";
+        const { query } = await import(scyllaQueriesPath);
         const scyllaFuturesKeyspace = process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
         
         const futuresOrdersResult = await query(
@@ -175,7 +176,8 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
     if (extensions.has("ecosystem")) {
       try {
         // Try to get ecosystem data from ScyllaDB
-        const { query } = await import("@b/api/(ext)/ecosystem/utils/scylla/queries");
+        const scyllaQueriesPath = "@b/api/(ext)/ecosystem/utils/scylla/queries";
+        const { query } = await import(scyllaQueriesPath);
         const scyllaKeyspace = process.env.SCYLLA_KEYSPACE || "trading";
         
         const ecosystemOrdersResult = await query(

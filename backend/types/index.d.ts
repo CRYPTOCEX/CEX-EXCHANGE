@@ -150,13 +150,14 @@ type includeModel = {
   as: string;
   attributes?: Attribute[];
   where?: WhereOptions;
-
+  
   includeModels?: includeModel[];
   through?: {
     model?: ModelStatic<Model<any, any>>;
     attributes: string[];
   };
   required?: boolean;
+  paranoid?: boolean;
 };
 
 type WhereOptions = {

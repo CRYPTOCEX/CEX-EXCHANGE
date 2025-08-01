@@ -101,6 +101,7 @@ export async function getKyc(
       {
         model: models.kycLevel,
         as: "level",
+        paranoid: false, // kycLevel doesn't have soft deletes
       },
       {
         model: models.kycVerificationResult,
