@@ -22,7 +22,11 @@ import {
   Plus,
   Settings,
   BarChart3,
-  Zap
+  Zap,
+  Building2,
+  BookOpen,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 
 interface AdminStats {
@@ -36,7 +40,6 @@ interface AdminStats {
     total: number;
     minted: number;
     listed: number;
-    staked: number;
   };
   listings: {
     total: number;
@@ -187,6 +190,12 @@ export default function NFTAdminDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link href="/admin/nft/onboarding">
+            <Button variant="outline">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Setup Guide
+            </Button>
+          </Link>
           <Link href="/admin/nft/analytics">
             <Button variant="outline">
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -208,6 +217,54 @@ export default function NFTAdminDashboard() {
         </div>
       </div>
 
+      {/* Onboarding Alert */}
+      {stats && (stats.collections.total === 0 || stats.tokens.total === 0) && (
+        <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <AlertCircle className="h-6 w-6 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-orange-900 mb-2">
+                  Welcome to your NFT Marketplace! 🎉
+                </h3>
+                <p className="text-orange-800 mb-4">
+                  Your marketplace isn't fully set up yet. Follow our comprehensive setup guide to deploy contracts, configure settings, and launch successfully.
+                </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-1 text-sm text-orange-700">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Step-by-step guidance
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-orange-700">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Progress tracking
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-orange-700">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Expert tips
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Link href="/admin/nft/onboarding">
+                    <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Start Setup Guide
+                    </Button>
+                  </Link>
+                  <Link href="/admin/nft/marketplace">
+                    <Button variant="outline">
+                      Deploy First Contract
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Collections */}
@@ -225,10 +282,10 @@ export default function NFTAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Tokens */}
+        {/* NFTs */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">NFT Tokens</CardTitle>
+                            <CardTitle className="text-sm font-medium">NFTs</CardTitle>
             <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -311,19 +368,7 @@ export default function NFTAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Staked NFTs */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Staked NFTs</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(stats?.tokens.staked || 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently earning rewards
-            </p>
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Quick Actions & Recent Activity */}
@@ -380,6 +425,40 @@ export default function NFTAdminDashboard() {
 
         <TabsContent value="actions" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-orange-200 bg-gradient-to-br from-orange-50 to-yellow-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-orange-600" />
+                  Setup Guide & Onboarding
+                </CardTitle>
+                <CardDescription>
+                  Complete marketplace setup checklist with step-by-step guidance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/admin/nft/onboarding">
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700">Start Setup Guide</Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Marketplace Contracts
+                </CardTitle>
+                <CardDescription>
+                  Deploy and manage marketplace contracts across blockchains
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/admin/nft/marketplace">
+                  <Button className="w-full">Manage Contracts</Button>
+                </Link>
+              </CardContent>
+            </Card>
+
             <Card className="cursor-pointer hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -401,15 +480,15 @@ export default function NFTAdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Coins className="h-5 w-5" />
-                  Manage Tokens
+                  Manage NFTs
                 </CardTitle>
                 <CardDescription>
-                  Review and moderate individual NFT tokens
+                  Review and moderate individual NFTs
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Link href="/admin/nft/token">
-                  <Button className="w-full">View Tokens</Button>
+                  <Button className="w-full">View NFTs</Button>
                 </Link>
               </CardContent>
             </Card>

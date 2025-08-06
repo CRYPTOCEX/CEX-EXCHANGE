@@ -498,6 +498,7 @@ export async function processStakingPositions() {
     }
 
     // Query all active staking positions that have matured
+    // Using raw query with FOR UPDATE SKIP LOCKED for better concurrency
     const positions = await models.stakingPosition.findAll({
       where: {
         status: "ACTIVE",
@@ -525,6 +526,8 @@ export async function processStakingPositions() {
         },
       ],
       order: [["endDate", "ASC"]], // Process oldest ending positions first
+      lock: Transaction.LOCK.UPDATE,
+      skipLocked: true, // Skip positions already being processed
     });
 
     broadcastLog(

@@ -7,7 +7,7 @@ import {
 
 import { sendFiatTransactionEmail } from "@b/utils/emails";
 import { models, sequelize } from "@b/db";
-import { paypalClient, paypalOrders } from "./utils";
+import { paypalOrdersController } from "./utils";
 
 export const metadata: OperationObject = {
   summary: "Verifies a Stripe checkout session",
@@ -111,31 +111,29 @@ export default async (data: Handler) => {
     throw new Error("Transaction already exists");
   }
 
-  const client = paypalClient();
-
-  const request = new paypalOrders.OrdersCaptureRequest(orderId);
-  request.requestBody({});
+  const ordersController = paypalOrdersController();
 
   try {
-    const captureResponse = await client.execute(request);
-    const captureDetails = captureResponse.result;
+    const { result: captureDetails } = await ordersController.captureOrder({
+      id: orderId,
+    });
 
     if (
-      !captureDetails.purchase_units ||
-      captureDetails.purchase_units.length === 0
+      !captureDetails.purchaseUnits ||
+      captureDetails.purchaseUnits.length === 0
     ) {
       throw new Error("No purchase units found in capture details.");
     }
 
-    const purchaseUnit = captureDetails.purchase_units[0];
-    const captures = purchaseUnit.payments.captures;
+    const purchaseUnit = captureDetails.purchaseUnits[0];
+    const captures = purchaseUnit.payments?.captures;
     if (!captures || captures.length === 0) {
       throw new Error("No captures found in purchase unit.");
     }
 
     const capture = captures[0];
-    const grossAmount = parseFloat(capture.amount.value);
-    const currency = capture.amount.currency_code;
+    const grossAmount = parseFloat(capture.amount?.value || "0");
+    const currency = capture.amount?.currencyCode || "";
 
     const paypalGateway = await models.depositGateway.findOne({
       where: { name: "PAYPAL" },

@@ -67,6 +67,9 @@ import { imageUploader } from "@/utils/upload";
 import Image from "next/image";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { toast } from "sonner";
+import { GasEstimator } from "@/components/nft/gas-estimator";
+import { useGasEstimation } from "@/hooks/use-gas-estimation";
+import { $fetch } from "@/lib/api";
 
 const createNFTSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
@@ -82,6 +85,9 @@ const createNFTSchema = z.object({
   })).optional(),
   royaltyPercentage: z.number().min(0).max(50).optional(),
   isLazyMinted: z.boolean().default(true),
+  mintToBlockchain: z.boolean().default(false),
+  recipientAddress: z.string().optional(),
+  chain: z.string().default("ETH"),
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
   unlockableContent: z.string().optional(),
@@ -149,12 +155,24 @@ export default function CreateNFTClient() {
       attributes: [],
       royaltyPercentage: 2.5,
       isLazyMinted: true,
+      mintToBlockchain: false,
+      recipientAddress: "",
+      chain: "ETH",
       category: "",
       tags: [],
       unlockableContent: "",
       isExplicitContent: false,
       isSensitiveContent: false,
     },
+  });
+
+  // Gas estimation for blockchain minting (after form is initialized)
+  const mintToBlockchain = form.watch("mintToBlockchain");
+  const chain = form.watch("chain");
+  const { estimate: gasEstimate, loading: gasLoading, canAfford } = useGasEstimation({
+    operation: "mint",
+    chain,
+    enabled: mintToBlockchain
   });
 
   // Calculate progress based on actual completion
@@ -333,6 +351,12 @@ export default function CreateNFTClient() {
 
   const onSubmit = useCallback(async (data: CreateNFTForm) => {
     try {
+      // Check balance if minting to blockchain
+      if (data.mintToBlockchain && gasEstimate && !canAfford) {
+        toast.error("Insufficient balance to cover gas fees for blockchain minting");
+        return;
+      }
+
       const nftData = {
         ...data,
         attributes: attributes.length > 0 ? attributes : undefined,
@@ -340,15 +364,38 @@ export default function CreateNFTClient() {
         creatorId: user?.id,
       };
 
-      await createToken(nftData);
+      if (data.isLazyMinted) {
+        // Use lazy minting endpoint with blockchain option
+        const { data: result, error } = await $fetch({
+          url: "/api/nft/token/lazy-mint",
+          method: "POST",
+          body: nftData,
+          successMessage: data.mintToBlockchain ? "NFT created and minted to blockchain!" : "NFT created successfully!"
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
+      } else {
+        // Use direct minting endpoint
+        const { data: result, error } = await $fetch({
+          url: "/api/nft/token/mint",
+          method: "POST", 
+          body: nftData,
+          successMessage: "NFT minted to blockchain successfully!"
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
+      }
       
-      toast.success("NFT created successfully!");
       router.push("/nft/dashboard");
     } catch (error) {
       console.error("Failed to create NFT:", error);
       toast.error("Failed to create NFT. Please try again.");
     }
-  }, [createToken, attributes, tags, user?.id, router]);
+  }, [attributes, tags, user?.id, gasEstimate, canAfford, router]);
 
   const handleClearImage = useCallback(() => {
     setPreviewImage("");
@@ -1036,6 +1083,98 @@ export default function CreateNFTClient() {
                             </FormItem>
                           )}
                         />
+
+                        {form.watch("isLazyMinted") && (
+                          <FormField
+                            control={form.control}
+                            name="mintToBlockchain"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                                <div>
+                                  <FormLabel className="flex items-center gap-2">
+                                    <ChevronRight className="h-4 w-4" />
+                                    {t("mint_to_blockchain")}
+                                  </FormLabel>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {t("immediately_mint_to_blockchain_on_creation")}
+                                  </p>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        {mintToBlockchain && (
+                          <>
+                            <FormField
+                              control={form.control}
+                              name="chain"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="flex items-center gap-2">
+                                    <Layers className="h-4 w-4" />
+                                    {t("blockchain_network")}
+                                  </FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={t("select_network")} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                                      <SelectItem value="BSC">Binance Smart Chain (BSC)</SelectItem>
+                                      <SelectItem value="POLYGON">Polygon (MATIC)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="recipientAddress"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="flex items-center gap-2">
+                                    <Link className="h-4 w-4" />
+                                    {t("recipient_address")}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder={t("wallet_address_optional")}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("leave_empty_to_mint_to_your_address")}
+                                  </p>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            {gasEstimate && (
+                              <Card className="bg-blue-50 border-blue-200">
+                                <CardContent className="p-4">
+                                  <GasEstimator
+                                    operation="mint"
+                                    chain={chain}
+                                    showHeader={false}
+                                  />
+                                </CardContent>
+                              </Card>
+                            )}
+                          </>
+                        )}
 
                         <FormField
                           control={form.control}

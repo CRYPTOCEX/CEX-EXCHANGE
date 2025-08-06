@@ -323,25 +323,6 @@ export const columns = [
     }
   },
   {
-    key: "isStaked",
-    title: "Staked",
-    type: "boolean",
-    sortable: true,
-    filterable: true,
-    editable: false,
-    usedInCreate: false,
-    description: "Currently staked for rewards",
-    priority: 3,
-    render: {
-      type: "badge",
-      config: {
-        variant: (value) => value ? "purple" : "secondary",
-        text: (value) => value ? "Yes" : "No"
-      }
-    },
-    expandedOnly: true,
-  },
-  {
     key: "views",
     title: "Views",
     type: "number",

@@ -287,5 +287,14 @@ export default class nftToken
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
+
+    nftToken.hasMany(models.nftSale, {
+      as: "sales",
+      foreignKey: "tokenId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    // nftBid access should be through nftListing, not directly
   }
 } 

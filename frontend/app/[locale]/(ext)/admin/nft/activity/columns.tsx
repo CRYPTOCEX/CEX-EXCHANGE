@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, Coins, User, DollarSign, Calendar, Hash, Zap } from "lucide-react";
+import { Activity, Coins, User, DollarSign, Calendar, Hash } from "lucide-react";
 
 export const columns = [
   {
@@ -28,14 +28,11 @@ export const columns = [
       { value: "MINT", label: "Mint", color: "green" },
       { value: "TRANSFER", label: "Transfer", color: "blue" },
       { value: "SALE", label: "Sale", color: "purple" },
-      { value: "LIST_FIXED", label: "List Fixed", color: "orange" },
-      { value: "LIST_AUCTION", label: "List Auction", color: "red" },
+      { value: "LIST", label: "List", color: "orange" },
+      { value: "DELIST", label: "Delist", color: "red" },
       { value: "BID", label: "Bid", color: "yellow" },
       { value: "OFFER", label: "Offer", color: "cyan" },
-      { value: "CANCEL_LISTING", label: "Cancel Listing", color: "gray" },
-      { value: "CANCEL_BID", label: "Cancel Bid", color: "gray" },
-      { value: "TOKEN_STAKED", label: "Staked", color: "indigo" },
-      { value: "TOKEN_UNSTAKED", label: "Unstaked", color: "pink" }
+      { value: "BURN", label: "Burn", color: "gray" }
     ],
     render: {
       type: "badge",
@@ -45,14 +42,11 @@ export const columns = [
             MINT: "green",
             TRANSFER: "blue",
             SALE: "purple",
-            LIST_FIXED: "orange",
-            LIST_AUCTION: "red",
+            LIST: "orange",
+            DELIST: "red",
             BID: "yellow",
             OFFER: "cyan",
-            CANCEL_LISTING: "gray",
-            CANCEL_BID: "gray",
-            TOKEN_STAKED: "indigo",
-            TOKEN_UNSTAKED: "pink"
+            BURN: "gray"
           };
           return variants[value] || "secondary";
         }
@@ -253,39 +247,7 @@ export const columns = [
     },
     expandedOnly: true,
   },
-  {
-    key: "gasUsed",
-    title: "Gas Used",
-    type: "number",
-    sortable: true,
-    filterable: true,
-    editable: false,
-    usedInCreate: false,
-    icon: Zap,
-    description: "Gas consumed for transaction",
-    priority: 4,
-    render: {
-      type: "number",
-      format: { notation: "compact" }
-    },
-    expandedOnly: true,
-  },
-  {
-    key: "gasPrice",
-    title: "Gas Price",
-    type: "number",
-    sortable: true,
-    filterable: true,
-    editable: false,
-    usedInCreate: false,
-    description: "Gas price in Gwei",
-    priority: 4,
-    render: {
-      type: "number",
-      format: { notation: "compact", minimumFractionDigits: 2 }
-    },
-    expandedOnly: true,
-  },
+
   {
     key: "blockNumber",
     title: "Block",

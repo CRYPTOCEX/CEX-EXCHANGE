@@ -11,6 +11,9 @@ interface forexInvestmentAttributes {
   result?: "WIN" | "LOSS" | "DRAW";
   status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "REJECTED";
   endDate?: Date;
+  metadata?: string;
+  termsAcceptedAt?: Date;
+  termsVersion?: string;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -27,6 +30,9 @@ type forexInvestmentOptionalAttributes =
   | "result"
   | "status"
   | "endDate"
+  | "metadata"
+  | "termsAcceptedAt"
+  | "termsVersion"
   | "createdAt"
   | "deletedAt"
   | "updatedAt";

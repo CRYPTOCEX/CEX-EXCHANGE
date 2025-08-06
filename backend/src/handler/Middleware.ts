@@ -341,6 +341,202 @@ export async function rateLimit(
 }
 
 /**
+ * Configurable rate limiter for specific endpoints
+ */
+export function createRateLimiter(
+  options: {
+    limit?: number;
+    window?: number; // in seconds
+    keyPrefix?: string;
+    message?: string;
+  } = {}
+) {
+  const {
+    limit = 100,
+    window = 60,
+    keyPrefix = "rateLimit",
+    message = "Rate Limit Exceeded, Try Again Later",
+  } = options;
+
+  return async (data: any) => {
+    const { req, res, user } = data;
+    
+    // Determine the key based on user or IP
+    let key: string;
+    if (user?.id) {
+      key = `${keyPrefix}:user:${user.id}`;
+    } else {
+      const clientIp = req?.ip || req?.connection?.remoteAddress || "unknown";
+      key = `${keyPrefix}:ip:${clientIp}`;
+    }
+
+    const redis = RedisSingleton.getInstance();
+    const current = await redis.get(key);
+    
+    if (current !== null && parseInt(current, 10) >= limit) {
+      const ttl = await redis.ttl(key);
+      throw {
+        statusCode: 429,
+        message,
+        headers: {
+          "Retry-After": ttl > 0 ? ttl.toString() : window.toString(),
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": "0",
+        },
+      };
+    }
+
+    await redis
+      .multi()
+      .incr(key)
+      .expire(key, window)
+      .exec();
+  };
+}
+
+// Pre-configured rate limiters
+export const rateLimiters = {
+  // Strict rate limit for sensitive operations
+  strict: createRateLimiter({
+    limit: 5,
+    window: 900, // 15 minutes
+    keyPrefix: "strict",
+    message: "Too many attempts. Please try again in 15 minutes.",
+  }),
+  
+  // Moderate rate limit
+  moderate: createRateLimiter({
+    limit: 30,
+    window: 60,
+    keyPrefix: "moderate",
+    message: "Too many requests. Please slow down.",
+  }),
+  
+  // Light rate limit
+  light: createRateLimiter({
+    limit: 100,
+    window: 60,
+    keyPrefix: "light",
+    message: "Too many requests. Please try again shortly.",
+  }),
+  
+  // General rate limit
+  general: createRateLimiter({
+    limit: 100,
+    window: 60,
+    keyPrefix: "general",
+    message: "Too many requests. Please try again later.",
+  }),
+  
+  // Order creation
+  orderCreation: createRateLimiter({
+    limit: 5,
+    window: 900, // 15 minutes
+    keyPrefix: "order_create",
+    message: "Too many order attempts. Please wait before placing another order.",
+  }),
+  
+  // Discount validation
+  discountValidation: createRateLimiter({
+    limit: 20,
+    window: 60,
+    keyPrefix: "discount_check",
+    message: "Too many discount validation attempts. Please try again later.",
+  }),
+  
+  // Download rate limit
+  download: createRateLimiter({
+    limit: 10,
+    window: 3600, // 1 hour
+    keyPrefix: "download",
+    message: "Download limit exceeded. Please try again later.",
+  }),
+  
+  // FAQ feedback
+  faqFeedback: createRateLimiter({
+    limit: 20,
+    window: 3600, // 1 hour
+    keyPrefix: "faq_feedback",
+    message: "Too many feedback submissions. Please try again later.",
+  }),
+  
+  // FAQ questions
+  faqQuestion: createRateLimiter({
+    limit: 5,
+    window: 86400, // 24 hours
+    keyPrefix: "faq_question",
+    message: "You have reached the daily limit for questions. Please try again tomorrow.",
+  }),
+  
+  // P2P specific limits
+  p2pOfferCreate: createRateLimiter({
+    limit: 5,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:offer:create",
+    message: "Too many offers created. Please wait before creating another offer.",
+  }),
+  
+  p2pTradeInitiate: createRateLimiter({
+    limit: 20,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:trade:initiate",
+    message: "Too many trade requests. Please wait before initiating another trade.",
+  }),
+  
+  p2pTradeAction: createRateLimiter({
+    limit: 50,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:trade:action",
+    message: "Too many trade actions. Please slow down.",
+  }),
+  
+  p2pMessage: createRateLimiter({
+    limit: 100,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:message",
+    message: "Too many messages sent. Please wait before sending more.",
+  }),
+  
+  p2pDisputeCreate: createRateLimiter({
+    limit: 3,
+    window: 86400, // 24 hours
+    keyPrefix: "p2p:dispute:create",
+    message: "Too many disputes created. Please contact support if you need assistance.",
+  }),
+  
+  p2pAdminDispute: createRateLimiter({
+    limit: 100,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:admin:dispute",
+    message: "Too many dispute management requests. Please wait.",
+  }),
+  
+  p2pAdminOffer: createRateLimiter({
+    limit: 50,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:admin:offer",
+    message: "Too many offer management requests. Please wait.",
+  }),
+  
+  p2pAdminTrade: createRateLimiter({
+    limit: 100,
+    window: 3600, // 1 hour
+    keyPrefix: "p2p:admin:trade",
+    message: "Too many trade management requests. Please wait.",
+  }),
+};
+
+// Aliases for backward compatibility
+export const strictRateLimit = rateLimiters.strict;
+export const moderateRateLimit = rateLimiters.moderate;
+export const lightRateLimit = rateLimiters.light;
+export const faqFeedbackRateLimit = rateLimiters.faqFeedback;
+export const faqQuestionRateLimit = rateLimiters.faqQuestion;
+export const p2pAdminDisputeRateLimit = rateLimiters.p2pAdminDispute;
+export const p2pAdminOfferRateLimit = rateLimiters.p2pAdminOffer;
+export const p2pAdminTradeRateLimit = rateLimiters.p2pAdminTrade;
+
+/**
  * Checks if the user is allowed to access the route based on role and permissions.
  */
 export async function rolesGate(

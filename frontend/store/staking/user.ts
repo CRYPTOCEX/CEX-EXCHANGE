@@ -189,26 +189,30 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
   // Helper function to enrich position data with pool information
   enrichPositionData: (positions) => {
     return positions.map((position) => {
-      // Replace this with your actual logic to fetch pool data if needed.
-      const stakingMockHelpers = {
-        getPoolById: (poolId: string) => ({
-          name: `Pool ${poolId}`,
-          symbol: "XYZ",
-          apr: 10,
-          icon: `/img/placeholder.svg`,
-        }),
-      };
-      const pool = stakingMockHelpers.getPoolById(position.poolId);
-      if (!pool) return position;
+      // Use actual pool data from the position if it's already included
+      if (position.pool) {
+        return {
+          ...position,
+          poolName: position.pool.name,
+          tokenSymbol: position.pool.symbol,
+          rewardTokenSymbol: position.pool.symbol,
+          apr: position.pool.apr,
+          pendingRewards: 0,
+          lockPeriodEnd: position.endDate,
+          icon: position.pool.icon || `/img/crypto/${position.pool.symbol.toLowerCase()}.svg`,
+        };
+      }
+      
+      // Fallback if pool data is not included (shouldn't happen with proper includes)
       return {
         ...position,
-        poolName: pool.name,
-        tokenSymbol: pool.symbol,
-        rewardTokenSymbol: pool.symbol,
-        apr: pool.apr,
+        poolName: "Unknown Pool",
+        tokenSymbol: "???",
+        rewardTokenSymbol: "???",
+        apr: 0,
         pendingRewards: 0,
         lockPeriodEnd: position.endDate,
-        icon: pool.icon,
+        icon: `/img/placeholder.svg`,
       };
     });
   },

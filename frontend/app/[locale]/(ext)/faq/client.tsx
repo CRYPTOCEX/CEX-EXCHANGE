@@ -37,6 +37,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function FAQClient() {
   const t = useTranslations("ext");
@@ -44,10 +54,10 @@ export default function FAQClient() {
     faqs,
     categories,
     loading,
+    pagination,
     fetchFAQs,
     fetchCategories,
     searchFAQs,
-    // Other actions...
   } = useFAQStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<faqAttributes[]>([]);
@@ -65,10 +75,14 @@ export default function FAQClient() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage] = useState(20);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  
   useEffect(() => {
     // Fetch both FAQs and categories on mount
-    Promise.all([fetchFAQs(), fetchCategories()]);
-  }, [fetchFAQs, fetchCategories]);
+    Promise.all([fetchFAQs(currentPage, perPage, selectedCategory !== "all" ? selectedCategory : undefined), fetchCategories()]);
+  }, [fetchFAQs, fetchCategories, currentPage, perPage, selectedCategory]);
 
   // Generate search suggestions based on current input
   useEffect(() => {
@@ -159,9 +173,29 @@ export default function FAQClient() {
     }
   };
 
-  // Handle search on Enter key
-  const handleKeyDownInput = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+  // Handle search on Enter key and navigation
+  const handleKeyDownInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > -1 ? prev - 1 : -1);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0) {
+          handleSelectSuggestion(suggestions[selectedSuggestionIndex]);
+        } else {
+          handleSearch();
+        }
+      } else if (e.key === "Escape") {
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    } else if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -171,12 +205,15 @@ export default function FAQClient() {
     setSearchTerm("");
     setSearchResults([]);
     setSelectedCategory("all");
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   // Select a suggestion
   const handleSelectSuggestion = (suggestion: string) => {
     setSearchTerm(suggestion);
     setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
     // Auto search when selecting a suggestion
     setTimeout(() => {
       handleSearch();
@@ -346,7 +383,7 @@ export default function FAQClient() {
               }}
             >
               <div className="relative flex items-center rounded-2xl bg-white/95 backdrop-blur-xl border border-white/30 pl-6 pr-3 py-4 shadow-2xl hover:shadow-3xl transition-all duration-300">
-                <Search className="h-6 w-6 text-gray-500 mr-4 flex-shrink-0" />
+                <Search className="h-6 w-6 text-gray-500 mr-4 flex-shrink-0" aria-hidden="true" />
                 <Input
                   ref={searchInputRef}
                   placeholder="Ask anything... (e.g., 'How to verify my account?')"
@@ -361,6 +398,11 @@ export default function FAQClient() {
                   }}
                   hasRing={false}
                   hasShadow={false}
+                  aria-label={t("search_faqs")}
+                  aria-describedby="search-instructions"
+                  aria-autocomplete="list"
+                  aria-controls={showSuggestions ? "search-suggestions" : undefined}
+                  aria-expanded={showSuggestions}
                 />
                 {searchTerm && (
                   <motion.button
@@ -374,8 +416,9 @@ export default function FAQClient() {
                     }}
                     className="text-gray-500 hover:text-gray-700 mr-3 transition-colors p-1 rounded-full hover:bg-gray-100"
                     onClick={() => setSearchTerm("")}
+                    aria-label={t("clear_search")}
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                   </motion.button>
                 )}
                 <Button
@@ -421,16 +464,31 @@ export default function FAQClient() {
                       opacity: 0,
                       y: 10,
                     }}
+                    id="search-suggestions"
+                    role="listbox"
+                    aria-label={t("search_suggestions")}
                     className="absolute z-10 mt-2 w-full bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800"
                   >
                     <div className="p-2">
                       {suggestions.map((suggestion, index) => (
                         <div
                           key={index}
-                          className="px-4 py-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer flex items-center text-left text-zinc-900 dark:text-zinc-100 transition-colors"
+                          role="option"
+                          aria-selected={selectedSuggestionIndex === index}
+                          tabIndex={-1}
+                          className={cn(
+                            "px-4 py-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer flex items-center text-left text-zinc-900 dark:text-zinc-100 transition-colors",
+                            selectedSuggestionIndex === index && "bg-zinc-100 dark:bg-zinc-800"
+                          )}
                           onClick={() => handleSelectSuggestion(suggestion)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSelectSuggestion(suggestion);
+                            }
+                          }}
                         >
-                          <Search className="h-4 w-4 mr-3 text-zinc-500 dark:text-zinc-400" />
+                          <Search className="h-4 w-4 mr-3 text-zinc-500 dark:text-zinc-400" aria-hidden="true" />
                           <span className="line-clamp-1 font-medium">
                             {suggestion}
                           </span>
@@ -929,6 +987,61 @@ export default function FAQClient() {
                   showFeedback={true}
                   className="border-none shadow-none"
                 />
+                {pagination && pagination.totalPages > 1 && (
+                  <Pagination className="mt-8">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1) {
+                              setCurrentPage(currentPage - 1);
+                            }
+                          }}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                      
+                      {[...Array(Math.min(5, pagination.totalPages))].map((_, index) => {
+                        const pageNumber = index + 1;
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(pageNumber);
+                              }}
+                              isActive={currentPage === pageNumber}
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {pagination.totalPages > 5 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < pagination.totalPages) {
+                              setCurrentPage(currentPage + 1);
+                            }
+                          }}
+                          className={currentPage === pagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
               </TabsContent>
 
               {categories.slice(0, 6).map((category) => (

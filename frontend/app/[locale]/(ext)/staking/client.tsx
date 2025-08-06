@@ -23,6 +23,8 @@ import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { useTranslations } from "next-intl";
+import { StakingErrorBoundary, StakingError } from "@/app/[locale]/(ext)/staking/components/staking-error-boundary";
+import { StakingPoolsLoading, StakingStatsLoading } from "@/app/[locale]/(ext)/staking/components/staking-loading";
 
 export default function StakingLanding() {
   const t = useTranslations("ext");
@@ -83,7 +85,8 @@ export default function StakingLanding() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-hidden">
+    <StakingErrorBoundary>
+      <div className="flex flex-col min-h-screen relative overflow-hidden">
       {/* Global background effects */}
       <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-indigo-950"></div>
       <div className="fixed inset-0 bg-grid-white/10 dark:bg-grid-white/5 bg-[length:50px_50px]"></div>
@@ -207,7 +210,19 @@ export default function StakingLanding() {
         </section>
 
         {/* Featured pools section */}
-        {hasFeaturedPools && (
+        {isLoading ? (
+          <section className="py-24 relative">
+            <div className="container px-4 md:px-6">
+              <StakingPoolsLoading />
+            </div>
+          </section>
+        ) : error ? (
+          <section className="py-24 relative">
+            <div className="container px-4 md:px-6">
+              <StakingError error={new Error(error)} />
+            </div>
+          </section>
+        ) : hasFeaturedPools && (
           <section className="py-24 relative">
             <div className="container px-4 md:px-6">
               <motion.div
@@ -462,5 +477,6 @@ export default function StakingLanding() {
         </section>
       </div>
     </div>
+    </StakingErrorBoundary>
   );
 }

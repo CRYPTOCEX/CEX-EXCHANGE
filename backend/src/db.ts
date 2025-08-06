@@ -1,11 +1,11 @@
 import { Sequelize } from "sequelize";
-import { Models, initModels } from "@db/init";
+import { initModels } from "../models/init";
 import { isMainThread } from "worker_threads";
 
 export class SequelizeSingleton {
   private static instance: SequelizeSingleton;
   private sequelize: Sequelize;
-  public models: Models;
+  public models: any;
 
   private constructor() {
     // Log database configuration for debugging
@@ -38,15 +38,12 @@ export class SequelizeSingleton {
         },
       }
     );
-    this.models = this.initModels();
-
-    // Only sync on the main thread
-    if (isMainThread) {
-      this.syncDatabase();
-      console.log(
-        `\x1b[36mMain Thread: Database synced successfully...\x1b[0m`
-      );
+    
+    if (!this.sequelize) {
+      throw new Error("Failed to create Sequelize instance");
     }
+    
+    this.models = this.initModels();
   }
 
   public static getInstance(): SequelizeSingleton {
@@ -54,6 +51,15 @@ export class SequelizeSingleton {
       SequelizeSingleton.instance = new SequelizeSingleton();
     }
     return SequelizeSingleton.instance;
+  }
+
+  public async initialize(): Promise<void> {
+    if (isMainThread) {
+      await this.syncDatabase();
+      console.log(
+        `\x1b[36mMain Thread: Database synced successfully...\x1b[0m`
+      );
+    }
   }
 
   public getSequelize(): Sequelize {

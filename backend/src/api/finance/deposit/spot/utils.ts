@@ -54,17 +54,32 @@ export function mapToXtNetwork(chain: string): string | null {
   if (!chain) return null;
   
   const chainMapping: Record<string, string> = {
-    'TRC20': 'TRX',
-    'ERC20': 'ETH', 
-    'BEP20': 'BSC',
-    'POLYGON': 'MATIC',
-    'ARBITRUM': 'ARBITRUM',
-    'OPTIMISM': 'OPTIMISM',
-    'AVAX': 'AVAX',
-    'SOL': 'SOL',
-    'BTC': 'BTC',
-    'LTC': 'LTC',
-    'DOGE': 'DOGE'
+    'TRC20': 'Tron',
+    'TRX': 'Tron',
+    'ERC20': 'Ethereum', 
+    'ETH': 'Ethereum',
+    'BEP20': 'BNB Smart Chain',
+    'BSC': 'BNB Smart Chain',
+    'BNB': 'BNB Smart Chain',
+    'POLYGON': 'Polygon',
+    'MATIC': 'Polygon',
+    'ARBITRUM': 'ARB',
+    'ARB': 'ARB',
+    'OPTIMISM': 'OPT',
+    'OPT': 'OPT',
+    'AVAX': 'AVAX C-Chain',
+    'AVALANCHE': 'AVAX C-Chain',
+    'SOL': 'SOL-SOL',
+    'SOLANA': 'SOL-SOL',
+    'BTC': 'Bitcoin',
+    'BITCOIN': 'Bitcoin',
+    'LTC': 'Litecoin',
+    'LITECOIN': 'Litecoin',
+    'DOGE': 'Dogecoin',
+    'DOGECOIN': 'Dogecoin',
+    'BASE': 'BASE',
+    'ETC': 'Ethereum Classic',
+    'BCH': 'Bitcoin Cash'
   };
   
   return chainMapping[chain.toUpperCase()] || null;

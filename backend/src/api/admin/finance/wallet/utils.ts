@@ -142,5 +142,6 @@ export const walletUpdateSchema = {
     inOrder,
     status,
   },
-  required: ["type", "currency", "balance", "status"],
+  required: [], // Allow partial updates - no fields are strictly required
+  additionalProperties: false,
 };

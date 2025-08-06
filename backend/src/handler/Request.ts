@@ -13,7 +13,7 @@ import { createError } from "@b/utils/error";
 import logger from "@b/utils/logger";
 import ip from "ip";
 
-// Assuming OperationObject is defined elsewhere in your types.
+// Metadata type for operations
 export class Request {
   public url: string;
   public method: HttpMethod;
@@ -24,7 +24,7 @@ export class Request {
   public params: Record<string, string> = {};
   public cookies: Record<string, string> = {};
   public headers: Record<string, string> = {};
-  public metadata?: OperationObject;
+  public metadata?: any;
   public user: any = null;
   public remoteAddress: string;
   public connection: { encrypted: boolean; remoteAddress: string } = {
@@ -386,11 +386,11 @@ export class Request {
     });
   }
 
-  public setMetadata(metadata: OperationObject): void {
+  public setMetadata(metadata: any): void {
     this.metadata = metadata;
   }
 
-  public getMetadata(): OperationObject | undefined {
+  public getMetadata(): any | undefined {
     return this.metadata;
   }
 

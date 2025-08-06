@@ -1,6 +1,9 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 
+import { p2pAdminTradeRateLimit } from "@b/handler/Middleware";
+import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
+
 export const metadata = {
   summary: "Resolve Trade (Admin)",
   description:
@@ -8,6 +11,7 @@ export const metadata = {
   operationId: "resolveAdminP2PTrade",
   tags: ["Admin", "Trades", "P2P"],
   requiresAuth: true,
+  middleware: [p2pAdminTradeRateLimit],
   parameters: [
     {
       index: 0,
@@ -40,7 +44,7 @@ export const metadata = {
     404: { description: "Trade not found." },
     500: { description: "Internal Server Error." },
   },
-  permission: "edit.p2p.trade",
+  permission: "Access P2P Management",
 };
 
 export default async (data) => {

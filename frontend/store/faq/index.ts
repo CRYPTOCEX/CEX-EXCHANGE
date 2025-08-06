@@ -8,15 +8,23 @@ interface FAQ extends faqAttributes {
   helpfulCount?: number;
 }
 
+interface FAQPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  perPage: number;
+}
+
 interface FAQStore {
   // Data
   faqs: FAQ[];
   categories: string[];
   loading: boolean;
   error: string | null;
+  pagination: FAQPagination | null;
 
   // Actions
-  fetchFAQs: () => Promise<void>;
+  fetchFAQs: (page?: number, perPage?: number, category?: string) => Promise<void>;
   fetchCategories: () => Promise<void>;
   getFAQById: (id: string) => Promise<FAQ | null>;
   searchFAQs: (query: string, category?: string) => Promise<faqAttributes[]>;
@@ -26,7 +34,6 @@ interface FAQStore {
     comment?: string
   ) => Promise<boolean>;
   submitQuestion: (
-    name: string,
     email: string,
     question: string
   ) => Promise<boolean>;
@@ -38,13 +45,19 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
   categories: [],
   loading: false,
   error: null,
+  pagination: null,
 
   // Actions
-  fetchFAQs: async () => {
+  fetchFAQs: async (page = 1, perPage = 10, category?: string) => {
     set({ loading: true, error: null });
     try {
-      const { data, error } = await $fetch({
-        url: "/api/faq",
+      let url = `/api/faq?page=${page}&limit=${perPage}`;
+      if (category) {
+        url += `&category=${encodeURIComponent(category)}`;
+      }
+
+      const { data, error } = await $fetch<FAQListResponse>({
+        url,
         silentSuccess: true,
       });
 
@@ -55,7 +68,8 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
 
       if (data) {
         set({
-          faqs: data || [],
+          faqs: data.items || [],
+          pagination: data.pagination || null,
           loading: false,
         });
       }
@@ -108,33 +122,23 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
 
   searchFAQs: async (query: string, category?: string) => {
     try {
-      let url = `/api/faq?search=${encodeURIComponent(query)}`;
-      if (category) {
-        url += `&category=${encodeURIComponent(category)}`;
-      }
-
-      const { data, error } = await $fetch({
-        url,
+      const user = useUserStore.getState().user;
+      
+      // Single API call that both searches and logs
+      const { data, error } = await $fetch<faqAttributes[]>({
+        url: "/api/faq/search",
+        method: "POST",
+        body: {
+          query,
+          category,
+          ...(user ? { userId: user.id } : {}),
+        },
         silentSuccess: true,
       });
 
       if (error) {
         return [];
       }
-
-      const user = useUserStore.getState().user;
-      const requestBody = {
-        query,
-        resultCount: data?.length || 0,
-        category,
-        ...(user ? { userId: user.id } : {}),
-      };
-      await $fetch({
-        url: "/api/faq/search",
-        method: "POST",
-        body: requestBody,
-        silent: true,
-      });
 
       return data || [];
     } catch (error) {

@@ -5,6 +5,7 @@ import { sendInvestmentEmail } from "../emails";
 import { createNotification } from "../notifications";
 import { processRewards } from "../affiliate";
 import { broadcastStatus, broadcastProgress, broadcastLog } from "./broadcast";
+import { logInfo } from "../logger";
 
 // Forex Cron: processForexInvestments runs periodically.
 export async function processForexInvestments() {
@@ -111,8 +112,10 @@ export async function getActiveForexInvestments() {
   }
 }
 
-export async function processForexInvestment(investment: any) {
+export async function processForexInvestment(investment: any, retryCount: number = 0) {
   const cronName = "processForexInvestments";
+  const maxRetries = 3;
+  
   try {
     if (investment.status === "COMPLETED") {
       broadcastLog(
@@ -173,9 +176,58 @@ export async function processForexInvestment(investment: any) {
     logError(`processForexInvestment - General`, error, __filename);
     broadcastLog(
       cronName,
-      `General error processing investment ${investment.id}: ${error.message}`,
+      `Error processing investment ${investment.id}: ${error.message}`,
       "error"
     );
+    
+    // Retry logic
+    if (retryCount < maxRetries) {
+      broadcastLog(
+        cronName,
+        `Retrying investment ${investment.id} (attempt ${retryCount + 1}/${maxRetries})`,
+        "warning"
+      );
+      
+      // Exponential backoff: wait 2^retryCount seconds
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+      
+      // Retry with incremented count
+      return processForexInvestment(investment, retryCount + 1);
+    } else {
+      // Max retries reached, mark investment for manual review
+      try {
+        await models.forexInvestment.update(
+          { 
+            status: "CANCELLED",
+            metadata: JSON.stringify({
+              error: error.message,
+              failedAt: new Date().toISOString(),
+              retries: retryCount
+            })
+          },
+          { where: { id: investment.id } }
+        );
+        
+        broadcastLog(
+          cronName,
+          `Investment ${investment.id} marked as CANCELLED after ${maxRetries} retries`,
+          "error"
+        );
+        
+        // Create notification for admin
+        await createNotification({
+          userId: investment.userId,
+          relatedId: investment.id,
+          title: "Forex Investment Processing Failed",
+          message: `Investment ${investment.id} failed to process after ${maxRetries} attempts. Manual review required.`,
+          type: "system",
+          link: `/admin/forex/investment/${investment.id}`,
+        });
+      } catch (updateError) {
+        logError(`processForexInvestment - Failed to mark as cancelled`, updateError, __filename);
+      }
+    }
+    
     throw error;
   }
 }
@@ -198,15 +250,15 @@ function calculateRoi(investment: any) {
   return roi;
 }
 
-function determineInvestmentResult(investment: any) {
+function determineInvestmentResult(investment: any): "WIN" | "LOSS" | "DRAW" {
   const result = investment.result || investment.plan.defaultResult;
-  return result;
+  return result as "WIN" | "LOSS" | "DRAW";
 }
 
 function shouldProcessInvestment(
   investment: any,
   roi: number,
-  investmentResult: string
+  investmentResult: "WIN" | "LOSS" | "DRAW"
 ) {
   const endDate = calculateEndDate(investment);
   return isPast(endDate);
@@ -239,7 +291,7 @@ async function handleInvestmentUpdate(
   investment: any,
   user: any,
   roi: number,
-  investmentResult: string
+  investmentResult: "WIN" | "LOSS" | "DRAW"
 ) {
   const cronName = "processForexInvestments";
   let updatedInvestment;
@@ -303,20 +355,30 @@ async function handleInvestmentUpdate(
         cronName,
         `Forex investment ${investment.id} updated to COMPLETED (WIN)`
       );
+      
+      // Log the investment completion
+      logInfo(
+        "forex-investment-completion",
+        `Forex investment ${investment.id} completed for user ${user.id} with result: ${investmentResult}, ROI: ${roi}`,
+        __filename
+      );
     } else if (investmentResult === "LOSS") {
+      // In LOSS case, roi represents the loss amount (negative value)
+      // Return the remaining amount after deducting the loss
+      const remainingAmount = Math.max(0, amount - Math.abs(roi));
       await models.wallet.update(
-        { balance: newBalance - amount + roi },
+        { balance: newBalance + remainingAmount },
         { where: { id: wallet.id }, transaction: t }
       );
       broadcastLog(
         cronName,
-        `Wallet updated for LOSS case. New balance: ${newBalance - amount + roi}`
+        `Wallet updated for LOSS case. New balance: ${newBalance + remainingAmount}`
       );
       await models.transaction.create(
         {
           userId: wallet.userId,
           walletId: wallet.id,
-          amount: -roi,
+          amount: -Math.abs(roi),
           description: `Investment ROI: Plan "${investment.plan.title}" | Duration: ${investment.duration.duration} ${investment.duration.timeframe}`,
           status: "COMPLETED",
           type: "FOREX_INVESTMENT_ROI",
@@ -334,6 +396,13 @@ async function handleInvestmentUpdate(
       broadcastLog(
         cronName,
         `Forex investment ${investment.id} updated to COMPLETED (LOSS)`
+      );
+      
+      // Log the investment completion
+      logInfo(
+        "forex-investment-completion",
+        `Forex investment ${investment.id} completed for user ${user.id} with result: ${investmentResult}, Loss: ${-Math.abs(roi)}`,
+        __filename
       );
     } else {
       // For DRAW or other cases
@@ -367,6 +436,13 @@ async function handleInvestmentUpdate(
       broadcastLog(
         cronName,
         `Forex investment ${investment.id} updated to COMPLETED (DRAW)`
+      );
+      
+      // Log the investment completion
+      logInfo(
+        "forex-investment-completion",
+        `Forex investment ${investment.id} completed for user ${user.id} with result: ${investmentResult}, No gain or loss`,
+        __filename
       );
     }
 

@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
+import { 
   Menu, 
   Home, 
   Package, 
@@ -21,10 +29,13 @@ import {
   Users,
   Shield,
   Palette,
-  MessageSquare
+  MessageSquare,
+  Building2,
+  BookOpen,
+  ChevronDown
 } from "lucide-react";
 
-const navigationItems = [
+const mainNavigationItems = [
   {
     title: "Dashboard",
     href: "/admin/nft",
@@ -32,65 +43,112 @@ const navigationItems = [
     description: "NFT marketplace overview"
   },
   {
-    title: "Collections",
-    href: "/admin/nft/collection",
-    icon: Package,
-    description: "Manage NFT collections"
-  },
-  {
-    title: "Tokens",
-    href: "/admin/nft/token",
-    icon: Coins,
-    description: "Manage individual NFTs"
-  },
-  {
-    title: "Listings",
-    href: "/admin/nft/listing",
-    icon: ShoppingCart,
-    description: "Active marketplace listings"
-  },
-  {
-    title: "Sales",
-    href: "/admin/nft/sale",
-    icon: TrendingUp,
-    description: "Completed sales transactions"
-  },
-  {
-    title: "Activity",
-    href: "/admin/nft/activity",
-    icon: Activity,
-    description: "Marketplace activity feed"
-  },
-  {
-    title: "Reviews",
-    href: "/admin/nft/review",
-    icon: MessageSquare,
-    description: "NFT reviews and ratings"
-  },
-  {
-    title: "Categories",
-    href: "/admin/nft/category",
-    icon: Palette,
-    description: "Manage NFT categories"
-  },
-  {
-    title: "Creators",
-    href: "/admin/nft/creator",
-    icon: Users,
-    description: "Creator profiles and verification"
-  },
-  {
-    title: "Analytics",
-    href: "/admin/nft/analytics",
-    icon: BarChart3,
-    description: "Marketplace analytics and insights"
-  },
-  {
-    title: "Settings",
-    href: "/admin/nft/settings",
-    icon: Settings,
-    description: "Marketplace configuration"
+    title: "Setup Guide",
+    href: "/admin/nft/onboarding",
+    icon: BookOpen,
+    description: "Complete marketplace setup checklist"
   }
+];
+
+const navigationGroups = [
+  {
+    title: "Content",
+    items: [
+      {
+        title: "Collections",
+        href: "/admin/nft/collection",
+        icon: Package,
+        description: "Manage NFT collections"
+      },
+      {
+        title: "NFTs",
+        href: "/admin/nft/token",
+        icon: Coins,
+        description: "Manage individual NFTs"
+      },
+      {
+        title: "Categories",
+        href: "/admin/nft/category",
+        icon: Palette,
+        description: "Manage NFT categories"
+      }
+    ]
+  },
+  {
+    title: "Trading",
+    items: [
+      {
+        title: "Marketplace",
+        href: "/admin/nft/marketplace",
+        icon: Building2,
+        description: "Deploy and manage marketplace contracts"
+      },
+      {
+        title: "Listings",
+        href: "/admin/nft/listing",
+        icon: ShoppingCart,
+        description: "Active marketplace listings"
+      },
+      {
+        title: "Offers",
+        href: "/admin/nft/offer",
+        icon: Zap,
+        description: "Manage offers and bids on NFTs"
+      },
+      {
+        title: "Auctions",
+        href: "/admin/nft/auction",
+        icon: Layers,
+        description: "Manage NFT auctions and contracts"
+      },
+      {
+        title: "Sales",
+        href: "/admin/nft/sale",
+        icon: TrendingUp,
+        description: "Completed sales transactions"
+      }
+    ]
+  },
+  {
+    title: "Community",
+    items: [
+      {
+        title: "Creators",
+        href: "/admin/nft/creator",
+        icon: Users,
+        description: "Creator profiles and verification"
+      },
+      {
+        title: "Activity",
+        href: "/admin/nft/activity",
+        icon: Activity,
+        description: "Marketplace activity feed"
+      }
+    ]
+  },
+  {
+    title: "System",
+    items: [
+      {
+        title: "Analytics",
+        href: "/admin/nft/analytics",
+        icon: BarChart3,
+        description: "Marketplace analytics and insights"
+      },
+      {
+        title: "Settings",
+        href: "/admin/nft/settings",
+        icon: Settings,
+        description: "Marketplace configuration"
+      }
+    ]
+  }
+];
+
+// Flattened list for mobile navigation
+const allNavigationItems = [
+  ...mainNavigationItems,
+  ...navigationGroups.flatMap(group => group.items)
 ];
 
 export default function NFTAdminNavbar() {
@@ -107,7 +165,7 @@ export default function NFTAdminNavbar() {
 
   const NavItems = () => (
     <div className="space-y-2">
-      {navigationItems.map((item) => {
+      {allNavigationItems.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.href);
         
@@ -142,7 +200,8 @@ export default function NFTAdminNavbar() {
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {navigationItems.slice(0, 6).map((item) => {
+            {/* Main Navigation Items */}
+            {mainNavigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
               
@@ -157,6 +216,62 @@ export default function NFTAdminNavbar() {
                   <Icon className="h-4 w-4" />
                   {item.title}
                 </Link>
+              );
+            })}
+
+            {/* Grouped Navigation Items */}
+            {navigationGroups.map((group) => {
+              const hasActiveItem = group.items.some(item => isActive(item.href));
+              
+              return (
+                <DropdownMenu key={group.title}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className={`flex items-center gap-2 px-3 py-2 h-auto font-medium text-sm transition-colors hover:text-foreground/80 ${
+                        hasActiveItem ? "text-foreground bg-accent/50" : "text-foreground/60 hover:text-foreground"
+                      }`}
+                    >
+                      {group.title}
+                      <ChevronDown className={`h-3 w-3 transition-transform ${hasActiveItem ? "text-primary" : ""}`} />
+                      {hasActiveItem && (
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full ml-1" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64 p-2">
+                    <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold">
+                      {group.title}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="my-1" />
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.href);
+                      
+                      return (
+                        <DropdownMenuItem key={item.href} asChild className="p-0">
+                          <Link
+                            href={item.href}
+                            className={`flex items-start gap-3 w-full px-2 py-3 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
+                              active ? "bg-accent text-accent-foreground" : ""
+                            }`}
+                          >
+                            <Icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{item.title}</div>
+                              <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                                {item.description}
+                              </div>
+                            </div>
+                            {active && (
+                              <div className="w-2 h-2 bg-primary rounded-full ml-2 flex-shrink-0" />
+                            )}
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               );
             })}
           </nav>

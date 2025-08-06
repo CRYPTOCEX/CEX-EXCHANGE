@@ -12,7 +12,7 @@ const logLevels = {
 
 const logging = createLogger({
   levels: logLevels,
-  level: "error",
+  level: "info",
   format: format.combine(
     format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     format.json()
@@ -37,7 +37,7 @@ function ensureCategoryTransport(category: string) {
     const transport = new DailyRotateFile({
       filename: `logs/%DATE%.log`,
       datePattern: "YYYY-MM-DD",
-      level: "error",
+      level: "info",
       handleExceptions: true,
       maxSize: "20m",
       maxFiles: "14d",
@@ -83,6 +83,11 @@ function ensureCacheCapacity() {
     }
     errorCache.delete(oldestKey);
   }
+}
+
+export function logInfo(category: string, message: string, filePath: string) {
+  console.info(message);
+  logger("info", category, filePath, message);
 }
 
 export function logError(category: string, error: Error, filePath: string) {

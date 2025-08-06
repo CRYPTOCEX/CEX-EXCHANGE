@@ -4,7 +4,7 @@ import NFTAdminNavbar from "./components/navbar";
 
 export const metadata: Metadata = {
   title: "NFT Admin Dashboard",
-  description: "Manage NFT collections, tokens, listings, and marketplace settings",
+  description: "Manage NFT collections, NFTs, listings, and marketplace settings",
 };
 
 export default function NFTAdminLayout({

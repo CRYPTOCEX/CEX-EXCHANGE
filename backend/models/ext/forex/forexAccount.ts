@@ -17,6 +17,11 @@ export default class forexAccount
   leverage?: number;
   type!: "DEMO" | "LIVE";
   status?: boolean;
+  dailyWithdrawLimit?: number;
+  monthlyWithdrawLimit?: number;
+  dailyWithdrawn?: number;
+  monthlyWithdrawn?: number;
+  lastWithdrawReset?: Date;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -171,6 +176,47 @@ export default class forexAccount
             isBoolean: { msg: "status: Status must be a boolean value" },
           },
         },
+        dailyWithdrawLimit: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 5000, // Default $5000 daily limit
+          validate: {
+            isFloat: { msg: "dailyWithdrawLimit: Daily withdraw limit must be a number" },
+            min: { args: [0], msg: "dailyWithdrawLimit: Daily withdraw limit must be positive" },
+          },
+        },
+        monthlyWithdrawLimit: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 50000, // Default $50000 monthly limit
+          validate: {
+            isFloat: { msg: "monthlyWithdrawLimit: Monthly withdraw limit must be a number" },
+            min: { args: [0], msg: "monthlyWithdrawLimit: Monthly withdraw limit must be positive" },
+          },
+        },
+        dailyWithdrawn: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+          validate: {
+            isFloat: { msg: "dailyWithdrawn: Daily withdrawn must be a number" },
+            min: { args: [0], msg: "dailyWithdrawn: Daily withdrawn must be positive" },
+          },
+        },
+        monthlyWithdrawn: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+          validate: {
+            isFloat: { msg: "monthlyWithdrawn: Monthly withdrawn must be a number" },
+            min: { args: [0], msg: "monthlyWithdrawn: Monthly withdrawn must be positive" },
+          },
+        },
+        lastWithdrawReset: {
+          type: DataTypes.DATE(3),
+          allowNull: true,
+          defaultValue: DataTypes.NOW,
+        },
       },
       {
         sequelize,
@@ -189,6 +235,21 @@ export default class forexAccount
             name: "forexAccountUserIdFkey",
             using: "BTREE",
             fields: [{ name: "userId" }],
+          },
+          {
+            name: "forexAccountUserIdTypeIdx",
+            using: "BTREE",
+            fields: [{ name: "userId" }, { name: "type" }],
+          },
+          {
+            name: "forexAccountStatusIdx",
+            using: "BTREE",
+            fields: [{ name: "status" }],
+          },
+          {
+            name: "forexAccountCreatedAtIdx",
+            using: "BTREE",
+            fields: [{ name: "createdAt" }],
           },
         ],
       }

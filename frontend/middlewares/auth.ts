@@ -6,8 +6,12 @@ import permissions from "@/middlewares/permissions.json";
 
 const dev = process.env.NODE_ENV !== "production";
 const frontendPort = process.env.NEXT_PUBLIC_FRONTEND_PORT || 3000;
+const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || 4000;
 const siteUrl = dev
   ? `http://localhost:${frontendPort}`
+  : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost";
+const apiUrl = dev
+  ? `http://localhost:${backendPort}`
   : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost";
 
 interface Role {
@@ -21,8 +25,8 @@ let rolesCache: RolesCache | null = null;
 
 async function fetchRolesAndPermissions() {
   try {
-    const apiUrl = `${siteUrl}/api/auth/role`;
-    const response = await fetch(apiUrl, {
+    const endpoint = `${apiUrl}/api/auth/role`;
+    const response = await fetch(endpoint, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +64,7 @@ async function fetchRolesAndPermissions() {
 
 async function refreshToken(request: NextRequest) {
   try {
-    const res = await fetch(`${siteUrl}/api/auth/session`, {
+    const res = await fetch(`${apiUrl}/api/auth/session`, {
       method: "GET",
       credentials: "include",
       headers: {

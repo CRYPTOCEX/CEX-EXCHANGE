@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Image from "next/image";
+import { NFTCardImage } from "@/components/nft/optimized-image";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 import type { NftToken } from "@/types/nft";
 
 interface NFTCardProps {
@@ -71,11 +72,10 @@ export default function NFTCard({
         {/* NFT Image */}
         <div className="aspect-square relative bg-muted">
           {token.image ? (
-            <Image
+            <NFTCardImage
               src={token.image}
               alt={token.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
@@ -180,14 +180,14 @@ export default function NFTCard({
             </div>
             {token.currentListing.type === "AUCTION" && token.currentListing.endTime && (
               <div className="text-right">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Timer className="h-3 w-3" />
+                <p className="text-xs text-muted-foreground mb-1">
                   {t("ends_in")}
                 </p>
-                <p className="text-sm font-medium">
-                  {/* TODO: Add countdown timer */}
-                  {new Date(token.currentListing.endTime).toLocaleDateString()}
-                </p>
+                <CountdownTimer 
+                  endTime={token.currentListing.endTime}
+                  size="sm"
+                  showIcon={true}
+                />
               </div>
             )}
           </div>

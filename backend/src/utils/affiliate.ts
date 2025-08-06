@@ -3,6 +3,100 @@ import { createAdminNotification, createNotification } from "./notifications";
 import { logError } from "@b/utils/logger";
 import { CacheManager } from "@b/utils/cache";
 
+/**
+ * Validates and safely parses MLM JSON settings with schema validation
+ * @param jsonString The JSON string to parse
+ * @param maxSize Maximum allowed size in bytes
+ * @param schemaType Type of schema to validate against
+ * @returns Parsed object or throws error
+ */
+function validateAndParseMLMSettings(jsonString: string, maxSize: number, schemaType: 'binary' | 'unilevel'): any {
+  // Size validation
+  if (typeof jsonString !== 'string' || jsonString.length > maxSize) {
+    throw new Error(`Invalid MLM ${schemaType} settings format or size (max: ${maxSize} bytes)`);
+  }
+  
+  // Security validation - check for malicious content
+  const maliciousPatterns = ['__proto__', 'constructor', 'prototype', 'eval', 'function', 'require'];
+  for (const pattern of maliciousPatterns) {
+    if (jsonString.includes(pattern)) {
+      throw new Error(`Potentially malicious content detected in ${schemaType} settings: ${pattern}`);
+    }
+  }
+  
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch (parseError) {
+    throw new Error(`Invalid JSON format in ${schemaType} settings: ${parseError.message}`);
+  }
+  
+  // Type validation
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`${schemaType} settings must be a valid object`);
+  }
+  
+  // Prototype validation
+  if (Object.getPrototypeOf(parsed) !== Object.prototype) {
+    throw new Error(`Invalid ${schemaType} settings object type`);
+  }
+  
+  // Schema-specific validation
+  if (schemaType === 'binary') {
+    validateBinarySchema(parsed);
+  } else if (schemaType === 'unilevel') {
+    validateUnilevelSchema(parsed);
+  }
+  
+  return parsed;
+}
+
+/**
+ * Validates binary MLM settings schema
+ */
+function validateBinarySchema(settings: any): void {
+  if (typeof settings.levels !== 'number' || settings.levels < 2 || settings.levels > 7) {
+    throw new Error('Binary settings must have levels between 2 and 7');
+  }
+  
+  if (!Array.isArray(settings.levelsPercentage)) {
+    throw new Error('Binary settings must have levelsPercentage array');
+  }
+  
+  // Validate each level percentage
+  for (const level of settings.levelsPercentage) {
+    if (!level || typeof level.level !== 'number' || typeof level.value !== 'number') {
+      throw new Error('Binary level percentages must have valid level and value properties');
+    }
+    if (level.value < 0 || level.value > 100) {
+      throw new Error(`Binary level percentage must be between 0-100, got: ${level.value}`);
+    }
+  }
+}
+
+/**
+ * Validates unilevel MLM settings schema
+ */
+function validateUnilevelSchema(settings: any): void {
+  if (typeof settings.levels !== 'number' || settings.levels < 2 || settings.levels > 7) {
+    throw new Error('Unilevel settings must have levels between 2 and 7');
+  }
+  
+  if (!Array.isArray(settings.levelsPercentage)) {
+    throw new Error('Unilevel settings must have levelsPercentage array');
+  }
+  
+  // Validate each level percentage
+  for (const level of settings.levelsPercentage) {
+    if (!level || typeof level.level !== 'number' || typeof level.value !== 'number') {
+      throw new Error('Unilevel level percentages must have valid level and value properties');
+    }
+    if (level.value < 0 || level.value > 100) {
+      throw new Error(`Unilevel level percentage must be between 0-100, got: ${level.value}`);
+    }
+  }
+}
+
 export async function processRewards(
   userId: string,
   amount: number,
@@ -342,27 +436,11 @@ async function processBinaryRewards(
   try {
     if (typeof mlmSettings.binary === "string") {
       try {
-        // Validate binary settings string before parsing
-        if (mlmSettings.binary.length > 5000) {
-          throw new Error("Binary settings string too large");
-        }
-        
-        if (mlmSettings.binary.includes('__proto__') || mlmSettings.binary.includes('constructor')) {
-          throw new Error("Potentially malicious JSON detected in binary settings");
-        }
-        
-        mlmSettings.binary = JSON.parse(mlmSettings.binary);
-        
-        // Validate parsed binary settings
-        if (mlmSettings.binary && typeof mlmSettings.binary === 'object' && mlmSettings.binary !== null) {
-          if (Object.getPrototypeOf(mlmSettings.binary) !== Object.prototype) {
-            throw new Error("Invalid binary settings object type");
-          }
-        }
+        mlmSettings.binary = validateAndParseMLMSettings(mlmSettings.binary, 5000, 'binary');
       } catch (error) {
         logError(
           "mlmSettings.binary",
-          new Error("Invalid JSON in mlmSettings.binary"),
+          error,
           __filename
         );
         return false;
@@ -376,6 +454,23 @@ async function processBinaryRewards(
         __filename
       );
       return false;
+    }
+
+    // Validate commission percentages don't exceed 100%
+    if (mlmSettings.binary.levelsPercentage && Array.isArray(mlmSettings.binary.levelsPercentage)) {
+      const totalCommission = mlmSettings.binary.levelsPercentage.reduce((sum, level) => {
+        const percentage = typeof level.value === 'number' ? level.value : 0;
+        return sum + percentage;
+      }, 0);
+      
+      if (totalCommission > 100) {
+        logError(
+          "mlmSettings.binary",
+          new Error(`Total binary commission percentages (${totalCommission}%) cannot exceed 100%`),
+          __filename
+        );
+        return false;
+      }
     }
 
     const binaryLevels = mlmSettings.binary.levels;
@@ -428,27 +523,11 @@ async function processUnilevelRewards(
   try {
     if (typeof mlmSettings.unilevel === "string") {
       try {
-        // Validate unilevel settings string before parsing
-        if (mlmSettings.unilevel.length > 5000) {
-          throw new Error("Unilevel settings string too large");
-        }
-        
-        if (mlmSettings.unilevel.includes('__proto__') || mlmSettings.unilevel.includes('constructor')) {
-          throw new Error("Potentially malicious JSON detected in unilevel settings");
-        }
-        
-        mlmSettings.unilevel = JSON.parse(mlmSettings.unilevel);
-        
-        // Validate parsed unilevel settings
-        if (mlmSettings.unilevel && typeof mlmSettings.unilevel === 'object' && mlmSettings.unilevel !== null) {
-          if (Object.getPrototypeOf(mlmSettings.unilevel) !== Object.prototype) {
-            throw new Error("Invalid unilevel settings object type");
-          }
-        }
+        mlmSettings.unilevel = validateAndParseMLMSettings(mlmSettings.unilevel, 5000, 'unilevel');
       } catch (error) {
         logError(
           "mlmSettings.unilevel",
-          new Error("Invalid JSON in mlmSettings.unilevel"),
+          error,
           __filename
         );
         return false;
@@ -462,6 +541,23 @@ async function processUnilevelRewards(
         __filename
       );
       return false;
+    }
+
+    // Validate commission percentages don't exceed 100%
+    if (mlmSettings.unilevel.levelsPercentage && Array.isArray(mlmSettings.unilevel.levelsPercentage)) {
+      const totalCommission = mlmSettings.unilevel.levelsPercentage.reduce((sum, level) => {
+        const percentage = typeof level.value === 'number' ? level.value : 0;
+        return sum + percentage;
+      }, 0);
+      
+      if (totalCommission > 100) {
+        logError(
+          "mlmSettings.unilevel",
+          new Error(`Total unilevel commission percentages (${totalCommission}%) cannot exceed 100%`),
+          __filename
+        );
+        return false;
+      }
     }
 
     const unilevelLevels = mlmSettings.unilevel.levels;

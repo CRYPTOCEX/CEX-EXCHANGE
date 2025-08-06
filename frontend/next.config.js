@@ -51,7 +51,7 @@ const nextConfig = {
     clientSegmentCache: true,
   },
   env: {
-    NEXT_PUBLIC_LANGUAGES: process.env.NEXT_PUBLIC_LANGUAGES || "en,es,fr,de,it,pt,ru,ja,ko,zh,ar,hi,tr,nl,sv,pl,da,no,fi,cs,hu,ro,bg,hr,sk,sl,et,lv,lt,mt,el,ca,eu,gl,cy,ga,is,mk,sq,sr,bs,me,az,ka,hy,he,th,vi,id,ms,tl,sw,am,om,so,rw,ny,sn,zu,xh,st,tn,ts,ve,ss,nr,nd,kn,te,ta,ml,si,my,km,lo,bo,dz,ne,bn,as,or,pa,gu,mr,sa,ur,ps,fa,ku,ckb",
+    NEXT_PUBLIC_LANGUAGES: process.env.NEXT_PUBLIC_LANGUAGES || "en,es,fr,de,it,pt,ru,ar,ja,ko,hi,tr",
     NEXT_PUBLIC_DEFAULT_LANGUAGE: process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE || "en",
   },
   webpack: (config, { dev, isServer }) => {
@@ -74,6 +74,29 @@ const nextConfig = {
         encoding: require.resolve('encoding'),
       };
     }
+
+    // Minimal webpack configuration for @reown packages
+    // Disable strict ES module resolution for problematic packages
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        buffer: false,
+      };
+    }
+
+    // Ignore module resolution errors for lit submodules
+    config.ignoreWarnings = [
+      /Module not found: Package path \.\/decorators is not exported/,
+      /Module not found: Package path \.\/directive is not exported/,
+      /Module not found: Package path \.\/directive-helpers is not exported/,
+      /Module not found: Package path \.\/static-html is not exported/,
+      /Module not found: Package path \.\/html is not exported/,
+    ];
+
     return config;
   },
   async rewrites() {

@@ -2,19 +2,6 @@ import ExchangeManager from "@b/utils/exchange";
 import { models } from "@b/db";
 import { logError } from "../logger";
 import { Op } from "sequelize";
-// Safe import for MatchingEngine (only available if extension is installed)
-async function getMatchingEngine() {
-  try {
-    // @ts-ignore - Dynamic import for optional extension
-    const module = await import("../../api/(ext)/ecosystem/utils/matchingEngine");
-    return module.MatchingEngine.getInstance();
-  } catch (error) {
-    // Return a basic stub if extension not available
-    return {
-      getTickers: async () => ({})
-    };
-  }
-}
 import { add, format, subDays } from "date-fns";
 import { broadcastStatus, broadcastProgress, broadcastLog } from "./broadcast";
 import {
@@ -25,6 +12,20 @@ import {
 import { updateTransaction } from "@b/api/finance/utils";
 import { createNotification } from "../notifications";
 import { walletPnlTaskQueue } from "./walletTask";
+
+// Safe import for MatchingEngine (only available if extension is installed)
+async function getMatchingEngine() {
+  try {
+    // @ts-ignore - Dynamic import for optional extension
+    const matchingEngineModule = await import("../../api/(ext)/ecosystem/utils/matchingEngine");
+    return matchingEngineModule.MatchingEngine.getInstance();
+  } catch (error) {
+    // Return a basic stub if extension not available
+    return {
+      getTickers: async () => ({})
+    };
+  }
+}
 
 export async function processWalletPnl() {
   const cronName = "processWalletPnl";

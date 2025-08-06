@@ -1,6 +1,13 @@
 import * as Sequelize from "sequelize";
 import { DataTypes, Model } from "sequelize";
 
+interface permissionAttributes {
+  id: number;
+  name: string;
+}
+
+interface permissionCreationAttributes extends Omit<permissionAttributes, 'id'> {}
+
 export default class permission
   extends Model<permissionAttributes, permissionCreationAttributes>
   implements permissionAttributes

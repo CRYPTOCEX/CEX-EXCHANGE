@@ -84,11 +84,9 @@ export const TableHeaderComponent = React.memo(
           )}
 
           {/* NORMAL COLUMNS */}
-          {filteredColumns.map((column, index) => {
-            // We skip the "select" or "actions" columns in this map, since they get special handling
-            if (column.key === "select" || column.key === "actions") {
-              return null;
-            }
+          {filteredColumns
+            .filter((column) => column.key !== "select" && column.key !== "actions")
+            .map((column, index) => {
 
             let displayTitle = column.title;
             if (
@@ -104,8 +102,9 @@ export const TableHeaderComponent = React.memo(
               }
             }
 
+            const dataColumns = filteredColumns.filter((col) => col.key !== "select" && col.key !== "actions");
             const isFirstDataColumn = index === 0 && !showSelectColumn;
-            const isLastDataColumn = index === filteredColumns.length - 1;
+            const isLastDataColumn = index === dataColumns.length - 1;
 
             return (
               <TableHead

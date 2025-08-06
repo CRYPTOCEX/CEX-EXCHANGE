@@ -16,6 +16,9 @@ export default class forexInvestment
   result?: "WIN" | "LOSS" | "DRAW";
   status!: "ACTIVE" | "COMPLETED" | "CANCELLED" | "REJECTED";
   endDate?: Date;
+  metadata?: string;
+  termsAcceptedAt?: Date;
+  termsVersion?: string;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -109,6 +112,24 @@ export default class forexInvestment
           type: DataTypes.DATE(3),
           allowNull: true,
         },
+        metadata: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        termsAcceptedAt: {
+          type: DataTypes.DATE(3),
+          allowNull: true,
+          validate: {
+            isDate: { msg: "termsAcceptedAt: Must be a valid date", args: true },
+          },
+        },
+        termsVersion: {
+          type: DataTypes.STRING(50),
+          allowNull: true,
+          validate: {
+            notEmpty: { msg: "termsVersion: Terms version must not be empty" },
+          },
+        },
       },
       {
         sequelize,
@@ -146,12 +167,27 @@ export default class forexInvestment
           },
           {
             name: "forexInvestmentStatusIndex",
-            unique: true,
+            unique: false, // Changed to allow multiple active investments per plan
             using: "BTREE",
             fields: ["userId", "planId", "status"],
             where: {
               status: "ACTIVE",
             },
+          },
+          {
+            name: "forexInvestmentUserIdStatusIdx",
+            using: "BTREE",
+            fields: [{ name: "userId" }, { name: "status" }],
+          },
+          {
+            name: "forexInvestmentCreatedAtIdx",
+            using: "BTREE",
+            fields: [{ name: "createdAt" }],
+          },
+          {
+            name: "forexInvestmentEndDateIdx",
+            using: "BTREE",
+            fields: [{ name: "endDate" }],
           },
         ],
       }

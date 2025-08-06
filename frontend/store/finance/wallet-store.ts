@@ -10,6 +10,8 @@ interface WalletState {
   pnl: any | null;
   stats: any | null;
   isLoading: boolean;
+  isLoadingStats: boolean;
+  hasFetchedStats: boolean;
   totalBalance: number;
   totalChange: number;
   totalChangePercent: number;
@@ -33,6 +35,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   pnl: null,
   stats: null,
   isLoading: false,
+  isLoadingStats: false,
+  hasFetchedStats: false,
   totalBalance: 0,
   totalChange: 0,
   totalChangePercent: 0,
@@ -101,6 +105,17 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   fetchStats: async () => {
+    const { isLoadingStats, hasFetchedStats } = get();
+    
+    // Prevent multiple simultaneous fetches
+    if (isLoadingStats || hasFetchedStats) {
+      console.log("fetchStats skipped - already loading or fetched");
+      return;
+    }
+    
+    console.trace("fetchStats called from:");
+    set({ isLoadingStats: true });
+    
     try {
       const { data, error } = await $fetch({
         url: "/api/finance/wallet/stats",
@@ -116,12 +131,16 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           totalWallets: data.totalWallets || 0,
           activeWallets: data.activeWallets || 0,
           walletsByType: data.walletsByType || null,
+          isLoadingStats: false,
+          hasFetchedStats: true,
         }));
       } else {
         console.error("Error fetching wallet stats:", error);
+        set({ isLoadingStats: false });
       }
     } catch (err) {
       console.error("Exception in fetchStats:", err);
+      set({ isLoadingStats: false });
     }
   },
 

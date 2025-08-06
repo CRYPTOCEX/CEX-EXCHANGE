@@ -3,7 +3,7 @@ import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftTokenAnalytics } from "./analytics";
 
-export default function NFTTokensPage() {
+export default function NFTsPage() {
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/token"
@@ -21,9 +21,9 @@ export default function NFTTokensPage() {
       canDelete={true}
       canView={true}
       isParanoid={true}
-      title="NFT Tokens"
-      itemTitle="Token"
-      description="Manage individual NFT tokens, review content, and moderate listings"
+      title="NFTs"
+      itemTitle="NFT"
+      description="Manage individual NFTs, review content, and moderate listings"
       columns={columns}
       analytics={nftTokenAnalytics}
     />

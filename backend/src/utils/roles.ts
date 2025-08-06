@@ -22,6 +22,10 @@ class RolesManager {
   async loadRoles() {
     try {
       // Access Sequelize models from your singleton
+      if (!models.role || !models.permission) {
+        console.log("Models not yet initialized, skipping role loading");
+        return;
+      }
 
       // Perform a query to get roles along with their permissions
       const rolesWithPermissions = (await models.role.findAll({

@@ -263,8 +263,8 @@ export const useWithdrawStore = create<WithdrawState>((set, get) => ({
           currency,
           customFields,
         };
-      } else if (walletType === "SPOT" || walletType === "ECO") {
-        // For SPOT/ECO, we need to extract address and chain from custom fields
+      } else if (walletType === "SPOT") {
+        // For SPOT, we need to extract address and chain from custom fields
         const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
         let toAddress = "";
         let chain = withdrawMethod; // Default to method ID as chain
@@ -284,6 +284,34 @@ export const useWithdrawStore = create<WithdrawState>((set, get) => ({
         }
 
         endpoint = "/api/finance/withdraw/spot";
+        requestBody = {
+          currency,
+          chain,
+          amount: Number.parseFloat(amount),
+          toAddress,
+          ...customFields, // Include any additional custom fields
+        };
+      } else if (walletType === "ECO") {
+        // For ECO, use the ecosystem withdrawal endpoint
+        const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
+        let toAddress = "";
+        let chain = withdrawMethod; // Default to method ID as chain
+
+        // Look for address in custom fields
+        if (customFields) {
+          const addressField = Object.keys(customFields).find((key) =>
+            key.toLowerCase().includes("address")
+          );
+          if (addressField) {
+            toAddress = customFields[addressField];
+          }
+        }
+
+        if (method?.network) {
+          chain = method.network;
+        }
+
+        endpoint = "/api/ecosystem/withdraw";
         requestBody = {
           currency,
           chain,

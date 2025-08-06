@@ -312,7 +312,7 @@ export default function NFTDashboardClient() {
             <div className="flex items-center justify-between">
               <div>
                   <p className="text-sm text-muted-foreground font-medium">Total Views</p>
-                  <p className="text-3xl font-bold text-orange-600">{stats.totalViews.toLocaleString()}</p>
+                  <p className="text-3xl font-bold text-orange-600">{(stats?.totalViews || 0).toLocaleString()}</p>
                   <div className="flex items-center gap-1 mt-1">
                     {growth.viewsGrowth >= 0 ? (
                       <ArrowUpRight className="h-3 w-3 text-green-500" />

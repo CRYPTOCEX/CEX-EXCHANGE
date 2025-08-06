@@ -37,11 +37,13 @@ export default async (data: Handler) => {
   const { id } = params;
   const { type, currency, balance, inOrder, status } = body;
 
-  return await updateRecord("wallet", id, {
-    type,
-    currency,
-    balance,
-    inOrder,
-    status,
-  });
+  // Filter out undefined values to allow partial updates
+  const updateData: any = {};
+  if (type !== undefined) updateData.type = type;
+  if (currency !== undefined) updateData.currency = currency;
+  if (balance !== undefined) updateData.balance = balance;
+  if (inOrder !== undefined) updateData.inOrder = inOrder;
+  if (status !== undefined) updateData.status = status;
+
+  return await updateRecord("wallet", id, updateData);
 };

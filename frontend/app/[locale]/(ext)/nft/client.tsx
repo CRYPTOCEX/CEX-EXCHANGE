@@ -79,52 +79,45 @@ export default function NFTClient() {
   );
 
   const fetchPriceRanges = useCallback(async () => {
-    try {
-      const { data, error } = await $fetch({
-        url: `/api/nft/price-ranges`,
-        silentSuccess: true,
-      });
-
-      if (!error && data) {
-        setPriceRanges(data);
-      } else {
-        setPriceRanges([
-          { value: "0-1", label: t("under_1_eth") },
-          { value: "1-5", label: t("1-5_eth") },
-          { value: "5-10", label: t("5-10_eth") },
-          { value: "10+", label: t("10+_eth") },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error fetching price ranges:", error);
-      setPriceRanges([
-        { value: "0-1", label: t("under_1_eth") },
-        { value: "1-5", label: t("1-5_eth") },
-        { value: "5-10", label: t("5-10_eth") },
-        { value: "10+", label: t("10+_eth") },
-      ]);
-    }
+    // Use static price ranges since endpoint doesn't exist
+    setPriceRanges([
+      { value: "0-1", label: t("under_1_eth") },
+      { value: "1-5", label: t("1-5_eth") },
+      { value: "5-10", label: t("5-10_eth") },
+      { value: "10+", label: t("10+_eth") },
+    ]);
   }, [t]);
 
   const fetchStats = useCallback(async () => {
     try {
       const statsData = await $fetch({
-        url: `/api/ext/nft/stats`,
+        url: `/api/nft/stats`,
         silentSuccess: true,
       });
 
       if (statsData && !statsData.error) {
-        setStats(statsData.data || statsData);
+        const data = statsData.data || statsData;
+        setStats({
+          totalNFTs: Number(data?.totalNFTs) || 0,
+          totalCollections: Number(data?.totalCollections) || 0,
+          totalVolume: Number(data?.totalVolume) || 0,
+          totalUsers: Number(data?.totalUsers) || 0,
+          totalSales: Number(data?.totalSales) || 0,
+          averagePrice: Number(data?.averagePrice) || 0,
+          activeListings: Number(data?.activeListings) || 0,
+          floorPrice: Number(data?.floorPrice) || 0,
+        });
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
+      // Keep default stats on error - don't reset to undefined
     }
   }, []);
 
   const fetchTrendingCollections = useCallback(async () => {
     try {
       const collectionsData = await $fetch({
-        url: `/api/ext/nft/trending/collections?limit=6`,
+        url: `/api/nft/trending/collections?limit=6`,
         silentSuccess: true,
       });
 
@@ -139,7 +132,7 @@ export default function NFTClient() {
   const fetchFeaturedNFTs = useCallback(async () => {
     try {
       const nftsData = await $fetch({
-        url: `/api/ext/nft/featured/tokens?limit=12`,
+        url: `/api/nft/featured/tokens?limit=12`,
         silentSuccess: true,
       });
 
@@ -240,25 +233,25 @@ export default function NFTClient() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                  {stats.totalNFTs.toLocaleString()}+
+                  {(stats?.totalNFTs || 0).toLocaleString()}+
                 </div>
                 <div className="text-sm text-muted-foreground">{t("NFTs")}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                  {stats.totalCollections}+
+                  {(stats?.totalCollections || 0).toLocaleString()}+
                 </div>
                 <div className="text-sm text-muted-foreground">{t("Collections")}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                  {stats.totalVolume.toLocaleString()}Ξ
+                  {(stats?.totalVolume || 0).toLocaleString()}Ξ
                 </div>
                 <div className="text-sm text-muted-foreground">{t("total_volume")}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                  {stats.totalUsers.toLocaleString()}+
+                  {(stats?.totalUsers || 0).toLocaleString()}+
                 </div>
                 <div className="text-sm text-muted-foreground">{t("Users")}</div>
               </div>

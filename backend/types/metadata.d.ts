@@ -75,7 +75,11 @@ interface OperationObject {
   security?: Array<Record<string, string[]>>;
   requiresAuth?: boolean;
   requiresApi?: boolean;
-  permission?: string;
+  permission?: string | string[];
+  rateLimit?: {
+    windowMs: number;
+    max: number;
+  };
 }
 
 // Paths Object

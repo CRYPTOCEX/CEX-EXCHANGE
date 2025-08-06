@@ -97,18 +97,26 @@ export default function StakingHero() {
 
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-primary/20 rounded-full animate-bounce"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-            }}
-          ></div>
-        ))}
+        {[...Array(20)].map((_, i) => {
+          // Generate deterministic positions based on index
+          const left = ((i * 37 + 13) % 100);
+          const top = ((i * 47 + 23) % 100);
+          const delay = ((i * 31 + 7) % 50) / 10; // 0-5 seconds
+          const duration = 3 + ((i * 41 + 17) % 40) / 10; // 3-7 seconds
+          
+          return (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/20 rounded-full animate-bounce"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                animationDelay: `${delay}s`,
+                animationDuration: `${duration}s`,
+              }}
+            ></div>
+          );
+        })}
       </div>
 
       <div className="container px-4 md:px-6 relative z-10">
@@ -141,7 +149,7 @@ export default function StakingHero() {
               </div>
               <span className="text-sm font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                 {t("earn_up_to")}{" "}
-                {statsLoading ? "..." : stats ? `${stats.avgApr}%` : "25%"}
+                {statsLoading ? "..." : stats ? `${stats.avgApr}%` : "25%"}{" "}
                 {t("apr_with_premium_staking")}
               </span>
             </motion.div>
@@ -353,7 +361,7 @@ export default function StakingHero() {
                             {t("lock_period")}
                           </div>
                           <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                            {featuredPool.lockPeriod}
+                            {featuredPool.lockPeriod}{" "}
                             {t("days")}
                           </div>
                         </div>

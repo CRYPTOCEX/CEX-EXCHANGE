@@ -361,7 +361,7 @@ export default async (data: Handler) => {
               throw new Error("Transfer to trade account failed");
             }
           } catch (error) {
-            throw new Error("KuCoin withdrawal failed: " + error.message);
+            throw new Error("Withdrawal request failed. Please try again or contact support.");
           }
           break;
         case "binance":
@@ -396,19 +396,19 @@ export default async (data: Handler) => {
               throw new Error("Withdrawal response invalid");
             }
           } catch (error) {
-            // Enhanced error handling for Binance-specific errors
+            // Enhanced error handling for exchange-specific errors
             if (error.message && error.message.includes('-4026')) {
               throw createError({
                 statusCode: 400,
-                message: `Insufficient balance on ${provider} exchange. Available: ${exchangeBalance || 'Unknown'} ${currency}. Please contact support to refill the exchange account.`
+                message: `Insufficient funds available for withdrawal. Please try a smaller amount or contact support for assistance.`
               });
             } else if (error.message && error.message.includes('insufficient')) {
               throw createError({
                 statusCode: 400,
-                message: `Exchange has insufficient balance for this withdrawal. Please contact support.`
+                message: `Insufficient funds available for withdrawal. Please contact support for assistance.`
               });
             } else {
-              throw new Error(`${provider} withdrawal failed: ${error.message}`);
+              throw new Error(`Withdrawal request failed. Please try again or contact support.`);
             }
           }
           break;
@@ -451,11 +451,11 @@ export default async (data: Handler) => {
               throw new Error("Withdrawal response invalid");
             }
           } catch (error) {
-            throw new Error("Withdrawal failed: " + error.message);
+            throw new Error("Withdrawal request failed. Please try again or contact support.");
           }
           break;
         default:
-          throw new Error("Exchange provider not supported");
+          throw new Error("Withdrawal method not currently available. Please contact support.");
       }
 
       if (

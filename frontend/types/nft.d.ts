@@ -78,7 +78,6 @@ interface NftToken {
   mintedAt?: string;
   isMinted: boolean;
   isListed: boolean;
-  isStaked: boolean;
   views?: number;
   likes?: number;
   rarity?: "COMMON" | "UNCOMMON" | "RARE" | "EPIC" | "LEGENDARY";
@@ -340,7 +339,6 @@ interface NftTokenFilters {
   ownerId?: string;
   creatorId?: string;
   isListed?: boolean;
-  isStaked?: boolean;
   rarity?: "COMMON" | "UNCOMMON" | "RARE" | "EPIC" | "LEGENDARY";
   status?: "DRAFT" | "MINTED" | "BURNED";
   priceMin?: number;

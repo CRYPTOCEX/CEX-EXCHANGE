@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { $serverFetch } from "@/lib/api";
+import ErrorBoundary from "@/components/error-boundary";
 import NFTDetailClient from "./client";
 
 interface NFTDetailPageProps {
@@ -53,5 +54,15 @@ export default async function NFTDetailPage({ params }: NFTDetailPageProps) {
     notFound();
   }
 
-  return <NFTDetailClient initialToken={token} />;
+  return (
+    <ErrorBoundary
+      showDetails={process.env.NODE_ENV === 'development'}
+      onError={(error, errorInfo) => {
+        console.error('NFT Detail Error:', error, errorInfo);
+        // In production, send to error tracking service
+      }}
+    >
+      <NFTDetailClient initialToken={token} />
+    </ErrorBoundary>
+  );
 } 

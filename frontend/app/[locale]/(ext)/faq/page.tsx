@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FAQClient from "./client";
+import { ErrorBoundary } from "@/components/faq/error-boundary";
 
 export const metadata: Metadata = {
   title: "FAQ - Knowledge Base",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function FAQPage() {
-  return <FAQClient />;
+  return (
+    <ErrorBoundary>
+      <FAQClient />
+    </ErrorBoundary>
+  );
 }

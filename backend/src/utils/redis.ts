@@ -113,3 +113,8 @@ export class RedisSingleton {
     }
   }
 }
+
+// Export a function that returns the Redis instance
+export default function() {
+  return RedisSingleton.getInstance();
+}

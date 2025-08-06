@@ -19,13 +19,13 @@ import { setupSwaggerRoute } from "@b/docs";
 import { setupDefaultRoutes } from "@b/utils";
 import { rolesManager } from "@b/utils/roles";
 import CronJobManager, { createWorker } from "@b/utils/cron";
-import "@b/db";
+import { db } from "@b/db";
 // Safe imports for ecosystem extensions
 async function initializeScylla() {
   try {
     // @ts-ignore - Dynamic import for optional extension
-    const module = await import("@b/api/(ext)/ecosystem/utils/scylla/client");
-    return module.initialize();
+    const scyllaModule = await import("@b/api/(ext)/ecosystem/utils/scylla/client");
+    return scyllaModule.initialize();
   } catch (error) {
     console.log("Scylla extension not available, skipping initialization");
   }
@@ -34,8 +34,8 @@ async function initializeScylla() {
 async function initializeMatchingEngine() {
   try {
     // @ts-ignore - Dynamic import for optional extension
-    const module = await import("@b/api/(ext)/ecosystem/utils/matchingEngine");
-    return module.MatchingEngine.getInstance();
+    const matchingEngineModule = await import("@b/api/(ext)/ecosystem/utils/matchingEngine");
+    return matchingEngineModule.MatchingEngine.getInstance();
   } catch (error) {
     console.log("MatchingEngine extension not available, skipping initialization");
     return null;
@@ -139,13 +139,11 @@ export class MashServer extends RouteHandler {
   }
 
   private async ensureDatabaseReady(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (sequelize) {
-        resolve();
-      } else {
-        reject(new Error("Sequelize instance is not initialized."));
-      }
-    });
+    if (!sequelize) {
+      throw new Error("Sequelize instance is not initialized.");
+    }
+    // Initialize the database (sync tables)
+    await db.initialize();
   }
 
   // Helper method to execute async functions safely and log any errors

@@ -21,17 +21,10 @@ import { cn } from "@/lib/utils";
 import { MessageSquare, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { sanitizeHTML } from "@/lib/sanitize";
+import { ErrorBoundary } from "@/components/faq/error-boundary";
 
-interface FAQAccordionProps {
-  faqs?: faqAttributes[];
-  title?: string;
-  description?: string;
-  category?: string;
-  showCategories?: boolean;
-  variant?: "default" | "card";
-  showFeedback?: boolean;
-  className?: string;
-}
+// FAQAccordionProps interface is now imported from global types
 
 export function FAQAccordion({
   faqs: propFaqs,
@@ -114,22 +107,23 @@ export function FAQAccordion({
   const AccordionWrapper = variant === "card" ? Card : "div";
 
   return (
-    <AccordionWrapper className={className}>
-      {(title || description) && variant === "card" && (
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-900 dark:to-zinc-800">
-          {title && (
-            <CardTitle className="flex items-center text-2xl">
-              <Sparkles className="h-6 w-6 mr-2 text-blue-600 dark:text-blue-400" />
-              {title}
-            </CardTitle>
-          )}
-          {description && (
-            <CardDescription className="text-base">
-              {description}
-            </CardDescription>
-          )}
-        </CardHeader>
-      )}
+    <ErrorBoundary>
+      <AccordionWrapper className={className}>
+        {(title || description) && variant === "card" && (
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-900 dark:to-zinc-800">
+            {title && (
+              <CardTitle className="flex items-center text-2xl">
+                <Sparkles className="h-6 w-6 mr-2 text-blue-600 dark:text-blue-400" />
+                {title}
+              </CardTitle>
+            )}
+            {description && (
+              <CardDescription className="text-base">
+                {description}
+              </CardDescription>
+            )}
+          </CardHeader>
+        )}
 
       {(title || description) && variant !== "card" && (
         <motion.div
@@ -199,7 +193,7 @@ export function FAQAccordion({
                   <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-lg p-6 mt-2">
                     <div className="prose dark:prose-invert max-w-none prose-blue">
                       <div
-                        dangerouslySetInnerHTML={{ __html: faq.answer }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(faq.answer) }}
                         className="text-slate-700 dark:text-slate-300 leading-relaxed"
                       />
                     </div>
@@ -243,15 +237,6 @@ export function FAQAccordion({
         </Accordion>
       </div>
     </AccordionWrapper>
+    </ErrorBoundary>
   );
-}
-
-// Define the faqAttributes interface
-interface faqAttributes {
-  id: string;
-  question: string;
-  answer: string;
-  category?: string;
-  status: boolean;
-  image?: string;
 }

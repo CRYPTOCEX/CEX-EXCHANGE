@@ -9,14 +9,14 @@ export const nftTokenAnalytics: AnalyticsConfig = [
       items: [
         {
           id: "total_tokens",
-          title: "Total Tokens",
+          title: "Total NFTs",
           metric: "total",
           model: "nftToken",
           icon: "mdi:image-multiple",
         },
         {
           id: "minted_tokens",
-          title: "Minted Tokens",
+          title: "Minted NFTs",
           metric: "minted",
           model: "nftToken",
           aggregation: { field: "isMinted", value: "true" },
@@ -24,7 +24,7 @@ export const nftTokenAnalytics: AnalyticsConfig = [
         },
         {
           id: "draft_tokens",
-          title: "Draft Tokens",
+          title: "Draft NFTs",
           metric: "DRAFT",
           model: "nftToken",
           aggregation: { field: "status", value: "DRAFT" },
@@ -32,23 +32,15 @@ export const nftTokenAnalytics: AnalyticsConfig = [
         },
         {
           id: "listed_tokens",
-          title: "Listed Tokens",
+          title: "Listed NFTs",
           metric: "listed",
           model: "nftToken",
           aggregation: { field: "isListed", value: "true" },
           icon: "mdi:storefront",
         },
         {
-          id: "staked_tokens",
-          title: "Staked Tokens",
-          metric: "staked",
-          model: "nftToken",
-          aggregation: { field: "isStaked", value: "true" },
-          icon: "mdi:lock",
-        },
-        {
           id: "burned_tokens",
-          title: "Burned Tokens",
+          title: "Burned NFTs",
           metric: "BURNED",
           model: "nftToken",
           aggregation: { field: "status", value: "BURNED" },
@@ -193,23 +185,22 @@ export const nftTokenAnalytics: AnalyticsConfig = [
   ],
 
   // ─────────────────────────────────────────────────────────────
-  // Group 3: Tokens Over Time – Full-Width Line Chart
+  // Group 3: NFTs Over Time – Full-Width Line Chart
   // ─────────────────────────────────────────────────────────────
   {
     type: "chart",
     items: [
       {
         id: "tokensOverTime",
-        title: "Tokens Over Time",
+        title: "NFTs Over Time",
         type: "line",
         model: "nftToken",
-        metrics: ["total", "minted", "listed", "staked"],
+        metrics: ["total", "minted", "listed"],
         timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
         labels: {
-          total: "Total Tokens",
-          minted: "Minted Tokens",
-          listed: "Listed Tokens",
-          staked: "Staked Tokens",
+          total: "Total NFTs",
+          minted: "Minted NFTs",
+          listed: "Listed NFTs",
         },
       },
     ],

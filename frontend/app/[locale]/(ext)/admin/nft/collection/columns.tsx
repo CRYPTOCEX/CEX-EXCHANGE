@@ -156,7 +156,7 @@ export const columns = [
     filterable: true,
     editable: true,
     usedInCreate: true,
-    description: "Total number of tokens",
+    description: "Total number of NFTs",
     priority: 3,
     render: {
       type: "number",

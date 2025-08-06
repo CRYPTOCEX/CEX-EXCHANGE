@@ -1,7 +1,12 @@
 // /server/api/deposit/paypal.post.ts
 
 import { models } from "@b/db";
-import { paypalClient, paypalOrders } from "./utils";
+import { paypalOrdersController } from "./utils";
+import { 
+  OrderRequest, 
+  CheckoutPaymentIntent, 
+  ItemCategory 
+} from "@paypal/paypal-server-sdk";
 import { createRecordResponses } from "@b/utils/query";
 
 const publicUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -66,23 +71,20 @@ export default async (data: Handler) => {
   }
   const totalAmount = parseFloat(amount).toFixed(2); // Total amount includes tax
 
-  const client = paypalClient();
-
-  const request = new paypalOrders.OrdersCreateRequest();
-  request.requestBody({
-    intent: "CAPTURE",
-    purchase_units: [
+  const orderRequest: OrderRequest = {
+    intent: CheckoutPaymentIntent.Capture,
+    purchaseUnits: [
       {
         amount: {
-          currency_code: currency,
+          currencyCode: currency,
           value: totalAmount,
           breakdown: {
-            item_total: {
-              currency_code: currency,
+            itemTotal: {
+              currencyCode: currency,
               value: itemAmount.toFixed(2),
             },
-            tax_total: {
-              currency_code: currency,
+            taxTotal: {
+              currencyCode: currency,
               value: taxAmount.toFixed(2),
             },
           },
@@ -90,38 +92,40 @@ export default async (data: Handler) => {
         items: [
           {
             name: "Deposit",
-            unit_amount: {
-              currency_code: currency,
+            unitAmount: {
+              currencyCode: currency,
               value: itemAmount.toFixed(2),
             },
             quantity: "1",
-            category: "DIGITAL_GOODS",
+            category: ItemCategory.DigitalGoods,
           },
         ],
       },
     ],
-    payment_source: {
+    paymentSource: {
       paypal: {
-        experience_context: {
-          brand_name: siteName,
+        experienceContext: {
+          brandName: siteName,
+          returnUrl: `${publicUrl}${
+            isProduction ? "" : ":3000"
+          }/finance/deposit/paypal`,
+          cancelUrl: `${publicUrl}${
+            isProduction ? "" : ":3000"
+          }/finance/deposit`,
         },
       },
     },
-    application_context: {
-      return_url: `${publicUrl}${
-        isProduction ? "" : ":3000"
-      }/user/wallet/deposit/paypal`,
-      cancel_url: `${publicUrl}${
-        isProduction ? "" : ":3000"
-      }/user/wallet/deposit`,
-    },
-  });
+  };
 
   try {
-    const order = await client.execute(request);
+    const ordersController = paypalOrdersController();
+    const { result: order } = await ordersController.createOrder({
+      body: orderRequest,
+    });
+    
     return {
-      id: order.result.id,
-      links: order.result.links,
+      id: order.id,
+      links: order.links,
     };
   } catch (error) {
     throw new Error(`Error creating PayPal order: ${error.message}`);

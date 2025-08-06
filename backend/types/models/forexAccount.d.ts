@@ -12,6 +12,11 @@ interface forexAccountAttributes {
   leverage?: number;
   type: "DEMO" | "LIVE";
   status?: boolean;
+  dailyWithdrawLimit?: number;
+  monthlyWithdrawLimit?: number;
+  dailyWithdrawn?: number;
+  monthlyWithdrawn?: number;
+  lastWithdrawReset?: Date;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -30,6 +35,11 @@ type forexAccountOptionalAttributes =
   | "leverage"
   | "type"
   | "status"
+  | "dailyWithdrawLimit"
+  | "monthlyWithdrawLimit"
+  | "dailyWithdrawn"
+  | "monthlyWithdrawn"
+  | "lastWithdrawReset"
   | "createdAt"
   | "deletedAt"
   | "updatedAt";

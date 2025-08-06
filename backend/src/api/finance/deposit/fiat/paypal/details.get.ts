@@ -1,6 +1,6 @@
 // /server/api/deposit/paypal/details.get.ts
 
-import { paypalClient, paypalOrders } from "./utils";
+import { paypalOrdersController } from "./utils";
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -65,12 +65,14 @@ export default async (data: Handler) => {
   const { orderId } = query;
   if (!orderId) throw new Error("Order ID is required");
 
-  const client = paypalClient();
-  const request = new paypalOrders.OrdersGetRequest(orderId);
+  const ordersController = paypalOrdersController();
 
   try {
-    const order = await client.execute(request);
-    return order.result; // Adjust based on the structure of the order details you want to return
+    const { result: order } = await ordersController.getOrder({
+      id: orderId,
+    });
+    
+    return order; // Return the order details
   } catch (error) {
     throw new Error(`Error getting PayPal order details: ${error.message}`);
   }

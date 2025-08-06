@@ -21,7 +21,7 @@ let wagmiAdapter: WagmiAdapter | null = null;
 let walletModal: any = null;
 let hooks: any = {};
 
-function initializeWallet() {
+async function initializeWallet() {
   if (typeof window === 'undefined') return null;
   
   try {
@@ -33,6 +33,8 @@ function initializeWallet() {
     }
 
     if (!walletModal) {
+      // Dynamic import to avoid SSR issues with lit components
+      const appkit = await import("@reown/appkit/react");
       const {
         createAppKit,
         useAppKit,
@@ -43,7 +45,7 @@ function initializeWallet() {
         useAppKitTheme,
         useDisconnect,
         useWalletInfo,
-      } = require("@reown/appkit/react");
+      } = appkit;
 
       walletModal = createAppKit({
         adapters: [wagmiAdapter],
@@ -80,51 +82,66 @@ function initializeWallet() {
   }
 }
 
+// Initialize wallet on client side
+let walletPromise: Promise<any> | null = null;
+
+function getWalletInitialization() {
+  if (!walletPromise) {
+    walletPromise = initializeWallet();
+  }
+  return walletPromise;
+}
+
 // Export safe hooks that only initialize when called
 export function useAppKit() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKit?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useAppKit?.() || {};
 }
 
 export function useAppKitAccount() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKitAccount?.() || { isConnected: false, address: null };
+  if (typeof window === 'undefined') return { isConnected: false, address: null };
+  return hooks.useAppKitAccount?.() || { isConnected: false, address: null };
 }
 
 export function useAppKitNetwork() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKitNetwork?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useAppKitNetwork?.() || {};
 }
 
 export function useAppKitState() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKitState?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useAppKitState?.() || {};
 }
 
 export function useAppKitTheme() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKitTheme?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useAppKitTheme?.() || {};
 }
 
 export function useAppKitEvents() {
-  const wallet = initializeWallet();
-  return wallet?.useAppKitEvents?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useAppKitEvents?.() || {};
 }
 
 export function useWalletInfo() {
-  const wallet = initializeWallet();
-  return wallet?.useWalletInfo?.() || {};
+  if (typeof window === 'undefined') return {};
+  return hooks.useWalletInfo?.() || {};
 }
 
 export function useDisconnect() {
-  const wallet = initializeWallet();
-  return wallet?.useDisconnect?.() || { disconnect: () => {} };
+  if (typeof window === 'undefined') return { disconnect: () => {} };
+  return hooks.useDisconnect?.() || { disconnect: () => {} };
 }
 
 export const modal = () => {
-  const wallet = initializeWallet();
-  return wallet?.modal;
+  if (typeof window === 'undefined') return null;
+  return walletModal;
 };
+
+// Initialize wallet when imported on client side
+if (typeof window !== 'undefined') {
+  getWalletInitialization();
+}
 
 // Export wagmiAdapter getter
 export const getWagmiAdapter = () => {

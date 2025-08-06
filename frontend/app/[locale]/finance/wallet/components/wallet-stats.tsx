@@ -25,7 +25,7 @@ export function WalletStats() {
   // Fetch stats on component mount
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+  }, []);
 
   // Ensure we have numeric values with defaults
   const safeBalance = typeof totalBalance === "number" ? totalBalance : 0;

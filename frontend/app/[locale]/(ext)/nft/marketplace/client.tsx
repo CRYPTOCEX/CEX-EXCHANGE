@@ -67,35 +67,14 @@ export default function MarketplaceClient() {
   }, [fetchListings]);
 
   const fetchSortOptions = useCallback(async () => {
-    try {
-      const { data, error } = await $fetch({
-        url: `/api/nft/sort-options`,
-        silentSuccess: true,
-      });
-
-      if (!error && data) {
-        setSortOptions(data);
-      } else {
-        // Fallback to default sort options
-        setSortOptions([
-          { value: "recently_listed", label: t("recently_listed") },
-          { value: "price_low_high", label: t("price_low_to_high") },
-          { value: "price_high_low", label: t("price_high_to_low") },
-          { value: "ending_soon", label: t("ending_soon") },
-          { value: "most_viewed", label: t("most_viewed") },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error fetching sort options:", error);
-      // Fallback to default sort options
-      setSortOptions([
-        { value: "recently_listed", label: t("recently_listed") },
-        { value: "price_low_high", label: t("price_low_to_high") },
-        { value: "price_high_low", label: t("price_high_to_low") },
-        { value: "ending_soon", label: t("ending_soon") },
-        { value: "most_viewed", label: t("most_viewed") },
-      ]);
-    }
+    // Use static sort options since endpoint doesn't exist
+    setSortOptions([
+      { value: "recently_listed", label: t("recently_listed") },
+      { value: "price_low_high", label: t("price_low_to_high") },
+      { value: "price_high_low", label: t("price_high_to_low") },
+      { value: "ending_soon", label: t("ending_soon") },
+      { value: "most_viewed", label: t("most_viewed") },
+    ]);
   }, [t]);
 
   useEffect(() => {

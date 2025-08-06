@@ -44,10 +44,22 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useParams } from "next/navigation";
-export default function AffiliateDetailClient() {
-  const { id } = useParams() as {
-    id: string;
-  };
+
+interface AffiliateDetailClientProps {
+  isModal?: boolean;
+  onClose?: () => void;
+  onUpdated?: () => void;
+  affiliateId?: string;
+}
+
+export default function AffiliateDetailClient({ 
+  isModal = false, 
+  onClose, 
+  onUpdated,
+  affiliateId 
+}: AffiliateDetailClientProps) {
+  const params = useParams();
+  const id = affiliateId || (params?.id as string);
   const {
     affiliateDetails: { affiliate, network, rewards, monthlyEarnings },
     loading,
@@ -75,7 +87,10 @@ export default function AffiliateDetailClient() {
   };
 
   // Format currency
-  const formatCurrency = (value: number): string => {
+  const formatCurrency = (value: number | undefined | null): string => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return "$0";
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -83,15 +98,25 @@ export default function AffiliateDetailClient() {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  // Safe number formatting function
+  const formatNumber = (value: number | undefined | null): string => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return "0";
+    }
+    return value.toLocaleString();
+  };
   if (loading) {
     return (
-      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6">
+      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
         <div className="flex items-center gap-2">
-          <Link href="/admin/affiliate/referral">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          {!isModal && (
+            <Link href="/admin/affiliate/referral">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <Skeleton className="h-9 w-48" />
           <Skeleton className="h-6 w-20" />
         </div>
@@ -191,13 +216,15 @@ export default function AffiliateDetailClient() {
   }
   if (error) {
     return (
-      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6">
+      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
         <div className="flex items-center gap-2">
-          <Link href="/admin/affiliate/referral">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          {!isModal && (
+            <Link href="/admin/affiliate/referral">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <h1 className="text-2xl md:text-3xl font-bold">Error</h1>
         </div>
         <Alert variant="destructive">
@@ -213,13 +240,15 @@ export default function AffiliateDetailClient() {
   }
   if (!affiliate) {
     return (
-      <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6">
+      <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
         <div className="flex items-center gap-2">
+          {!isModal && (
             <Link href="/admin/affiliate/referral">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
             </Link>
+          )}
           <h1 className="text-2xl md:text-3xl font-bold">
             Affiliate Not Found
           </h1>
@@ -231,34 +260,40 @@ export default function AffiliateDetailClient() {
             The requested affiliate could not be found or has been deleted.
           </AlertDescription>
         </Alert>
-        <div className="flex justify-center">
+        {!isModal && (
+          <div className="flex justify-center">
             <Link href="/admin/affiliate/referral">
-            <Button>
-              Return to Affiliates
-            </Button>
+              <Button>
+                Return to Affiliates
+              </Button>
             </Link>
-        </div>
+          </div>
+        )}
       </div>
     );
   }
   return (
-    <div className="container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6">
-      <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-6">
-          <Link href="/admin/affiliate/referral">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Button>
-          </Link>
-        <h1 className="text-xl md:text-3xl font-bold truncate max-w-[200px] md:max-w-none">
-          {affiliate.name}
-        </h1>
-        <Badge className={getStatusColor(affiliate.status)}>
-          {affiliate.status.charAt(0).toUpperCase() + affiliate.status.slice(1)}
-        </Badge>
+    <div className={isModal ? "space-y-6" : "container mx-auto py-4 md:py-6 px-4 md:px-6 space-y-6"}>
+      <div className={isModal ? "px-6 py-4 mb-4 md:mb-6" : "flex flex-wrap items-center gap-2 mb-4 md:mb-6"}>
+        <div className="flex flex-wrap items-center gap-2">
+          {!isModal && (
+            <Link href="/admin/affiliate/referral">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Button>
+            </Link>
+          )}
+          <h1 className="text-xl md:text-3xl font-bold truncate max-w-[200px] md:max-w-none">
+            {affiliate.name}
+          </h1>
+          <Badge className={getStatusColor(affiliate.status)}>
+            {affiliate.status.charAt(0).toUpperCase() + affiliate.status.slice(1)}
+          </Badge>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+      <div className={isModal ? "px-6 grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6" : "grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6"}>
         <Card className="md:col-span-1">
           <CardHeader className="pb-2 md:pb-4">
             <CardTitle>Profile</CardTitle>
@@ -336,7 +371,7 @@ export default function AffiliateDetailClient() {
                 <div className="flex items-center">
                   <DollarSign className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground mr-2" />
                   <span className="text-xl md:text-2xl font-bold">
-                    ${affiliate.earnings.toLocaleString()}
+                    ${formatNumber(affiliate.earnings)}
                   </span>
                 </div>
               </CardContent>
@@ -554,7 +589,7 @@ export default function AffiliateDetailClient() {
                                   {node.referrals}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  ${node.earnings.toLocaleString()}
+                                  ${formatNumber(node.earnings)}
                                 </TableCell>
                                 <TableCell className="text-right hidden lg:table-cell">
                                   {new Date(node.joinDate).toLocaleDateString()}
@@ -630,7 +665,7 @@ export default function AffiliateDetailClient() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  ${reward.reward.toLocaleString()}
+                                  ${formatNumber(reward.reward)}
                                 </TableCell>
                               </TableRow>
                             );

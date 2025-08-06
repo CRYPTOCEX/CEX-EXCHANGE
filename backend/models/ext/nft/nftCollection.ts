@@ -32,7 +32,6 @@ export default class nftCollection
   isVerified?: boolean;
   isLazyMinted?: boolean;
   status!: "DRAFT" | "PENDING" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
-  stakingRewardRate?: number;
   metadata?: any;
   createdAt?: Date;
   deletedAt?: Date;
@@ -246,10 +245,6 @@ export default class nftCollection
             },
           },
         },
-        stakingRewardRate: {
-          type: DataTypes.DECIMAL(5, 2),
-          allowNull: true,
-        },
         metadata: {
           type: DataTypes.JSON,
           allowNull: true,
@@ -329,5 +324,7 @@ export default class nftCollection
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
+
+    // No direct association to nftSale - access through tokens
   }
 } 

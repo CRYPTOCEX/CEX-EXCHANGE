@@ -6,6 +6,10 @@ interface Handler {
   headers: { [key: string]: string };
   sessionId?: string;
   remoteAddress?: string;
+  req?: {
+    ip?: string;
+    headers?: { [key: string]: string | string[] | undefined };
+  };
 }
 
 type NextFunction = () => void;

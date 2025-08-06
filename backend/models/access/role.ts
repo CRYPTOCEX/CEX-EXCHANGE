@@ -3,6 +3,15 @@ import { DataTypes, Model } from "sequelize";
 import user from "../user";
 import permission from "./permission";
 
+interface roleAttributes {
+  id: number;
+  name: string;
+}
+
+interface roleCreationAttributes extends Omit<roleAttributes, 'id'> {}
+
+type userId = any; // Define this based on your user model
+
 export default class role
   extends Model<roleAttributes, roleCreationAttributes>
   implements roleAttributes

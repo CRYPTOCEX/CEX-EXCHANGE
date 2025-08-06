@@ -105,6 +105,14 @@ export default class stakingEarningRecord
             name: "staking_earning_records_claimed_idx",
             fields: [{ name: "isClaimed" }],
           },
+          {
+            name: "staking_earning_records_position_claimed_idx",
+            fields: [{ name: "positionId" }, { name: "isClaimed" }],
+          },
+          {
+            name: "staking_earning_records_claimed_at_idx",
+            fields: [{ name: "claimedAt" }],
+          },
         ],
       }
     );

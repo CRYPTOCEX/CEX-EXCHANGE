@@ -230,6 +230,21 @@ export default class forexPlan
             using: "BTREE",
             fields: [{ name: "name" }],
           },
+          {
+            name: "forexPlanStatusIdx",
+            using: "BTREE",
+            fields: [{ name: "status" }],
+          },
+          {
+            name: "forexPlanCurrencyIdx",
+            using: "BTREE",
+            fields: [{ name: "currency" }],
+          },
+          {
+            name: "forexPlanTrendingIdx",
+            using: "BTREE",
+            fields: [{ name: "trending" }],
+          },
         ],
       }
     );

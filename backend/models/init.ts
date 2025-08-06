@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import fs from "fs";
 import path from "path";
 import { Op, Sequelize } from "sequelize";
@@ -8,6 +7,9 @@ import { RedisSingleton } from "@b/utils/redis";
 const isProduction = process.env.NODE_ENV === "production";
 
 export function initModels(sequelize: Sequelize) {
+  if (!sequelize || !(sequelize instanceof Sequelize)) {
+    throw new Error("Invalid Sequelize instance passed to initModels");
+  }
   const models: Record<string, any> = {};
 
   // Get the current file name to exclude it from model imports
@@ -67,6 +69,7 @@ export function initModels(sequelize: Sequelize) {
     });
   } catch (error: any) {
     console.error(`Error initializing models: ${error.message}`);
+    throw error;
   }
 
   console.info(

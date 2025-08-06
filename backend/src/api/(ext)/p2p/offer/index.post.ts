@@ -11,6 +11,7 @@ export const metadata = {
   operationId: "createP2POffer",
   tags: ["P2P", "Offer"],
   requiresAuth: true,
+  middleware: ["p2pOfferCreateRateLimit"],
   requestBody: {
     description: "Complete P2P offer payload",
     required: true,

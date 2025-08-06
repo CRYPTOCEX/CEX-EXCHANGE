@@ -41,9 +41,9 @@ export const nftActivityAnalytics: AnalyticsConfig = [
         {
           id: "list_activities",
           title: "Listings",
-          metric: "LIST_FIXED",
+          metric: "LIST",
           model: "nftActivity",
-          aggregation: { field: "type", value: "LIST_FIXED" },
+          aggregation: { field: "type", value: "LIST" },
           icon: "mdi:format-list-bulleted",
         },
         {
@@ -64,7 +64,7 @@ export const nftActivityAnalytics: AnalyticsConfig = [
           title: "Activity Type Distribution",
           type: "pie",
           model: "nftActivity",
-          metrics: ["MINT", "TRANSFER", "SALE", "LIST_FIXED", "BID", "OFFER"],
+          metrics: ["MINT", "TRANSFER", "SALE", "LIST", "BID", "OFFER"],
           config: {
             field: "type",
             status: [
@@ -87,8 +87,8 @@ export const nftActivityAnalytics: AnalyticsConfig = [
                 icon: "mdi:currency-usd",
               },
               {
-                value: "LIST_FIXED",
-                label: "List Fixed",
+                value: "LIST",
+                label: "List",
                 color: "orange",
                 icon: "mdi:format-list-bulleted",
               },
@@ -114,23 +114,25 @@ export const nftActivityAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 2: Activities Over Time – Full-Width Line Chart
   // ─────────────────────────────────────────────────────────────
-  {
-    type: "chart",
-    items: [
-      {
-        id: "activitiesOverTime",
-        title: "Activities Over Time",
-        type: "line",
-        model: "nftActivity",
-        metrics: ["total", "MINT", "TRANSFER", "SALE"],
-        timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
-        labels: {
-          total: "Total Activities",
-          MINT: "Mints",
-          TRANSFER: "Transfers",
-          SALE: "Sales",
+  [
+    {
+      type: "chart",
+      items: [
+        {
+          id: "activitiesOverTime",
+          title: "Activities Over Time",
+          type: "line",
+          model: "nftActivity",
+          metrics: ["total", "MINT", "TRANSFER", "SALE"],
+          timeframes: ["24h", "7d", "30d", "3m", "6m", "y"],
+          labels: {
+            total: "Total Activities",
+            MINT: "Mints",
+            TRANSFER: "Transfers",
+            SALE: "Sales",
+          },
         },
-      },
-    ],
-  },
+      ],
+    },
+  ],
 ]; 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useUserStore } from "@/store/user";
 import { useNftStore } from "@/store/nft/nft-store";
+import { NFTHeroImage, NFTCardImage } from "@/components/nft/optimized-image";
 import { $fetch } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import { formatCurrency, formatNumber, formatRelativeTime } from "@/utils/format";
 import { nftWebSocketService } from "@/services/nft-ws";
 import { toast } from "sonner";
+import { Link } from "@/i18n/routing";
 import {
   Heart,
   Share2,
@@ -36,6 +38,7 @@ import {
   RefreshCw,
   Wifi,
   WifiOff,
+  Send,
 } from "lucide-react";
 
 interface NFTDetailClientProps {
@@ -79,8 +82,10 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showBidModal, setShowBidModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [offerAmount, setOfferAmount] = useState("");
+  const [transferAddress, setTransferAddress] = useState("");
 
   // Real-time data
   const [currentListing, setCurrentListing] = useState(token.currentListing);
@@ -208,7 +213,6 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
 
     // Subscribe to token updates
     const tokenUnsubscribe = nftWebSocketService.subscribeToToken(token.id, (update) => {
-      console.log("Token update received:", update);
       setLastUpdate(new Date());
       
       if (update.type === "token_update") {
@@ -223,7 +227,6 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
     // Subscribe to auction updates if it's an auction
     if (currentListing?.type === "AUCTION") {
       const auctionUnsubscribe = nftWebSocketService.subscribeToAuction(currentListing.id, (update) => {
-        console.log("Auction update received:", update);
         setLastUpdate(new Date());
         
         if (update.type === "auction_update") {
@@ -241,7 +244,6 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
 
       // Subscribe to bid updates
       const bidsUnsubscribe = nftWebSocketService.subscribeToBids(token.id, (update) => {
-        console.log("Bids update received:", update);
         setLastUpdate(new Date());
         
         if (update.type === "bids_update") {
@@ -261,8 +263,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
     }
 
     // Subscribe to activity updates
-    const activityUnsubscribe = nftWebSocketService.subscribeToActivity(undefined, (update) => {
-      console.log("Activity update received:", update);
+    const activityUnsubscribe = nftWebSocketService.subscribeToActivity((update) => {
       setLastUpdate(new Date());
       
       if (update.type === "activity_update") {
@@ -379,6 +380,33 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
     }
   }, [offerAmount, user?.id, token.id, t, fetchOffers, fetchActivities]);
 
+  const handleTransfer = useCallback(async () => {
+    if (!transferAddress || !user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await $fetch({
+        url: `/api/nft/token/${token.id}/transfer`,
+        method: "POST",
+        body: {
+          transferToUser: transferAddress,
+        },
+        successMessage: t("nft_transferred_successfully"),
+      });
+
+      if (!error) {
+        setShowTransferModal(false);
+        setTransferAddress("");
+        await fetchTokenDetails();
+        await fetchActivities();
+      }
+    } catch (error) {
+      console.error("Error transferring NFT:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [transferAddress, user?.id, token.id, t, fetchTokenDetails, fetchActivities]);
+
   const handleToggleFavorite = useCallback(async () => {
     if (!user?.id) {
       toast.error(t("please_login_to_add_favorites"));
@@ -429,6 +457,7 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
   const canBuy = currentListing && !isOwner && currentListing.type === "FIXED_PRICE";
   const canBid = currentListing && !isOwner && currentListing.type === "AUCTION" && timeLeft > 0;
   const canOffer = !isOwner && (!currentListing || currentListing.type !== "AUCTION");
+  const canTransfer = isOwner && token.status === "MINTED" && !currentListing;
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -437,11 +466,11 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
         <div className="space-y-4">
           <Card>
             <CardContent className="p-0">
-              <div className="aspect-square relative overflow-hidden rounded-lg">
-                <img
-                  src={token.image || "/img/placeholder.svg"}
+              <div className="relative">
+                <NFTHeroImage
+                  src={token.image || "/img/nft/placeholder.svg"}
                   alt={token.name}
-                  className="w-full h-full object-cover"
+                  fallbackSrc="/img/nft/placeholder.svg"
                 />
                 {token.rarity && (
                   <Badge
@@ -687,6 +716,45 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
                       </DialogContent>
                     </Dialog>
                   )}
+
+                  {canTransfer && (
+                    <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="flex-1">
+                          <Send className="h-4 w-4 mr-2" />
+                          {t("transfer")}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{t("transfer_nft")}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="transferAddress">{t("recipient_address")}</Label>
+                            <Input
+                              id="transferAddress"
+                              type="text"
+                              value={transferAddress}
+                              onChange={(e) => setTransferAddress(e.target.value)}
+                              placeholder="0x..."
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t("enter_wallet_address_to_transfer_nft")}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setShowTransferModal(false)}>
+                              {t("Cancel")}
+                            </Button>
+                            <Button onClick={handleTransfer} disabled={isLoading || !transferAddress}>
+                              {isLoading ? <LoadingSpinner /> : t("transfer")}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -837,6 +905,140 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
           </Tabs>
         </div>
       </div>
+
+      {/* Similar NFTs Section */}
+      <SimilarNFTs 
+        collectionId={token.collectionId}
+        currentTokenId={token.id}
+        category={token.collection?.category?.slug}
+      />
     </div>
+  );
+}
+
+// Similar NFTs Component
+interface SimilarNFTsProps {
+  collectionId: string;
+  currentTokenId: string;
+  category?: string;
+}
+
+function SimilarNFTs({ collectionId, currentTokenId, category }: SimilarNFTsProps) {
+  const t = useTranslations();
+  const [similarTokens, setSimilarTokens] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSimilarNFTs = async () => {
+      try {
+        const { data, error } = await $fetch({
+          url: '/api/nft/token',
+          method: 'GET',
+          params: {
+            collectionId,
+            limit: 8,
+            excludeId: currentTokenId,
+            isListed: 'true',
+          },
+          silentSuccess: true,
+        });
+
+        if (!error && data) {
+          setSimilarTokens(Array.isArray(data) ? data : data.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch similar NFTs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSimilarNFTs();
+  }, [collectionId, currentTokenId]);
+
+  if (loading) {
+    return (
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>{t("similar_nfts")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className="aspect-square bg-muted animate-pulse rounded-lg" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (similarTokens.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="mt-8">
+      <CardHeader>
+        <CardTitle>{t("similar_nfts")}</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {t("from_the_same_collection")}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {similarTokens.slice(0, 8).map((token: any) => (
+            <Link key={token.id} href={`/nft/token/${token.id}`}>
+              <div className="group cursor-pointer space-y-3">
+                <div className="aspect-square relative overflow-hidden rounded-lg bg-muted">
+                  <NFTCardImage
+                    src={token.image}
+                    alt={token.name}
+                    className="group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {token.rarity && (
+                    <Badge 
+                      className="absolute top-2 right-2 text-xs"
+                      variant={token.rarity === 'LEGENDARY' ? 'default' : 'secondary'}
+                    >
+                      {token.rarity}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                    {token.name}
+                  </h4>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{formatNumber(token.views || 0)} {t("views")}</span>
+                    {token.currentListing && (
+                      <span className="font-medium text-primary">
+                        {formatCurrency(token.currentListing.price)} {token.currentListing.currency}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        {similarTokens.length > 8 && (
+          <div className="mt-6 text-center">
+            <Link href={`/nft/collection/${collectionId}`}>
+              <Button variant="outline">
+                {t("view_all")} ({similarTokens.length})
+              </Button>
+            </Link>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 } 

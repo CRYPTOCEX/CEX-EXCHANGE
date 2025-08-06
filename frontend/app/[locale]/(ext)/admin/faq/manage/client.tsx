@@ -8,18 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-// FAQ interface definition
-interface faqAttributes {
-  id: string;
-  question: string;
-  answer: string;
-  category?: string;
-  tags?: string[];
-  status: boolean;
-  image?: string;
-  pagePath: string;
-  order: number;
-}
+// faqAttributes interface is now imported from global types
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -231,6 +220,8 @@ export default function AdminFAQClient() {
     if (draggedFaqId && (dropTargetId || dropTargetPagePath)) {
       try {
         await reorderFAQs(draggedFaqId, dropTargetId, dropTargetPagePath);
+        // Refresh FAQs after reordering to ensure UI is in sync
+        await fetchFAQs();
       } catch (error) {
         console.error("Error reordering FAQs:", error);
         toast({
@@ -250,7 +241,7 @@ export default function AdminFAQClient() {
     dropTargetPagePath,
     reorderFAQs,
     toast,
-    faqs,
+    fetchFAQs,
   ]);
 
   /**
@@ -358,15 +349,19 @@ export default function AdminFAQClient() {
   );
 
   const handleClearSearch = useCallback(() => {
-    setSearchFilters({
+    // Reset all filters to default values
+    const defaultFilters: SearchFilters = {
       query: "",
       tags: [],
       status: "all",
       category: "all",
-    });
+    };
+    
+    setSearchFilters(defaultFilters);
     setSearchTerm("");
     setFilterCategory("all");
     setFilterStatus("all");
+    setSelectedFaqs([]); // Also clear selected FAQs
   }, []);
 
   /**
@@ -706,14 +701,20 @@ export default function AdminFAQClient() {
           <AnimatePresence>
             {expandedPages[page.path] && (
               <motion.div
-                className="p-4"
+                className={cn(
+                  "p-4",
+                  dropTargetPagePath === page.path && !dropTargetId && "bg-primary/5 border-2 border-dashed border-primary"
+                )}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
                 // IMPORTANT: handle drag events here so we can drop onto empty page
                 onDragOver={(e) => handleDragOverPage(e, page.path)}
-                onDragEnd={handleDragEnd}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDragEnd();
+                }}
               >
                 {filteredPageFaqs.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">

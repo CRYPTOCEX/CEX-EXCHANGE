@@ -178,6 +178,18 @@ export default class stakingPosition
             name: "staking_positions_withdrawal_idx",
             fields: [{ name: "withdrawalRequested" }],
           },
+          {
+            name: "staking_positions_user_status_idx",
+            fields: [{ name: "userId" }, { name: "status" }],
+          },
+          {
+            name: "staking_positions_end_date_idx",
+            fields: [{ name: "endDate" }],
+          },
+          {
+            name: "staking_positions_created_idx",
+            fields: [{ name: "createdAt" }],
+          },
         ],
       }
     );
