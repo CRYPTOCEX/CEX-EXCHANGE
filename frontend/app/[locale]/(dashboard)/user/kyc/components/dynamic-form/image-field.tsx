@@ -56,7 +56,7 @@ export function ImageField({
     <div className="relative mb-4" data-field-id={id}>
       <Label htmlFor={id} className={labelClasses}>
         {label}
-        {required && <span className="text-destructive ml-1">{t("*")}</span>}
+        {required && <span className="text-destructive ml-1">*</span>}
       </Label>
       {description && (
         <p className="text-sm text-muted-foreground mb-1.5">{description}</p>

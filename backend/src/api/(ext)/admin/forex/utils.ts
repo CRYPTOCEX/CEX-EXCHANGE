@@ -1,45 +1,22 @@
 import { models } from "@b/db";
-import { createError } from "@b/utils/error";
 
-export function parseMetadata(metadataString: string): any {
+export function parseMetadata(metadataString) {
   let metadata: any = {};
 
-  if (!metadataString) {
-    return metadata;
-  }
-
   try {
-    const cleanedString = metadataString.replace(/\\/g, "");
-    metadata = JSON.parse(cleanedString) || {};
+    metadataString = metadataString.replace(/\\/g, "");
+    metadata = JSON.parse(metadataString) || {};
   } catch (e) {
-    console.error("Invalid JSON in metadata:", metadataString, e);
-    // Return empty object instead of throwing to prevent breaking the flow
+    console.error("Invalid JSON in metadata:", metadataString);
   }
   return metadata;
 }
 
-export async function updateForexAccountBalance(
-  account: any, 
-  cost: number, 
-  refund: boolean, 
-  t: any
-): Promise<any> {
-  if (!account || !account.id) {
-    throw createError({
-      statusCode: 400,
-      message: "Invalid forex account provided",
-    });
-  }
-
-  let balance = Number(account.balance) || 0;
+export async function updateForexAccountBalance(account, cost, refund, t) {
+  let balance = Number(account.balance);
   balance = refund ? balance + cost : balance - cost;
 
-  if (balance < 0) {
-    throw createError({
-      statusCode: 400,
-      message: "Insufficient forex account balance",
-    });
-  }
+  if (balance < 0) throw new Error("Insufficient forex account balance");
 
   await models.forexAccount.update(
     { balance },
@@ -52,28 +29,11 @@ export async function updateForexAccountBalance(
   });
 }
 
-export async function updateWalletBalance(
-  wallet: any, 
-  cost: number, 
-  refund: boolean, 
-  t: any
-): Promise<any> {
-  if (!wallet || !wallet.id) {
-    throw createError({
-      statusCode: 400,
-      message: "Invalid wallet provided",
-    });
-  }
-
-  let walletBalance = Number(wallet.balance) || 0;
+export async function updateWalletBalance(wallet, cost, refund, t) {
+  let walletBalance = Number(wallet.balance);
   walletBalance = refund ? walletBalance + cost : walletBalance - cost;
 
-  if (walletBalance < 0) {
-    throw createError({
-      statusCode: 400,
-      message: "Insufficient wallet balance",
-    });
-  }
+  if (walletBalance < 0) throw new Error("Insufficient wallet balance");
 
   await models.wallet.update(
     { balance: walletBalance },

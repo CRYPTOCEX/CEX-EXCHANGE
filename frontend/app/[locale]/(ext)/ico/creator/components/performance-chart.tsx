@@ -46,14 +46,14 @@ export function CreatorPerformanceChart() {
             size="sm"
             onClick={() => setTimeRange("7d")}
           >
-            {t("7D")}
+            7D
           </Button>
           <Button
             variant={timeRange === "30d" ? "default" : "outline"}
             size="sm"
             onClick={() => setTimeRange("30d")}
           >
-            {t("30D")}
+            30D
           </Button>
           <Button
             variant={timeRange === "90d" ? "default" : "outline"}

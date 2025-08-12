@@ -556,7 +556,7 @@ export default function ProductDetailClient() {
                   </div>
                 ) : usdPrice ? (
                   <p className="text-sm text-gray-500 ml-2 mb-1 dark:text-zinc-400">
-                    {t("≈_$")}
+                    ≈ $
                     {(selectedProduct.price * usdPrice).toLocaleString(
                       "en-US",
                       {
@@ -564,7 +564,7 @@ export default function ProductDetailClient() {
                         maximumFractionDigits: 8,
                       }
                     )}{" "}
-                    {t("USD")}
+                    USD
                   </p>
                 ) : null}
               </div>

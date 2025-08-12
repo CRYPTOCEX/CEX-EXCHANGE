@@ -912,7 +912,7 @@ export function FeatureManagement({
                                   variant="outline"
                                   className="text-xs px-1.5 py-0 h-5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800"
                                 >
-                                  {t("L")}
+                                  {'L'}
                                   {feature.recommendedLevel}+
                                 </Badge>
                               </div>

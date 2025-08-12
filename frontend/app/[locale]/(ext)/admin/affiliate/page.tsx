@@ -81,7 +81,7 @@ const CustomEarningsTooltip = ({
       <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-md shadow-md">
         <p className="font-medium text-sm text-zinc-400">{label}</p>
         <p className="text-white text-lg font-bold">
-          {t("$")}
+          / $
           {payload[0].value?.toLocaleString()}
         </p>
       </div>
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
-                        {t("$")}
+                        / $
                         {affiliate.earnings.toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">

@@ -2,6 +2,7 @@ import { getWallet } from "@b/api/finance/wallet/utils";
 import { createNotification } from "@b/utils/notifications";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { rateLimiters } from "@b/handler/Middleware";
 
 const offeringCreationSchema = {
   type: "object",
@@ -107,6 +108,32 @@ const offeringCreationSchema = {
         required: ["name", "tokenPrice", "allocation", "durationDays"],
       },
     },
+    vestingEnabled: { 
+      type: "boolean", 
+      description: "Enable token vesting" 
+    },
+    vestingSchedule: {
+      type: "object",
+      description: "Vesting schedule configuration",
+      properties: {
+        type: { 
+          type: "string", 
+          enum: ["LINEAR", "CLIFF", "MILESTONE"] 
+        },
+        durationMonths: { type: "number" },
+        cliffMonths: { type: "number" },
+        milestones: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              monthsAfterPurchase: { type: "number" },
+              percentage: { type: "number" },
+            },
+          },
+        },
+      },
+    },
     termsAccepted: { type: "boolean" },
     selectedPlan: {
       type: "string",
@@ -173,6 +200,9 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
+  // Apply rate limiting - stricter for ICO creation
+  await rateLimiters.orderCreation(data);
+  
   const { user, body } = data;
 
   if (!user?.id) {
@@ -197,6 +227,8 @@ export default async (data: Handler) => {
     targetAmount,
     startDate,
     phases,
+    vestingEnabled,
+    vestingSchedule,
     termsAccepted,
     selectedPlan,
     paymentComplete,
@@ -305,7 +337,7 @@ export default async (data: Handler) => {
       { transaction }
     );
 
-    // Create token detail record.
+    // Create token detail record with vesting configuration
     await models.icoTokenDetail.create(
       {
         offeringId: offering.id,
@@ -322,6 +354,8 @@ export default async (data: Handler) => {
           { label: "twitter", url: tokenDetails.twitter },
           { label: "telegram", url: tokenDetails.telegram },
         ],
+        vestingEnabled: vestingEnabled || false,
+        vestingSchedule: vestingEnabled ? vestingSchedule : null,
       },
       { transaction }
     );

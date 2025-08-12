@@ -132,7 +132,7 @@ const EcosystemBlockchains = () => {
             className="h-10 w-10 rounded-full"
           />
           <span className="mt-1 text-sm font-semibold text-foreground">
-            {item.chain} {t("(")} {item.info.network} {t(")")}
+            {item.chain} ( {item.info.network} )
           </span>
           <ul className="text-xs mt-1">
             <li>
@@ -154,7 +154,7 @@ const EcosystemBlockchains = () => {
             className="h-10 w-10 rounded-full"
           />
           <span className="mt-1 text-sm font-semibold text-foreground">
-            {item.chain} {t("(")} {item.info.network} {t(")")}
+            {item.chain} ( {item.info.network} )
           </span>
           <ul className="text-xs mt-1">
             <li
@@ -164,7 +164,7 @@ const EcosystemBlockchains = () => {
                 icon={item.info.rpc ? "lucide:check" : "lucide:x"}
                 className="h-3 w-3"
               />
-              {t("RPC")}
+              RPC
             </li>
             <li
               className={`flex items-center gap-2 ${item.info.rpcWss ? "text-success" : "text-destructive"}`}
@@ -173,7 +173,7 @@ const EcosystemBlockchains = () => {
                 icon={item.info.rpcWss ? "lucide:check" : "lucide:x"}
                 className="h-3 w-3"
               />
-              {t("rpc_wss")}
+              RPC WSS
             </li>
             <li
               className={`flex items-center gap-2 ${item.info.explorerApi ? "text-success" : "text-destructive"}`}
@@ -199,7 +199,7 @@ const EcosystemBlockchains = () => {
             className="h-10 w-10 rounded-full"
           />
           <span className="mt-1 text-sm font-semibold text-foreground">
-            {item.chain} {t("(")} {item.info.network} {t(")")}
+            {item.chain} ( {item.info.network} )
           </span>
           <ul className="text-xs mt-1">
             <li>
@@ -228,7 +228,7 @@ const EcosystemBlockchains = () => {
                     icon={item.info.rpc ? "lucide:check" : "lucide:x"}
                     className="h-3 w-3"
                   />
-                  {t("RPC")}
+                  RPC
                 </li>
                 <li
                   className={`flex items-center gap-2 ${item.info.rpcWss ? "text-success" : "text-destructive"}`}
@@ -237,7 +237,7 @@ const EcosystemBlockchains = () => {
                     icon={item.info.rpcWss ? "lucide:check" : "lucide:x"}
                     className="h-3 w-3"
                   />
-                  {t("rpc_wss")}
+                  RPC WSS
                 </li>
               </>
             )}

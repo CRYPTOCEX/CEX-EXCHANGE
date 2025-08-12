@@ -168,6 +168,8 @@ const permissionsList = [
   "create.transaction",
   "create.transfer",
   "create.user",
+  "import.user",
+  "export.user",
   "create.wallet",
   "create.withdraw",
   "create.withdraw.method",

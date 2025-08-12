@@ -195,7 +195,7 @@ export function SiteFooter() {
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="text-slate-500 dark:text-gray-400 text-sm text-center md:text-left"
               >
-                {t("©_2025")} {siteName}. {t("all_rights_reserved")}.
+                © 2025 {siteName}. {t("all_rights_reserved")}.
               </motion.div>
               
               <motion.div

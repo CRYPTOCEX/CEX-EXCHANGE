@@ -36,7 +36,7 @@ export default function ProfitDisplay({
           {t("potential")}
         </div>
         <div className="text-[#00C896] text-sm font-bold">
-          {t("+$")}
+          +$
           {profitAmount.toFixed(2)}
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function ProfitDisplay({
           {t("loss")}
         </div>
         <div className="text-[#FF4D4F] text-xs font-bold">
-          {t("-$")}
+          -$
           {amount.toFixed(2)}
         </div>
       </div>

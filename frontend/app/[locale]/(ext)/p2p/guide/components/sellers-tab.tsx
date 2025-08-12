@@ -36,7 +36,7 @@ export function SellersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("1")}
+                  1:
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">
@@ -96,7 +96,7 @@ export function SellersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("2")}
+                  2
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">
@@ -128,7 +128,7 @@ export function SellersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("3")}
+                  3
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">
@@ -141,7 +141,7 @@ export function SellersTab() {
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
                       <span>
-                        {t("share_your_payment_link_etc")}. {t(")")}
+                        {t("share_your_payment_link_etc")}. )
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function SellersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("4")}
+                  4
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">

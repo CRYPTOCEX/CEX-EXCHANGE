@@ -348,7 +348,7 @@ export default function StakingHero() {
                             <TrendingUp className="w-5 h-5 text-green-500 mr-2" />
                             <span className="text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                               {featuredPool.apr}
-                              {t("%_apr")}
+                              % APR
                             </span>
                           </div>
                         </div>

@@ -439,7 +439,7 @@ export function PostEditor({ postId }: PostEditorProps) {
           className="animate-in fade-in-50 slide-in-from-top-5"
         >
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t("Error")}</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

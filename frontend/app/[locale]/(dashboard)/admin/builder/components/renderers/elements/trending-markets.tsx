@@ -99,7 +99,7 @@ const MarketItemComponent = memo(
           </div>
           <div className="flex flex-col items-end min-w-[80px]">
             <span className="font-medium text-sm">
-              {t("$")}
+              {'$'}
               {formattedPrice}
             </span>
             <span className={`text-xs ${changeColor}`}>{formattedChange}</span>

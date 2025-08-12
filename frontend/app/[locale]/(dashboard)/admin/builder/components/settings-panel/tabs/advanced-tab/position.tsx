@@ -660,9 +660,9 @@ export function Position({ settings, onSettingChange }: ComponentProps) {
               }
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{t("-10")}</span>
-              <span>{t("0")}</span>
-              <span>{t("100")}</span>
+              <span>{'-10'}</span>
+              <span>{'0'}</span>
+              <span>{'100'}</span>
             </div>
           </div>
         </div>

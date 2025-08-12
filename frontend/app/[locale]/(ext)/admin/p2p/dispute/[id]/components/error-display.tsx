@@ -26,7 +26,7 @@ export function ErrorDisplay({ error, clearError }: ErrorDisplayProps) {
         {t("back_to_disputes")}
       </Button>
       <Alert variant="destructive">
-        <AlertTitle>{t("Error")}</AlertTitle>
+        <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
         <Button
           variant="ghost"

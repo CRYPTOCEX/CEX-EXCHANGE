@@ -64,7 +64,7 @@ const StepReview: React.FC = () => {
         </p>
         <p>
           <strong>{t("fee")}</strong>
-          {t("min")}
+          min
           {data.fee.min}
           {t("percentage")} {data.fee.percentage}
         </p>

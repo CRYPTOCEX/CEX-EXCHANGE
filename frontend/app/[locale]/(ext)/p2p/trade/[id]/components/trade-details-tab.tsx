@@ -104,8 +104,8 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
               </p>
               <p className="font-medium">
                 {trade.escrowFee || "0.1%"}
-                {t("(")}
-                {(trade.total * 0.001).toFixed(2)} {t("usd)")}
+                (
+                {(trade.total * 0.001).toFixed(2)} USD)
               </p>
             </div>
           </div>

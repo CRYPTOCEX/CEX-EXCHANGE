@@ -19,14 +19,14 @@ export default function PositionInfo({
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t("position_value")}</span>
           <span className="font-medium">
-            {t("$")}
+            $
             {positionValue.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t("margin")}</span>
           <span className="font-medium">
-            {t("$")}
+            $
             {amount.toFixed(2)}
           </span>
         </div>
@@ -43,7 +43,7 @@ export default function PositionInfo({
         <div className="flex justify-between">
           <span className="text-muted-foreground">{t("fees")}</span>
           <span className="font-medium">
-            {t("$")}
+            $
             {(amount * 0.0004).toFixed(2)}
           </span>
         </div>

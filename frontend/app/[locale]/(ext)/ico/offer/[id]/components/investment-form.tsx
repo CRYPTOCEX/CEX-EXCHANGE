@@ -100,7 +100,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
           <div className="space-y-2">
             <Label htmlFor="amount">{t("investment_amount_(usd)")}</Label>
             <div className="flex items-center space-x-2">
-              <span className="text-sm">{t("$")}</span>
+              <span className="text-sm">/ $</span>
               <Input
                 id="amount"
                 type="number"
@@ -130,7 +130,7 @@ export function InvestmentForm({ offering }: InvestmentFormProps) {
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>
-                {t("min")}
+                min
                 {formatCurrency(minInvestment)}
               </span>
               <span>

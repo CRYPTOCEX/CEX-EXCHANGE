@@ -308,7 +308,7 @@ export function BuilderContent({
         {localError && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("Error")}</AlertTitle>
+            <AlertTitle>{'Error'}</AlertTitle>
             <AlertDescription>{localError}</AlertDescription>
           </Alert>
         )}

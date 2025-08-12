@@ -33,7 +33,7 @@ export function TokenPhaseCard({
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-semibold">{phase.name}</h3>
         <div className="text-sm font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
-          {t("$")}
+          / $
           {phase.tokenPrice}
         </div>
       </div>
@@ -44,7 +44,7 @@ export function TokenPhaseCard({
             <span className="text-muted-foreground">{t("Allocation")}</span>
             <span className="font-medium">
               {formatNumber(soldTokens)}
-              {t("_")}
+              _
               {formatNumber(phase.allocation)} {symbol}
             </span>
           </div>

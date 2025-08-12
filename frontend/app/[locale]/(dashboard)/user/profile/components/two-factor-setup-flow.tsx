@@ -487,7 +487,7 @@ export function TwoFactorSetupFlow({
           <div className="space-y-6">
             <div className="space-y-2">
               <h3 className="text-lg font-medium">
-                {t("1")}. {t("install_an_authenticator_app")}
+                1. {t("install_an_authenticator_app")}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {t("if_you_havent_microsoft_authenticator")}.
@@ -496,7 +496,7 @@ export function TwoFactorSetupFlow({
 
             <div className="space-y-2">
               <h3 className="text-lg font-medium">
-                {t("2")}. {t("scan_this_qr_code")}
+                2. {t("scan_this_qr_code")}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {t("open_your_authenticator_your_account")}.
@@ -546,7 +546,7 @@ export function TwoFactorSetupFlow({
 
             <div className="space-y-2">
               <h3 className="text-lg font-medium">
-                {t("3")}. {t("verify_setup")}
+                3. {t("verify_setup")}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {t("after_scanning_the_30_seconds")}.{" "}

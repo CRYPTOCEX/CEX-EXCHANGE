@@ -152,7 +152,7 @@ export default function FAQDetailContent() {
                     <ThumbsUp className="h-4 w-4" />
                     {t("helpful_(")}
                     {helpfulCount}
-                    {t(")")}
+                    )
                   </Button>
                 ) : (
                   <form onSubmit={handleFeedbackSubmit} className="space-y-4">

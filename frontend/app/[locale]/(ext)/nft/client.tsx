@@ -82,9 +82,9 @@ export default function NFTClient() {
     // Use static price ranges since endpoint doesn't exist
     setPriceRanges([
       { value: "0-1", label: t("under_1_eth") },
-      { value: "1-5", label: t("1-5_eth") },
-      { value: "5-10", label: t("5-10_eth") },
-      { value: "10+", label: t("10+_eth") },
+      { value: "1-5", label: '1-5 ETH' },
+      { value: "5-10", label: '5-10 ETH' },
+      { value: "10+", label: '10+ ETH' },
     ]);
   }, [t]);
 

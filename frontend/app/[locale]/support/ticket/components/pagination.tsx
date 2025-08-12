@@ -110,10 +110,10 @@ export function Pagination({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700">
-              <SelectItem value="5">{t("5")}</SelectItem>
-              <SelectItem value="10">{t("10")}</SelectItem>
-              <SelectItem value="20">{t("20")}</SelectItem>
-              <SelectItem value="50">{t("50")}</SelectItem>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
           <span className="text-sm text-gray-600 dark:text-zinc-400">

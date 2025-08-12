@@ -363,7 +363,7 @@ export function KycApplicationClient() {
           className="dark:bg-red-950 dark:border-red-800"
         >
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="dark:text-red-200">{t("Error")}</AlertTitle>
+          <AlertTitle className="dark:text-red-200">Error</AlertTitle>
           <AlertDescription className="dark:text-red-300">
             {t("the_requested_kyc_level_could_not_be_found")}.{" "}
             {t("please_go_back_and_try_again")}.
@@ -533,7 +533,7 @@ export function KycApplicationClient() {
             className="dark:bg-red-950 dark:border-red-800"
           >
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="dark:text-red-200">{t("Error")}</AlertTitle>
+            <AlertTitle className="dark:text-red-200">Error</AlertTitle>
             <AlertDescription className="dark:text-red-300">
               {formError}
             </AlertDescription>

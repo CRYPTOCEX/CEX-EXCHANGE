@@ -197,7 +197,7 @@ export function TokenReleaseClient() {
                   )}
                   {offering.tokenDetail?.blockchain && (
                     <>
-                      <span className="text-xs">{t("•")}</span>
+                      <span className="text-xs">•</span>
                       <span>{offering.tokenDetail.blockchain}</span>
                     </>
                   )}

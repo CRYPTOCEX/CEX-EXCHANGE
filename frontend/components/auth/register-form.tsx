@@ -901,7 +901,7 @@ export default function RegisterForm({
           <div className="space-y-2">
             <div className="relative p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center">
-                <span className="text-primary font-medium mr-2">{t("#")}</span>
+                <span className="text-primary font-medium mr-2">#</span>
                 <span>{refCode}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">

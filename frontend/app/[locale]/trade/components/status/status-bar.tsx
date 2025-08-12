@@ -189,7 +189,7 @@ export default function StatusBar() {
                   </span>
                 </span>
               ))}
-              <span className="mx-4">{t("|")}</span>
+              <span className="mx-4">|</span>
             </>
           )}
           {topLosers.length > 0 && (
@@ -217,7 +217,7 @@ export default function StatusBar() {
       <div className="flex items-center space-x-3">
         <div className="flex items-center">
           <Globe className="h-3 w-3 mr-1" />
-          <span>{t("UTC")}</span>
+          <span>UTC</span>
         </div>
 
         <div className="flex items-center">

@@ -185,7 +185,7 @@ export function AdminDashboardClient() {
                   <div className="space-y-4">
                     {recentPosts.length === 0 ? (
                       <p className="text-center py-4 text-muted-foreground">
-                        {t("no_posts_found_6")}
+                        {t("no_posts_found")}
                       </p>
                     ) : (
                       recentPosts.map((post) => (
@@ -391,8 +391,8 @@ export function AdminDashboardClient() {
                         >
                           {category.name}
                           <span className="text-xs text-muted-foreground">
-                            {t("(")}
-                            {category.postCount || 0} {t(")")}
+                            (
+                            {category.postCount || 0} )
                           </span>
                         </Badge>
                       );
@@ -409,7 +409,7 @@ export function AdminDashboardClient() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Tag className="h-5 w-5" />
-                    {t("popular_tags_4")}
+                    {t("popular_tags")}
                   </CardTitle>
                   <CardDescription>
                     {t("most_used_content_tags")}
@@ -426,8 +426,8 @@ export function AdminDashboardClient() {
                         >
                           {tag.name}
                           <span className="text-xs text-muted-foreground">
-                            {t("(")}
-                            {tag.postCount || 0} {t(")")}
+                            (
+                            {tag.postCount || 0} )
                           </span>
                         </Badge>
                       );

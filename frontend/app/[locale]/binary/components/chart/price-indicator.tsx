@@ -15,7 +15,7 @@ export default function PriceIndicator({ price, symbol }: PriceIndicatorProps) {
       <div className="flex items-center">
         <span className="font-bold mr-2">{symbol.replace("USDT", "")}</span>
         <span>
-          {t("$")}
+          $
           {price.toFixed(2)}
         </span>
       </div>

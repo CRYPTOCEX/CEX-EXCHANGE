@@ -100,7 +100,7 @@ export function LaunchRequirements() {
               <div>
                 <h4 className="font-medium">{t("standard_compliance")}</h4>
                 <p className="text-sm text-muted-foreground">
-                  {t("your_token_must_standards_(e")}. {t("g")}.{" "}
+                  {t("your_token_must_standards_(e")}. g.{" "}
                   {t("erc-20_bep-20)_for_your_chosen_blockchain")}.
                 </p>
               </div>

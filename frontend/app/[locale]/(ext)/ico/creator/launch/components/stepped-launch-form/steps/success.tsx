@@ -23,7 +23,7 @@ export default function SuccessStep({ name, symbol }: SuccessStepProps) {
         <p className="text-muted-foreground max-w-md mx-auto">
           {t("your_token_launch_application_for")}
           {name}
-          {t("(")}
+          (
           {symbol}
           {t(")_has_been_submitted_and_is_now_pending_review")}.
         </p>
@@ -34,19 +34,19 @@ export default function SuccessStep({ name, symbol }: SuccessStepProps) {
         <ol className="text-left space-y-2 text-sm">
           <li className="flex items-start gap-2">
             <span className="bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
-              {t("1")}
+              1:
             </span>
             <span>{t("our_team_will_business_days")}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
-              {t("2")}
+              2
             </span>
             <span>{t("youll_receive_an_review_results")}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
-              {t("3")}
+              3
             </span>
             <span>{t("if_approved_well_your_token")}</span>
           </li>

@@ -188,7 +188,7 @@ export default function AdminTradeDetailsClient() {
           {t("back_to_trades")}
         </Button>
         <Alert variant="destructive">
-          <AlertTitle>{t("Error")}</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -602,7 +602,7 @@ export default function AdminTradeDetailsClient() {
                 <div className="rounded-md border border-border p-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">{t("T-12339")}</p>
+                      <p className="font-medium">T-12339</p>
                       <p className="text-xs text-muted-foreground">
                         {t("jun_28_2023")}
                       </p>

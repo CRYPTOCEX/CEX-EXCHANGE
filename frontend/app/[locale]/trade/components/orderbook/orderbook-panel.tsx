@@ -890,7 +890,7 @@ export default function OrderBookPanel({
                     theme === "dark" ? "bg-zinc-800 text-zinc-200" : ""
                   }
                 >
-                  {t("0")}.{t("01")}
+                  0.01
                 </option>
                 <option
                   value="0.1"
@@ -898,7 +898,7 @@ export default function OrderBookPanel({
                     theme === "dark" ? "bg-zinc-800 text-zinc-200" : ""
                   }
                 >
-                  {t("0")}.{t("1")}
+                  0.1
                 </option>
                 <option
                   value="1"
@@ -906,7 +906,7 @@ export default function OrderBookPanel({
                     theme === "dark" ? "bg-zinc-800 text-zinc-200" : ""
                   }
                 >
-                  {t("1")}
+                  1
                 </option>
                 <option
                   value="10"
@@ -914,7 +914,7 @@ export default function OrderBookPanel({
                     theme === "dark" ? "bg-zinc-800 text-zinc-200" : ""
                   }
                 >
-                  {t("10")}
+                  10
                 </option>
               </select>
             </div>

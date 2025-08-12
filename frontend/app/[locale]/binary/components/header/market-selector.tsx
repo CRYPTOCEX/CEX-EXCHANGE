@@ -303,7 +303,7 @@ const MarketCard = memo(({
               <div
                 className={`text-2xl font-bold mb-1 ${isDarkTheme ? "text-white" : "text-gray-900"}`}
               >
-                {t("$")}
+                $
                 {formatPrice(currentPrice)}
               </div>
               <div
@@ -729,7 +729,7 @@ export default function MarketSelector({
                     isDarkTheme ? "text-white" : "text-gray-800"
                   }`}
                 >
-                  {baseCurrency}{t("_")}
+                  {baseCurrency}_
                   {quoteCurrency}
                 </div>
                 <div
@@ -1162,7 +1162,7 @@ export default function MarketSelector({
                   animate={{ opacity: 1 }}
                   className="text-center py-16"
                 >
-                  <div className="text-6xl mb-4">{t("🔍")}</div>
+                  <div className="text-6xl mb-4">🔍</div>
                   <h3
                     className={`text-xl font-semibold mb-2 ${isDarkTheme ? "text-white" : "text-gray-800"}`}
                   >

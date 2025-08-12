@@ -368,7 +368,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -429,7 +429,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -484,7 +484,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -545,7 +545,7 @@ export function DynamicForm({
               >
                 {field.label}
                 {field.required && (
-                  <span className="text-destructive ml-1">{t("*")}</span>
+                  <span className="text-destructive ml-1">*</span>
                 )}
               </Label>
             </div>
@@ -568,7 +568,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -617,7 +617,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -740,7 +740,7 @@ export function DynamicForm({
             <Label htmlFor={field.id} className={labelClasses}>
               {field.label}
               {field.required && (
-                <span className="text-destructive ml-1">{t("*")}</span>
+                <span className="text-destructive ml-1">*</span>
               )}
             </Label>
             {field.description && (
@@ -884,7 +884,7 @@ export function DynamicForm({
                       (field) => field.required && formData[field.id]
                     ).length
                   }{" "}
-                  {t("_")}
+                  _
                   {fields.filter((field) => field.required).length}
                 </p>
               )}

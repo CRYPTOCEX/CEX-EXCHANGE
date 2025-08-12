@@ -290,10 +290,10 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
             </div>
             <div className="flex items-center mt-1 text-xs text-muted-foreground">
               <span>
-                {t("min")}
+                min
                 {pool.minStake} {pool.symbol}
               </span>
-              <span className="mx-1">{t("•")}</span>
+              <span className="mx-1">•</span>
               <span>
                 {t("max")}
                 {pool.maxStake || "∞"} {pool.symbol}

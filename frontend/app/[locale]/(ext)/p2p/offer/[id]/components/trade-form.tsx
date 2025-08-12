@@ -391,7 +391,7 @@ export function TradeForm({
             <Label htmlFor="amount" className="text-sm font-medium">
               {t("amount_(")}
               {currencyCode}
-              {t(")")}
+              )
             </Label>
             <div className="relative">
               <Input
@@ -409,7 +409,7 @@ export function TradeForm({
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">
-                {t("min")} {minAmountDisplay} {currencyCode}
+                min {minAmountDisplay} {currencyCode}
               </span>
               <span className="text-muted-foreground">
                 {t("max")} {maxAmountDisplay} {currencyCode}
@@ -433,7 +433,7 @@ export function TradeForm({
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t("USD")}
+                  USD
                 </span>
               </div>
             </div>
@@ -447,7 +447,7 @@ export function TradeForm({
                 <span>
                   {t("platform_fee_(")}
                   {isBuyOffer ? settings.p2pTakerFee : settings.p2pMakerFee}
-                  {t("%)")}
+                  %)
                 </span>
                 <span>
                   {(
@@ -460,7 +460,7 @@ export function TradeForm({
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
-                  {t("USD")}
+                  USD
                 </span>
               </div>
               <Separator className="my-1" />
@@ -478,7 +478,7 @@ export function TradeForm({
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
-                  {t("USD")}
+                  USD
                 </span>
               </div>
             </div>

@@ -110,7 +110,7 @@ export default function PoolCard({ pool }: PoolCardProps) {
             <Progress value={percentageStaked} className="h-2" />
             <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
               <span>
-                {t("0")}
+                0
                 {pool.symbol}
               </span>
               <span>

@@ -27,8 +27,8 @@ const LimitsStep: React.FC<LimitsStepProps> = ({
       <h2 className="text-lg font-semibold mb-2">{t("Limits")}</h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         {t("set_the_minimum_and_costs")}.<br />
-        {t("for_example_the_minimum_is_0")}.{" "}
-        {t("00001_and_the_maximum_is_10000")}.
+        {t("for_example_the_minimum_is")}.{" "}
+        {t("00001_and_the_maximum_is")}.
       </p>
       <div className="grid grid-cols-2 gap-5">
         <div>

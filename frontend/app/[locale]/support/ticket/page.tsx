@@ -319,7 +319,7 @@ export default function SupportPage() {
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                     <Zap className="h-4 w-4" />
                     <span className="font-medium">
-                      {t("avg_response")} {stats.avgResponseTime} {t("min")}
+                      {t("avg_response")} {stats.avgResponseTime} min
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
@@ -552,7 +552,7 @@ export default function SupportPage() {
                     {t("avg_response")}
                   </p>
                   <p className="text-3xl font-bold">
-                    {stats.avgResponseTime} {t("m")}
+                    {stats.avgResponseTime} m
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <Zap className="h-4 w-4 text-purple-200" />
@@ -668,16 +668,16 @@ export default function SupportPage() {
                       </div>
                       <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-gray-600 dark:text-zinc-400 text-sm">
                         <span className="font-medium">
-                          {t("#")}
+                          #
                           {ticket.id.slice(0, 8)}
                         </span>
-                        <span className="hidden sm:inline">{t("•")}</span>
+                        <span className="hidden sm:inline">•</span>
                         <span>
                           {new Date(ticket.createdAt).toLocaleDateString()}
                         </span>
                         {ticket.agentId && (
                           <>
-                            <span className="hidden sm:inline">{t("•")}</span>
+                            <span className="hidden sm:inline">•</span>
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4 text-green-500" />
                               <span className="text-green-600 dark:text-green-400 font-medium">
@@ -688,9 +688,9 @@ export default function SupportPage() {
                         )}
                         {ticket.responseTime && (
                           <>
-                            <span className="hidden sm:inline">{t("•")}</span>
+                            <span className="hidden sm:inline">•</span>
                             <span className="text-blue-600 dark:text-blue-400">
-                              {t("response")} {ticket.responseTime} {t("min")}
+                              {t("response")} {ticket.responseTime} min
                             </span>
                           </>
                         )}

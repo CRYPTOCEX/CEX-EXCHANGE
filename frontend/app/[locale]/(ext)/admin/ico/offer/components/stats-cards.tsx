@@ -55,9 +55,9 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
             <Skeleton className="h-7 w-20" />
           ) : (
             <div className="text-2xl font-bold">
-              {t("$")}
+              / $
               {((stats?.totalRaised || 0) / 1000000).toFixed(2)}
-              {t("M")}
+              M
             </div>
           )}
         </CardContent>

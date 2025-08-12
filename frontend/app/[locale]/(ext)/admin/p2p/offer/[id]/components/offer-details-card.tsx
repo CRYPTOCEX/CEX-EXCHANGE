@@ -79,9 +79,9 @@ export function OfferDetailsCard({ offer }: OfferDetailsCardProps) {
                     : "text-red-600"
                 }
               >
-                {t("(")}
+                (
                 {offer.marketDiff}
-                {t(")")}
+                )
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">

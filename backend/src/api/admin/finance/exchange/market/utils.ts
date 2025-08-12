@@ -89,6 +89,8 @@ export const baseMarketSchema = {
 export const MarketUpdateSchema = {
   type: "object",
   properties: {
+    currency,
+    pair,
     isTrending,
     isHot,
     metadata,

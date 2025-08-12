@@ -55,9 +55,9 @@ export function CampaignTargets() {
           <CardTitle>
             {t("Targets")}{" "}
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              {t("(")}
+              (
               {items.length}
-              {t(")")}
+              )
             </span>
           </CardTitle>
           <CardDescription>

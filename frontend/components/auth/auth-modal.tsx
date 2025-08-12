@@ -228,7 +228,7 @@ export function AuthModal({
               onClick={() => setError(null)}
             >
               <span className="sr-only">Dismiss</span>
-              <span aria-hidden="true">{t("×")}</span>
+              <span aria-hidden="true">×</span>
             </button>
           </div>
         )}

@@ -561,7 +561,7 @@ export function StakingEarningsClient() {
                             </h4>
                             <p className="text-sm text-muted-foreground">
                               {new Date(earning.createdAt).toLocaleDateString()}{" "}
-                              {t("•")}
+                              •
                               {earning.numberOfPositions || "N/A"}
                               {t("positions")}
                             </p>
@@ -580,7 +580,7 @@ export function StakingEarningsClient() {
                               {t("users")}
                               {earning.userEarnings.toFixed(4)}
                             </span>{" "}
-                            {t("•")}
+                            •
                             <span className="text-blue-500">
                               {t("admin")}
                               {earning.adminEarnings.toFixed(4)}
@@ -670,7 +670,7 @@ export function StakingEarningsClient() {
                 <span>
                   {t("platform_fee_(")}
                   {distributionPool?.adminFeePercentage}
-                  {t("%)")}
+                  %)
                 </span>
                 <span className="font-medium">
                   {(

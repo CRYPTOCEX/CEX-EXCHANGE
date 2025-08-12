@@ -8,6 +8,7 @@
 /frontend/.next
 /.pnp
 .pnp.js
+/updates
 
 # explorer
 /explorer
@@ -60,7 +61,9 @@ updates/bundles/
 # skip public/uploads
 public/uploads/*
 dist
+public/swagger.json
 git.js
+.env
 /logs
 logs/.42858a8e42b488e14fa56051022a2b5e56ea55b3-audit.json
 
@@ -72,3 +75,7 @@ frontend/public/blockchains/bsc/assets/CON/logo.webp
 # Cursor Rules
 .cursorrules
 TODO.md
+/updates
+/updates
+/updates/node_modules
+/updates

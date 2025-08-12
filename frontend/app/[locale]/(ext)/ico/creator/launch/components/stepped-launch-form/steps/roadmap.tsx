@@ -65,7 +65,7 @@ export default function RoadmapStep({
           {formData.selectedPlan && (
             <span className="text-sm text-muted-foreground">
               {formData.roadmap.length}
-              {t("_")}
+              _
               {maxRoadmapItems}
               {t("items")}
             </span>

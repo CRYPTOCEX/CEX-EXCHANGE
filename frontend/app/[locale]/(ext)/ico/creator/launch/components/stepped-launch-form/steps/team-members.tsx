@@ -92,7 +92,7 @@ export default function TeamMembersStep({
           <Alert className="bg-amber-50 text-amber-800 border-amber-200">
             <AlertCircle className="h-4 w-4 text-amber-800" />
             <AlertDescription>
-              {t("youve_reached_the_in_your_2")} {formData.selectedPlan.name}
+              {t("youve_reached_the_in_your")} {formData.selectedPlan.name}
               {t("plan")}.
               {formData.selectedPlan.name !== "Premium" &&
                 " Consider upgrading your plan for more team members."}

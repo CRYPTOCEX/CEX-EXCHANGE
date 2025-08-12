@@ -735,11 +735,11 @@ export function PersonalInfoTab() {
                     {/* Social media fields - simplified for brevity */}
                     <div className="space-y-2">
                       <Label htmlFor="twitter" className="dark:text-zinc-200">
-                        {t("Twitter")}
+                        Twitter
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
-                          {t("@")}
+                          @
                         </span>
                         <Input
                           id="twitter"
@@ -766,7 +766,7 @@ export function PersonalInfoTab() {
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
-                          {t("@")}
+                          @
                         </span>
                         <Input
                           id="github"
@@ -789,11 +789,11 @@ export function PersonalInfoTab() {
 
                     <div className="space-y-2">
                       <Label htmlFor="instagram" className="dark:text-zinc-200">
-                        {t("Instagram")}
+                        Instagram
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
-                          {t("@")}
+                          @
                         </span>
                         <Input
                           id="instagram"
@@ -820,7 +820,7 @@ export function PersonalInfoTab() {
                       </Label>
                       <div className="relative">
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-zinc-400">
-                          {t("@")}
+                          @
                         </span>
                         <Input
                           id="dribbble"

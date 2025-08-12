@@ -155,7 +155,7 @@ export default function StakingPoolsPage() {
                   </label>
                   <span className="text-sm text-muted-foreground">
                     {aprRange[0]}
-                    {t("%_-")}
+                    % -
                     {aprRange[1]}%
                   </span>
                 </div>

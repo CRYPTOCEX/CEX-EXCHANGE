@@ -171,7 +171,7 @@ export function CategoriesClient() {
               href="/blog"
               className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center"
             >
-              {t("view_all_posts_2")}
+              {t("view_all_posts")}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
@@ -238,7 +238,7 @@ export function CategoriesClient() {
                         href={`/blog/category/${category.slug}`}
                         className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors duration-300"
                       >
-                        {t("Explore_2")}
+                        {t("Explore")}
                         <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </Link>
                     </div>

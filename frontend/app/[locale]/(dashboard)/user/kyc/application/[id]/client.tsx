@@ -690,7 +690,7 @@ export function ApplicationDetailsClient() {
                   </span>
                   <p className="font-medium text-sm">{field.label}</p>
                   {field.required && (
-                    <span className="ml-1 text-red-500 text-xs">{t("*")}</span>
+                    <span className="ml-1 text-red-500 text-xs">*</span>
                   )}
                   {field.description && (
                     <TooltipProvider>
@@ -1476,7 +1476,7 @@ export function ApplicationDetailsClient() {
           <CardContent>
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>{t("Error")}</AlertTitle>
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>
                 {t("there_was_an_error_loading_your_kyc_application")}.{" "}
                 {t("please_try_again_or_contact_support")}.

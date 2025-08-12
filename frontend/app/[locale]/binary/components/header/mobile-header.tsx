@@ -141,7 +141,7 @@ export function MobileHeader({
               <div className="text-sm font-bold">{displayPair}</div>
               {effectiveCurrentPrice > 0 && (
                 <div className="text-xs opacity-70">
-                  {t("$")}
+                  $
                   {effectiveCurrentPrice.toFixed(2)}
                 </div>
               )}

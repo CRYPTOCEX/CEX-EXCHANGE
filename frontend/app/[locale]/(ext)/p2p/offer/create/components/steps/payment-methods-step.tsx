@@ -793,7 +793,7 @@ export function PaymentMethodsStep() {
                                           {t("delete_payment_method")}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          {t("are_you_sure_be_undone_3")}.
+                                          {t("are_you_sure_be_undone")}.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
@@ -1077,7 +1077,7 @@ export function PaymentMethodsStep() {
             <div className="space-y-2">
               <Label htmlFor="method-name">
                 {t("method_name")}
-                <span className="text-red-500">{t("*")}</span>
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="method-name"
@@ -1112,7 +1112,7 @@ export function PaymentMethodsStep() {
             <div className="space-y-2">
               <Label htmlFor="method-instructions">
                 {t("payment_instructions")}
-                <span className="text-red-500">{t("*")}</span>
+                <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="method-instructions"

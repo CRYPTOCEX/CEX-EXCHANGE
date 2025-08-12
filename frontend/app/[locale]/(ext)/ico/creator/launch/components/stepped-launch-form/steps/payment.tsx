@@ -104,7 +104,7 @@ export default function PaymentStep({
               </p>
               <p className="text-sm">
                 <span className="font-medium">{t("plan_cost")}</span>
-                {t("$")}
+                / $
                 {planCost} {plan.currency}
               </p>
               {!hasSufficientBalance && (

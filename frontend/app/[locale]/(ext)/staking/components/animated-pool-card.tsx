@@ -178,7 +178,7 @@ export default function AnimatedPoolCard({ pool, index = 0 }: PoolCardProps) {
 
                 <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
                   <span>
-                    {t("0")}
+                    0
                     {pool.symbol}
                   </span>
                   <span className="font-medium">

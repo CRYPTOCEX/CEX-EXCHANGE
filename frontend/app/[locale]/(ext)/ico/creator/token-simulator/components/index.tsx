@@ -176,7 +176,7 @@ export function TokenEconomicsSimulator() {
               {t("initial_market_cap")}
             </label>
             <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center">
-              {t("$")}
+              / $
               {initialMarketCap.toLocaleString(undefined, {
                 maximumFractionDigits: 2,
               })}

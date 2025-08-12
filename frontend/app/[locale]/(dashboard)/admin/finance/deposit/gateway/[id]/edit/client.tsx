@@ -166,7 +166,7 @@ export function AdminGatewayEditClient() {
       }
     } catch (err) {
       toast({
-        title: t("Error"),
+        title: 'Error',
         description: `${t("failed_to_update_gateway")}: ${err instanceof Error ? err.message : "Unknown error"}`,
         variant: "destructive",
       });

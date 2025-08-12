@@ -1,4 +1,4 @@
-import { models, sequelize } from "@b/db";
+import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
 
@@ -70,7 +70,7 @@ export default async (data: { user?: any; body?: any }) => {
 
   try {
     // Use a transaction to ensure all updates succeed or fail together
-    await sequelize.transaction(async (t) => {
+    await models.sequelize.transaction(async (t) => {
       // Update each pool's order based on its position in the array
       for (let i = 0; i < poolIds.length; i++) {
         await models.stakingPool.update(

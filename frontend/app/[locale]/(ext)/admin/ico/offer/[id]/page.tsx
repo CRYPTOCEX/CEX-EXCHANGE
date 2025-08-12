@@ -132,7 +132,7 @@ export default function OfferingDetailPage() {
       <div className="container py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t("Error")}</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{errorOffer}</AlertDescription>
         </Alert>
         <div className="mt-4">
@@ -245,7 +245,7 @@ export default function OfferingDetailPage() {
                       <span>{t("token_price")}</span>
                     </div>
                     <div className="text-background font-semibold mt-1 text-lg">
-                      {t("$")}
+                      / $
                       {offering.tokenPrice.toFixed(4)}{" "}
                       <span className="text-sm font-normal">
                         {offering.purchaseWalletCurrency}
@@ -298,7 +298,7 @@ export default function OfferingDetailPage() {
                 </div>
                 <div className="text-background flex items-center gap-1.5">
                   <span className="font-semibold">
-                    {t("$")}
+                    / $
                     {(offerMetrics?.currentRaised ?? 0).toLocaleString()}
                   </span>
                   <span className="text-background/70">

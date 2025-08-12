@@ -243,7 +243,7 @@ export function CreatorInvestorsList() {
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">
-                          {t("$")}
+                          / $
                           {totalCost.toLocaleString()}
                         </TableCell>
                         <TableCell>{totalTokens.toLocaleString()}</TableCell>
@@ -294,10 +294,10 @@ export function CreatorInvestorsList() {
                             />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="5">{t("5")}</SelectItem>
-                            <SelectItem value="10">{t("10")}</SelectItem>
-                            <SelectItem value="20">{t("20")}</SelectItem>
-                            <SelectItem value="50">{t("50")}</SelectItem>
+                            <SelectItem value="5">/ 5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

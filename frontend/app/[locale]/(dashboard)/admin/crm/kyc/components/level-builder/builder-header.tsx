@@ -116,7 +116,7 @@ export function BuilderHeader({
           )}
           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
             <span className="mx-1 text-gray-400 dark:text-gray-500">
-              {t("•")}
+              {'•'}
             </span>
             <span>
               {t("Level")}{" "}

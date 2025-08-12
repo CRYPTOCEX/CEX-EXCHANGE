@@ -183,7 +183,7 @@ export default function TransactionDetailsClient() {
                   {t("Amount")}
                 </h3>
                 <p className="text-base font-medium">
-                  {t("$")}
+                  / $
                   {transaction.amount.toLocaleString()}
                 </p>
               </div>
@@ -210,9 +210,9 @@ export default function TransactionDetailsClient() {
                   </h3>
                   <p className="text-base font-medium">
                     {transaction.offering.name}
-                    {t("(")}
+                    (
                     {transaction.offering.symbol}
-                    {t(")")}
+                    )
                   </p>
                 </div>
               )}
@@ -349,13 +349,13 @@ export default function TransactionDetailsClient() {
                   <div>
                     <p className="text-muted-foreground">{t("Fee")}</p>
                     <p className="font-medium">
-                      {t("$0")}. {t("00")}
+                      $0. 00
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t("Total")}</p>
                     <p className="font-medium">
-                      {t("$")}
+                      / $
                       {transaction.amount.toLocaleString()}
                     </p>
                   </div>

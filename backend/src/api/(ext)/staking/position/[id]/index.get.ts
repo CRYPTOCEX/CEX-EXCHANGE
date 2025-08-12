@@ -54,7 +54,19 @@ export default async (data: Handler) => {
       {
         model: models.stakingPool,
         as: "pool",
-        attributes: ["id", "name", "symbol", "icon", "apr", "lockPeriod", "walletType", "walletChain"],
+        include: [
+          {
+            model: models.token,
+            as: "token",
+            attributes: [
+              "symbol",
+              "name",
+              "icon",
+              "contractAddress",
+              "decimals",
+            ],
+          },
+        ],
       },
     ],
   });
@@ -83,7 +95,7 @@ export default async (data: Handler) => {
     0
   );
   const unclaimedEarnings = earnings
-    .filter((record) => !record.isClaimed)
+    .filter((record) => !record.claimed)
     .reduce((sum, record) => sum + record.amount, 0);
 
   // Calculate time remaining for locked positions

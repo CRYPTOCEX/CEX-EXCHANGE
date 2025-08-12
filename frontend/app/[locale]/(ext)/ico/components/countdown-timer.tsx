@@ -29,11 +29,11 @@ export function CountdownTimer({ targetDate }: CountdownTimerProps) {
     <span className="font-medium">
       {timeLeft.days > 0 && `${timeLeft.days}d `}
       {timeLeft.hours}
-      {t("h")}
+      h
       {timeLeft.minutes}
-      {t("m")}
+      m
       {timeLeft.seconds}
-      {t("s")}
+      s
     </span>
   );
 }

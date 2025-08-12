@@ -109,7 +109,7 @@ export function PoolHeader({ pool }: PoolHeaderProps) {
                     <Percent className="h-4 w-4 text-green-500" />
                     <span className="font-medium">
                       {pool.apr}
-                      {t("%_apr")}
+                      % APR
                     </span>
                   </div>
                 </TooltipTrigger>

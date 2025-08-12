@@ -406,7 +406,7 @@ export function TransferForm() {
             <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <AlertTitle className="text-red-800 dark:text-red-300">
-                {t("Error")}
+                Error
               </AlertTitle>
               <AlertDescription className="text-red-700 dark:text-red-400">
                 {error}
@@ -501,7 +501,7 @@ export function TransferForm() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
-                    {t("1")}
+                    1
                   </span>
                   {t("select_source_wallet")}
                 </CardTitle>
@@ -551,7 +551,7 @@ export function TransferForm() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
-                    {t("2")}
+                    2
                   </span>
                   {t("select_currency")}
                 </CardTitle>
@@ -613,7 +613,7 @@ export function TransferForm() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
-                    {t("3")}
+                    3
                   </span>
                   {t("recipient_details")}
                 </CardTitle>
@@ -668,7 +668,7 @@ export function TransferForm() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
-                      {t("3")}
+                      3
                     </span>
                     {t("select_destination_wallet")}
                   </CardTitle>
@@ -720,7 +720,7 @@ export function TransferForm() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-semibold">
-                      {t("4")}
+                      4
                     </span>
                     {t("select_target_currency")}
                   </CardTitle>

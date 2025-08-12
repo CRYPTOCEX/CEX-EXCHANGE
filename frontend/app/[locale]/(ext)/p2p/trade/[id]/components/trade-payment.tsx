@@ -199,7 +199,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                       {t("amount_to_send")}
                     </p>
                     <p className="font-medium">
-                      {t("$")}
+                      / $
                       {trade.total.toLocaleString()}
                     </p>
                   </div>
@@ -331,7 +331,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("amount")}</span>
                   <span>
-                    {t("$")}
+                    / $
                     {trade.total.toLocaleString()}
                   </span>
                 </div>

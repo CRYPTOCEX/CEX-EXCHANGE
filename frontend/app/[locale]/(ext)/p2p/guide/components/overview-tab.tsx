@@ -113,7 +113,7 @@ export function OverviewTab() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-muted/30 p-4 rounded-lg border relative">
               <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
-                {t("1")}
+                1:
               </div>
               <div className="pt-2 pl-2">
                 <h4 className="font-medium mb-2">{t("create_your_account")}</h4>
@@ -124,7 +124,7 @@ export function OverviewTab() {
             </div>
             <div className="bg-muted/30 p-4 rounded-lg border relative">
               <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
-                {t("2")}
+                2
               </div>
               <div className="pt-2 pl-2">
                 <h4 className="font-medium mb-2">{t("browse_offers")}</h4>
@@ -135,7 +135,7 @@ export function OverviewTab() {
             </div>
             <div className="bg-muted/30 p-4 rounded-lg border relative">
               <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
-                {t("3")}
+                3
               </div>
               <div className="pt-2 pl-2">
                 <h4 className="font-medium mb-2">

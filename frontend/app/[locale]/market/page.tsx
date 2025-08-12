@@ -710,9 +710,9 @@ export default function MarketPage() {
                             </div>
                             {market.high24h > 0 && market.low24h > 0 && (
                               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {t("$")}
+                                $
                                 {formatPrice(market.low24h)}
-                                {t("-_$")}
+                                - $
                                 {formatPrice(market.high24h)}
                               </div>
                             )}

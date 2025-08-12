@@ -168,9 +168,8 @@ export default async (data: Handler) => {
           const currencies: Record<string, exchangeCurrencyAttributes> =
             await exchange.fetchCurrencies();
 
-          const isXt = provider === "xt";
-          const exchangeCurrency = Object.values(currencies).find((c) =>
-            isXt ? (c as any).code === currency : c.id === currency
+          const exchangeCurrency = Object.values(currencies).find(
+            (c) => c.id === currency
           ) as exchangeCurrencyAttributes & {
             networks?: Record<
               string,

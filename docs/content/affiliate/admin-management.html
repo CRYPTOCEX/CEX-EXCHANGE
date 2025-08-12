@@ -1,0 +1,493 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">👑</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Affiliate Admin Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide to managing the affiliate system</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Admin Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The affiliate admin interface provides comprehensive tools for managing your platform's affiliate program. Access the admin dashboard at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/affiliate</code> to monitor performance, configure settings, and manage affiliates across your entire system.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+                <div class="text-2xl mb-2">📊</div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">System Analytics</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Platform-wide metrics</p>
+            </div>
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
+                <div class="text-2xl mb-2">👥</div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Affiliate Management</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">User oversight tools</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
+                <div class="text-2xl mb-2">⚙️</div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">System Configuration</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Settings and rules</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg text-center">
+                <div class="text-2xl mb-2">💰</div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Financial Management</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Payouts and rewards</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Dashboard -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Admin Dashboard</h2>
+    
+    <div class="space-y-6">
+        <!-- Key Metrics -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">📈 System-Wide Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">👥 Total Affiliates</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Active affiliate accounts on your platform with trend indicators</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">💰 Total Earnings</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Cumulative commission payouts across all affiliates</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">🔗 Total Referrals</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Platform-wide referral count and conversion metrics</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">📊 Conversion Rate</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Average system conversion rate with performance trends</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">📊 Performance Analytics</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">📈 Monthly Earnings Chart</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Track total platform commission payouts over time with detailed area charts</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">🥧 Affiliate Status Distribution</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Pie chart showing breakdown of affiliate status categories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performers -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🏆 Top Performing Affiliates</h3>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Monitor your most successful affiliates with detailed performance metrics:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">Affiliate Name</div>
+                        <div class="text-zinc-600 dark:text-zinc-400 text-sm">User identification</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">Referrals</div>
+                        <div class="text-zinc-600 dark:text-zinc-400 text-sm">Total referred users</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">Earnings</div>
+                        <div class="text-zinc-600 dark:text-zinc-400 text-sm">Commission earned</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">Conversion Rate</div>
+                        <div class="text-zinc-600 dark:text-zinc-400 text-sm">Success percentage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Referral Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">👥 Referral Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Access comprehensive referral management tools at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/affiliate/referral</code> to oversee all referral activities across your platform.
+        </p>
+    </div>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🔍 Referral Oversight</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">📋 Management Features</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li>View all referral relationships system-wide</li>
+                        <li>Monitor referral status and approval workflows</li>
+                        <li>Track commission calculations and payments</li>
+                        <li>Investigate suspicious referral patterns</li>
+                        <li>Manage referral disputes and conflicts</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">⚡ Administrative Actions</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li>Approve or reject pending referrals</li>
+                        <li>Manually adjust commission amounts</li>
+                        <li>Block fraudulent referral attempts</li>
+                        <li>Override automated reward calculations</li>
+                        <li>Export referral data for analysis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">📊 Advanced Analytics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">📈 Performance Trends</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Analyze referral performance patterns and identify growth opportunities</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">🔍 Fraud Detection</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Automated alerts for suspicious referral activities and patterns</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">📊 Conversion Analysis</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Deep dive into referral conversion rates and optimization insights</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Condition Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📜 Condition Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Configure reward conditions and rules at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/affiliate/condition</code> to define how affiliates earn commissions and bonuses.
+        </p>
+    </div>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">⚙️ Condition Configuration</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">🎯 Reward Types</h4>
+                    <div class="space-y-3">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                            <div class="font-medium text-zinc-900 dark:text-zinc-100">Signup Rewards</div>
+                            <div class="text-zinc-600 dark:text-zinc-400 text-sm">Commission for successful user registrations</div>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                            <div class="font-medium text-zinc-900 dark:text-zinc-100">Deposit Rewards</div>
+                            <div class="text-zinc-600 dark:text-zinc-400 text-sm">Percentage or fixed amount on user deposits</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                            <div class="font-medium text-zinc-900 dark:text-zinc-100">Trading Rewards</div>
+                            <div class="text-zinc-600 dark:text-zinc-400 text-sm">Ongoing commission from trading activities</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">🔧 Configuration Options</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Commission Rates:</strong> Set percentage or fixed amounts</li>
+                        <li><strong>Tier Structures:</strong> Multi-level commission hierarchies</li>
+                        <li><strong>Minimum Thresholds:</strong> Requirements for reward eligibility</li>
+                        <li><strong>Time Limits:</strong> Expiration dates and validity periods</li>
+                        <li><strong>User Conditions:</strong> KYC, activity, or deposit requirements</li>
+                        <li><strong>Geographic Rules:</strong> Location-based reward variations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🎛️ Advanced Rule Engine</h3>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Create sophisticated reward conditions using the built-in rule engine:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h5 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Conditional Logic</h5>
+                        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                            <li>IF/THEN/ELSE rule structures</li>
+                            <li>Multiple condition combinations</li>
+                            <li>Date and time-based triggers</li>
+                            <li>User behavior pattern matching</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Performance Bonuses</h5>
+                        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                            <li>Milestone achievement rewards</li>
+                            <li>Volume-based bonus tiers</li>
+                            <li>Time-limited promotional rates</li>
+                            <li>Competition and leaderboard prizes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ System Settings</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Configure global affiliate system settings at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/affiliate/settings</code> to control system behavior and policies.
+        </p>
+    </div>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🔧 Core Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">💰 Financial Configuration</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Default Commission Rate:</strong> System-wide base commission percentage</li>
+                        <li><strong>Minimum Payout Amount:</strong> Threshold for commission withdrawals</li>
+                        <li><strong>Maximum Payout Limit:</strong> Cap on individual payout amounts</li>
+                        <li><strong>Payout Schedule:</strong> Frequency of commission payments</li>
+                        <li><strong>Currency Settings:</strong> Supported currencies and conversion rates</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">🛡️ Security & Compliance</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>KYC Requirements:</strong> Verification needed for affiliates</li>
+                        <li><strong>Fraud Detection:</strong> Automated monitoring thresholds</li>
+                        <li><strong>Geographic Restrictions:</strong> Country-based access controls</li>
+                        <li><strong>Age Verification:</strong> Minimum age requirements</li>
+                        <li><strong>Terms Acceptance:</strong> Required legal agreement acceptance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🎯 Operational Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">🔗 Tracking Configuration</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Cookie Duration:</strong> Referral tracking cookie lifetime</li>
+                        <li><strong>Attribution Model:</strong> First-click or last-click attribution</li>
+                        <li><strong>Cross-Device Tracking:</strong> Multi-device user recognition</li>
+                        <li><strong>Link Expiration:</strong> Referral link validity periods</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">📧 Communication Settings</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Email Notifications:</strong> Automated email triggers</li>
+                        <li><strong>Welcome Messages:</strong> New affiliate onboarding</li>
+                        <li><strong>Performance Reports:</strong> Regular activity summaries</li>
+                        <li><strong>Payment Notifications:</strong> Payout confirmation emails</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Permissions -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔐 User Permissions & Access Control</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">👥 Role Management</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">🎯 Affiliate Users</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                        <li>Dashboard access</li>
+                        <li>Referral link generation</li>
+                        <li>Performance tracking</li>
+                        <li>Earnings monitoring</li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">👑 Affiliate Managers</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                        <li>Team affiliate oversight</li>
+                        <li>Performance analytics</li>
+                        <li>Limited condition management</li>
+                        <li>Reporting access</li>
+                    </ul>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">⚡ System Administrators</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                        <li>Full system access</li>
+                        <li>Global configuration</li>
+                        <li>User management</li>
+                        <li>Financial oversight</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🛡️ Security Controls</h3>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Implement robust security measures to protect your affiliate system:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h5 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Access Controls</h5>
+                        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                            <li>Role-based permission system</li>
+                            <li>IP address restrictions</li>
+                            <li>Two-factor authentication</li>
+                            <li>Session timeout controls</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Audit & Monitoring</h5>
+                        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                            <li>Administrative action logging</li>
+                            <li>Financial transaction trails</li>
+                            <li>User activity monitoring</li>
+                            <li>Suspicious behavior alerts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reporting & Analytics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Reporting & Analytics</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">📈 Performance Reports</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">📊 Standard Reports</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Affiliate Performance:</strong> Individual affiliate metrics and rankings</li>
+                        <li><strong>Revenue Reports:</strong> Commission payouts and financial summaries</li>
+                        <li><strong>Conversion Analysis:</strong> Funnel performance and optimization insights</li>
+                        <li><strong>Traffic Sources:</strong> Referral channel effectiveness</li>
+                        <li><strong>Geographic Performance:</strong> Location-based affiliate success</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">🔍 Custom Analytics</h4>
+                    <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1 text-sm">
+                        <li><strong>Custom Date Ranges:</strong> Flexible reporting periods</li>
+                        <li><strong>Filtered Views:</strong> Segment-specific analysis</li>
+                        <li><strong>Comparative Reports:</strong> Period-over-period comparisons</li>
+                        <li><strong>Cohort Analysis:</strong> User behavior patterns over time</li>
+                        <li><strong>Export Options:</strong> CSV, Excel, and PDF formats</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🎯 Key Performance Indicators</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+                    <div class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Acquisition Cost</div>
+                    <div class="text-zinc-600 dark:text-zinc-400 text-sm">Cost per referred user</div>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
+                    <div class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Lifetime Value</div>
+                    <div class="text-zinc-600 dark:text-zinc-400 text-sm">Revenue per referral</div>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
+                    <div class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">ROI</div>
+                    <div class="text-zinc-600 dark:text-zinc-400 text-sm">Return on investment</div>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg text-center">
+                    <div class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Churn Rate</div>
+                    <div class="text-zinc-600 dark:text-zinc-400 text-sm">Affiliate retention</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Admin Best Practices</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🚀 Program Optimization</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li><strong>Regular Performance Reviews:</strong> Weekly analysis of key metrics and trends</li>
+                <li><strong>Competitive Benchmarking:</strong> Monitor industry standards and adjust rates</li>
+                <li><strong>A/B Testing:</strong> Test different reward structures and conditions</li>
+                <li><strong>Feedback Integration:</strong> Regularly survey affiliates for improvement ideas</li>
+                <li><strong>Technology Updates:</strong> Keep tracking and analytics tools current</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">⚠️ Risk Management</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li><strong>Fraud Monitoring:</strong> Implement automated detection systems</li>
+                <li><strong>Regular Audits:</strong> Periodic review of affiliate activities and payouts</li>
+                <li><strong>Legal Compliance:</strong> Stay updated with affiliate marketing regulations</li>
+                <li><strong>Financial Controls:</strong> Set appropriate limits and approval workflows</li>
+                <li><strong>Documentation:</strong> Maintain clear terms of service and guidelines</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Support and Resources -->
+<div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">🆘 Admin Support & Resources</h2>
+    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+        Access additional resources and support for managing your affiliate system effectively.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="user-features.html" class="border border-zinc-300 dark:border-zinc-600 p-4 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+            <div class="text-xl mb-2">👤</div>
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">User Features</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Learn about affiliate user experience</p>
+        </a>
+        <a href="installation.html" class="border border-zinc-300 dark:border-zinc-600 p-4 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+            <div class="text-xl mb-2">🚀</div>
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Installation</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Setup and installation guide</p>
+        </a>
+        <a href="#" class="border border-zinc-300 dark:border-zinc-600 p-4 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+            <div class="text-xl mb-2">📚</div>
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">API Documentation</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Technical integration guides</p>
+        </a>
+    </div>
+</div>

@@ -139,9 +139,9 @@ function OfferingCard({ offering }) {
                 <TrendingUp className="h-3.5 w-3.5" />
                 {t("next")}
                 {formatCrypto(nextPhase.tokenPrice, currency)}
-                {t("(")}
+                (
                 {nextPhase.name}
-                {t(")")}
+                )
               </p>
             )}
           </div>

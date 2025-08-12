@@ -86,7 +86,7 @@ export default async (data) => {
       currency,
       walletType,
     },
-    false,
+    undefined,
     relations
   );
 };

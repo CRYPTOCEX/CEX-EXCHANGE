@@ -354,9 +354,9 @@ export const QuoteElement = memo(
         <figcaption
           className={cn("mt-2 text-sm text-gray-600", textAlignClass)}
         >
-          {t("—")}
+          {'—'}
           <span className="font-medium">{author}</span>
-          {t("untitled")} <cite className="text-gray-500">{source}</cite>
+          {','} <cite className="text-gray-500">{source}</cite>
         </figcaption>
       </figure>
     );

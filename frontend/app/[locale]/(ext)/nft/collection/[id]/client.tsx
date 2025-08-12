@@ -208,13 +208,13 @@ export default function CollectionDetailClient({ initialCollection }: Collection
                 {collection.discord && (
                   <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    {t("Discord")}
+                    Discord
                   </Button>
                 )}
                 {collection.twitter && (
                   <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    {t("Twitter")}
+                    Twitter
                   </Button>
                 )}
               </div>

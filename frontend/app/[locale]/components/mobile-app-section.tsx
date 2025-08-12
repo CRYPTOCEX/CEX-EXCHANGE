@@ -163,7 +163,7 @@ export function MobileAppSection() {
                   </div>
                   <div className="text-left">
                     <div className="text-xs opacity-75">{t("download_on_the")}</div>
-                    <div className="text-lg font-semibold">{t("app_store")}</div>
+                    <div className="text-lg font-semibold">App Store</div>
                   </div>
                 </a>
               )}
@@ -182,7 +182,7 @@ export function MobileAppSection() {
                   </div>
                   <div className="text-left">
                     <div className="text-xs opacity-75">{t("get_it_on")}</div>
-                    <div className="text-lg font-semibold">{t("google_play")}</div>
+                    <div className="text-lg font-semibold">Google Play</div>
                   </div>
                 </a>
               )}

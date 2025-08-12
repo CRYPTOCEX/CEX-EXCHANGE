@@ -75,7 +75,7 @@ export function PortfolioChart({ portfolio, isLoading }: PortfolioChartProps) {
           </div>
           <Tabs defaultValue="1w" className="w-[240px]">
             <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="1d">{t("1D")}</TabsTrigger>
+              <TabsTrigger value="1d">1D</TabsTrigger>
               <TabsTrigger value="1w">{t("1W")}</TabsTrigger>
               <TabsTrigger value="1m">{t("1M")}</TabsTrigger>
               <TabsTrigger value="1y">{t("1Y")}</TabsTrigger>
@@ -206,7 +206,7 @@ function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">{t("Current")}</span>
           <span className="font-semibold">
-            {t("$")}
+            / $
             {chartData && chartData.length > 0
               ? chartData[chartData.length - 1]?.value?.toLocaleString() || "0"
               : "0"}

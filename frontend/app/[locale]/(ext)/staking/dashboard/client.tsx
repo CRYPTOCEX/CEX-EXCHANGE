@@ -151,17 +151,17 @@ export default function StakingDashboard() {
               <TabsTrigger value="active">
                 {t("active_(")}
                 {activePositions.length}
-                {t(")")}
+                )
               </TabsTrigger>
               <TabsTrigger value="pending">
                 {t("pending_withdrawal_(")}
                 {pendingWithdrawalPositions.length}
-                {t(")")}
+                )
               </TabsTrigger>
               <TabsTrigger value="completed">
                 {t("completed_(")}
                 {completedPositions.length}
-                {t(")")}
+                )
               </TabsTrigger>
             </TabsList>
 

@@ -165,7 +165,7 @@ export default function AffiliateSettingsClient() {
 
       {error && (
         <Alert variant="destructive">
-          <AlertTitle>{t("Error")}</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

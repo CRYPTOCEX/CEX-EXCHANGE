@@ -288,7 +288,7 @@ export default function InvestmentPlanClient({
                     <Label htmlFor="amount">
                       {t("investment_amount_(")}
                       {plan.currency}
-                      {t(")")}
+                      )
                     </Label>
                     <Input
                       id="amount"

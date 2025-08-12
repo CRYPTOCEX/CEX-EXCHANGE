@@ -361,7 +361,7 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
                           {t("Earnings")}
                         </p>
                         <p className="text-lg font-bold">
-                          {t("$")}
+                          / $
                           {selectedUser.earnings?.toFixed(2)}
                         </p>
                       </div>

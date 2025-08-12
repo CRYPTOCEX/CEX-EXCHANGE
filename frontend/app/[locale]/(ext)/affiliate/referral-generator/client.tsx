@@ -325,7 +325,7 @@ export default function ReferralGeneratorClient() {
                     className="flex flex-col h-auto py-4"
                   >
                     <Twitter className="h-6 w-6 mb-2 text-[#1DA1F2]" />
-                    <span>{t("Twitter")}</span>
+                    <span>Twitter</span>
                   </Button>
 
                   <Button

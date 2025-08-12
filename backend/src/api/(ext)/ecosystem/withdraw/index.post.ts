@@ -19,6 +19,19 @@ import {
 import WithdrawalQueue from "../utils/withdrawalQueue";
 import { getTronService, getMoneroService } from "@b/utils/safe-imports";
 
+// Utility function to count decimal places
+function countDecimals(value: number): number {
+  if (Number.isInteger(value)) return 0;
+  const str = value.toString();
+  if (str.includes("e-")) {
+    // Handle scientific notation
+    const [_, exponent] = str.split("e-");
+    return parseInt(exponent, 10);
+  }
+  const parts = str.split(".");
+  return parts[1]?.length || 0;
+}
+
 export const metadata: OperationObject = {
   summary: "Withdraws funds to an external address",
   description:
@@ -159,6 +172,16 @@ const storeWithdrawal = async (
   const token = await getEcosystemToken(chain, currency);
   if (!token) {
     throw new Error("Token not found");
+  }
+
+  // Validate decimal precision based on token configuration
+  const maxPrecision = token.precision ?? token.decimals ?? 8;
+  const actualDecimals = countDecimals(amount);
+  
+  if (actualDecimals > maxPrecision) {
+    throw new Error(
+      `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${maxPrecision} decimal places. Your amount has ${actualDecimals} decimal places.`
+    );
   }
 
   // Calculate the withdrawal fee based on token settings

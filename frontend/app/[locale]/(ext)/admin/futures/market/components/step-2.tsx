@@ -73,8 +73,8 @@ const FuturesMetadataStep: React.FC<FuturesMetadataStepProps> = ({
         <h3 className="text-md font-semibold">{t("Limits")}</h3>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {t("set_the_minimum_overall_cost")}.{" "}
-          {t("for_example_the_minimum_trade_amount_might_be_0")}.{" "}
-          {t("00001_while_the_maximum_is_10000")}.
+          {t("for_example_the_minimum_trade_amount_might_be")}.{" "}
+          {t("00001_while_the_maximum_is")}.
         </p>
         <div className="grid grid-cols-2 gap-5">
           <Input

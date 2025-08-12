@@ -145,7 +145,7 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
             {user?.firstName} {user?.lastName}
           </h2>
           <p className="text-muted-foreground text-sm">
-            {t("@")}
+            @
             {user?.email?.split("@")[0] || "user"}
           </p>
         </div>

@@ -68,7 +68,7 @@ export function UserInfoCard({ user }: UserInfoCardProps) {
             <div className="font-medium">{t("reputation")}</div>
             <div className="flex items-center">
               {user.reputation || "4.8"}
-              {t("5")}. {t("0")}
+              / 5. 0
             </div>
           </div>
         </div>

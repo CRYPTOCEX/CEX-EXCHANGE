@@ -129,7 +129,7 @@ export default function TeamMemberGridItem({
                     </Button>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>{t("Twitter")}</TooltipContent>
+                <TooltipContent>Twitter</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}

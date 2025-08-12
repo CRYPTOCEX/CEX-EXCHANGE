@@ -202,12 +202,12 @@ export default function ElementPreview({
           <div className="flex gap-1 w-full h-8">
             <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-sm flex items-center justify-center">
               <span className="text-[8px] text-zinc-500 dark:text-zinc-400">
-                {t("1")}
+                {'1'}
               </span>
             </div>
             <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-sm flex items-center justify-center">
               <span className="text-[8px] text-zinc-500 dark:text-zinc-400">
-                {t("2")}
+                {'2'}
               </span>
             </div>
           </div>
@@ -444,10 +444,10 @@ export default function ElementPreview({
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <div className="text-[6px]">{t("BTC_USDT")}</div>
+              <div className="text-[6px]">{'BTC/USDT'}</div>
             </div>
             <div className="text-[6px] text-green-500">
-              {t("+2")}. {t("5%")}
+              {'+2'}. {'5%'}
             </div>
             <div className="w-8 h-4">
               <svg viewBox="0 0 32 16" className="w-full h-full">

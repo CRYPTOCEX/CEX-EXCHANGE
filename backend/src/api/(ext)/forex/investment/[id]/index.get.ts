@@ -6,13 +6,12 @@ import {
 } from "@b/utils/query";
 import { baseForexInvestmentSchema } from "../utils";
 import { models } from "@b/db";
-import { createError } from "@b/utils/error";
 
 export const metadata: OperationObject = {
   summary:
     "Retrieves detailed information of a specific forex investment by ID",
   operationId: "getForexInvestmentById",
-  tags: ["Forex", "Investments"],
+  tags: ["Admin", "Forex Investments"],
   parameters: [
     {
       index: 0,
@@ -30,7 +29,7 @@ export const metadata: OperationObject = {
         "application/json": {
           schema: {
             type: "object",
-            properties: baseForexInvestmentSchema,
+            properties: baseForexInvestmentSchema, // Define this schema in your utils if it's not already defined
           },
         },
       },
@@ -46,44 +45,36 @@ export default async (data) => {
   const { params, user } = data;
 
   if (!user?.id) {
-    throw createError({ statusCode: 401, message: "Unauthorized" });
+    throw new Error("Unauthorized");
   }
 
-  try {
-    const investment = await models.forexInvestment.findOne({
-      where: {
-        id: params.id,
-        userId: user.id,
+  const investment = await models.forexInvestment.findOne({
+    where: {
+      id: params.id,
+      userId: user.id,
+    },
+    include: [
+      {
+        model: models.user,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "email", "avatar"],
       },
-      include: [
-        {
-          model: models.user,
-          as: "user",
-          attributes: ["id", "firstName", "lastName", "email", "avatar"],
-        },
-        {
-          model: models.forexPlan,
-          as: "plan",
-          attributes: ["id", "name", "title", "description", "profitPercentage", "image", "currency"],
-        },
-        {
-          model: models.forexDuration,
-          as: "duration",
-          attributes: ["id", "duration", "timeframe"],
-        },
-      ],
-    });
+      {
+        model: models.forexPlan,
+        as: "plan",
+        attributes: ["id", "title"],
+      },
+      {
+        model: models.forexDuration,
+        as: "duration",
+        attributes: ["id", "duration", "timeframe"],
+      },
+    ],
+  });
 
-    if (!investment) {
-      throw createError({ statusCode: 404, message: "Forex investment not found" });
-    }
-
-    return investment;
-  } catch (error) {
-    if (error.statusCode) {
-      throw error;
-    }
-    console.error("Error fetching forex investment:", error);
-    throw createError({ statusCode: 500, message: "Internal Server Error" });
+  if (!investment) {
+    throw new Error("Forex investment not found");
   }
+
+  return investment;
 };

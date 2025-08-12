@@ -560,7 +560,7 @@ export default function PlanDetailClient() {
                               : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
                           }`}
                         >
-                          {t("1")}
+                          1:
                         </div>
                         <span className="text-sm font-medium">
                           {t("Duration")}
@@ -581,7 +581,7 @@ export default function PlanDetailClient() {
                               : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
                           }`}
                         >
-                          {t("2")}
+                          2
                         </div>
                         <span className="text-sm font-medium">
                           {t("Amount")}
@@ -602,7 +602,7 @@ export default function PlanDetailClient() {
                               : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"
                           }`}
                         >
-                          {t("3")}
+                          3
                         </div>
                         <span className="text-sm font-medium">
                           {t("Confirm")}

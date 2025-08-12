@@ -269,7 +269,7 @@ export default function RiskCalculator({
                             {t("risk_percentage")}
                           </div>
                           <div className={`text-sm ${styles.label}`}>
-                            {t("(0")}. {t("1%_-_20%)")}
+                            (0. 1% - 20%)
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -414,13 +414,13 @@ export default function RiskCalculator({
                         />
                         <div className="w-full flex justify-between mt-1">
                           <span className={`text-xs ${styles.label}`}>
-                            {t("0%")}
+                            0%
                           </span>
                           <span className={`text-xs ${styles.label}`}>
-                            {t("50%")}
+                            50%
                           </span>
                           <span className={`text-xs ${styles.label}`}>
-                            {t("100%")}
+                            100%
                           </span>
                         </div>
                       </div>
@@ -431,7 +431,7 @@ export default function RiskCalculator({
                             {t("risk_reward_ratio")}
                           </div>
                           <div className="text-sm font-medium">
-                            {t("1")}
+                            1:
                             {riskRewardRatio.toFixed(1)}
                           </div>
                         </div>
@@ -446,13 +446,13 @@ export default function RiskCalculator({
                         />
                         <div className="w-full flex justify-between mt-1">
                           <span className={`text-xs ${styles.label}`}>
-                            {t("10")}. {t("1")}
+                            1:0. 1:
                           </span>
                           <span className={`text-xs ${styles.label}`}>
-                            {t("12")}. {t("5")}
+                            1:2. 5
                           </span>
                           <span className={`text-xs ${styles.label}`}>
-                            {t("15")}. {t("0")}
+                            1:5. 0
                           </span>
                         </div>
                       </div>

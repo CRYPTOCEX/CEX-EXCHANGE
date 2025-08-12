@@ -3,7 +3,6 @@ import { updateRecordResponses } from "@b/utils/query";
 import { models, sequelize } from "@b/db";
 import { transactionUpdateSchema } from "@b/api/finance/transaction/utils";
 import { sendForexTransactionEmail } from "@b/utils/emails";
-import { createError } from "@b/utils/error";
 import {
   parseMetadata,
   updateForexAccountBalance,
@@ -56,18 +55,10 @@ export default async (data: Handler) => {
     where: { id },
   });
 
-  if (!transaction) {
-    throw createError({
-      statusCode: 404,
-      message: "Transaction not found",
-    });
-  }
+  if (!transaction) throw new Error("Transaction not found");
 
   if (transaction.status !== "PENDING") {
-    throw createError({
-      statusCode: 400,
-      message: "Only pending transactions can be updated",
-    });
+    throw new Error("Only pending transactions can be updated");
   }
   transaction.amount = amount;
   transaction.fee = fee;
@@ -84,23 +75,13 @@ export default async (data: Handler) => {
         where: { userId: transaction.userId, type: "LIVE" },
         transaction: t,
       });
-      if (!account) {
-        throw createError({
-          statusCode: 404,
-          message: "Forex account not found",
-        });
-      }
+      if (!account) throw new Error("Account not found");
 
       const wallet = await models.wallet.findOne({
         where: { id: transaction.walletId },
         transaction: t,
       });
-      if (!wallet) {
-        throw createError({
-          statusCode: 404,
-          message: "Wallet not found",
-        });
-      }
+      if (!wallet) throw new Error("Wallet not found");
 
       if (status === "REJECTED") {
         await updateForexAccountBalance(account, cost, true, t);

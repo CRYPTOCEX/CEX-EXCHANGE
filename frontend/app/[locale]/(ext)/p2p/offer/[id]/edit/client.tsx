@@ -192,7 +192,7 @@ export default function EditOfferClient() {
     } catch (err: any) {
       console.error("Error updating offer:", err);
       toast({
-        title: t("Error"),
+        title: 'Error',
         description: err?.message || t("failed_to_update_offer"),
         variant: "destructive",
       });

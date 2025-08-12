@@ -455,7 +455,7 @@ export default function AdminSupportPage() {
                   <span className="font-medium">
                     {t("avg_response")}
                     {stats.avgResponseTime}
-                    {t("min")}
+                    min
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
@@ -577,7 +577,7 @@ export default function AdminSupportPage() {
                 </p>
                 <p className="text-3xl font-bold">
                   {stats.avgResponseTime}
-                  {t("m")}
+                  m
                 </p>
                 <div className="flex items-center gap-1 mt-2">
                   <Zap className="h-4 w-4 text-purple-200" />

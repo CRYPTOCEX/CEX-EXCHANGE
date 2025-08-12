@@ -155,7 +155,7 @@ export default function P2PLandingClient() {
                   <>
                     <div className="flex flex-col items-center justify-center p-4 text-center">
                       <div className="text-3xl font-bold">
-                        {t("$")}
+                        / $
                         {(stats.totalVolume / 1000000).toFixed(0)}
                         {t("m+")}
                       </div>
@@ -166,7 +166,7 @@ export default function P2PLandingClient() {
                     <div className="flex flex-col items-center justify-center p-4 text-center">
                       <div className="text-3xl font-bold">
                         {(stats.totalOffers / 1000).toFixed(0)}
-                        {t("k+")}
+                        K+
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {t("active_offers")}
@@ -263,7 +263,7 @@ export default function P2PLandingClient() {
                     {t("minimal_fees")}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    {t("enjoy_the_lowest_fees_in_the_industry_at_just_0")}{" "}
+                    {t("enjoy_the_lowest_fees_in_the_industry_at_just")}{" "}
                     {t("1%_per_completed_trade")}{" "}
                     {t("save_up_to_and_reliability")}
                   </p>

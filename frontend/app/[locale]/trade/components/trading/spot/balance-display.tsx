@@ -46,7 +46,7 @@ export default function BalanceDisplay({
               {formatCurrency(currencyBalance, currency)} {currency}
             </span>
             <span className="text-muted-foreground dark:text-zinc-500">
-              {t("_")}
+              _
             </span>
             <span className="text-foreground dark:text-zinc-300">
               {formatCurrency(pairBalance, pair)} {pair}

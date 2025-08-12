@@ -48,7 +48,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const account = await models.forexAccount.findOne({
+  const account = await await models.forexAccount.findOne({
     where: { id: params.id, userId: user.id },
   });
 

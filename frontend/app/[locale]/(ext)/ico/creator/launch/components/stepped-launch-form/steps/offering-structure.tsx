@@ -120,7 +120,7 @@ export default function OfferingStructureStep({
             {formData.selectedPlan && (
               <span className="text-sm text-muted-foreground">
                 {formData.phases.length}
-                {t("_")}
+                _
                 {maxPhases}
                 {t("phases")}
               </span>

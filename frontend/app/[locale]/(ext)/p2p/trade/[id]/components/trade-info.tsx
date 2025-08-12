@@ -34,7 +34,7 @@ export function TradeInfo({ amount, coin, price, total }: TradeInfoProps) {
           <div>
             <p className="text-sm text-muted-foreground">{t("Price")}</p>
             <p className="text-lg font-medium mt-1">
-              {t("$")}
+              / $
               {price.toLocaleString()}{" "}
               <span className="text-xs text-muted-foreground">
                 {t("per")}
@@ -53,7 +53,7 @@ export function TradeInfo({ amount, coin, price, total }: TradeInfoProps) {
           <div>
             <p className="text-sm text-muted-foreground">{t("Total")}</p>
             <p className="text-lg font-medium mt-1">
-              {t("$")}
+              / $
               {total.toLocaleString()}
             </p>
           </div>

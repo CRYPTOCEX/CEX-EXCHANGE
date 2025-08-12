@@ -268,7 +268,7 @@ export default function UpdateApplicationClient() {
       <div className="container max-w-4xl py-12">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>{t("Error")}</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {t("the_requested_application_could_not_be_found")}.{" "}
             {t("please_go_back_and_try_again")}.
@@ -372,7 +372,7 @@ export default function UpdateApplicationClient() {
         {formError && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{t("Error")}</AlertTitle>
+            <AlertTitle>Error</AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         )}

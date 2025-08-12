@@ -49,7 +49,7 @@ export function Pagination({
             : "text-zinc-900 dark:text-zinc-100 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-offset-0"
         }`}
       >
-        {t("1")}
+        1
       </Link>
     );
 

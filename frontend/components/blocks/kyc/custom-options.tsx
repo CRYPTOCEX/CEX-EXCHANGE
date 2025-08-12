@@ -74,9 +74,9 @@ function CustomOptionRow({
         >
           <SelectTrigger className="min-w-[60px]">{option.level}</SelectTrigger>
           <SelectContent>
-            <SelectItem value="1">{t("1")}</SelectItem>
-            <SelectItem value="2">{t("2")}</SelectItem>
-            <SelectItem value="3">{t("3")}</SelectItem>
+            <SelectItem value="1">1</SelectItem>
+            <SelectItem value="2">2</SelectItem>
+            <SelectItem value="3">3</SelectItem>
           </SelectContent>
         </Select>
       </td>

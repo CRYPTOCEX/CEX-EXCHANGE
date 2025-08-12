@@ -281,7 +281,7 @@ export function ValidationFields({ field, onUpdate }: ValidationFieldsProps) {
                 className="bg-white border-gray-300 text-gray-900 focus-visible:ring-primary dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
               />
               <div className="bg-gray-100 text-gray-700 text-xs flex items-center px-2 rounded-r-md border border-l-0 border-gray-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600">
-                {t("KB")}
+                {'KB'}
               </div>
             </div>
           </div>

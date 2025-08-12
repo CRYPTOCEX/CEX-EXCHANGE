@@ -2,9 +2,9 @@ import { updateRecord, updateRecordResponses } from "@b/utils/query";
 import { MarketUpdateSchema } from "@b/api/admin/finance/exchange/market/utils";
 
 export const metadata = {
-  summary: "Updates a specific market",
-  operationId: "updateEcosystemMarket",
-  tags: ["Admin", "Ecosystem", "Markets"],
+  summary: "Updates a specific exchange market",
+  operationId: "updateExchangeMarket",
+  tags: ["Admin", "Exchange", "Markets"],
   parameters: [
     {
       index: 0,
@@ -27,15 +27,17 @@ export const metadata = {
   },
   responses: updateRecordResponses("Market"),
   requiresAuth: true,
-  permission: "edit.ecosystem.market",
+  permission: "edit.exchange.market",
 };
 
 export default async (data) => {
   const { body, params } = data;
   const { id } = params;
-  const { metadata, isTrending, isHot } = body;
+  const { currency, pair, metadata, isTrending, isHot } = body;
 
   return await updateRecord("exchangeMarket", id, {
+    currency,
+    pair,
     metadata,
     isTrending,
     isHot,

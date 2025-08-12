@@ -514,20 +514,20 @@ const ExchangeProviderPage = () => {
                             </p>
                             <div className="font-mono text-sm space-y-1">
                               <div className="text-green-400">
-                                {t("APP_")}
+                                APP_
                                 {exchange.name?.toUpperCase()}
-                                {t("api_key=")}
+                                _API_KEY=
                               </div>
                               <div className="text-green-400">
-                                {t("APP_")}
+                                APP_
                                 {exchange.name?.toUpperCase()}
-                                {t("api_secret=")}
+                                _API_SECRET=
                               </div>
                               {exchange.name?.toLowerCase() === "kucoin" && (
                                 <div className="text-green-400">
-                                  {t("APP_")}
+                                  APP_
                                   {exchange.name?.toUpperCase()}
-                                  {t("api_passphrase=")}
+                                  _API_PASSPHRASE=
                                 </div>
                               )}
                             </div>

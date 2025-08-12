@@ -108,7 +108,7 @@ export default function StakingSettingsConfiguration() {
   if (!localSettings) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>{t("Error")}</AlertTitle>
+        <AlertTitle>Error</AlertTitle>
         <AlertDescription>
           {t("failed_to_load_settings")}.{" "}
           {t("please_refresh_the_page_and_try_again")}.

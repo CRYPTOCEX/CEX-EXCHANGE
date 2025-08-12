@@ -28,7 +28,7 @@ export default function TokenSimulatorPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 bg-muted/30 rounded-lg">
             <h3 className="text-lg font-medium mb-2">
-              {t("1")}. {t("token_distribution")}
+              1:. {t("token_distribution")}
             </h3>
             <p className="text-muted-foreground">
               {t("define_how_your_community_etc")}.{" "}
@@ -38,7 +38,7 @@ export default function TokenSimulatorPage() {
 
           <div className="p-6 bg-muted/30 rounded-lg">
             <h3 className="text-lg font-medium mb-2">
-              {t("2")}. {t("vesting_schedule")}
+              2. {t("vesting_schedule")}
             </h3>
             <p className="text-muted-foreground">
               {t("set_up_vesting_market_flooding")}.{" "}
@@ -48,7 +48,7 @@ export default function TokenSimulatorPage() {
 
           <div className="p-6 bg-muted/30 rounded-lg">
             <h3 className="text-lg font-medium mb-2">
-              {t("3")}. {t("market_projection")}
+              3. {t("market_projection")}
             </h3>
             <p className="text-muted-foreground">
               {t("explore_potential_market_and_volatility")}.{" "}

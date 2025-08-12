@@ -82,7 +82,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
               </h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300">
                 <li className="flex items-start">
-                  <div className="min-w-5 mt-1 mr-2">{t("•")}</div>
+                  <div className="min-w-5 mt-1 mr-2">•</div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-white">
                       {t("predict")}
@@ -91,7 +91,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                   </div>
                 </li>
                 <li className="flex items-start">
-                  <div className="min-w-5 mt-1 mr-2">{t("•")}</div>
+                  <div className="min-w-5 mt-1 mr-2">•</div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-white">
                       {t("choose")}
@@ -100,7 +100,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                   </div>
                 </li>
                 <li className="flex items-start">
-                  <div className="min-w-5 mt-1 mr-2">{t("•")}</div>
+                  <div className="min-w-5 mt-1 mr-2">•</div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-white">
                       {t("trade")}
@@ -136,7 +136,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
             <div className="space-y-3">
               <div className="bg-gray-100 dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t("1")}. {t("select_an_asset")}
+                  1. {t("select_an_asset")}
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
                   {t("choose_from_a_or_indices")}.
@@ -144,7 +144,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
               </div>
               <div className="bg-gray-100 dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t("2")}. {t("choose_direction")}
+                  2. {t("choose_direction")}
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
                   {t("predict_whether_the_expiry_time")}.
@@ -152,7 +152,7 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
               </div>
               <div className="bg-gray-100 dark:bg-zinc-900 p-3 rounded-lg border border-gray-200 dark:border-zinc-800">
                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {t("3")}. {t("set_expiry_time")}
+                  3. {t("set_expiry_time")}
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
                   {t("select_when_your_several_hours")}.

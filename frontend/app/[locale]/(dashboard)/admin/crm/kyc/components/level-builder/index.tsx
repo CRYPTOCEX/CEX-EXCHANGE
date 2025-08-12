@@ -455,7 +455,7 @@ export default function LevelBuilderComponent({
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t("Error")}</AlertTitle>
+        <AlertTitle>{'Error'}</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
         <div className="mt-4">
           <Button onClick={() => router.push("/admin/kyc/levels")}>
@@ -506,7 +506,7 @@ export default function LevelBuilderComponent({
           {localError && (
             <Alert variant="destructive" className="mx-4 mt-2">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t("Error")}</AlertTitle>
+              <AlertTitle>{'Error'}</AlertTitle>
               <AlertDescription>{localError}</AlertDescription>
             </Alert>
           )}

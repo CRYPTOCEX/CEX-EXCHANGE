@@ -463,7 +463,7 @@ export function Appearance({
           <p>
             {t("a_gradient_is_currently_applied_to")}
             <strong>{gradientPropertyName}</strong>
-            {t("you_can_only_type_(e")}. {t("g")}.{" "}
+            {t("you_can_only_type_(e")}. {'g'}.{" "}
             {t("text_color_background_color)")}.
           </p>
         </div>

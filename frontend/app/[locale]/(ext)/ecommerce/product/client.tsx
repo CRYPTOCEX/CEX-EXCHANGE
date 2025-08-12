@@ -271,7 +271,7 @@ export default function ProductsClient() {
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
                     />
                     <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px]">
-                      {t("$")}
+                      / $
                       {priceRange[0]}
                     </span>
                   </div>
@@ -290,7 +290,7 @@ export default function ProductsClient() {
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-zinc-700"
                     />
                     <span className="text-sm text-gray-500 dark:text-zinc-400 min-w-[60px]">
-                      {t("$")}
+                      / $
                       {priceRange[1]}
                     </span>
                   </div>

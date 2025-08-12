@@ -68,15 +68,15 @@ export const TransactionSummary: React.FC<TransactionSummaryProps> = ({
         <div>
           <strong>{t("user")}</strong> {transaction.user.firstName}{" "}
           {transaction.user.lastName}
-          {t("(")}
+          (
           {transaction.user.email}
-          {t(")")}
+          )
         </div>
         <div>
           <strong>{t("wallet")}</strong> {transaction.wallet.currency}
-          {t("(")}
+          (
           {transaction.wallet.type}
-          {t(")")}
+          )
         </div>
       </div>
       <div className="mt-4">

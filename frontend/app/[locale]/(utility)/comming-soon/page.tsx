@@ -54,7 +54,7 @@ const CommingSoonPage = () => {
                 {t("get_notified_when_we_launch")}
               </div>
               <div className="mt-6 text-sm xl:text-base text-zinc-500 dark:text-zinc-400">
-                {t("lorem_ipsum_dolor_tempor_incididunt")}
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
               </div>
               <div className="relative mt-5 lg:mt-12">
                 <Input

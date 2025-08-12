@@ -61,7 +61,7 @@ export function CreatorStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {t("$")}
+            / $
             {stats.totalRaised.toLocaleString()}
           </div>
           <div className="flex items-center pt-1">

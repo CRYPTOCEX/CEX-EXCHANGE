@@ -36,7 +36,7 @@ export function BuyersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("1")}
+                  1:
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">{t("find_a_seller")}</h4>
@@ -68,7 +68,7 @@ export function BuyersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("2")}
+                  2
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">{t("start_the_trade")}</h4>
@@ -96,7 +96,7 @@ export function BuyersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("3")}
+                  3
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">{t("make_payment")}</h4>
@@ -132,7 +132,7 @@ export function BuyersTab() {
             <div className="bg-muted/30 p-4 rounded-lg border">
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
-                  {t("4")}
+                  4
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">

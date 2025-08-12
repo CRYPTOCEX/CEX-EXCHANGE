@@ -83,16 +83,8 @@ export default function LoginPage() {
   };
 
   const handleModalClose = () => {
-    // Don't redirect when modal is closed by clicking outside
-    // Just keep the modal open or handle it gracefully
-    setIsModalOpen(false);
-    // Instead of redirecting, we could:
-    // 1. Keep the user on the login page
-    // 2. Or redirect only if they explicitly want to go home
-    // For now, let's just close the modal and stay on the page
-  };
-
-  const handleLoginSuccess = () => {
+    // Always redirect to home after modal closes
+    // This will be called after successful login or when user closes modal
     setIsModalOpen(false);
     router.push('/');
   };

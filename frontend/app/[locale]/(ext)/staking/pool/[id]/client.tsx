@@ -79,9 +79,9 @@ export default function PoolDetailPage() {
               <h1 className="text-3xl font-bold tracking-tight">{pool.name}</h1>
               <p className="text-muted-foreground">
                 {pool.symbol}
-                {t("•")}
+                •
                 {pool.apr}
-                {t("%_apr")}
+                % APR
               </p>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function PoolDetailPage() {
                       <Progress value={percentageStaked} className="h-2" />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>
-                          {t("0")}
+                          0
                           {pool.symbol}
                         </span>
                         <span>
@@ -344,11 +344,11 @@ export default function PoolDetailPage() {
                       </div>
                       <div className="flex justify-between">
                         <span>{t("deposit_fee")}</span>
-                        <span>{t("0%")}</span>
+                        <span>0%</span>
                       </div>
                       <div className="flex justify-between">
                         <span>{t("withdrawal_fee_(after_lock_period)")}</span>
-                        <span>{t("0%")}</span>
+                        <span>0%</span>
                       </div>
                     </div>
                   </CardContent>

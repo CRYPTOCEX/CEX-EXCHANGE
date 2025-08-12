@@ -118,7 +118,7 @@ export function ReviewStep() {
           {amount.min !== undefined && amount.max !== undefined && (
             <div className="flex gap-2">
               <Badge variant="outline">
-                {t("min")}{" "}
+                min{" "}
                 {amount.min}
               </Badge>
               <Badge variant="outline">
@@ -142,7 +142,7 @@ export function ReviewStep() {
         {amount.min && amount.max && (
           <div className="flex gap-2">
             <Badge variant="outline">
-              {t("min")}{" "}
+              min{" "}
               {amount.min}
             </Badge>
             <Badge variant="outline">

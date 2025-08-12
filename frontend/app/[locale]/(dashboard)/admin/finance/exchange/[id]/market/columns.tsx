@@ -4,6 +4,7 @@ import {
   CheckSquare,
   TrendingUp,
   Clock,
+  Flame,
 } from "lucide-react";
 
 export const columns: ColumnDefinition[] = [
@@ -67,51 +68,99 @@ export const columns: ColumnDefinition[] = [
     },
   },
   {
-    key: "metadata",
-    title: "Precision",
-    type: "text",
+    key: "isTrending",
+    title: "Trending",
+    type: "boolean",
+    icon: TrendingUp,
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    editable: true,
+    usedInCreate: true,
+    description: "Trending market flag",
+    priority: 2,
+  },
+  {
+    key: "isHot",
+    title: "Hot",
+    type: "boolean",
+    icon: Flame,
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    editable: true,
+    usedInCreate: true,
+    description: "Hot market flag",
+    priority: 2,
+    expandedOnly: true,
+  },
+  {
+    key: "metadata.precision.price",
+    title: "Price Precision",
+    type: "number",
     icon: Shield,
     sortable: false,
     searchable: false,
     filterable: false,
-    editable: false,
-    usedInCreate: false,
-    description: "Price and amount precision",
-    priority: 2,
+    editable: true,
+    usedInCreate: true,
+    description: "Number of decimal places for price",
+    priority: 3,
     expandedOnly: true,
-    render: {
-      type: "custom",
-      render: (value: any) => {
-        if (!value?.precision) return "-";
-        return `Price: ${value.precision.price}, Amount: ${value.precision.amount}`;
-      },
-    },
   },
   {
-    key: "fees",
-    title: "Fees",
-    type: "text",
+    key: "metadata.precision.amount",
+    title: "Amount Precision",
+    type: "number",
+    icon: Shield,
+    sortable: false,
+    searchable: false,
+    filterable: false,
+    editable: true,
+    usedInCreate: true,
+    description: "Number of decimal places for amount",
+    priority: 3,
+    expandedOnly: true,
+  },
+  {
+    key: "metadata.taker",
+    title: "Taker Fee (%)",
+    type: "number",
     icon: DollarSign,
     sortable: false,
     searchable: false,
     filterable: false,
-    editable: false,
-    usedInCreate: false,
-    description: "Trading fees (taker/maker)",
+    editable: true,
+    usedInCreate: true,
+    description: "Taker fee percentage",
     priority: 2,
-    expandedOnly: true,
+    expandedOnly: false,
     render: {
       type: "custom",
-      render: (value: any, row: any) => {
-        const metadata = row.metadata;
-        if (!metadata?.taker && !metadata?.maker) return "-";
-
-        const parts: string[] = [];
-        if (metadata.taker)
-          parts.push(`Taker: ${(metadata.taker * 100).toFixed(3)}%`);
-        if (metadata.maker)
-          parts.push(`Maker: ${(metadata.maker * 100).toFixed(3)}%`);
-        return parts.join(", ");
+      render: (value: any) => {
+        if (value === undefined || value === null) return "-";
+        return `${(value * 100).toFixed(3)}%`;
+      },
+    },
+  },
+  {
+    key: "metadata.maker",
+    title: "Maker Fee (%)",
+    type: "number",
+    icon: DollarSign,
+    sortable: false,
+    searchable: false,
+    filterable: false,
+    editable: true,
+    usedInCreate: true,
+    description: "Maker fee percentage",
+    priority: 2,
+    expandedOnly: false,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        if (value === undefined || value === null) return "-";
+        return `${(value * 100).toFixed(3)}%`;
       },
     },
   },

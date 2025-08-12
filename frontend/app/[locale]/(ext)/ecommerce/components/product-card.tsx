@@ -133,9 +133,9 @@ function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
                           />
                         ))}
                         <span className="ml-1 text-sm text-gray-500 dark:text-zinc-400">
-                          {t("(")}
+                          (
                           {product.reviewsCount || 0}
-                          {t(")")}
+                          )
                         </span>
                       </div>
                     )}
@@ -344,9 +344,9 @@ export default function ProductCard({
                       {product.reviewsCount !== undefined &&
                         product.reviewsCount > 0 && (
                           <span className="ml-1 text-sm text-gray-500 dark:text-zinc-400">
-                            {t("(")}
+                            (
                             {product.reviewsCount}
-                            {t(")")}
+                            )
                           </span>
                         )}
                     </div>
@@ -548,9 +548,9 @@ export default function ProductCard({
                   {product.reviewsCount !== undefined &&
                     product.reviewsCount > 0 && (
                       <span className="ml-1 text-xs text-gray-500 dark:text-zinc-400">
-                        {t("(")}
+                        (
                         {product.reviewsCount}
-                        {t(")")}
+                        )
                       </span>
                     )}
                 </div>

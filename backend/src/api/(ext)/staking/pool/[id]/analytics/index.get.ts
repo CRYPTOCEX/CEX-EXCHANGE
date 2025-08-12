@@ -55,9 +55,16 @@ export default async (data: Handler) => {
   const { id } = params;
   const timeframe = query.timeframe || "month";
 
-  // Verify pool exists
+  // Verify pool exists (including its token symbol)
   const pool = await models.stakingPool.findOne({
     where: { id },
+    include: [
+      {
+        model: models.token,
+        as: "token",
+        attributes: ["symbol"],
+      },
+    ],
   });
 
   if (!pool) {
@@ -161,7 +168,7 @@ export default async (data: Handler) => {
     analytics: {
       poolId: pool.id,
       poolName: pool.name,
-      tokenSymbol: pool.symbol,
+      tokenSymbol: pool.token.symbol,
       apr: pool.apr,
       totalStaked: totalStaked || 0,
       totalStakers: totalStakers || 0,

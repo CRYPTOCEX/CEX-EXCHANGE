@@ -229,7 +229,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    {t("1")}
+                    1
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -239,7 +239,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    {t("2")}
+                    2
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -249,7 +249,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    {t("3")}
+                    3
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -259,7 +259,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-yellow-600 dark:text-yellow-400 text-sm font-bold">
-                    {t("4")}
+                    4
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -305,7 +305,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    {t("1")}
+                    1
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -315,7 +315,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    {t("2")}
+                    2
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -325,7 +325,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    {t("3")}
+                    3
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -335,7 +335,7 @@ export function AuthorGuidelinesClient() {
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-red-600 dark:text-red-400 text-sm font-bold">
-                    {t("4")}
+                    4
                   </span>
                 </div>
                 <span className="text-zinc-700 dark:text-zinc-300">
@@ -636,7 +636,7 @@ export function AuthorGuidelinesClient() {
                 <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4 text-red-700 dark:text-red-400">
                   <div className="flex items-center">
                     <AlertCircle className="h-4 w-4 mr-2" />
-                    <p className="font-medium">{t("Error")}</p>
+                    <p className="font-medium">Error</p>
                   </div>
                   <p className="mt-1 text-sm">{error}</p>
                 </div>

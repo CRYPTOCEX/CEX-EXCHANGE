@@ -400,7 +400,7 @@ export function CachePerformanceMonitor({
       <div>
         {t("memory")}
         {(totalMemoryUsage / 1024 / 1024).toFixed(1)}
-        {t("MB")}
+        {'MB'}
       </div>
       <div>
         {t("entries")}
@@ -410,29 +410,29 @@ export function CachePerformanceMonitor({
         <div>
           {t("render")}
           {(efficiency.render * 100).toFixed(1)}
-          {t("%_(")}
+          {'% ('}
           {stats.render.hits}
-          {t("h_")}
+          {'h/'}
           {stats.render.misses}
-          {t("m)")}
+          {'m)'}
         </div>
         <div>
           {t("style")}
           {(efficiency.style * 100).toFixed(1)}
-          {t("%_(")}
+          {'% ('}
           {stats.style.hits}
-          {t("h_")}
+          {'h/'}
           {stats.style.misses}
-          {t("m)")}
+          {'m)'}
         </div>
         <div>
           {t("compute")}
           {(efficiency.computation * 100).toFixed(1)}
-          {t("%_(")}
+          {'% ('}
           {stats.computation.hits}
-          {t("h_")}
+          {'h/'}
           {stats.computation.misses}
-          {t("m)")}
+          {'m)'}
         </div>
       </div>
     </div>

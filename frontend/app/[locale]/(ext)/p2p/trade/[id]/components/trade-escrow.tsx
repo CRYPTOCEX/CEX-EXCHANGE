@@ -110,7 +110,7 @@ export function TradeEscrow({
                         {t("usd_value")}
                       </span>
                       <span className="font-medium">
-                        {t("$")}
+                        / $
                         {trade.total.toLocaleString()}
                       </span>
                     </div>
@@ -119,9 +119,9 @@ export function TradeEscrow({
                         {t("escrow_fee")}
                       </span>
                       <span className="font-medium">
-                        {t("$")}
+                        / $
                         {(trade.total * 0.001).toFixed(2)}
-                        {t("(0")}. {t("1%)")}
+                        (0. 1%)
                       </span>
                     </div>
                     <div className="flex justify-between">

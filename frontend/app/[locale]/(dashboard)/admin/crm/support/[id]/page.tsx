@@ -973,7 +973,7 @@ function AdminTicketDetailContent({ ticketId }: AdminTicketDetailContentProps) {
                       <span className="font-medium">
                         #{ticket.id.slice(0, 8)}
                       </span>
-                      <span className="hidden md:inline">{t("•")}</span>
+                      <span className="hidden md:inline">•</span>
                       <span className="hidden md:inline">
                         {t("Created")}{" "}
                         {ticket.createdAt
@@ -1000,7 +1000,7 @@ function AdminTicketDetailContent({ ticketId }: AdminTicketDetailContentProps) {
                       <div className="flex items-center gap-1 md:gap-2">
                         <Zap className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
                         <span className="text-green-600 dark:text-green-400 text-sm">
-                          {t("response")} {ticket.responseTime || 0}{t("min")}
+                          {t("response")} {ticket.responseTime || 0}min
                         </span>
                       </div>
                       </div>

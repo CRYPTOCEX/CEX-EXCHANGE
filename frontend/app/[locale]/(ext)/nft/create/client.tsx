@@ -1324,7 +1324,7 @@ export default function CreateNFTClient() {
                         <div className="flex justify-between items-center">
                           <span className="text-sm">{t("minting_fee")}</span>
                           <Badge variant="secondary">
-                            {form.watch("isLazyMinted") ? t("free_(lazy_mint)") : t("~$5-10")}
+                            {form.watch("isLazyMinted") ? t("free_(lazy_mint)") : '~$5-10'}
                           </Badge>
                         </div>
                         

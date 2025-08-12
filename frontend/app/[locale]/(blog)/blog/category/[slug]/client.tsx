@@ -68,7 +68,7 @@ export function CategoryDetailClient() {
             <p className="text-zinc-600 dark:text-zinc-300 mb-6">
               {t("we_couldnt_find_the_category")}
               {slug}
-              {t("untitled")}. {t("it_may_have_been_removed_or_doesnt_exist")}.
+              untitled. {t("it_may_have_been_removed_or_doesnt_exist")}.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/blog/category">

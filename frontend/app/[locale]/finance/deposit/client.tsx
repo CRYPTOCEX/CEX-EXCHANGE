@@ -1214,7 +1214,7 @@ export function DepositForm() {
             >
               {t("pay_with_paypal")}
               <span className="ml-2 text-sm">
-                ({t("min")} {minAmount} {selectedCurrency})
+                (min {minAmount} {selectedCurrency})
               </span>
             </Button>
           </div>
@@ -1719,7 +1719,7 @@ export function DepositForm() {
             <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <AlertTitle className="text-red-800 dark:text-red-300">
-                {t("Error")}
+                Error
               </AlertTitle>
               <AlertDescription className="text-red-700 dark:text-red-400">
                 {error}
@@ -2522,7 +2522,7 @@ export function DepositForm() {
                         
                         <div className="space-y-3">
                           <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {t("transaction_hash")} <span className="text-red-500">{t("*")}</span>
+                            {t("transaction_hash")} <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
                             <Input

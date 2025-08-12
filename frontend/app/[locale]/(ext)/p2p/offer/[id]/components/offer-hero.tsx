@@ -158,7 +158,7 @@ export function OfferHero({
             <DollarSign className="h-4 w-4 mr-1" />
             <span className="font-medium">
               {price.toLocaleString()}{" "}
-              {t("USD")}
+              USD
             </span>
           </div>
 
@@ -231,9 +231,9 @@ export function OfferHero({
                 <span className="text-lg">{offer.currency}</span>
               </div>
               <div className="text-xs text-primary-foreground/70 dark:text-zinc-400">
-                {t("≈")}
+                ≈
                 {((amountConfig.total || 0) * price).toFixed(2)}{" "}
-                {t("USD")}
+                USD
               </div>
             </div>
           </div>
@@ -246,9 +246,9 @@ export function OfferHero({
                 <span className="text-lg">{offer.currency}</span>
               </div>
               <div className="text-xs text-primary-foreground/70 dark:text-zinc-400">
-                {t("≈")}
+                ≈
                 {amountConfig.min?.toFixed(2) || "0.00"}{" "}
-                {t("USD")}
+                USD
               </div>
             </div>
           </div>
@@ -261,9 +261,9 @@ export function OfferHero({
                 <span className="text-lg">{offer.currency}</span>
               </div>
               <div className="text-xs text-primary-foreground/70 dark:text-zinc-400">
-                {t("≈")}
+                ≈
                 {amountConfig.max?.toFixed(2) || "0.00"}{" "}
-                {t("USD")}
+                USD
               </div>
             </div>
           </div>

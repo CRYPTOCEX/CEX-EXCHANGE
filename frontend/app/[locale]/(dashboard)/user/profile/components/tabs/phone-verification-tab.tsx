@@ -311,7 +311,7 @@ export function PhoneVerificationTab() {
                 <div className="space-y-2">
                   <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-blue-600 dark:text-blue-400 font-bold">
-                      {t("1")}
+                      1
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground dark:text-zinc-500">
@@ -321,7 +321,7 @@ export function PhoneVerificationTab() {
                 <div className="space-y-2">
                   <div className="w-8 h-8 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-gray-400 dark:text-zinc-500 font-bold">
-                      {t("2")}
+                      2
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground dark:text-zinc-500">
@@ -331,7 +331,7 @@ export function PhoneVerificationTab() {
                 <div className="space-y-2">
                   <div className="w-8 h-8 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-gray-400 dark:text-zinc-500 font-bold">
-                      {t("3")}
+                      3
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground dark:text-zinc-500">
@@ -420,7 +420,7 @@ export function PhoneVerificationTab() {
                       {t("resend_code_in")}{" "}
                       <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
                         {countdown}
-                        {t("s")}
+                        s
                       </span>
                     </p>
                     <div className="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-1">

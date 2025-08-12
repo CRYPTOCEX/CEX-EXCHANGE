@@ -108,14 +108,9 @@ export default async (data: Handler) => {
       break;
   }
 
-  // Get user's positions (filter by poolId if provided)
-  const positionWhere: any = { userId: user.id };
-  if (query.poolId) {
-    positionWhere.poolId = query.poolId;
-  }
-
+  // Get user's positions
   const positions = await models.stakingPosition.findAll({
-    where: positionWhere,
+    where: { userId: user.id },
     attributes: ["id"],
   });
 
@@ -140,7 +135,11 @@ export default async (data: Handler) => {
   };
 
   if (query.claimed !== undefined) {
-    whereClause.isClaimed = query.claimed === "true";
+    whereClause.claimed = query.claimed === "true";
+  }
+
+  if (query.poolId) {
+    whereClause.poolId = query.poolId;
   }
 
   // Get earnings records
@@ -150,12 +149,17 @@ export default async (data: Handler) => {
       {
         model: models.stakingPosition,
         as: "position",
-        attributes: ["id", "amount", "status", "poolId"],
+        attributes: ["id", "amount", "status"],
+      },
+      {
+        model: models.stakingPool,
+        as: "pool",
+        attributes: ["id", "name", "apy"],
         include: [
           {
-            model: models.stakingPool,
-            as: "pool",
-            attributes: ["id", "name", "apr", "symbol", "icon"],
+            model: models.token,
+            as: "token",
+            attributes: ["symbol", "icon"],
           },
         ],
       },
@@ -166,19 +170,19 @@ export default async (data: Handler) => {
   // Calculate summary
   const total = earnings.reduce((sum, record) => sum + record.amount, 0);
   const claimed = earnings
-    .filter((record) => record.isClaimed)
+    .filter((record) => record.claimed)
     .reduce((sum, record) => sum + record.amount, 0);
   const unclaimed = total - claimed;
 
   // Calculate summary by token
   const tokenSummary = {};
   earnings.forEach((record) => {
-    const tokenSymbol = record.position.pool.symbol;
+    const tokenSymbol = record.pool.token.symbol;
 
     if (!tokenSummary[tokenSymbol]) {
       tokenSummary[tokenSymbol] = {
         tokenSymbol,
-        tokenIcon: record.position.pool.icon,
+        tokenIcon: record.pool.token.icon,
         total: 0,
         claimed: 0,
         unclaimed: 0,
@@ -186,7 +190,7 @@ export default async (data: Handler) => {
     }
 
     tokenSummary[tokenSymbol].total += record.amount;
-    if (record.isClaimed) {
+    if (record.claimed) {
       tokenSummary[tokenSymbol].claimed += record.amount;
     } else {
       tokenSummary[tokenSymbol].unclaimed += record.amount;

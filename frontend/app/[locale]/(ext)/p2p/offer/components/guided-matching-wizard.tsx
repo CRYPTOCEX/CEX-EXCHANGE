@@ -237,13 +237,13 @@ export function GuidedMatchingWizard() {
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-1">
                   <span>
-                    {t("0")}. {t("01")}
+                    0. 01
                   </span>
                   <span>
-                    {t("0")}. {t("5")}
+                    0. / 5
                   </span>
                   <span>
-                    {t("1")}. {t("0")}
+                    1:. 0
                   </span>
                 </div>
               </div>
@@ -259,7 +259,7 @@ export function GuidedMatchingWizard() {
                     </p>
                   </div>
                   <div className="text-xl font-bold">
-                    {t("$")}
+                    / $
                     {formData.cryptocurrency === "bitcoin"
                       ? (
                           Number.parseFloat(formData.amount) * 42356.78
@@ -354,7 +354,7 @@ export function GuidedMatchingWizard() {
                       className="flex items-center gap-1.5"
                     >
                       <Wallet className="h-4 w-4 text-primary" />
-                      {t("PayPal")}
+                      PayPal
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("paypal_payments")}

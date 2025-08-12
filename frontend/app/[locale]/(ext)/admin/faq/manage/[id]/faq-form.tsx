@@ -781,7 +781,7 @@ export function FAQForm({
 
             {aiError && (
               <Alert variant="destructive">
-                <AlertTitle>{t("Error")}</AlertTitle>
+                <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{aiError}</AlertDescription>
               </Alert>
             )}

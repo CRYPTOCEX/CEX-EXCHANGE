@@ -117,7 +117,7 @@ const StepIconAndExtras: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="PERMIT">{t("PERMIT")}</SelectItem>
-              <SelectItem value="NO_PERMIT">{t("NO_PERMIT")}</SelectItem>
+              <SelectItem value="NO_PERMIT">NO_PERMIT</SelectItem>
               <SelectItem value="NATIVE">{t("NATIVE")}</SelectItem>
             </SelectContent>
           </Select>

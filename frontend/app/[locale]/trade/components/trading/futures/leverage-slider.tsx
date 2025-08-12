@@ -36,7 +36,7 @@ export default function LeverageSlider({
       <div className="flex justify-between items-center mb-1">
         <label className="text-xs text-muted-foreground">{t("Leverage")}</label>
         <span className="text-xs font-medium">
-          {leverage} {t("x")}
+          {leverage} x
         </span>
       </div>
       <Slider
@@ -48,9 +48,9 @@ export default function LeverageSlider({
         className="mb-2"
       />
       <div className="flex justify-between text-xs text-muted-foreground">
-        <span>{t("1x")}</span>
+        <span>1x</span>
         <span>
-          {maxLeverage} {t("x")}
+          {maxLeverage} x
         </span>
       </div>
     </div>

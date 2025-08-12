@@ -103,17 +103,17 @@ export default function NotificationsClient() {
                     <TabsTrigger value="all" className="text-xs w-full">
                       {t("all_(")}
                       {filteredNotifications.length}
-                      {t(")")}
+                      )
                     </TabsTrigger>
                     <TabsTrigger value="unread" className="text-xs w-full">
                       {t("unread_(")}
                       {unreadCount}
-                      {t(")")}
+                      )
                     </TabsTrigger>
                     <TabsTrigger value="read" className="text-xs w-full">
                       {t("read_(")}
                       {readCount}
-                      {t(")")}
+                      )
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>

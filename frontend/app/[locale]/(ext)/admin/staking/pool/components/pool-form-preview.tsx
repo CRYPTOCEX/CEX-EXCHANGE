@@ -129,7 +129,7 @@ export function PoolFormPreview({ formData }: PoolFormPreviewProps) {
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>
-                          {t("0")}
+                          0
                           {formData.symbol || "SYM"}
                         </span>
                         <span>

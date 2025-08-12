@@ -298,7 +298,7 @@ export function WalletList() {
                                 )
                               ) : (
                                 <span className="text-zinc-500">
-                                  {t("0")}. {t("00%")}
+                                  0. 00%
                                 </span>
                               )}
                             </div>

@@ -620,7 +620,7 @@ export default function FAQClient() {
                     </Button>
                   </div>
                   <CardDescription className="text-base text-zinc-600 dark:text-zinc-400">
-                    {t("showing_results_for")} {searchTerm} {t("untitled")}
+                    {t("showing_results_for")} {searchTerm} ,
                     {selectedCategory !== "all" && ` in ${selectedCategory}`}
                   </CardDescription>
                 </CardHeader>

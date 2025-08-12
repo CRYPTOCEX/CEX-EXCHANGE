@@ -159,7 +159,7 @@ export default function TradeConfirmation({
               </div>
               <div>
                 <div className={styles.labelText}>
-                  {symbol.replace("USDT", "")} {t("_USD")}
+                  {symbol.replace("USDT", "")} /USD
                 </div>
                 <div className={`font-bold ${styles.valueText} text-xl`}>
                   {type === "CALL" ? "CALL (Up)" : "PUT (Down)"}
@@ -169,7 +169,7 @@ export default function TradeConfirmation({
             <div className="text-right">
               <div className={styles.labelText}>{t("Amount")}</div>
               <div className={`font-bold ${styles.valueText} text-xl`}>
-                {t("$")}
+                $
                 {amount.toLocaleString()}
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function TradeConfirmation({
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("entry_price")}</div>
               <div className={`${styles.valueText} font-medium`}>
-                {t("$")}
+                $
                 {currentPrice.toLocaleString()}
               </div>
             </div>
@@ -193,17 +193,17 @@ export default function TradeConfirmation({
                 className={`${styles.valueText} font-medium flex items-center`}
               >
                 <Clock size={14} className="mr-1.5" />
-                {formattedExpiryTime} {t("(")} {expiryMinutes} {t("min)")}
+                {formattedExpiryTime} ( {expiryMinutes} {t("min)")}
               </div>
             </div>
 
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("potential_profit")}</div>
               <div className="text-[#00C896] font-medium">
-                {t("$")}
+                $
                 {potentialProfit.toFixed(2)}{" "}
                 <span className="text-[#00C896]">
-                  {t("(")} {profitPercentage} {t("%)")}
+                  ( {profitPercentage} %)
                 </span>
               </div>
             </div>
@@ -211,10 +211,10 @@ export default function TradeConfirmation({
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("potential_loss")}</div>
               <div className="text-[#FF4D4F] font-medium">
-                {t("$")}
+                $
                 {potentialLoss.toFixed(2)}{" "}
                 <span className="text-[#FF4D4F]">
-                  {t("(")} {100} {t("%)")}
+                  ( {100} %)
                 </span>
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function TradeConfirmation({
               display: "inline-block",
             }}
           >
-            {t("▼")}
+            ▼
           </span>
         </button>
 
@@ -258,7 +258,7 @@ export default function TradeConfirmation({
                     {t("risk_reward_ratio")}
                   </div>
                   <div className={styles.valueText}>
-                    {t("1")}
+                    1:
                     {(potentialProfit / potentialLoss).toFixed(2)}
                   </div>
                 </div>
@@ -306,7 +306,7 @@ export default function TradeConfirmation({
               ) : (
                 <span>
                   {t("confirm_(")}
-                  {countdown} {t("s)")}
+                  {countdown} s)
                 </span>
               )}
             </div>

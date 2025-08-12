@@ -130,7 +130,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position, index = 0 }) => {
               <div className="flex items-center mb-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-2" />
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  {t("APY")}
+                  APY
                 </span>
               </div>
               <div className="text-xl font-bold text-green-600 dark:text-green-400">

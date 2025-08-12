@@ -149,10 +149,10 @@ export default function InvestmentDashboardClient() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  {t("investment_dashboard_1")}
+                  {t("investment_dashboard")}
                 </h1>
                 <p className="text-zinc-600 dark:text-zinc-300">
-                  {t("track_your_portfolio_your_investments_1")}
+                  {t("track_your_portfolio_your_investments")}
                 </p>
               </div>
 
@@ -185,7 +185,7 @@ export default function InvestmentDashboardClient() {
             <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  {t("total_portfolio_value_1")}
+                  {t("total_portfolio_value")}
                 </CardTitle>
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-4 h-4 text-white" />
@@ -293,7 +293,7 @@ export default function InvestmentDashboardClient() {
                           {t("Plan")}
                         </span>
                         <span className="font-semibold">
-                          {t("investment_plan_2")}
+                          {t("investment_plan")}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -394,7 +394,7 @@ export default function InvestmentDashboardClient() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-medium text-sm">
-                                  {t("investment_plan_3")}
+                                  {t("investment_plan")}
                                 </span>
                                 <Badge
                                   className={getStatusColor(investment.status)}

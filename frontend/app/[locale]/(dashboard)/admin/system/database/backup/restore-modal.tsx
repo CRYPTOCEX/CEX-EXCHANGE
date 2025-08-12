@@ -35,7 +35,7 @@ export function RestoreModal({
           <DialogDescription>
             {t("are_you_sure_you_want_to_restore_the_backup")}
             {filename}
-            {t("untitled")}
+            ,
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

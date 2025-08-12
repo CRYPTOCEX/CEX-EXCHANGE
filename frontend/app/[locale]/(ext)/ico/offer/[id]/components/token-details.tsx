@@ -26,9 +26,9 @@ export function TokenDetails({
           <p className="text-sm font-medium">{t("tokens_for_sale")}</p>
           <p className="text-sm text-muted-foreground">
             {details.tokensForSale.toLocaleString()}
-            {t("(")}
+            (
             {details.salePercentage}
-            {t("%)")}
+            %)
           </p>
         </div>
         <div>

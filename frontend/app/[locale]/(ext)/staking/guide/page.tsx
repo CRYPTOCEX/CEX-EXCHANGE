@@ -383,7 +383,7 @@ export default function StakingGuidePage() {
                           {t(
                             "This is clearly displayed on the pool details page"
                           )}
-                          . {t("minimum_stakes_can_range_from_as_little_as_0")}.{" "}
+                          . {t("minimum_stakes_can_range_from_as_little_as")}.{" "}
                           {t("01_btc_to_the_cryptocurrency")}.
                         </p>
                       </div>

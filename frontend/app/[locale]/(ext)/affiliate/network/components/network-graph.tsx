@@ -1066,7 +1066,7 @@ export function NetworkGraph({
                           {t("Earnings")}
                         </p>
                         <p className="text-lg font-bold">
-                          {t("$")}
+                          / $
                           {selectedNode.earnings?.toFixed(2)}
                         </p>
                       </div>

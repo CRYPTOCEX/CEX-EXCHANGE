@@ -89,7 +89,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
               <Label htmlFor="amount">
                 {t("amount_(")}
                 {pool.symbol}
-                {t(")")}
+                )
               </Label>
               <div className="relative">
                 <Input

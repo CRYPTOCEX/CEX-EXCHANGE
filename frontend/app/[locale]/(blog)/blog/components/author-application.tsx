@@ -71,7 +71,7 @@ export function AuthorApplication() {
           <div className="flex flex-col items-center text-center">
             <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
             <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("Error")}
+              Error
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400">{error}</p>
             <Button onClick={() => window.location.reload()} className="mt-4">

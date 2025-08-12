@@ -182,7 +182,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
                   fontSize="10"
                   fill="#6b7280"
                 >
-                  {t("untitled")}
+                  ,
                 </text>
               </svg>
             </div>
@@ -363,7 +363,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
               <li>{t("log_out_from_your_account")}</li>
               <li>
                 {t("visit_the_login_page_at")}{" "}
-                <span className="font-medium">{t("_auth_login")}</span>
+                <span className="font-medium">{'/auth/login'}</span>
               </li>
               <li>{t("click_on_forgot_password_link")}</li>
               <li>{t("enter_your_email_address_to_receive_a_reset_link")}</li>

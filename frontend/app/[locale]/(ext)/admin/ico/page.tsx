@@ -39,7 +39,7 @@ export default function AdminDashboard() {
         <Alert variant="destructive">
           <>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("Error")}</AlertTitle>
+            <AlertTitle>Error</AlertTitle>
             <AlertDescription>
               {t("failed_to_load_admin_dashboard")}
               {error}

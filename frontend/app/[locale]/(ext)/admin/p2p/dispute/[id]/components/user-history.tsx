@@ -25,11 +25,11 @@ export function UserHistory({ dispute }: UserHistoryProps) {
             <div className="space-y-2 text-sm">
               <p>
                 <span className="font-medium">{t("previous_disputes")}</span>
-                {t("1")}
+                1:
               </p>
               <p>
                 <span className="font-medium">{t("successful_trades")}</span>
-                {t("15")}
+                15
               </p>
               <p>
                 <span className="font-medium">{t("account_status")}</span>{" "}
@@ -48,11 +48,11 @@ export function UserHistory({ dispute }: UserHistoryProps) {
             <div className="space-y-2 text-sm">
               <p>
                 <span className="font-medium">{t("previous_disputes")}</span>
-                {t("2")}
+                2
               </p>
               <p>
                 <span className="font-medium">{t("successful_trades")}</span>
-                {t("28")}
+                28
               </p>
               <p>
                 <span className="font-medium">{t("account_status")}</span>{" "}

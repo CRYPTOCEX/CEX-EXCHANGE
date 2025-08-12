@@ -102,7 +102,7 @@ export function SellerInformation({ seller }: SellerInformationProps) {
               <div className="flex items-center text-sm">
                 <Star className="h-4 w-4 mr-1 text-yellow-500" />
                 <span className="font-medium">{completionRate}%</span>
-                <span className="mx-1 text-muted-foreground">{t("•")}</span>
+                <span className="mx-1 text-muted-foreground">•</span>
                 <span className="text-muted-foreground">{stats.totalTrades} {t("trades")}</span>
               </div>
               <div className="mt-1">
@@ -132,7 +132,7 @@ export function SellerInformation({ seller }: SellerInformationProps) {
             <div className="text-center p-3 bg-muted/30 rounded-md">
               <div className="flex items-center justify-center">
                 <p className="text-2xl font-bold">{responseTime}</p>
-                <p className="text-sm ml-1">{t("min")}</p>
+                <p className="text-sm ml-1">min</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("response_time")}

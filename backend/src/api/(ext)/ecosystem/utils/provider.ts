@@ -2,6 +2,9 @@ import { JsonRpcProvider, WebSocketProvider } from "ethers";
 import { chainConfigs } from "./chains";
 import { logError } from "../../../../utils/logger";
 
+// Export chainConfigs for use in other modules
+export { chainConfigs };
+
 // Initialize Ethereum provider
 export const initializeProvider = (chain) => {
   const provider = getProvider(chain);

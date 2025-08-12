@@ -119,7 +119,7 @@ export function FeedbackDetailsDialog({
                   href={`/faq/${feedback.faqId}`}
                   className="text-blue-600 hover:underline"
                 >
-                  {t("_faq_")}
+                  {'/faq/'}
                   {feedback.faqId}
                 </Link>
               </p>

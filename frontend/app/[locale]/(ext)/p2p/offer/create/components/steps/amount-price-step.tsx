@@ -789,7 +789,7 @@ export function AmountPriceStep() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <Label htmlFor="amount">
-            {t("amount_(")} {getCryptoSymbol()}{t(")")}
+            {t("amount_(")} {getCryptoSymbol()})
           </Label>
           <Input
             id="amount"
@@ -919,7 +919,7 @@ export function AmountPriceStep() {
                 <Label htmlFor="price">
                   {t("price_per")}{" "}
                   {getCryptoSymbol()}{" "}
-                  {t("(usd)")}
+                  (USD)
                 </Label>
                 <Input
                   id="price"
