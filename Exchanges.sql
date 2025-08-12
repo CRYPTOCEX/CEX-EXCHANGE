@@ -1,4 +1,4 @@
-#**add this to your database using  sql to get ok, binance us ,kraken exchanges**#
+#**add this to your database using  sql to get okX, binance us ,kraken exchanges**#
 
 
 INSERT INTO exchange (id, name, title, status, username, licenseStatus, version, productId, type) VALUES
