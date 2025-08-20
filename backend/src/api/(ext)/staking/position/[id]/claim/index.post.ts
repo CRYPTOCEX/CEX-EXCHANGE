@@ -4,6 +4,7 @@ import { getWalletByUserIdAndCurrency } from "@b/api/(ext)/ecosystem/utils/walle
 import { createNotification } from "@b/utils/notifications";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { Op } from "sequelize";
 
 export const metadata = {
   summary: "Claim Staking Position Earnings",
@@ -11,6 +12,10 @@ export const metadata = {
   operationId: "claimStakingPositionEarnings",
   tags: ["Staking", "Positions", "Earnings"],
   requiresAuth: true,
+  rateLimit: {
+    windowMs: 3600000, // 1 hour
+    max: 10 // 10 claims per hour
+  },
   parameters: [
     {
       index: 0,
@@ -45,6 +50,34 @@ export const metadata = {
   },
 };
 
+/**
+ * Claims all unclaimed earnings for a staking position.
+ * 
+ * @description This endpoint processes earnings claims for staking positions.
+ * It performs the following operations:
+ * - Validates position ownership
+ * - Retrieves all unclaimed earnings
+ * - Credits earnings to user's wallet
+ * - Marks earnings as claimed
+ * - Creates transaction records for audit
+ * - Sends notification to user
+ * 
+ * Rate limited to 10 claims per hour per user.
+ * 
+ * @param {Handler} data - Request handler data
+ * @param {User} data.user - Authenticated user
+ * @param {Object} data.params - Route parameters
+ * @param {string} data.params.id - Position ID to claim earnings from
+ * 
+ * @returns {Promise<{success: boolean, claimedAmount: number}>} Claim result
+ * 
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {403} Forbidden - User doesn't own the position
+ * @throws {404} Not Found - Position not found
+ * @throws {400} Bad Request - No earnings to claim
+ * @throws {429} Too Many Requests - Rate limit exceeded
+ * @throws {500} Internal Server Error - Transaction failed
+ */
 export default async (data: Handler) => {
   const { user, params } = data;
   if (!user?.id) {
@@ -52,6 +85,34 @@ export default async (data: Handler) => {
   }
 
   const { id } = params;
+  
+  // Validate position ID
+  if (!id || typeof id !== "string") {
+    throw createError({ statusCode: 400, message: "Valid position ID is required" });
+  }
+
+  // Rate limiting check for claims
+  const recentClaims = await models.stakingEarningRecord.count({
+    where: {
+      positionId: {
+        [Op.in]: sequelize.literal(`(
+          SELECT id FROM staking_position WHERE userId = '${user.id}'
+        )`)
+      },
+      isClaimed: true,
+      claimedAt: {
+        [Op.gte]: new Date(Date.now() - 3600000) // Last hour
+      }
+    }
+  });
+  
+  if (recentClaims >= 10) {
+    throw createError({
+      statusCode: 429,
+      message: "Too many claim requests. Please wait before trying again."
+    });
+  }
+
   // Get the position
   const position = await models.stakingPosition.findOne({
     where: { id },
@@ -111,7 +172,7 @@ export default async (data: Handler) => {
           message: "Chain not found in trade offer",
         });
 
-      await getTokenContractAddress(position.pool.chain, position.pool.symbol);
+      await getTokenContractAddress(position.pool.walletChain, position.pool.symbol);
 
       if (extensions.has("ecosystem")) {
         try {
@@ -156,6 +217,27 @@ export default async (data: Handler) => {
         )
       )
     );
+
+    // Credit the wallet with the claimed earnings
+    await wallet.increment('balance', {
+      by: totalClaimAmount,
+      transaction
+    });
+
+    // Create wallet transaction record for audit trail
+    await models.walletTransaction.create({
+      userId: user.id,
+      walletId: wallet.id,
+      amount: totalClaimAmount,
+      type: 'DEPOSIT',
+      status: 'COMPLETED',
+      description: `Staking rewards claim from position ${position.id}`,
+      metadata: {
+        source: 'STAKING_CLAIM',
+        positionId: position.id,
+        earningIds: unclaimedEarnings.map(e => e.id)
+      }
+    }, { transaction });
 
     // Create updated notification using the new format
     await createNotification({

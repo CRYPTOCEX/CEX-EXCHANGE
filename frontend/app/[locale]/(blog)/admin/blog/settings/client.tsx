@@ -189,7 +189,10 @@ export function SettingsClient() {
     if (!error) {
       setSaveSuccess(true);
       setHasChanges(false);
-      setSettings(bodyToSave);
+      // Merge with existing settings to avoid overwriting other extensions' settings
+      const mergedSettings = { ...settings, ...bodyToSave };
+      setSettings(mergedSettings);
+      setLocalSettings(bodyToSave);
     }
     setIsSaving(false);
   };
@@ -206,7 +209,9 @@ export function SettingsClient() {
     setOpenResetDialog(false);
 
     if (!resetError) {
-      setSettings(defaultSettings);
+      // Merge with existing settings to avoid overwriting other extensions' settings
+      const mergedSettings = { ...settings, ...defaultSettings };
+      setSettings(mergedSettings);
       setLocalSettings(defaultSettings);
       setHasChanges(false);
     }

@@ -86,8 +86,10 @@ export default async (data: { body: any; user?: any }) => {
       userId: user.id,
       ...validatedData,
       available: typeof body.available === "boolean" ? body.available : true,
-      isSystem: false, // User-created methods are not system methods
+      popularityRank: 999, // Set high rank for custom methods so they appear after system methods
     });
+    
+    console.log(`[P2P Payment Method] Created custom payment method: ${paymentMethod.id} - ${paymentMethod.name} for user ${user.id}`);
 
     // Log activity
     await models.p2pActivityLog.create({
@@ -105,12 +107,14 @@ export default async (data: { body: any; user?: any }) => {
       message: "Payment method created successfully.",
       paymentMethod: {
         id: paymentMethod.id,
+        userId: paymentMethod.userId,
         name: paymentMethod.name,
         icon: paymentMethod.icon,
         description: paymentMethod.description,
         instructions: paymentMethod.instructions,
         processingTime: paymentMethod.processingTime,
         available: paymentMethod.available,
+        popularityRank: paymentMethod.popularityRank,
         createdAt: paymentMethod.createdAt,
       },
     };

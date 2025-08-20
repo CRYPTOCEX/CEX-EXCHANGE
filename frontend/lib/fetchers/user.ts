@@ -19,6 +19,10 @@ export async function getUserProfile() {
       return null;
     }
 
+    // Skip cache for now to ensure permissions are always fresh
+    // This fixes the issue where permissions might not be included in cached data
+    // TODO: Implement proper cache invalidation when user permissions change
+    /*
     if (userId) {
       try {
         const cachedProfile = await redisGet(`user:${userId}:profile`);
@@ -32,6 +36,7 @@ export async function getUserProfile() {
         // Continue without cache
       }
     }
+    */
 
     if (!siteUrl) {
       console.error("SSR: siteUrl is not configured");
@@ -74,6 +79,9 @@ export async function getUserProfile() {
       return null;
     }
 
+    // Disabled caching temporarily to ensure permissions are always included
+    // The cache was causing issues with nested role.permissions data not being preserved
+    /*
     // Try to cache the profile, but don't fail if Redis is unavailable
     try {
       await redisSet(
@@ -86,6 +94,7 @@ export async function getUserProfile() {
       console.warn("SSR: Failed to cache user profile:", cacheError);
       // Continue without caching
     }
+    */
 
     return profile;
   } catch (error) {

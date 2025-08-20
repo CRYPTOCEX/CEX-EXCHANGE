@@ -21,6 +21,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
@@ -983,8 +984,11 @@ export default function MarketSelector({
           style={{ width: "80vw", minWidth: "80vw", maxWidth: "80vw" }}
         >
           <DialogTitle className="sr-only">
-            Discover Markets - Add new trading pairs to your workspace
+            Discover Markets
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Add new trading pairs to your workspace. Browse through popular, trending, and all available markets.
+          </DialogDescription>
           <div className="relative">
             {/* Animated Background Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#F7941D]/5 via-transparent to-blue-500/5 animate-pulse" />

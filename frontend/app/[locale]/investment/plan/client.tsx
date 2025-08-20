@@ -36,8 +36,9 @@ export default function InvestmentPlansClient() {
     }
   }, [hasFetchedPlans, plansLoading]);
 
-  // Filter plans based on search and filter
-  const filteredPlans = plans.filter((plan) => {
+  // Filter plans based on search and filter - ensure plans is an array
+  const safePlans = Array.isArray(plans) ? plans : [];
+  const filteredPlans = safePlans.filter((plan) => {
     const matchesSearch =
       plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plan.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -49,6 +50,16 @@ export default function InvestmentPlansClient() {
     return matchesSearch && matchesFilter;
   });
   const formatCurrency = (amount: number, currency: string) => {
+    // Validate amount
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return `${currency || "USD"} 0`;
+    }
+
+    // Validate currency
+    if (!currency || typeof currency !== 'string') {
+      currency = "USD";
+    }
+
     // List of valid ISO 4217 currency codes that Intl.NumberFormat supports
     const validCurrencyCodes = [
       "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
@@ -56,19 +67,19 @@ export default function InvestmentPlansClient() {
     ];
 
     // Check if the currency is a valid ISO currency code
-    const isValidCurrency = validCurrencyCodes.includes(currency?.toUpperCase());
+    const isValidCurrency = validCurrencyCodes.includes(currency.toUpperCase());
 
     if (isValidCurrency) {
       try {
         return new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: currency || "USD",
+          currency: currency,
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(amount);
       } catch (error) {
         // Fallback if there's still an error
-        return `${currency || "USD"} ${amount.toFixed(0)}`;
+        return `${currency} ${amount.toFixed(0)}`;
       }
     } else {
       // For cryptocurrencies and other non-ISO currencies, format manually
@@ -77,7 +88,7 @@ export default function InvestmentPlansClient() {
         maximumFractionDigits: 8, // Cryptocurrencies often have more decimal places
       }).format(amount);
       
-      return `${formattedValue} ${currency || "USD"}`;
+      return `${formattedValue} ${currency}`;
     }
   };
   const getPlanIcon = (index: number) => {

@@ -153,7 +153,10 @@ export class Request {
     }
 
     // Validate against schema if metadata is provided.
-    if (this.metadata?.requestBody) {
+    // Skip validation for multipart/form-data or if skipBodyValidation is set
+    if (this.metadata?.requestBody && 
+        !this.metadata?.skipBodyValidation &&
+        !contentType.includes("multipart/form-data")) {
       try {
         const mediaType: string = Object.keys(
           this.metadata.requestBody.content

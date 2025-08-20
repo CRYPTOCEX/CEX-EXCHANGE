@@ -187,18 +187,23 @@ export default function UsersPage() {
     setIsImporting(true);
     setImportResults(null);
 
-    const formData = new FormData();
-    formData.append("file", importFile);
-    formData.append("defaultPassword", defaultPassword);
-    formData.append("sendWelcomeEmail", sendWelcomeEmail.toString());
-
     try {
+      // Convert file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject("Error reading file");
+      });
+      reader.readAsDataURL(importFile);
+      const base64File = await base64Promise;
+
       const { data, error } = await $fetch({
         url: "/api/admin/crm/user/import",
         method: "POST",
-        body: formData,
-        headers: {
-          // Let browser set the content-type for multipart/form-data
+        body: {
+          file: base64File,
+          defaultPassword,
+          sendWelcomeEmail: sendWelcomeEmail.toString(),
         },
       });
 
@@ -319,7 +324,7 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
         )}
       </div>
     ),
-  }), [renderActionButtons]);
+  }), [renderActionButtons, canImport, canExport, setIsImportDialogOpen]);
 
   return (
     <>
@@ -443,18 +448,42 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
             {/* File Upload */}
             <div className="space-y-2">
               <Label htmlFor="csv-file">CSV File</Label>
-              <Input
-                id="csv-file"
-                type="file"
-                accept=".csv"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                disabled={isImporting}
-              />
+              <div className="relative">
+                <Input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  disabled={isImporting}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isImporting}
+                >
+                  {importFile ? (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span className="truncate">{importFile.name}</span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        ({(importFile.size / 1024).toFixed(2)} KB)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Upload className="h-4 w-4" />
+                      <span>Choose CSV file...</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
               {importFile && (
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  {importFile.name} ({(importFile.size / 1024).toFixed(2)} KB)
+                <p className="text-xs text-muted-foreground">
+                  Click to choose a different file
                 </p>
               )}
             </div>

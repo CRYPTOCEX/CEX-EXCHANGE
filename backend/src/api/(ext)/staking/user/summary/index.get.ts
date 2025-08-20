@@ -59,13 +59,7 @@ export default async (data: Handler) => {
       {
         model: models.stakingPool,
         as: "pool",
-        include: [
-          {
-            model: models.token,
-            as: "token",
-            attributes: ["symbol", "icon"],
-          },
-        ],
+        attributes: ["id", "name", "symbol", "icon"],
       },
     ],
   });
@@ -92,7 +86,7 @@ export default async (data: Handler) => {
     attributes: [
       [fn("SUM", col("amount")), "total"],
       [
-        fn("SUM", literal("CASE WHEN claimed = false THEN amount ELSE 0 END")),
+        fn("SUM", literal("CASE WHEN isClaimed = false THEN amount ELSE 0 END")),
         "unclaimed",
       ],
     ],
@@ -108,12 +102,12 @@ export default async (data: Handler) => {
   // Group by token
   const tokenSummary = {};
   positions.forEach((position) => {
-    const tokenSymbol = position.pool.token.symbol;
+    const tokenSymbol = position.pool.symbol;
 
     if (!tokenSummary[tokenSymbol]) {
       tokenSummary[tokenSymbol] = {
         tokenSymbol,
-        tokenIcon: position.pool.token.icon,
+        tokenIcon: position.pool.icon,
         totalStaked: 0,
         positionCount: 0,
       };
@@ -126,23 +120,22 @@ export default async (data: Handler) => {
   // Get earnings by token
   const earningsByToken = await models.stakingEarningRecord.findAll({
     attributes: [
-      "poolId",
       [fn("SUM", col("amount")), "total"],
       [
-        fn("SUM", literal("CASE WHEN claimed = false THEN amount ELSE 0 END")),
+        fn("SUM", literal("CASE WHEN isClaimed = false THEN amount ELSE 0 END")),
         "unclaimed",
       ],
     ],
     include: [
       {
-        model: models.stakingPool,
-        as: "pool",
-        attributes: ["tokenId"],
+        model: models.stakingPosition,
+        as: "position",
+        attributes: ["id", "poolId"],
         include: [
           {
-            model: models.token,
-            as: "token",
-            attributes: ["symbol"],
+            model: models.stakingPool,
+            as: "pool",
+            attributes: ["id", "symbol"],
           },
         ],
       },
@@ -151,18 +144,15 @@ export default async (data: Handler) => {
       positionId: { [Op.in]: allPositionIds },
     },
     group: [
-      "poolId",
-      "pool.id",
-      "pool.tokenId",
-      "pool.token.symbol",
-      "pool.token.id",
+      "position.pool.id",
+      "position.pool.symbol",
     ],
     raw: false,
   });
 
   // Merge earnings data into token summary
   earningsByToken.forEach((earning) => {
-    const tokenSymbol = earning.pool.token.symbol;
+    const tokenSymbol = earning.position.pool.symbol;
 
     if (!tokenSummary[tokenSymbol]) {
       tokenSummary[tokenSymbol] = {

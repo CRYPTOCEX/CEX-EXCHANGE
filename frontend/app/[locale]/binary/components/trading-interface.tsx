@@ -26,6 +26,7 @@ export default function TradingInterface({
   const isMobile = useIsMobile();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? "dark" : theme || "dark";
+  const [completedPanelState, setCompletedPanelState] = useState({ isOpen: false, height: 500 });
 
   // Get all available properties and functions from the binary store
   const {
@@ -370,6 +371,12 @@ export default function TradingInterface({
     };
   }, [currentSymbol, cleanupSubscriptions, setCurrentPrice, isMarketSwitching]);
 
+  // Calculate bottom padding for desktop layout
+  // Always add 40px when panel exists (for collapsed header), plus panel height when open
+  const desktopBottomPadding = !isMobile && computedValues.hasCompletedPositions
+    ? (completedPanelState.isOpen ? completedPanelState.height + 40 : 40)
+    : 0;
+
   // Render the appropriate layout
   return (
     <>
@@ -449,6 +456,7 @@ export default function TradingInterface({
           showExpiry={computedValues.showExpiry}
           positionMarkers={positionMarkers}
           handleMarketSelect={handleMarketSelect}
+          bottomSpacing={desktopBottomPadding}
         />
       )}
 
@@ -456,6 +464,9 @@ export default function TradingInterface({
       {!isMobile && computedValues.hasCompletedPositions && (
         <CompletedPositions
           theme={computedValues.darkMode ? "dark" : "light"}
+          onPanelStateChange={(isOpen, height) => {
+            setCompletedPanelState({ isOpen, height });
+          }}
         />
       )}
     </>

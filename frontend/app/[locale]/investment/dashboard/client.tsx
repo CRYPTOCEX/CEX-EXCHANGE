@@ -34,9 +34,22 @@ export default function InvestmentDashboardClient() {
   }, [user, fetchUserInvestments]);
 
   // Find active investment from the investments list
+  // Ensure investments is an array before calling find
   const activeInvestment =
-    investments.find((inv) => inv.status === "ACTIVE") || null;
+    Array.isArray(investments) 
+      ? investments.find((inv) => inv.status === "ACTIVE") || null
+      : null;
   const formatCurrency = (amount: number, currency = "USD") => {
+    // Validate amount
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return `${currency} 0.00`;
+    }
+
+    // Validate currency
+    if (!currency || typeof currency !== 'string') {
+      currency = "USD";
+    }
+
     // List of valid ISO 4217 currency codes that Intl.NumberFormat supports
     const validCurrencyCodes = [
       "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
@@ -68,12 +81,26 @@ export default function InvestmentDashboardClient() {
       return `${formattedValue} ${currency}`;
     }
   };
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  const formatDate = (date: string | Date | null | undefined) => {
+    if (!date) {
+      return "N/A";
+    }
+    
+    try {
+      const dateObj = new Date(date);
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) {
+        return "Invalid Date";
+      }
+      
+      return dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,17 +117,18 @@ export default function InvestmentDashboardClient() {
     }
   };
 
-  // Calculate portfolio stats
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
-  const totalProfit = investments.reduce(
+  // Calculate portfolio stats - ensure investments is an array
+  const safeInvestments = Array.isArray(investments) ? investments : [];
+  const totalInvested = safeInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalProfit = safeInvestments.reduce(
     (sum, inv) => sum + (inv.profit || 0),
     0
   );
   const totalValue = totalInvested + totalProfit;
-  const activeInvestments = investments.filter(
+  const activeInvestments = safeInvestments.filter(
     (inv) => inv.status === "ACTIVE"
   ).length;
-  const completedInvestments = investments.filter(
+  const completedInvestments = safeInvestments.filter(
     (inv) => inv.status === "COMPLETED"
   ).length;
   if (investmentsLoading) {
@@ -216,7 +244,7 @@ export default function InvestmentDashboardClient() {
                   {formatCurrency(totalInvested)}
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {t("Across")} {investments.length} {t("investments")}
+                  {t("Across")} {safeInvestments.length} {t("investments")}
                 </p>
               </CardContent>
             </Card>
@@ -301,7 +329,7 @@ export default function InvestmentDashboardClient() {
                           {t("Amount")}
                         </span>
                         <span className="font-semibold">
-                          {formatCurrency(activeInvestment.amount)}
+                          {formatCurrency(activeInvestment.amount, activeInvestment.plan?.currency || "USD")}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -383,9 +411,9 @@ export default function InvestmentDashboardClient() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {investments.length > 0 ? (
+                  {safeInvestments.length > 0 ? (
                     <div className="space-y-4 max-h-80 overflow-y-auto">
-                      {investments.slice(0, 5).map((investment) => {
+                      {safeInvestments.slice(0, 5).map((investment) => {
                         return (
                           <div
                             key={investment.id}
@@ -408,7 +436,7 @@ export default function InvestmentDashboardClient() {
                             </div>
                             <div className="text-right">
                               <div className="font-semibold text-sm">
-                                {formatCurrency(investment.amount)}
+                                {formatCurrency(investment.amount, investment.plan?.currency || "USD")}
                               </div>
                               {investment.profit !== null &&
                                 investment.profit !== undefined && (
@@ -416,7 +444,7 @@ export default function InvestmentDashboardClient() {
                                     className={`text-xs ${investment.profit >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                                   >
                                     {investment.profit >= 0 ? "+" : ""}
-                                    {formatCurrency(investment.profit)}
+                                    {formatCurrency(investment.profit, investment.plan?.currency || "USD")}
                                   </div>
                                 )}
                             </div>

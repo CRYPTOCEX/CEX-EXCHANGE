@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 
 export const metadata = {
   summary: "Get User's Staking Positions",
-  description: "Retrieves all staking positions for the authenticated user.",
+  description: "Retrieves all staking positions for the authenticated user with pagination support.",
   operationId: "getUserStakingPositions",
   tags: ["Staking", "Positions"],
   requiresAuth: true,
@@ -28,6 +28,22 @@ export const metadata = {
       schema: { type: "string" },
       description: "Filter by pool ID",
     },
+    {
+      index: 2,
+      name: "page",
+      in: "query",
+      required: false,
+      schema: { type: "integer", minimum: 1, default: 1 },
+      description: "Page number for pagination",
+    },
+    {
+      index: 3,
+      name: "limit",
+      in: "query",
+      required: false,
+      schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+      description: "Number of items per page",
+    },
   ],
   responses: {
     200: {
@@ -37,10 +53,19 @@ export const metadata = {
           schema: {
             type: "object",
             properties: {
-              positions: {
+              data: {
                 type: "array",
                 items: {
                   type: "object",
+                },
+              },
+              pagination: {
+                type: "object",
+                properties: {
+                  page: { type: "integer" },
+                  limit: { type: "integer" },
+                  total: { type: "integer" },
+                  totalPages: { type: "integer" },
                 },
               },
             },
@@ -59,6 +84,11 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
+  // Parse pagination parameters
+  const page = parseInt(query.page as string) || 1;
+  const limit = Math.min(parseInt(query.limit as string) || 20, 100);
+  const offset = (page - 1) * limit;
+
   // Build filter conditions
   const whereClause: any = { userId: user.id };
 
@@ -76,6 +106,11 @@ export default async (data: Handler) => {
     whereClause.poolId = query.poolId;
   }
 
+  // Get total count for pagination
+  const totalCount = await models.stakingPosition.count({
+    where: whereClause,
+  });
+
   // Fetch user's staking positions along with their pool data.
   // NOTE: The token include has been removed as the "token" model is not defined.
   const positions = await models.stakingPosition.findAll({
@@ -87,6 +122,8 @@ export default async (data: Handler) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    limit,
+    offset,
   });
 
   // Enhance positions with earnings and time remaining calculations.
@@ -133,5 +170,13 @@ export default async (data: Handler) => {
     })
   );
 
-  return enhancedPositions;
+  return {
+    data: enhancedPositions,
+    pagination: {
+      page,
+      limit,
+      total: totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+    },
+  };
 };

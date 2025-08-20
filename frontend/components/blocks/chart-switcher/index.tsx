@@ -39,8 +39,9 @@ export default function ChartSwitcher({
   const { settings, settingsFetched, isLoading } = useConfigStore();
   const { isLoaded: isTradingViewLoaded, isLoading: isTradingViewLoading, error: tradingViewError } = useTradingViewLoader();
   
-  // Wait for settings to be initialized before deciding which chart to load
-  if (!settingsFetched && isLoading) {
+  // Wait for settings to be fetched before deciding which chart to load
+  // This prevents loading the default chart and then switching to TradingView
+  if (!settingsFetched) {
     return (
       <div className="w-full h-full bg-background dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
@@ -51,30 +52,48 @@ export default function ChartSwitcher({
     );
   }
   
-  // Default to native chart if setting is not configured
+  // Only decide chart type after settings are fetched
   const chartType = settings?.chartType || "NATIVE";
   
-  const useTradingView = chartType === "TRADINGVIEW" && isTradingViewLoaded && !tradingViewError;
-
-  if (useTradingView) {
-    return (
-      <TradingViewChart
-        key={`tradingview-${symbol}-${marketType}`}
-        symbol={symbol}
-        timeFrame={timeFrame}
-        orders={orders}
-        expiryMinutes={expiryMinutes}
-        showExpiry={showExpiry}
-        onChartContextReady={onChartContextReady}
-        marketType={marketType}
-        onPriceUpdate={onPriceUpdate}
-        metadata={metadata}
-        isMarketSwitching={isMarketSwitching}
-      />
-    );
+  // If TradingView is selected but not loaded yet, show loading state
+  if (chartType === "TRADINGVIEW") {
+    // Show loading while TradingView script is loading
+    if (isTradingViewLoading || (!isTradingViewLoaded && !tradingViewError)) {
+      return (
+        <div className="w-full h-full bg-background dark:bg-zinc-950 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-sm">Loading TradingView chart...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Show error state if TradingView failed to load
+    if (tradingViewError) {
+      console.error("TradingView failed to load, falling back to native chart:", tradingViewError);
+      // Fall back to native chart on error
+    } else if (isTradingViewLoaded) {
+      // TradingView is loaded and ready
+      return (
+        <TradingViewChart
+          key={`tradingview-${symbol}-${marketType}`}
+          symbol={symbol}
+          timeFrame={timeFrame}
+          orders={orders}
+          expiryMinutes={expiryMinutes}
+          showExpiry={showExpiry}
+          onChartContextReady={onChartContextReady}
+          marketType={marketType}
+          onPriceUpdate={onPriceUpdate}
+          metadata={metadata}
+          isMarketSwitching={isMarketSwitching}
+        />
+      );
+    }
   }
 
-  // Default to native chart
+  // Use native chart if selected or as fallback
   return (
     <AdvancedChart
       symbol={symbol}

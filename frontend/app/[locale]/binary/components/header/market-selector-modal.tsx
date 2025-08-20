@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Search, ChevronDown, ChevronUp, X, Star } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTheme } from "next-themes";
 
 // Import the ticker service for real-time price updates
@@ -136,6 +136,12 @@ export default function MarketSelectorModal({
       <DialogContent
         className={`w-[90vw] p-0 ${isDarkTheme ? "bg-black border-zinc-800 text-white" : "bg-white border-gray-200 text-gray-800"} border rounded-lg shadow-2xl max-w-md mx-auto`}
       >
+        <DialogTitle className="sr-only">
+          Add Market
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Search and select a trading market to add to your watchlist.
+        </DialogDescription>
         <div className="flex flex-col max-h-[80vh]">
           {/* Header with search */}
           <div

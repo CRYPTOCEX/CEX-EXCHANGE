@@ -126,7 +126,15 @@ export default async function handler(data: { body: any; user?: any }) {
     });
   }
 
-  if (!body.paymentMethodIds || body.paymentMethodIds.length === 0) {
+  // Log the incoming data for debugging
+  console.log('[P2P Offer Create] Received body:', {
+    type: body.type,
+    currency: body.currency,
+    paymentMethodIds: body.paymentMethodIds,
+  });
+  
+  if (!body.paymentMethodIds || !Array.isArray(body.paymentMethodIds) || body.paymentMethodIds.length === 0) {
+    console.error('[P2P Offer Create] Invalid payment methods:', body.paymentMethodIds);
     throw createError({
       statusCode: 400,
       message: "At least one payment method is required for P2P offers",
@@ -201,19 +209,35 @@ export default async function handler(data: { body: any; user?: any }) {
       : [];
 
     if (ids.length) {
-      // fetch and ensure all exist
+      console.log('[P2P Offer Create] Validating payment method IDs:', ids);
+      
+      // fetch and ensure all exist - also check for user-created methods
       const methods = await models.p2pPaymentMethod.findAll({
-        where: { id: ids },
+        where: { 
+          id: ids,
+          [models.Sequelize.Op.or]: [
+            { userId: null }, // System payment methods
+            { userId: user.id } // User's custom payment methods
+          ]
+        },
         transaction: t,
       });
+      
+      console.log('[P2P Offer Create] Found payment methods:', methods.map(m => ({ id: m.id, name: m.name, userId: m.userId })));
+      
       if (methods.length !== ids.length) {
+        const foundIds = methods.map(m => m.id);
+        const missingIds = ids.filter(id => !foundIds.includes(id));
+        console.error('[P2P Offer Create] Missing payment method IDs:', missingIds);
+        
         throw createError({
           statusCode: 400,
-          message: "One or more paymentMethodIds are invalid",
+          message: `Invalid payment method IDs: ${missingIds.join(', ')}. Please ensure all payment methods are properly created first.`,
         });
       }
       // set the M:N association
       await offer.setPaymentMethods(methods, { transaction: t });
+      console.log('[P2P Offer Create] Associated payment methods successfully');
     }
 
     // commit everything

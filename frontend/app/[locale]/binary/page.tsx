@@ -136,16 +136,29 @@ export default function BinaryTradingPage() {
     };
   }, []); // Remove all dependencies to prevent re-initialization
 
-  // Handle user authentication changes (only re-initialize if needed)
+  // Handle user authentication changes
   useEffect(() => {
-    if (isInitialized && user && !user.id) {
+    if (!isInitialized) return;
+    
+    const { fetchCompletedOrders, fetchActiveOrders } = useBinaryStore.getState();
+    
+    if (user?.id) {
+      // User logged in - fetch orders if we have a symbol
+      if (currentSymbol) {
+        Promise.all([
+          fetchCompletedOrders(),
+          fetchActiveOrders(),
+        ]).catch(error => {
+          console.error("Failed to fetch orders after auth:", error);
+        });
+      }
+    } else {
       // User logged out - reinitialize without user data
-      console.log("User logged out, reinitializing store...");
       initializeBinaryStore().catch(error => {
         console.error("Failed to reinitialize store after logout:", error);
       });
     }
-  }, [user?.id, isInitialized]); // Only depend on user ID and initialization status
+  }, [user?.id, isInitialized, currentSymbol]); // Depend on user, initialization, and symbol
 
   // Show loading state during initialization
   if (!isInitialized || !currentSymbol || isLoadingMarkets) {

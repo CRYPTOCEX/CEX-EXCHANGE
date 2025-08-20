@@ -109,7 +109,11 @@ export const useInvestmentStore = create<InvestmentState>((set, get) => ({
       });
 
       if (!error && data) {
-        set({ investments: data.data || data });
+        // Ensure investments is always an array
+        const investmentsList = Array.isArray(data) ? data : 
+                               Array.isArray(data?.data) ? data.data : 
+                               [];
+        set({ investments: investmentsList });
       }
     } catch (error) {
       console.error("Error fetching user investments:", error);

@@ -344,7 +344,7 @@ export default function WalletDetailClient() {
           <span className="hidden sm:inline">{t("Back")}</span>
         </Button>
         <h1 className="text-xl sm:text-2xl font-bold">
-          {wallet.currency} {wallet.type} {t("Wallet")}
+          {wallet.currency} {t(`wallet_type_${wallet.type.toLowerCase()}`)} {t("Wallet")}
         </h1>
       </div>
 

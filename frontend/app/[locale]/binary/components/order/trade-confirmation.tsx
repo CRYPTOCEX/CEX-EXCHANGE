@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogHeader,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
 
@@ -140,6 +141,9 @@ export default function TradeConfirmation({
           >
             {t("confirm_trade")}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Review and confirm your trading order details before execution.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Order type and amount */}

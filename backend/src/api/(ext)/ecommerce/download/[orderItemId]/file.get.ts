@@ -7,12 +7,13 @@ import {
 } from "@b/utils/query";
 import path from "path";
 import fs from "fs";
+import { pipeline } from "stream/promises";
 import { rateLimiters } from "@b/handler/Middleware";
 
 export const metadata: OperationObject = {
-  summary: "Download digital product file",
-  description: "Provides download access to purchased digital products for authenticated users.",
-  operationId: "downloadDigitalProduct",
+  summary: "Stream digital product file",
+  description: "Streams the actual file content for purchased digital products",
+  operationId: "streamDigitalProductFile",
   tags: ["Ecommerce", "Downloads"],
   requiresAuth: true,
   parameters: [
@@ -27,32 +28,28 @@ export const metadata: OperationObject = {
   ],
   responses: {
     200: {
-      description: "Download URL or file content provided successfully",
+      description: "File streamed successfully",
       content: {
-        "application/json": {
+        "application/octet-stream": {
           schema: {
-            type: "object",
-            properties: {
-              downloadUrl: { type: "string" },
-              fileName: { type: "string" },
-              fileSize: { type: "number" },
-              expiresAt: { type: "string" },
-            },
+            type: "string",
+            format: "binary",
           },
         },
       },
     },
     401: unauthorizedResponse,
-    404: notFoundMetadataResponse("Digital Product"),
+    404: notFoundMetadataResponse("Digital Product File"),
     500: serverErrorResponse,
   },
 };
 
-export default async (data: Handler) => {
+export default async (data: Handler & { res?: any }) => {
   // Apply rate limiting
   await rateLimiters.download(data);
   
   const { user, params } = data;
+  const { res } = data as any; // res is provided by the framework at runtime
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
@@ -119,7 +116,7 @@ export default async (data: Handler) => {
   }
 
   try {
-    // Define the uploads base directory
+    // Define the uploads base directory (should be configured in environment)
     const uploadsBaseDir = path.resolve(process.env.UPLOAD_DIR || './uploads/ecommerce/products');
     
     // Sanitize the file path to prevent path traversal
@@ -144,27 +141,32 @@ export default async (data: Handler) => {
 
     const stats = fs.statSync(resolvedPath);
     const fileName = path.basename(resolvedPath);
-
-    // Generate a temporary download URL (in a real implementation, you might use signed URLs)
-    // For now, we'll return the file path and let the frontend handle the download
-    const downloadUrl = `/api/ecommerce/download/${orderItemId}/file`;
     
-    // Set expiration time (24 hours from now)
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-    return {
-      downloadUrl,
-      fileName,
-      fileSize: stats.size,
-      expiresAt,
-      key: orderItemData.key, // License key if available
-    };
+    // Set response headers
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Length', stats.size.toString());
+    
+    // Stream the file
+    const readStream = fs.createReadStream(resolvedPath);
+    await pipeline(readStream, res);
+    
+    // Log download activity
+    await models.ecommerceOrderItem.update(
+      { 
+        updatedAt: new Date(),
+        // You could add a download counter here if needed
+      },
+      { where: { id: orderItemId } }
+    );
 
   } catch (error) {
-    console.error("Download error:", error);
-    throw createError({ 
-      statusCode: 500, 
-      message: "Error preparing download" 
-    });
+    console.error("File streaming error:", error);
+    if (!res.headersSent) {
+      throw createError({ 
+        statusCode: 500, 
+        message: "Error streaming file" 
+      });
+    }
   }
-}; 
+};

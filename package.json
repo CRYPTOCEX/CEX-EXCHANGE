@@ -2,7 +2,7 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.4.2",
+  "version": "5.4.3",
   "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
@@ -33,24 +33,24 @@
     "lint": "eslint frontend --fix --ignore-pattern '!frontend/**/*.{ts,tsx}'"
   },
   "devDependencies": {
-    "@babel/generator": "^7.28.0",
-    "@babel/parser": "^7.28.0",
-    "@babel/traverse": "^7.28.0",
+    "@babel/generator": "^7.28.3",
+    "@babel/parser": "^7.28.3",
+    "@babel/traverse": "^7.28.3",
     "@babel/types": "^7.28.2",
-    "@eslint/js": "^9.32.0",
-    "@next/eslint-plugin-next": "^15.4.6",
+    "@eslint/js": "^9.33.0",
+    "@next/eslint-plugin-next": "^15.4.7",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.20",
-    "@types/node": "^22.17.0",
+    "@types/node": "^22.17.2",
     "@typescript-eslint/eslint-plugin": "8.0.0-alpha.26",
     "@typescript-eslint/parser": "8.0.0-alpha.26",
     "concurrently": "^7.6.0",
-    "eslint": "^9.32.0",
+    "eslint": "^9.33.0",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-unused-imports": "^4.1.4",
+    "eslint-plugin-unused-imports": "^4.2.0",
     "ethers": "^6.15.0",
     "fast-glob": "^3.3.3",
     "globals": "^15.15.0",
@@ -58,7 +58,7 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.39.0"
+    "typescript-eslint": "^8.40.0"
   },
   "_moduleAliases": {
     "@": "frontend",
@@ -67,17 +67,17 @@
   },
   "dependencies": {
     "@google-cloud/translate": "^9.2.0",
-    "@reown/appkit": "^1.7.18",
-    "@reown/appkit-adapter-wagmi": "^1.7.18",
-    "@tanstack/react-query": "^5.84.1",
+    "@reown/appkit": "^1.7.20",
+    "@reown/appkit-adapter-wagmi": "^1.7.20",
+    "@tanstack/react-query": "^5.85.5",
     "@vitalets/google-translate-api": "^9.2.1",
-    "ccxt": "^4.4.99",
+    "ccxt": "^4.5.1",
     "dotenv": "^16.6.1",
     "jose": "^5.10.0",
     "mysql2": "^3.14.3",
     "tonweb": "^0.0.66",
-    "viem": "^2.33.3",
-    "wagmi": "^2.16.1"
+    "viem": "^2.34.0",
+    "wagmi": "^2.16.4"
   },
   "pnpm": {
     "overrides": {
@@ -116,6 +116,6 @@
       "esbuild"
     ]
   },
-  "lastCommit": "df1bfa23435afc23d49833d019151e6048449d75",
-  "lastCommitDate": "2025-08-10T20:35:38.119Z"
+  "lastCommit": "7f369926cc06627d3df72f08f962794591ae3836",
+  "lastCommitDate": "2025-08-19T14:51:41.043Z"
 }

@@ -192,7 +192,7 @@ export function useTouchEvents({
 
           // Calculate move amount based on drag distance with reduced sensitivity
           // Reduce the sensitivity by applying a damping factor
-          const touchSensitivityFactor = 0.15; // Changed from 0.05 to 0.15 as requested
+          const touchSensitivityFactor = 0.2; // Balanced sensitivity for mobile touch
           const moveAmount =
             (deltaX / chartWidth) * visibleCount * touchSensitivityFactor * -1;
 

@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { faqFeedbackRateLimit } from "@b/handler/Middleware";
 
 export const metadata = {
   summary: "Submit FAQ Feedback",
@@ -41,6 +42,9 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
+  // Apply rate limiting
+  await faqFeedbackRateLimit(data);
+  
   const { params, body, user } = data;
 
   if (!user?.id) {

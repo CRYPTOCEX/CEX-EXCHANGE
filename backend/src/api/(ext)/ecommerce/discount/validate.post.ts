@@ -5,6 +5,7 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
+import { rateLimiters } from "@b/handler/Middleware";
 
 export const metadata: OperationObject = {
   summary: "Validate discount code",
@@ -69,6 +70,8 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  // Apply rate limiting
+  await rateLimiters.discountValidation(data);
   const { user, body } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });

@@ -48,6 +48,7 @@ interface DesktopLayoutProps {
   showExpiry: boolean;
   positionMarkers: any[];
   handleMarketSelect?: (marketSymbol: string) => void;
+  bottomSpacing?: number;
 }
 
 export default function DesktopLayout({
@@ -81,6 +82,7 @@ export default function DesktopLayout({
   showExpiry = true,
   positionMarkers = [],
   handleMarketSelect,
+  bottomSpacing = 0,
 }: DesktopLayoutProps) {
   // Get theme from next-themes
   const { resolvedTheme } = useTheme();
@@ -94,7 +96,7 @@ export default function DesktopLayout({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: `calc(100vh - ${bottomSpacing}px)`, transition: 'height 0.3s ease-in-out' }}>
       <Header
         balance={balance}
         realBalance={realBalance}

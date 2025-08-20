@@ -6,7 +6,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 interface FetchOptions<T> {
   url: string;
   method?: HttpMethod;
-  body?: Record<string, any> | null;
+  body?: Record<string, any> | FormData | null;
   headers?: HeadersInit;
   params?: Record<string, string | number | boolean>;
   successMessage?: string | ((data: T) => string);
@@ -78,7 +78,13 @@ export async function $fetch<T = any>({
 }: FetchOptions<T>): Promise<FetchResponse<T>> {
   const toastId = !silent ? toast.loading("Loading...") : null;
 
-  const defaultHeaders: HeadersInit = {
+  // Check if body is FormData
+  const isFormData = body instanceof FormData;
+  
+  // Don't set Content-Type for FormData, let browser set it with boundary
+  const defaultHeaders: HeadersInit = isFormData ? {
+    ...headers,
+  } : {
     "Content-Type": "application/json",
     ...headers,
   };
@@ -105,7 +111,7 @@ export async function $fetch<T = any>({
       method,
       headers: defaultHeaders,
       credentials: "include",
-      body: body ? JSON.stringify(body) : null,
+      body: isFormData ? body : (body ? JSON.stringify(body) : null),
     };
 
     const response = await fetch(urlWithQuery, fetchOptions);

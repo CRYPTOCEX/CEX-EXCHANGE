@@ -28,19 +28,11 @@ export default class userBlock
         userId: {
           type: DataTypes.UUID,
           allowNull: false,
-          references: {
-            model: "user",
-            key: "id",
-          },
           comment: "ID of the user being blocked",
         },
         adminId: {
           type: DataTypes.UUID,
           allowNull: false,
-          references: {
-            model: "user",
-            key: "id",
-          },
           comment: "ID of the admin who created this block",
         },
         reason: {
@@ -90,7 +82,7 @@ export default class userBlock
       {
         sequelize,
         modelName: "userBlock",
-        tableName: "userBlock",
+        tableName: "user_blocks", // Changed to follow snake_case convention
         timestamps: true,
         indexes: [
           {
@@ -100,17 +92,17 @@ export default class userBlock
             fields: [{ name: "id" }],
           },
           {
-            name: "userBlock_userId_idx",
+            name: "user_blocks_userId_idx",
             using: "BTREE",
             fields: [{ name: "userId" }],
           },
           {
-            name: "userBlock_adminId_idx",
+            name: "user_blocks_adminId_idx",
             using: "BTREE",
             fields: [{ name: "adminId" }],
           },
           {
-            name: "userBlock_isActive_idx",
+            name: "user_blocks_isActive_idx",
             using: "BTREE",
             fields: [{ name: "isActive" }],
           },
@@ -125,6 +117,7 @@ export default class userBlock
       foreignKey: "userId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
+      constraints: false, // Disable foreign key constraints to avoid conflicts
     });
 
     userBlock.belongsTo(models.user, {
@@ -132,6 +125,7 @@ export default class userBlock
       foreignKey: "adminId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
+      constraints: false, // Disable foreign key constraints to avoid conflicts
     });
   }
 }

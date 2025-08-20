@@ -119,7 +119,7 @@ export default async (data: Handler) => {
       total,
       claimed,
       unclaimed,
-      tokenSymbol: position.pool.token.symbol,
+      tokenSymbol: position.pool.symbol,
     },
   };
 };

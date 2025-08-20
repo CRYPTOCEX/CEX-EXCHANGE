@@ -28,7 +28,7 @@ export default function Contact() {
 
   // Default content as fallback
   const defaultContent = `
-    <h1>Contact us</h1>
+    <h1>Contact Us</h1>
     <p><strong>Get in touch with our team</strong></p>
     
     <h2>Need Help?</h2>

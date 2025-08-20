@@ -84,8 +84,9 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
       const chartWidth = dimensions.width - priceScaleWidth;
       const visibleCount = visibleRange.end - visibleRange.start;
 
-      // Calculate move amount based on drag distance
-      const moveAmount = (deltaX / chartWidth) * visibleCount * -1;
+      // Calculate move amount based on drag distance with PC-appropriate sensitivity
+      const pcSensitivity = 0.3; // Much lower sensitivity for smoother PC dragging
+      const moveAmount = (deltaX / chartWidth) * visibleCount * pcSensitivity * -1;
 
       // Store the current visible range width to maintain zoom level
       const rangeWidth = visibleRange.end - visibleRange.start;
@@ -281,6 +282,11 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
   // Improved touch event handlers
   const handleTouchStart = (e: TouchEvent) => {
     touchStartTime = Date.now();
+    
+    // Prevent default to avoid scrolling/zooming browser behavior
+    if (e.cancelable) {
+      e.preventDefault();
+    }
 
     if (e.touches.length === 1) {
       const rect = canvas.getBoundingClientRect();
@@ -310,12 +316,18 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
       // Add hardware acceleration class
       canvas.classList.add("touch-dragging");
     } else if (e.touches.length === 2) {
+      // Stop any dragging when starting pinch
+      setIsDragging(false);
+      
       // Handle pinch zoom initialization
       const distance = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
       initialTouchDistance = distance;
+      
+      // Add pinch class for visual feedback
+      canvas.classList.add("touch-pinching");
     }
   };
 
@@ -356,8 +368,8 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
       const chartWidth = dimensions.width - priceScaleWidth;
       const visibleCount = visibleRange.end - visibleRange.start;
 
-      // Improved touch sensitivity - more responsive than before
-      const touchSensitivity = 0.8; // Increased sensitivity for smoother experience
+      // Improved touch sensitivity for mobile devices
+      const touchSensitivity = 0.2; // Balanced sensitivity for mobile touch
       const moveAmount =
         (deltaX / chartWidth) * visibleCount * touchSensitivity * -1;
 
@@ -415,10 +427,12 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
       const visibleCount = visibleRange.end - visibleRange.start;
 
       // Calculate zoom with improved sensitivity
-      const zoomFactor = 1 / scale;
+      // Use scale directly (not inverted) - pinch out to zoom in, pinch in to zoom out
+      const zoomSensitivity = 0.5; // Adjust sensitivity for smoother zooming
+      const zoomFactor = 1 + (1 - scale) * zoomSensitivity;
       const newVisibleCount = Math.max(
         10,
-        Math.min(candleData.length, visibleCount * zoomFactor)
+        Math.min(candleData.length * 1.5, visibleCount * zoomFactor)
       );
 
       // Calculate center point for zoom
@@ -432,9 +446,19 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
       const newStart = currentCenter - newVisibleCount * centerRatio;
       const newEnd = newStart + newVisibleCount;
 
+      // Ensure we stay within reasonable bounds
+      let adjustedStart = Math.max(-visibleCount * 0.1, newStart);
+      let adjustedEnd = Math.min(candleData.length * 1.5, newEnd);
+
+      // If we hit a boundary, adjust the other end to maintain the zoom level
+      if (adjustedStart <= 0) {
+        adjustedEnd = Math.min(candleData.length * 1.5, newVisibleCount);
+        adjustedStart = 0;
+      }
+
       setVisibleRange({
-        start: Math.max(0, newStart),
-        end: Math.min(candleData.length * 1.2, newEnd),
+        start: adjustedStart,
+        end: adjustedEnd,
       });
 
       initialTouchDistance = currentDistance;
@@ -445,8 +469,9 @@ export function setupEventListeners(canvas: HTMLCanvasElement, chart: any) {
     setIsDragging(false);
     initialTouchDistance = 0;
 
-    // Remove hardware acceleration class
+    // Remove hardware acceleration classes
     canvas.classList.remove("touch-dragging");
+    canvas.classList.remove("touch-pinching");
 
     // Force a final render to ensure clean state
     if (typeof chart.needsRenderRef?.current !== "undefined") {

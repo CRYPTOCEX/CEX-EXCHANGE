@@ -133,7 +133,10 @@ export default async (data: Handler) => {
     max_withdraw?: number;
     precision?: number;
   };
-  if (!exchangeCurrency) throw createError(404, "Exchange currency not found");
+  if (!exchangeCurrency) {
+    // More helpful error message
+    throw createError(404, `Currency ${currency} is not available for withdrawal on the exchange. Please contact support if you believe this is an error.`);
+  }
 
   // -------------------------------
   // 🟢 Validation: Amount, Precision, Min/Max
@@ -224,7 +227,7 @@ export default async (data: Handler) => {
       lock: t.LOCK.UPDATE,
     });
     if (!wallet) {
-      throw createError({ statusCode: 404, message: "Wallet not found" });
+      throw createError({ statusCode: 404, message: `${currency} wallet not found in your spot wallets. Please ensure you have a ${currency} spot wallet before attempting withdrawal.` });
     }
 
     // Check if wallet has sufficient balance for the total deduction amount (withdrawal + internal fees)

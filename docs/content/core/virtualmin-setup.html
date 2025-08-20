@@ -145,7 +145,7 @@
                 <div class="flex-1">
                     <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Add the Apache Configurations</h3>
                     <p class="text-zinc-600 dark:text-zinc-400 mb-4">
-                        After the line <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">DirectoryIndex</code>, add the following configurations. Then, click <strong>Save</strong> and <strong>Close</strong>.
+                        After the line <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">DirectoryIndex</code>, add the following configurations optimized for [id] parameter handling and large i18n headers. Then, click <strong>Save</strong> and <strong>Close</strong>.
                     </p>
                     
                     <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
@@ -169,7 +169,7 @@ ProxyPass / http://localhost:3000/
 ProxyPassReverse / http://localhost:3000/
 
 &lt;Proxy "http://localhost:4000/"&gt;
-ProxySet max=70000
+    ProxySet max=70000
 &lt;/Proxy&gt;</code></pre>
                     </div>
                 </div>
@@ -455,8 +455,9 @@ sudo bash installer.sh</code></pre>
             <ul class="text-amber-800 dark:text-amber-200 text-sm space-y-2">
                 <li>• Check file permissions if errors occur</li>
                 <li>• Ensure correct ownership settings</li>
-                <li>• Verify Apache/Nginx configuration</li>
-                <li>• Check system logs for issues</li>
+                <li>• Verify Apache/Nginx configuration and timeout settings</li>
+                <li>• Check system logs for 502 errors with [id] parameters</li>
+                <li>• Increase proxy timeouts if [id] queries are slow</li>
             </ul>
         </div>
 
@@ -466,6 +467,31 @@ sudo bash installer.sh</code></pre>
                 <li>• <code class="bg-purple-100 dark:bg-purple-800 px-1 rounded text-xs">pnpm stop</code> - Stop the application</li>
                 <li>• <code class="bg-purple-100 dark:bg-purple-800 px-1 rounded text-xs">pnpm updator</code> - Update and restart</li>
                 <li>• <code class="bg-purple-100 dark:bg-purple-800 px-1 rounded text-xs">pnpm build:all</code> - Build frontend & backend</li>
+                <li>• <code class="bg-purple-100 dark:bg-purple-800 px-1 rounded text-xs">pm2 status</code> - Check application status</li>
+            </ul>
+        </div>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <h3 class="font-semibold text-red-900 dark:text-red-100 mb-3">🚨 502 Errors with [id] Parameters</h3>
+            <ul class="text-red-800 dark:text-red-200 text-sm space-y-2">
+                <li>• <strong>Common Cause:</strong> Apache proxy timeouts or large i18n headers exceeding limits</li>
+                <li>• <strong>Solution:</strong> Use the enhanced Apache config above with 300s timeouts and header size limits</li>
+                <li>• <strong>If still failing:</strong> Reduce languages in <code class="bg-red-100 dark:bg-red-800 px-1 rounded text-xs">NEXT_PUBLIC_LANGUAGES</code> to essential ones</li>
+                <li>• <strong>Test:</strong> <code class="bg-red-100 dark:bg-red-800 px-1 rounded text-xs">curl -I http://localhost:4000/api/health</code></li>
+                <li>• <strong>Logs:</strong> Check <code class="bg-red-100 dark:bg-red-800 px-1 rounded text-xs">/var/log/apache2/error.log</code></li>
+            </ul>
+        </div>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-3">🌍 i18n Locale Optimization</h3>
+            <p class="text-blue-800 dark:text-blue-200 text-sm mb-3">
+                If experiencing "header size over limit" errors, reduce your languages to essential ones:
+            </p>
+            <code class="block bg-blue-100 dark:bg-blue-800 p-3 rounded text-sm mb-3">NEXT_PUBLIC_LANGUAGES="en,es,fr,de,it,pt,ru,ar,ja,ko,hi,tr"</code>
+            <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-1">
+                <li>• Edit <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">frontend/next.config.js</code></li>
+                <li>• Rebuild: <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">npm run build && pm2 restart frontend</code></li>
+                <li>• These 12 languages cover ~4.5B people while keeping headers manageable</li>
             </ul>
         </div>
     </div>

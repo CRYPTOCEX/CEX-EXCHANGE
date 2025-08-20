@@ -437,6 +437,7 @@ export default class user
       foreignKey: "userId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
+      constraints: false,
     });
 
     user.hasMany(models.userBlock, {
@@ -444,6 +445,7 @@ export default class user
       foreignKey: "adminId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
+      constraints: false,
     });
 
 

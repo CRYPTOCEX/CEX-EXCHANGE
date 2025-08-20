@@ -808,6 +808,7 @@ export const ChartProvider: React.FC<ChartProviderProps> = ({
       <div
         ref={state.containerRef}
         className="relative w-full h-full chart-container"
+        style={{ width: "100%", height: "100%", minHeight: "400px" }}
       >
         {children}
       </div>

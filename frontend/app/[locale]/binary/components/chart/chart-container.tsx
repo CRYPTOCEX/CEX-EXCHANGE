@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
 import type { Symbol, TimeFrame, Order } from "@/store/trade/use-binary-store";
-import AdvancedChart from "@/components/blocks/advanced-chart";
+import ChartSwitcher from "@/components/blocks/chart-switcher";
 import { useTranslations } from "next-intl";
 
 interface ChartContainerProps {
@@ -246,10 +246,10 @@ export function ChartContainer({
   }
 
   return (
-    <div className={`w-full h-full ${isMobile ? "z-0" : ""}`}>
+    <div className={`w-full h-full ${isMobile ? "z-0" : ""}`} style={{ position: "relative", width: "100%", height: "100%" }}>
       {/* Chart loading state */}
       {(!isLayoutReady || !isChartMounted) && (
-        <div className="w-full h-full bg-[#131722] flex items-center justify-center">
+        <div className="absolute inset-0 bg-[#131722] flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
             <span className="text-sm text-zinc-400">Initializing chart...</span>
@@ -257,12 +257,15 @@ export function ChartContainer({
         </div>
       )}
 
-      {/* Actual chart */}
+      {/* Actual chart - now supports both Native and TradingView */}
       {isLayoutReady && isChartMounted && (
-        <AdvancedChart
-          {...chartProps}
-          onChartContextReady={handleChartContextReady}
-        />
+        <div className="absolute inset-0">
+          <ChartSwitcher
+            {...chartProps}
+            onChartContextReady={handleChartContextReady}
+            onPriceUpdate={onPriceUpdate}
+          />
+        </div>
       )}
     </div>
   );

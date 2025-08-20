@@ -1,5 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { validateEmail, validateFAQQuestion, sanitizeInput } from "@b/api/(ext)/faq/utils/faq-validation";
+import { faqQuestionRateLimit } from "@b/handler/Middleware";
 
 export const metadata = {
   summary: "Submit FAQ Question",
@@ -31,6 +33,9 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
+  // Apply rate limiting
+  await faqQuestionRateLimit(data);
+  
   const { body, user } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
@@ -41,6 +46,24 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 400, message: "Missing required fields" });
   }
 
+  // Validate email
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.isValid) {
+    throw createError({ 
+      statusCode: 400, 
+      message: emailValidation.errors.join(', ') 
+    });
+  }
+
+  // Validate question
+  const questionValidation = validateFAQQuestion(question);
+  if (!questionValidation.isValid) {
+    throw createError({ 
+      statusCode: 400, 
+      message: questionValidation.errors.join(', ') 
+    });
+  }
+
   const userPk = await models.user.findByPk(user.id);
   if (!userPk) {
     throw createError({ statusCode: 400, message: "User not found" });
@@ -49,9 +72,9 @@ export default async (data: Handler) => {
   try {
     const newQuestion = await models.faqQuestion.create({
       userId: user.id,
-      name: userPk.firstName + " " + userPk.lastName,
-      email,
-      question,
+      name: sanitizeInput(userPk.firstName + " " + userPk.lastName),
+      email: email.trim().toLowerCase(),
+      question: sanitizeInput(question),
       status: "PENDING",
     });
     return newQuestion;

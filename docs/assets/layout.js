@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.959549'; // Update this when deploying changes
+        this.cacheVersion = '1.0.694232'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration
@@ -234,6 +234,17 @@ class DocsLayout {
                             { title: 'Template Management', href: '#mailwizard-templates', icon: '📧' },
                             { title: 'Campaign Management', href: '#mailwizard-campaigns', icon: '🎯' },
                             { title: 'Settings & Configuration', href: '#mailwizard-settings', icon: '⚙️' }
+                        ]
+                    },
+                    {
+                        title: 'Affiliate',
+                        href: '',
+                        icon: '🤝',
+                        isGroup: true,
+                        children: [
+                            { title: 'Installation', href: '#affiliate-installation', icon: '🚀' },
+                            { title: 'User Features', href: '#affiliate-user-features', icon: '👤' },
+                            { title: 'Admin Management', href: '#affiliate-admin-management', icon: '👑' }
                         ]
                     },
                     {
@@ -1301,6 +1312,21 @@ class DocsLayout {
         this.routes.set('mailwizard-settings', {
             title: 'MailWizard - Settings & Configuration',
             contentFile: 'content/mailwizard/settings.html'
+        });
+
+        
+        // Affiliate routes
+        this.routes.set('affiliate-installation', {
+            title: 'Affiliate - Installation Guide',
+            contentFile: 'content/affiliate/installation.html'
+        });
+        this.routes.set('affiliate-user-features', {
+            title: 'Affiliate - User Features',
+            contentFile: 'content/affiliate/user-features.html'
+        });
+        this.routes.set('affiliate-admin-management', {
+            title: 'Affiliate - Admin Management',
+            contentFile: 'content/affiliate/admin-management.html'
         });
 
         

@@ -130,8 +130,11 @@ export default function AffiliateSettingsClient() {
       if (result?.error) {
         setError(result.error);
       } else {
-        // reflect updated raw settings
-        setSettings((prev) => ({ ...prev, ...payload }));
+        // reflect updated raw settings - merge with existing to avoid overwriting other extensions
+        const mergedSettings = { ...settings, ...payload };
+        setSettings(mergedSettings);
+        // Update local settings with the merged values
+        setLocalSettings(prev => ({ ...prev, ...payload }));
       }
     } catch (err) {
       setError(

@@ -241,7 +241,7 @@ export function renderPositionMarkers(
   // Current time in seconds
   const currentTimeSec = Math.floor(currentTimeMs / 1000);
 
-  // Render all orders (both active and completed)
+  // Filter and render orders
   normalizedOrders.forEach((order) => {
     // Skip invalid orders
     if (
@@ -251,6 +251,24 @@ export function renderPositionMarkers(
     ) {
       console.warn("Skipping invalid order:", order);
       return;
+    }
+
+    // Determine if the order has expired
+    const isExpired = order.expiryTime < currentTimeSec;
+    const hasResult = order.status === "COMPLETED" && order.result !== null;
+    
+    // Skip orders that are expired and don't have a result
+    // For expired orders without results, hide them immediately after expiry
+    if (isExpired && !hasResult) {
+      return; // Don't render expired orders without results
+    }
+    
+    // For completed orders with results, show them briefly for the animation
+    if (hasResult && isExpired) {
+      // Show completed orders for up to 5 seconds after expiry for the result animation
+      if (currentTimeSec - order.expiryTime > 5) {
+        return;
+      }
     }
 
     // Calculate Y position based on entry price
@@ -264,10 +282,17 @@ export function renderPositionMarkers(
       return;
     }
 
-    const orderY =
-      chartTop +
-      ((maxPrice - order.entryPrice) / (maxPrice - minPrice)) *
-        priceChartHeight;
+    // Calculate Y position correctly - orders should appear at their entry price level
+    // The Y coordinate increases as you go down, so higher prices should have smaller Y values
+    const priceRatio = (order.entryPrice - minPrice) / (maxPrice - minPrice);
+    // Invert the ratio because canvas Y coordinates are inverted (0 is top)
+    const orderY = chartTop + priceChartHeight - (priceRatio * priceChartHeight);
+    
+    // Ensure Y position is within chart bounds with a small margin
+    const margin = 10;
+    if (orderY < chartTop - margin || orderY > chartTop + priceChartHeight + margin) {
+      return; // Skip orders outside visible price range
+    }
 
     // Skip if Y position is invalid
     if (!isValidNumber(orderY)) {
@@ -323,7 +348,7 @@ export function renderPositionMarkers(
       : 0;
 
     // Result animation for completed trades
-    const hasResult = order.status === "COMPLETED" && order.result !== null;
+    // Using the hasResult variable defined earlier (line 258)
     const resultFlashIntensity = hasResult
       ? flashAnimation(
           currentTimeMs,

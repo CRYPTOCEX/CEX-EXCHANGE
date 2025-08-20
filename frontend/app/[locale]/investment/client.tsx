@@ -32,8 +32,9 @@ export default function InvestmentClient() {
     return <KycRequiredNotice feature="view_investment" />;
   }
 
-  // 3. Normal rendering
-  const trendingPlans = plans.filter((plan) => plan.trending);
+  // 3. Normal rendering - ensure plans is an array
+  const safePlans = Array.isArray(plans) ? plans : [];
+  const trendingPlans = safePlans.filter((plan) => plan.trending);
 
   return (
     <div className="flex flex-col min-h-screen">

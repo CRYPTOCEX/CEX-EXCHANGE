@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { validateAndSanitizeFAQ } from "@b/api/(ext)/faq/utils/faq-validation";
 
 export const metadata = {
   summary: "Create a New FAQ",
@@ -51,33 +52,40 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const {
-    question,
-    answer,
-    image,
-    category,
-    tags,
-    status,
-    order,
-    pagePath,
-    relatedFaqIds,
-  } = body;
-
-  if (!pagePath) {
-    throw createError({ statusCode: 400, message: "pagePath is required" });
+  // Validate and sanitize FAQ data
+  const validation = validateAndSanitizeFAQ(body);
+  if (!validation.isValid) {
+    throw createError({ 
+      statusCode: 400, 
+      message: validation.errors.join(', ') 
+    });
   }
 
-  const faq = await models.faq.create({
-    question,
-    answer,
-    image,
-    category,
-    tags,
-    status,
-    order,
-    pagePath,
-    relatedFaqIds,
-  });
+  const sanitizedData = validation.sanitized;
+  
+  try {
+    // Check if order is provided, if not, get the max order for the page
+    let finalOrder = sanitizedData.order;
+    if (finalOrder === 0) {
+      const maxOrderFaq = await models.faq.findOne({
+        where: { pagePath: sanitizedData.pagePath },
+        order: [['order', 'DESC']],
+      });
+      finalOrder = maxOrderFaq ? maxOrderFaq.order + 1 : 0;
+    }
 
-  return faq;
+    const faq = await models.faq.create({
+      ...sanitizedData,
+      order: finalOrder,
+      relatedFaqIds: body.relatedFaqIds || [],
+    });
+
+    return faq;
+  } catch (error) {
+    console.error("Error creating FAQ:", error);
+    throw createError({
+      statusCode: 500,
+      message: error instanceof Error ? error.message : "Failed to create FAQ",
+    });
+  }
 };

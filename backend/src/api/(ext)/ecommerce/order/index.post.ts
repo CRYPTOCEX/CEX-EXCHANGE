@@ -1,9 +1,11 @@
 import { models, sequelize } from "@b/db";
+import { Op } from "sequelize";
 import { processRewards } from "@b/utils/affiliate";
 import { sendOrderConfirmationEmail } from "@b/utils/emails";
 import { createError } from "@b/utils/error";
 import { createNotification } from "@b/utils/notifications";
 import { createRecordResponses } from "@b/utils/query";
+import { rateLimiters } from "@b/handler/Middleware";
 
 export const metadata: OperationObject = {
   summary: "Creates a new order",
@@ -62,12 +64,20 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
+  // Apply rate limiting
+  await rateLimiters.orderCreation(data);
+  
   const { user, body } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { productId, discountId, amount, shippingAddress } = body;
+
+  // Validate amount
+  if (!amount || amount <= 0 || !Number.isInteger(amount)) {
+    throw createError({ statusCode: 400, message: "Invalid quantity" });
+  }
 
   const transaction = await sequelize.transaction();
 
@@ -76,9 +86,22 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 404, message: "User not found" });
   }
 
-  const product = await models.ecommerceProduct.findByPk(productId);
+  const product = await models.ecommerceProduct.findByPk(productId, { transaction });
   if (!product) {
+    await transaction.rollback();
     throw createError({ statusCode: 404, message: "Product not found" });
+  }
+
+  // Validate product is active
+  if (!product.status) {
+    await transaction.rollback();
+    throw createError({ statusCode: 400, message: "Product is not available" });
+  }
+
+  // Check inventory for physical products
+  if (product.type === "PHYSICAL" && product.inventoryQuantity < amount) {
+    await transaction.rollback();
+    throw createError({ statusCode: 400, message: "Insufficient inventory" });
   }
 
   // Get system settings for tax and shipping
@@ -144,9 +167,12 @@ export default async (data: Handler) => {
       type: product.walletType,
       currency: product.currency,
     },
+    transaction,
+    lock: transaction.LOCK.UPDATE, // Lock the wallet for update to prevent race conditions
   });
 
   if (!wallet || wallet.balance < cost) {
+    await transaction.rollback();
     throw createError({ statusCode: 400, message: "Insufficient balance" });
   }
 
@@ -170,11 +196,24 @@ export default async (data: Handler) => {
     { transaction }
   );
 
-  // Update product inventory and user wallet balance
-  await product.update(
-    { inventoryQuantity: sequelize.literal(`inventoryQuantity - ${amount}`) },
-    { transaction }
-  );
+  // Update product inventory with optimistic locking
+  if (product.type === "PHYSICAL") {
+    const [updatedRows] = await models.ecommerceProduct.update(
+      { inventoryQuantity: sequelize.literal(`inventoryQuantity - ${amount}`) },
+      { 
+        where: { 
+          id: productId, 
+          inventoryQuantity: { [Op.gte]: amount } // Ensure inventory is still available
+        },
+        transaction 
+      }
+    );
+
+    if (updatedRows === 0) {
+      await transaction.rollback();
+      throw createError({ statusCode: 400, message: "Product inventory changed during checkout" });
+    }
+  }
 
   await wallet.update({ balance: newBalance }, { transaction });
 
@@ -210,6 +249,9 @@ export default async (data: Handler) => {
       { transaction }
     );
   }
+
+  // Update order status to completed
+  await order.update({ status: "COMPLETED" }, { transaction });
 
   await transaction.commit();
 

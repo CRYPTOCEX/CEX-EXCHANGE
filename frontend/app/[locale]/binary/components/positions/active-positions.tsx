@@ -61,16 +61,24 @@ export default function ActivePositions({
 
   // Memoized active orders to prevent unnecessary recalculations
   const activeOrders = useMemo(() => {
-    return orders.filter((order) => order.status === "PENDING");
+    const now = Date.now();
+    return orders.filter((order) => {
+      // Only show PENDING orders that haven't expired yet
+      if (order.status === "PENDING") {
+        // Check if the order has expired
+        return order.expiryTime > now;
+      }
+      return false;
+    });
   }, [orders]);
 
   // Memoized position markers for chart
   const positions = useMemo(() => {
     return activeOrders.map((order) => ({
       id: order.id,
-      entryTime: Math.floor(new Date(order.createdAt).getTime() / 1000),
+      entryTime: Math.floor(order.createdAt / 1000), // createdAt is already in ms
       entryPrice: order.entryPrice,
-      expiryTime: Math.floor(new Date(order.expiryTime).getTime() / 1000),
+      expiryTime: Math.floor(order.expiryTime / 1000), // expiryTime is already in ms
       type: order.side,
       amount: order.amount,
     }));
@@ -321,9 +329,17 @@ export default function ActivePositions({
     const updateTimeLeft = () => {
       if (!isMountedRef.current) return;
 
+      const now = Date.now();
       const newTimeLeft: Record<string, string> = {};
+      
       activeOrdersRef.current.forEach((order) => {
-        newTimeLeft[order.id] = formatTimeLeft(order.expiryTime);
+        // Only show time for orders that haven't expired
+        if (order.expiryTime > now) {
+          newTimeLeft[order.id] = formatTimeLeft(order.expiryTime);
+        } else {
+          // Order has expired, show 00:00 briefly before it's removed
+          newTimeLeft[order.id] = "00:00";
+        }
       });
 
       setTimeLeft(newTimeLeft);
@@ -468,18 +484,79 @@ export default function ActivePositions({
 
                   {/* Mini Chart */}
                   {profitLossData[order.id] && profitLossData[order.id].length > 1 && (
-                    <div className="mt-2 h-8 flex items-end space-x-1">
-                      {profitLossData[order.id].slice(-10).map((profit, index) => (
-                        <div
-                          key={index}
-                          className={`flex-1 rounded-sm ${
-                            profit > 0 ? 'bg-green-500/30' : 'bg-red-500/30'
-                          }`}
-                          style={{
-                            height: `${Math.max(2, Math.abs(profit) / Math.max(...profitLossData[order.id].map(Math.abs)) * 100)}%`
-                          }}
-                        />
-                      ))}
+                    <div className="mt-2 h-10">
+                      <svg
+                        className="w-full h-full"
+                        viewBox="0 0 100 40"
+                        preserveAspectRatio="none"
+                      >
+                        {
+                          (() => {
+                            const data = profitLossData[order.id].slice(-20);
+                            if (data.length < 2) return null;
+                            
+                            const maxValue = Math.max(...data.map(Math.abs));
+                            const minValue = -maxValue;
+                            const range = maxValue - minValue;
+                            
+                            // Create path data for the line
+                            const pathData = data
+                              .map((value, index) => {
+                                const x = (index / (data.length - 1)) * 100;
+                                const y = 40 - ((value - minValue) / range) * 40;
+                                return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+                              })
+                              .join(' ');
+                            
+                            // Create area path (filled area under the line)
+                            const areaPath = pathData + ` L 100 ${40 - ((0 - minValue) / range) * 40} L 0 ${40 - ((0 - minValue) / range) * 40} Z`;
+                            
+                            const currentValue = data[data.length - 1];
+                            const lineColor = currentValue > 0 ? '#10b981' : '#ef4444';
+                            const fillColor = currentValue > 0 ? '#10b981' : '#ef4444';
+                            
+                            return (
+                              <>
+                                {/* Zero line */}
+                                <line
+                                  x1="0"
+                                  y1={40 - ((0 - minValue) / range) * 40}
+                                  x2="100"
+                                  y2={40 - ((0 - minValue) / range) * 40}
+                                  stroke={theme === 'dark' ? '#3f3f46' : '#d4d4d8'}
+                                  strokeWidth="0.5"
+                                  strokeDasharray="2,2"
+                                />
+                                
+                                {/* Filled area */}
+                                <path
+                                  d={areaPath}
+                                  fill={fillColor}
+                                  fillOpacity="0.1"
+                                />
+                                
+                                {/* Line */}
+                                <path
+                                  d={pathData}
+                                  fill="none"
+                                  stroke={lineColor}
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                
+                                {/* Current value dot */}
+                                <circle
+                                  cx="100"
+                                  cy={40 - ((currentValue - minValue) / range) * 40}
+                                  r="2"
+                                  fill={lineColor}
+                                />
+                              </>
+                            );
+                          })()
+                        }
+                      </svg>
                     </div>
                   )}
                 </div>

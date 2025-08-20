@@ -268,7 +268,7 @@ interface BinaryState {
   initOrderWebSocket: () => void;
       cleanup: () => void; // Add cleanup method
     setIsLoading: (loading: boolean) => void; // Add setIsLoading
-    user: { id: string } | null; // Add user property
+    // user property removed - use useUserStore instead
     updateMarketData: (symbol: Symbol, price: number, change: number) => void;
     updateActiveMarketsFromTicker: (tickerData: Record<string, any>) => void;
 }
@@ -330,6 +330,20 @@ export const useBinaryStore = create<BinaryState>()(
           const { binaryMarkets } = get();
           const quoteCurrency = extractQuoteCurrency(symbol, binaryMarkets);
           get().fetchWalletData(quoteCurrency);
+          
+          // Fetch orders for the new symbol if user is authenticated
+          const { user } = useUserStore.getState();
+          if (user?.id) {
+            // Use setTimeout to ensure state is updated first
+            setTimeout(() => {
+              Promise.all([
+                get().fetchCompletedOrders(),
+                get().fetchActiveOrders(),
+              ]).catch(error => {
+                console.warn('Failed to fetch orders:', error);
+              });
+            }, 100);
+          }
 
           // Reset market switching flag after a short delay
           setTimeout(() => {
@@ -723,14 +737,8 @@ export const useBinaryStore = create<BinaryState>()(
                       bestMarket.symbol ||
                       `${bestMarket.currency}/${bestMarket.pair}`;
 
-                    set({
-                      activeMarkets: [{ symbol, price: 0, change: 0 }],
-                      currentSymbol: symbol,
-                    });
-
-                    // Fetch wallet data for the selected market (use quote currency for binary trading)
-                    const quoteCurrency = extractQuoteCurrency(symbol, data);
-                    get().fetchWalletData(quoteCurrency);
+                    // Use setCurrentSymbol to trigger order fetching
+                    get().setCurrentSymbol(symbol);
                   }
                 } else {
                   // Even if we don't auto-select a market, we should fetch wallet data if we have a current symbol
@@ -753,14 +761,16 @@ export const useBinaryStore = create<BinaryState>()(
         fetchCompletedOrders: async () => {
           try {
             const { currentSymbol, tradingMode, binaryMarkets } = get();
-            if (!currentSymbol) return;
+            if (!currentSymbol) {
+              return;
+            }
 
             // Extract currency and pair from symbol using actual market data
             const currency = extractBaseCurrency(currentSymbol, binaryMarkets);
             const pair = extractQuoteCurrency(currentSymbol, binaryMarkets);
 
             const { data, error } = await $fetch({
-              url: `/api/exchange/binary/order?currency=${currency}&pair=${pair}`,
+              url: `/api/exchange/binary/order?currency=${currency}&pair=${pair}&type=CLOSED`,
               method: "GET",
               silentSuccess: true,
             });
@@ -798,20 +808,17 @@ export const useBinaryStore = create<BinaryState>()(
         fetchActiveOrders: async () => {
           try {
             const { currentSymbol, tradingMode, binaryMarkets } = get();
-            if (!currentSymbol) return;
+            if (!currentSymbol) {
+              return;
+            }
 
             // Extract currency and pair from symbol using actual market data
             const currency = extractBaseCurrency(currentSymbol, binaryMarkets);
             const pair = extractQuoteCurrency(currentSymbol, binaryMarkets);
 
             const { data, error } = await $fetch({
-              url: "/api/exchange/binary/order",
+              url: `/api/exchange/binary/order?currency=${currency}&pair=${pair}&type=OPEN`,
               method: "GET",
-              params: {
-                currency,
-                pair,
-                type: "OPEN",
-              },
               silentSuccess: true,
             });
 
@@ -940,6 +947,11 @@ export const useBinaryStore = create<BinaryState>()(
             };
           });
 
+          // Filter out completed orders (they've been moved to completedOrders)
+          const activeOrders = updatedOrders.filter(
+            order => order.status === "PENDING"
+          );
+
           // Check if we're in the safe zone (15 seconds before expiry)
           const nextExpiry = calculateNextExpiryTime(
             get().selectedExpiryMinutes
@@ -948,7 +960,7 @@ export const useBinaryStore = create<BinaryState>()(
             nextExpiry.getTime() - getChartSynchronizedTime().getTime();
 
           set({
-            orders: updatedOrders,
+            orders: activeOrders, // Only keep active orders
             isInSafeZone: timeToExpiry <= 15000, // 15 seconds in milliseconds
           });
         },
@@ -1014,7 +1026,9 @@ export const initializeBinaryStore = async (): Promise<void> => {
       console.log('Starting binary store initialization...');
       
       const store = useBinaryStore.getState();
-      const isAuthenticated = !!store.user?.id;
+      // Get user from useUserStore instead of binary store
+      const { user } = await import('@/store/user').then(m => m.useUserStore.getState());
+      const isAuthenticated = !!user?.id;
 
       // Set loading state
       store.setIsLoading(true);
@@ -1030,19 +1044,16 @@ export const initializeBinaryStore = async (): Promise<void> => {
       if (isAuthenticated) {
         console.log('User authenticated, fetching user-specific data...');
         
-        // Fetch user orders (but don't block initialization on this)
-        Promise.all([
-          store.fetchCompletedOrders(),
-          store.fetchActiveOrders(),
-        ]).catch(error => {
-          console.warn('Failed to fetch user orders during initialization:', error);
-        });
+        // Don't fetch orders here as currentSymbol is not set yet
+        // Orders will be fetched when symbol is set
 
         // Set up interval to update orders with proper cleanup management
         const updateInterval = setInterval(() => {
           try {
-            if (isInitialized && store.currentSymbol) {
-              store.updateOrders();
+            const currentStore = useBinaryStore.getState();
+            // Only update if we have active orders and a symbol
+            if (isInitialized && currentStore.currentSymbol && currentStore.orders.length > 0) {
+              currentStore.updateOrders();
             }
           } catch (error) {
             console.error("Error updating orders:", error);

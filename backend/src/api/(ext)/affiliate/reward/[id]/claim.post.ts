@@ -5,7 +5,16 @@ import {
   serverErrorResponse,
   unauthorizedResponse,
 } from "@b/utils/query";
-import { getWalletByUserIdAndCurrency } from "@b/api/(ext)/ecosystem/utils/wallet"; // Ensure this import is correct
+
+// Conditional import for ecosystem wallet utility
+let getWalletByUserIdAndCurrency: any;
+try {
+  const ecosystemWallet = require("@b/api/(ext)/ecosystem/utils/wallet");
+  getWalletByUserIdAndCurrency = ecosystemWallet.getWalletByUserIdAndCurrency;
+} catch (error) {
+  // Ecosystem extension not available, will use fallback
+  getWalletByUserIdAndCurrency = null;
+}
 
 export const metadata: OperationObject = {
   summary: "Claims a specific referral reward",
@@ -60,11 +69,35 @@ export default async (data: Handler) => {
 
   // Handle ECO wallet creation logic differently
   if (reward.condition.rewardWalletType === "ECO") {
-    // Utilize ecosystem-specific wallet retrieval/creation logic
-    updatedWallet = await getWalletByUserIdAndCurrency(
-      user.id,
-      reward.condition.rewardCurrency
-    );
+    // Check if ecosystem extension is available
+    if (getWalletByUserIdAndCurrency) {
+      // Utilize ecosystem-specific wallet retrieval/creation logic
+      updatedWallet = await getWalletByUserIdAndCurrency(
+        user.id,
+        reward.condition.rewardCurrency
+      );
+    } else {
+      // Fallback to regular wallet creation for ECO type when ecosystem is not available
+      const wallet = await models.wallet.findOne({
+        where: {
+          userId: user.id,
+          currency: reward.condition.rewardCurrency,
+          type: "ECO",
+        },
+      });
+
+      if (!wallet) {
+        updatedWallet = await models.wallet.create({
+          userId: user.id,
+          currency: reward.condition.rewardCurrency,
+          type: "ECO",
+          status: true,
+          balance: 0,
+        });
+      } else {
+        updatedWallet = wallet;
+      }
+    }
   } else {
     // For non-ECO wallets, just find or create normally
     const wallet = await models.wallet.findOne({
@@ -81,6 +114,7 @@ export default async (data: Handler) => {
         currency: reward.condition.rewardCurrency,
         type: reward.condition.rewardWalletType,
         status: true,
+        balance: 0,
       });
     } else {
       updatedWallet = wallet;

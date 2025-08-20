@@ -88,8 +88,8 @@ canvas {
 /* Mobile Touch Optimizations */
 @media (max-width: 768px) {
   .chart-canvas {
-    /* Improve touch handling on mobile */
-    touch-action: pan-x pan-y;
+    /* Allow pinch-to-zoom gestures on mobile */
+    touch-action: none;
     /* Enable hardware acceleration */
     transform: translateZ(0);
     will-change: transform;
@@ -106,6 +106,15 @@ canvas {
     -webkit-backface-visibility: hidden;
     /* Reduce paint overhead */
     contain: layout style paint;
+  }
+
+  /* Hardware acceleration during pinch zoom */
+  .touch-pinching {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    /* Improve rendering performance during pinch */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Optimize canvas rendering on mobile */

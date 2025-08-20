@@ -158,10 +158,38 @@ export default async (data: { user?: any; params?: any; body?: any }) => {
     if (error.statusCode === 404) {
       throw error;
     }
+    
     console.error(`Error updating staking pool ${poolId}:`, error);
+    
+    // Handle Sequelize validation errors
+    if (error.name === "SequelizeValidationError") {
+      const validationErrors = {};
+      error.errors.forEach((err) => {
+        validationErrors[err.path] = err.message;
+      });
+      
+      // Create a custom error object with validation details
+      const validationError = createError({
+        statusCode: 400,
+        message: "Validation failed. Please check the required fields.",
+      });
+      // Add validation errors as a property
+      (validationError as any).validationErrors = validationErrors;
+      throw validationError;
+    }
+    
+    // Handle other Sequelize errors
+    if (error.name === "SequelizeUniqueConstraintError") {
+      throw createError({
+        statusCode: 400,
+        message: "A pool with this name or symbol already exists",
+      });
+    }
+    
+    // Handle generic errors
     throw createError({
       statusCode: 500,
-      message: error.message,
+      message: error.message || "Failed to update staking pool",
     });
   }
 };

@@ -1,5 +1,6 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { Op } from "sequelize";
 
 export const metadata = {
   summary: "Stake Tokens",
@@ -8,6 +9,10 @@ export const metadata = {
   operationId: "stakeTokens",
   tags: ["Staking", "Positions"],
   requiresAuth: true,
+  rateLimit: {
+    windowMs: 60000, // 1 minute
+    max: 5 // 5 requests per minute
+  },
   requestBody: {
     required: true,
     content: {
@@ -101,6 +106,31 @@ export const metadata = {
   },
 };
 
+/**
+ * Creates a new staking position for the authenticated user.
+ * 
+ * @description This endpoint allows users to stake tokens in a staking pool.
+ * It performs the following operations:
+ * - Validates the pool exists and is active
+ * - Checks user has sufficient wallet balance
+ * - Deducts tokens from user's wallet
+ * - Creates a new staking position
+ * - Updates pool's available stake capacity
+ * 
+ * @param {Handler} data - Request handler data
+ * @param {User} data.user - Authenticated user
+ * @param {Object} data.body - Request body
+ * @param {string} data.body.poolId - ID of the staking pool
+ * @param {number} data.body.amount - Amount to stake
+ * 
+ * @returns {Promise<StakingPosition>} The created staking position
+ * 
+ * @throws {401} Unauthorized - User not authenticated
+ * @throws {400} Bad Request - Invalid input or insufficient balance
+ * @throws {404} Not Found - Pool not found
+ * @throws {429} Too Many Requests - Rate limit exceeded
+ * @throws {500} Internal Server Error - Transaction failed
+ */
 export default async (data: Handler) => {
   const { user, body } = data;
   if (!user?.id) {
@@ -108,10 +138,53 @@ export default async (data: Handler) => {
   }
 
   const { poolId, amount } = body;
-  if (!poolId || typeof amount !== "number") {
+  
+  // Rate limiting check for this specific user
+  const recentPositions = await models.stakingPosition.count({
+    where: {
+      userId: user.id,
+      createdAt: {
+        [Op.gte]: new Date(Date.now() - 60000) // Last minute
+      }
+    }
+  });
+  
+  if (recentPositions >= 5) {
+    throw createError({
+      statusCode: 429,
+      message: "Too many staking requests. Please wait before trying again."
+    });
+  }
+  
+  // Validate poolId
+  if (!poolId || typeof poolId !== "string") {
     throw createError({
       statusCode: 400,
-      message: "poolId and amount are required",
+      message: "Valid poolId is required",
+    });
+  }
+
+  // Validate amount
+  if (typeof amount !== "number" || isNaN(amount) || !isFinite(amount)) {
+    throw createError({
+      statusCode: 400,
+      message: "Valid numeric amount is required",
+    });
+  }
+
+  if (amount <= 0) {
+    throw createError({
+      statusCode: 400,
+      message: "Amount must be greater than zero",
+    });
+  }
+
+  // Validate decimal places (max 8 decimals)
+  const decimalPlaces = (amount.toString().split('.')[1] || '').length;
+  if (decimalPlaces > 8) {
+    throw createError({
+      statusCode: 400,
+      message: "Amount can have maximum 8 decimal places",
     });
   }
 
@@ -149,6 +222,29 @@ export default async (data: Handler) => {
     });
   }
 
+  // Check user's wallet balance
+  const userWallet = await models.wallet.findOne({
+    where: {
+      userId: user.id,
+      currency: pool.symbol,
+      type: pool.walletType || 'SPOT'
+    }
+  });
+
+  if (!userWallet) {
+    throw createError({
+      statusCode: 400,
+      message: `You don't have a ${pool.symbol} wallet. Please create one first.`,
+    });
+  }
+
+  if (userWallet.balance < amount) {
+    throw createError({
+      statusCode: 400,
+      message: `Insufficient balance. You have ${userWallet.balance} ${pool.symbol} but need ${amount} ${pool.symbol}`,
+    });
+  }
+
   // Calculate staking period
   const startDate = new Date();
   // Assuming pool.lockPeriod is in days
@@ -175,14 +271,37 @@ export default async (data: Handler) => {
       { transaction }
     );
 
+    // Deduct staked amount from user's wallet
+    await userWallet.decrement('balance', {
+      by: amount,
+      transaction
+    });
+
+    // Create wallet transaction record for audit trail
+    await models.walletTransaction.create({
+      userId: user.id,
+      walletId: userWallet.id,
+      amount: amount,
+      type: 'WITHDRAWAL',
+      status: 'COMPLETED',
+      description: `Staked ${amount} ${pool.symbol} in pool ${pool.name}`,
+      metadata: {
+        source: 'STAKING',
+        positionId: position.id,
+        poolId: pool.id
+      }
+    }, { transaction });
+
     // Deduct staked amount from availableToStake
     pool.availableToStake = pool.availableToStake - amount;
     await pool.save({ transaction });
 
     await transaction.commit();
+    
     return position;
   } catch (err) {
     await transaction.rollback();
+    
     throw createError({
       statusCode: 500,
       message: err.message || "Failed to stake tokens",

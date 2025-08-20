@@ -60,9 +60,22 @@ export default function InvestmentPlanClient({
     }
   }, [investmentError, clearError]);
 
-  const plan = plans.find((p) => p.id === planId);
+  // Ensure plans is an array before calling find
+  const plan = Array.isArray(plans) 
+    ? plans.find((p) => p.id === planId)
+    : undefined;
 
   const formatCurrency = (amount: number, currency = "USD") => {
+    // Validate amount
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return `${currency} 0`;
+    }
+
+    // Validate currency
+    if (!currency || typeof currency !== 'string') {
+      currency = "USD";
+    }
+
     // List of valid ISO 4217 currency codes that Intl.NumberFormat supports
     const validCurrencyCodes = [
       "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
@@ -309,7 +322,7 @@ export default function InvestmentPlanClient({
 
                   <div className="space-y-2">
                     <Label>{t("investment_duration")}</Label>
-                    {plan.durations && plan.durations.length > 0 ? (
+                    {plan.durations && Array.isArray(plan.durations) && plan.durations.length > 0 ? (
                       <div className="grid grid-cols-1 gap-2">
                         {plan.durations.map((duration) => (
                           <Button

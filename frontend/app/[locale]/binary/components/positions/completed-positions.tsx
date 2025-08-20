@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ChevronUp,
   Clock,
@@ -15,13 +15,22 @@ interface CompletedPositionsProps {
   className?: string;
   theme?: "dark" | "light";
   isMobile?: boolean;
+  onPanelStateChange?: (isOpen: boolean, height: number) => void;
 }
 export default function CompletedPositions({
   className = "",
   theme = "dark",
   isMobile = false,
+  onPanelStateChange,
 }: CompletedPositionsProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpenInternal] = useState(false);
+  
+  const setIsOpen = (value: boolean) => {
+    setIsOpenInternal(value);
+    if (onPanelStateChange) {
+      onPanelStateChange(value, panelHeight);
+    }
+  };
   const [filter, setFilter] = useState<"all" | "WIN" | "LOSS">("all");
   const [sortBy, setSortBy] = useState<"time" | "profit" | "symbol">("time");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -32,7 +41,26 @@ export default function CompletedPositions({
     winRate: "0.0",
     completedOrdersCount: 0,
   });
+  // Load saved height from localStorage or use default
+  const [panelHeight, setPanelHeightInternal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('binary-completed-orders-height');
+      return saved ? parseInt(saved, 10) : 500;
+    }
+    return 500;
+  });
+  
+  const setPanelHeight = (height: number) => {
+    setPanelHeightInternal(height);
+    if (onPanelStateChange && isOpen) {
+      onPanelStateChange(isOpen, height);
+    }
+  };
+  const [isResizing, setIsResizing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(0);
   const { completedOrders, isLoadingOrders, fetchCompletedOrders } =
     useBinaryStore();
 
@@ -67,6 +95,75 @@ export default function CompletedPositions({
   const headerBgClass = theme === "dark" ? "bg-zinc-900" : "bg-zinc-100";
   const iconClass = theme === "dark" ? "text-zinc-400" : "text-zinc-600";
   const tableValueClass = theme === "dark" ? "text-zinc-300" : "text-zinc-800";
+  
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    startYRef.current = e.clientY;
+    startHeightRef.current = panelHeight;
+  }, [panelHeight]);
+
+  // Handle resize move
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const deltaY = startYRef.current - e.clientY;
+      const newHeight = Math.min(Math.max(200, startHeightRef.current + deltaY), 800);
+      setPanelHeight(newHeight);
+      if (onPanelStateChange) {
+        onPanelStateChange(isOpen, newHeight);
+      }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsResizing(false);
+      // Save the new height to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('binary-completed-orders-height', panelHeight.toString());
+      }
+      // Remove overlay
+      const overlay = document.getElementById('resize-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
+    };
+
+    // Create an invisible overlay to capture all mouse events during resize
+    const overlay = document.createElement('div');
+    overlay.id = 'resize-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.zIndex = '9999';
+    overlay.style.cursor = 'ns-resize';
+    document.body.appendChild(overlay);
+
+    // Add events to the overlay instead of document
+    overlay.addEventListener('mousemove', handleMouseMove);
+    overlay.addEventListener('mouseup', handleMouseUp);
+    overlay.addEventListener('mouseleave', handleMouseUp);
+    
+    // Add cursor style during resize
+    document.body.style.userSelect = 'none';
+
+    return () => {
+      const overlayEl = document.getElementById('resize-overlay');
+      if (overlayEl) {
+        overlayEl.remove();
+      }
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, panelHeight]);
+  
   const updateSortedOrders = (orders: CompletedOrder[]) => {
     let filteredOrders = [...orders];
     if (filter !== "all") {
@@ -88,7 +185,7 @@ export default function CompletedPositions({
     setSortedOrders(sorted);
   };
 
-  // Process orders and update stats when orders change
+  // Process orders and update stats when orders change - with memoization
   useEffect(() => {
     // Ensure we have orders to process
     if (!completedOrders || completedOrders.length === 0) {
@@ -100,7 +197,10 @@ export default function CompletedPositions({
       });
       return;
     }
-    const completedOrdersCount = completedOrders.length;
+    
+    // Debounce updates to prevent excessive re-renders
+    const timeoutId = setTimeout(() => {
+      const completedOrdersCount = completedOrders.length;
 
     // Calculate total profit/loss
     const totalProfit = completedOrders.reduce(
@@ -121,8 +221,11 @@ export default function CompletedPositions({
       completedOrdersCount,
     });
 
-    // Update sorted orders
-    updateSortedOrders(completedOrders);
+      // Update sorted orders
+      updateSortedOrders(completedOrders);
+    }, 100); // Small debounce
+    
+    return () => clearTimeout(timeoutId);
   }, [completedOrders, filter, sortBy, sortDirection]);
 
   // Hide the component when there are no completed trades
@@ -354,17 +457,31 @@ export default function CompletedPositions({
     );
   }
   return (
-    <div className={`w-full ${className}`}>
-      {/* Fixed container with smooth transition */}
+    <div className={`fixed bottom-0 left-0 right-0 z-50 ${className}`}>
+      {/* Container with smooth transition */}
       <div
-        className={`transition-transform duration-300 ease-in-out ${isOpen ? "translate-y-0" : "translate-y-[calc(100%-40px)]"}`}
+        className={`relative bg-zinc-900`}
         style={{
           boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+          transform: isOpen ? "translateY(0)" : `translateY(calc(100% - 40px))`,
+          height: isOpen ? `${panelHeight + 40}px` : "40px",
+          transition: !isResizing ? "transform 0.3s ease-in-out, height 0.3s ease-in-out" : "none",
         }}
       >
+        {/* Resize handle - only visible when panel is open */}
+        {isOpen && (
+          <div
+            ref={resizeRef}
+            className={`absolute top-0 left-0 right-0 h-3 cursor-ns-resize group z-50 flex items-center justify-center ${isResizing ? "bg-blue-500/10" : "hover:bg-zinc-800/50"}`}
+            onMouseDown={handleResizeStart}
+            style={{ touchAction: 'none' }}
+          >
+            <div className={`w-12 h-1 ${isResizing ? "bg-blue-500" : "bg-zinc-600 group-hover:bg-zinc-500"} rounded-full transition-colors`} />
+          </div>
+        )}
         {/* Header bar - always visible */}
         <div
-          className={`${headerBgClass} border-t ${borderClass} px-4 py-2 flex items-center justify-between cursor-pointer transition-colors duration-200`}
+          className={`${headerBgClass} border-t ${borderClass} px-4 py-2 flex items-center justify-between cursor-pointer transition-colors duration-200 ${isOpen ? "mt-3" : ""}}`}
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           role="button"
@@ -421,58 +538,51 @@ export default function CompletedPositions({
         {/* Content panel */}
         <div
           ref={contentRef}
-          className={`${bgClass} border-t ${borderClass} overflow-hidden transition-all duration-300`}
+          className={`${bgClass} border-t ${borderClass} overflow-hidden`}
           style={{
-            maxHeight: isOpen ? "300px" : "0px",
+            height: isOpen ? `${panelHeight}px` : "0px",
             opacity: isOpen ? 1 : 0,
+            transition: !isResizing ? "all 0.3s ease-in-out" : "none",
           }}
         >
-          {/* Filters and controls */}
+          {/* Filters and controls - more compact */}
           <div
-            className={`flex justify-between items-center p-2 border-b ${borderLightClass}`}
+            className={`flex justify-between items-center px-3 py-1 border-b ${borderLightClass}`}
           >
-            <div className="flex items-center">
-              <div className="flex">
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-md overflow-hidden border ${borderLightClass}">
                 <button
-                  className={`px-4 py-2 text-sm transition-colors ${filter === "all" ? (theme === "dark" ? "bg-zinc-900 text-white" : "bg-white text-black border-b-2 border-zinc-300") : theme === "dark" ? "text-zinc-400 hover:text-zinc-300" : "text-zinc-500 hover:text-zinc-700"}`}
+                  className={`px-3 py-1 text-xs transition-colors ${filter === "all" ? (theme === "dark" ? "bg-zinc-800 text-white" : "bg-zinc-200 text-black") : theme === "dark" ? "text-zinc-400 hover:bg-zinc-800/50" : "text-zinc-500 hover:bg-zinc-100"}`}
                   onClick={() => setFilter("all")}
                 >
                   All
                 </button>
                 <button
-                  className={`px-4 py-2 text-sm transition-colors ${filter === "WIN" ? (theme === "dark" ? "bg-zinc-900 text-[#22c55e]" : "bg-white text-black") : theme === "dark" ? "text-zinc-400 hover:text-zinc-300" : "text-zinc-500 hover:text-zinc-700"}`}
+                  className={`px-3 py-1 text-xs transition-colors border-l ${borderLightClass} ${filter === "WIN" ? "bg-green-500/20 text-[#22c55e]" : theme === "dark" ? "text-zinc-400 hover:bg-zinc-800/50" : "text-zinc-500 hover:bg-zinc-100"}`}
                   onClick={() => setFilter("WIN")}
                 >
                   Won
                 </button>
                 <button
-                  className={`px-4 py-2 text-sm transition-colors ${filter === "LOSS" ? (theme === "dark" ? "bg-zinc-900 text-[#ef4444]" : "bg-white text-black") : theme === "dark" ? "text-zinc-400 hover:text-zinc-300" : "text-zinc-500 hover:text-zinc-700"}`}
+                  className={`px-3 py-1 text-xs transition-colors border-l ${borderLightClass} ${filter === "LOSS" ? "bg-red-500/20 text-[#ef4444]" : theme === "dark" ? "text-zinc-400 hover:bg-zinc-800/50" : "text-zinc-500 hover:bg-zinc-100"}`}
                   onClick={() => setFilter("LOSS")}
                 >
                   Lost
                 </button>
               </div>
-              <div
-                className={`flex items-center ml-4 ${theme === "dark" ? "text-zinc-400" : "text-zinc-500"}`}
-              >
-                <Filter size={16} className="mr-1" />
-                <span className="text-sm">Filter</span>
-              </div>
             </div>
-            <div className="flex items-center">
-              <button
-                onClick={exportToCSV}
-                className={`flex items-center text-sm ${theme === "dark" ? "bg-zinc-900 text-zinc-300 hover:bg-zinc-800" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"} rounded-md px-3 py-1.5 transition-colors`}
-              >
-                <Download size={14} className="mr-1.5" />
-                Export
-              </button>
-            </div>
+            <button
+              onClick={exportToCSV}
+              className={`flex items-center text-xs ${theme === "dark" ? "text-zinc-400 hover:text-zinc-300" : "text-zinc-600 hover:text-zinc-800"} transition-colors`}
+            >
+              <Download size={12} className="mr-1" />
+              Export
+            </button>
           </div>
 
-          {/* Table header */}
+          {/* Table header - more compact */}
           <div
-            className={`grid grid-cols-7 gap-2 px-4 py-2 border-b ${borderLightClass} text-xs font-medium ${tableHeaderClass} ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}
+            className={`grid grid-cols-7 gap-2 px-3 py-1.5 border-b ${borderLightClass} text-xs font-medium ${tableHeaderClass} ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}
           >
             <div
               className="flex items-center cursor-pointer"
@@ -515,52 +625,52 @@ export default function CompletedPositions({
             <div>Status</div>
           </div>
 
-          {/* Table content */}
-          <div className="max-h-[200px] overflow-y-auto">
+          {/* Table content - dynamic height based on panel height */}
+          <div className="overflow-y-auto" style={{ maxHeight: `${panelHeight - 100}px` }}>
             {sortedOrders.length > 0 ? (
               sortedOrders.map((order, index) => {
                 return (
                   <div
                     key={order.id}
-                    className={`grid grid-cols-7 gap-2 px-4 py-3 text-sm border-b ${borderLightClass} transition-colors duration-200 ${hoveredOrder === order.id ? (theme === "dark" ? "bg-zinc-900/30" : "bg-zinc-50") : ""}`}
+                    className={`grid grid-cols-7 gap-2 px-3 py-2 text-xs border-b ${borderLightClass} transition-colors duration-200 ${hoveredOrder === order.id ? (theme === "dark" ? "bg-zinc-900/30" : "bg-zinc-50") : ""}`}
                     onMouseEnter={() => setHoveredOrder(order.id)}
                     onMouseLeave={() => setHoveredOrder(null)}
                   >
                     <div className={tableValueClass}>
-                      <div>{formatTime(order.expiryTime)}</div>
-                      <div className={`text-xs ${tertiaryTextClass}`}>
+                      <div className="text-xs">{formatTime(order.expiryTime)}</div>
+                      <div className={`text-[10px] ${tertiaryTextClass}`}>
                         {formatDate(order.expiryTime)}
                       </div>
                     </div>
-                    <div className={`font-medium ${tableValueClass}`}>
+                    <div className={`font-medium text-xs ${tableValueClass}`}>
                       {order.symbol.replace("USDT", "").replace("/", "")}
                     </div>
                     <div
-                      className={
+                      className={`text-xs font-medium ${
                         order.side === "RISE"
                           ? "text-[#22c55e]"
                           : "text-[#ef4444]"
-                      }
+                      }`}
                     >
-                      {order.side}
+                      {order.side === "RISE" ? "↑" : "↓"}
                     </div>
-                    <div className={tableValueClass}>
+                    <div className={`text-xs ${tableValueClass}`}>
                       ${order.entryPrice.toFixed(2)}
                     </div>
-                    <div className={tableValueClass}>
+                    <div className={`text-xs ${tableValueClass}`}>
                       ${order.amount.toFixed(2)}
                     </div>
                     <div
-                      className={`font-medium ${(order.profit || 0) >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+                      className={`font-semibold text-xs ${(order.profit || 0) >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                     >
                       {(order.profit || 0) >= 0 ? "+" : ""}$
                       {Math.abs(order.profit || 0).toFixed(2)}
                     </div>
                     <div>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${order.status === "WIN" ? winBadgeClass : lossBadgeClass}`}
                       >
-                        {order.status}
+                        {order.status === "WIN" ? "W" : "L"}
                       </span>
                     </div>
                   </div>

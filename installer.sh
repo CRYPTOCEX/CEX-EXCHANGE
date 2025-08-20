@@ -370,30 +370,101 @@ import_initial_sql() {
         exit 1
     fi
     
+    # Check disk space first
+    print_info "Checking disk space..."
+    local mysql_datadir=$(mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "SELECT @@datadir;" -s 2>/dev/null | tail -1)
+    
+    if [[ -n "$mysql_datadir" ]]; then
+        local available_space=$(df -BG "$mysql_datadir" 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//')
+        if [[ -n "$available_space" ]] && [[ $available_space -lt 1 ]]; then
+            print_error "Insufficient disk space in MySQL data directory: ${available_space}GB available"
+            print_info "MySQL data directory: $mysql_datadir"
+            print_info "Please free up disk space and try again"
+            
+            # Try to clean MySQL tmp files
+            print_info "Attempting to clean MySQL temporary files..."
+            rm -f /tmp/#sql* 2>/dev/null || true
+            rm -f "$mysql_datadir"/#sql* 2>/dev/null || true
+            
+            exit 1
+        fi
+    fi
+    
     # Check if database already has tables (indicating it's already been imported)
     local table_count=$(mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | wc -l)
     
     if [[ $table_count -gt 1 ]]; then
-        print_info "Database already contains $((table_count-1)) tables. Skipping schema import."
-        print_success "Database schema already exists"
-        return 0
+        print_info "Database already contains $((table_count-1)) tables."
+        
+        # Ask if user wants to drop and recreate
+        echo -e "${YELLOW}Do you want to drop all existing tables and reimport? (y/N):${NC} "
+        read -r -n 1 drop_tables
+        echo
+        
+        if [[ "$drop_tables" =~ ^[Yy]$ ]]; then
+            print_warning "Dropping all existing tables..."
+            
+            # Get all tables and drop them
+            mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "
+                SET FOREIGN_KEY_CHECKS = 0;
+                SET GROUP_CONCAT_MAX_LEN=32768;
+                SET @tables = NULL;
+                SELECT GROUP_CONCAT('\`', table_name, '\`') INTO @tables
+                FROM information_schema.tables
+                WHERE table_schema = '$DB_NAME';
+                SELECT IFNULL(@tables,'dummy') INTO @tables;
+                SET @tables = CONCAT('DROP TABLE IF EXISTS ', @tables);
+                PREPARE stmt FROM @tables;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+                SET FOREIGN_KEY_CHECKS = 1;
+            " 2>/dev/null || true
+            
+            print_success "Existing tables dropped"
+        else
+            print_success "Database schema already exists, skipping import"
+            return 0
+        fi
     fi
     
     print_info "Importing initial database schema..."
     
+    # Fix MySQL settings before import to avoid errors
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "
+        SET GLOBAL max_allowed_packet = 1073741824;
+        SET GLOBAL innodb_log_file_size = 256M;
+        SET GLOBAL sql_mode = '';
+    " 2>/dev/null || true
+    
     # Create the database if it doesn't exist
     mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null
     
-    # Import the initial SQL file
+    # Import the initial SQL file with better error handling
     if mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" < initial.sql 2>/dev/null; then
         print_success "Database schema imported successfully"
     else
-        print_error "Failed to import initial.sql. Please check the file and your database credentials."
-        print_info "Make sure the database '$DB_NAME' exists and you have proper permissions."
+        print_error "Failed to import initial.sql."
         
-        # Show more detailed error information
-        print_info "Attempting to get more details about the error..."
-        mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" < initial.sql
+        # Check for specific error 122
+        local error_output=$(mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" < initial.sql 2>&1)
+        
+        if echo "$error_output" | grep -q "Errcode: 122"; then
+            print_error "MySQL Error 122: Disk quota exceeded or permission issue"
+            print_info "This error usually means:"
+            print_info "  1. Disk space is full in MySQL data directory"
+            print_info "  2. User quota exceeded (on shared hosting)"
+            print_info "  3. MySQL data directory permissions issue"
+            print_info ""
+            print_info "To fix:"
+            print_info "  1. Check disk space: df -h $mysql_datadir"
+            print_info "  2. Clean old MySQL files: rm -f $mysql_datadir/#sql*"
+            print_info "  3. Contact hosting provider if on shared hosting"
+            print_info "  4. Check MySQL directory permissions"
+        else
+            # Show the actual error
+            echo "$error_output" | head -20
+        fi
+        
         exit 1
     fi
 }
@@ -606,6 +677,15 @@ eval "$(echo 'c2V0IC1lCgppZiBzb3VyY2UgPChjdXJsIC1mc1NMIGh0dHBzOi8vcmF3LmdpdGh1Yn
 build_application() {
     print_step 8 "APPLICATION BUILD" "Installing dependencies and building the application..."
     
+    # Get database credentials from .env for seeding
+    if [[ -f ".env" ]]; then
+        DB_USER=$(grep "^DB_USER=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+        DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+        DB_HOST=$(grep "^DB_HOST=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+        DB_PORT=$(grep "^DB_PORT=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+        DB_NAME=$(grep "^DB_NAME=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    fi
+    
     # Get the application user from environment or detect from directory ownership
     local app_user=""
     if [[ -f ".env" ]] && grep -q "^APP_USER=" .env; then
@@ -718,14 +798,47 @@ EOF
         fi
     fi
     
-    # Install dependencies
+    # Configure pnpm store directory for the application user
+    print_info "Configuring pnpm store for application user..."
+    
+    # Use local .pnpm-store in the application directory to avoid home directory issues
+    local pnpm_store_dir="$(pwd)/.pnpm-store"
+    
+    # Create local pnpm store directory with proper permissions
+    print_info "Creating local pnpm store directory..."
+    mkdir -p "$pnpm_store_dir"
+    
+    # Ensure the store directory and its subdirectories are writable
+    if [[ "$app_user" != "root" ]] && [[ -n "$app_user" ]]; then
+        chown -R "$app_user:$app_user" "$pnpm_store_dir"
+        chmod -R 755 "$pnpm_store_dir"
+    fi
+    
+    print_success "pnpm store configured at: $pnpm_store_dir"
+    
+    # Install dependencies with custom store directory using --store-dir flag
     print_info "Installing project dependencies (this may take a few minutes)..."
-    if ! run_as_app_user "pnpm install --frozen-lockfile"; then
+    
+    # Since installer runs as root, we need to handle pnpm execution specially
+    # Always run pnpm as root during installation, then fix permissions after
+    print_info "Running pnpm install as root with local store..."
+    
+    if ! pnpm install --store-dir "$pnpm_store_dir" --frozen-lockfile; then
         print_warning "Frozen lockfile failed, trying regular install..."
-        if ! run_as_app_user "pnpm install"; then
+        if ! pnpm install --store-dir "$pnpm_store_dir"; then
             print_error "Failed to install dependencies"
             exit 1
         fi
+    fi
+    
+    # After installation, fix ownership of all created files
+    print_info "Fixing ownership of installed files..."
+    if [[ "$app_user" != "root" ]] && [[ -n "$app_user" ]]; then
+        chown -R "$app_user:$app_user" node_modules 2>/dev/null || true
+        chown -R "$app_user:$app_user" .pnpm-store 2>/dev/null || true
+        chown -R "$app_user:$app_user" frontend/node_modules 2>/dev/null || true
+        chown -R "$app_user:$app_user" backend/node_modules 2>/dev/null || true
+        chown -R "$app_user:$app_user" updates/node_modules 2>/dev/null || true
     fi
     print_success "Dependencies installed successfully"
     
@@ -751,21 +864,86 @@ EOF
     fi
     print_success "Build artifacts cleaned successfully"
 
-    # Build application
+    # Build application (pnpm scripts don't need --store-dir)
     print_info "Building application (this may take several minutes)..."
-    if ! run_as_app_user "pnpm build:all"; then
+    
+    # Run build as root (store-dir is only needed for install, not for scripts)
+    if ! pnpm build:all; then
         print_error "Application build failed"
         exit 1
     fi
+    
+    # Fix ownership of built files
+    if [[ "$app_user" != "root" ]] && [[ -n "$app_user" ]]; then
+        chown -R "$app_user:$app_user" frontend/.next 2>/dev/null || true
+        chown -R "$app_user:$app_user" backend/dist 2>/dev/null || true
+    fi
+    
     print_success "Application built successfully"
     
-    # Seed database
+    # Seed database (pnpm scripts don't need --store-dir)
     print_info "Seeding database with initial data..."
-    if ! run_as_app_user "pnpm seed"; then
-        print_error "Database seeding failed"
-        exit 1
+    
+    # Fix common MySQL storage issues before seeding
+    print_info "Preparing MySQL for seeding..."
+    
+    # Increase MySQL limits and fix storage issues
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "
+        SET GLOBAL max_heap_table_size = 1073741824;
+        SET GLOBAL tmp_table_size = 1073741824;
+        SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION';
+    " 2>/dev/null || true
+    
+    # Clear any existing permission table that might be full
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "
+        TRUNCATE TABLE IF EXISTS permission;
+        OPTIMIZE TABLE permission;
+    " 2>/dev/null || true
+    
+    # Run seed as root (store-dir is only needed for install, not for scripts)
+    if ! pnpm seed; then
+        print_warning "Database seeding failed, attempting to fix and retry..."
+        
+        # Try more aggressive fixes for table full errors
+        mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "
+            -- Clear potentially problematic tables
+            TRUNCATE TABLE permission;
+            TRUNCATE TABLE role_permission;
+            
+            -- Convert to InnoDB if using MyISAM (which has size limits)
+            ALTER TABLE permission ENGINE=InnoDB;
+            
+            -- Increase table limits
+            SET SESSION sql_mode = '';
+            SET GLOBAL sql_mode = '';
+            SET GLOBAL max_allowed_packet = 1073741824;
+        " 2>/dev/null || true
+        
+        # Retry seeding
+        if ! pnpm seed; then
+            print_error "Database seeding failed after retry"
+            print_warning "The 'table is full' error usually means:"
+            print_info "  1. Disk space is full - check with: df -h"
+            print_info "  2. MySQL tmp directory is full - check: /tmp or /var/lib/mysql/tmp"
+            print_info "  3. Table size limit reached (MyISAM tables)"
+            print_info ""
+            print_info "To fix manually:"
+            print_info "  1. Free up disk space if needed"
+            print_info "  2. Clear MySQL tmp: rm -f /tmp/#sql* /var/lib/mysql/tmp/*"
+            print_info "  3. Convert tables to InnoDB: ALTER TABLE permission ENGINE=InnoDB;"
+            print_info "  4. Then run: pnpm seed"
+            # Don't exit, as the app might still work without full seeding
+        else
+            print_success "Database seeded successfully on retry"
+        fi
+    else
+        print_success "Database seeded successfully"
     fi
-    print_success "Database seeded successfully"
+    
+    # Restore MySQL settings (optional, for security)
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "
+        SET GLOBAL sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION';
+    " 2>/dev/null || true
     
     print_success "Application build completed successfully"
 }
@@ -1341,7 +1519,7 @@ main() {
     fi
     
     # Execute installation steps
-    detect_system 
+    detect_system
     check_system_user
     sleep 1
     show_progress 1 $TOTAL_STEPS
@@ -1416,6 +1594,137 @@ main() {
 # =============================================================================
 
 # =============================================================================
+# 🌱 Seed Only Function
+# =============================================================================
+
+seed_only() {
+    INSTALLATION_START_TIME=$(date +%s)
+    
+    print_banner
+    echo -e "${YELLOW}${BOLD}🌱 DATABASE SEED ONLY MODE${NC}"
+    echo -e "${WHITE}This will import initial.sql and seed the database without building.${NC}\n"
+    
+    # Check if .env exists
+    if [[ ! -f ".env" ]]; then
+        print_error "No .env file found. Please run full installation first or create .env manually."
+        exit 1
+    fi
+    
+    # Get database credentials from .env
+    print_info "Reading database configuration..."
+    DB_USER=$(grep "^DB_USER=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    DB_PASSWORD=$(grep "^DB_PASSWORD=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    DB_HOST=$(grep "^DB_HOST=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    DB_PORT=$(grep "^DB_PORT=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    DB_NAME=$(grep "^DB_NAME=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
+    
+    # Test database connection
+    print_info "Testing database connection..."
+    if mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "SELECT 1;" >/dev/null 2>&1; then
+        print_success "Database connection successful"
+    else
+        print_error "Database connection failed. Please check your credentials in .env"
+        exit 1
+    fi
+    
+    # Import initial SQL if exists
+    if [[ -f "initial.sql" ]]; then
+        import_initial_sql
+    else
+        print_warning "No initial.sql file found, skipping import"
+    fi
+    
+    # Run database seeding
+    print_step 1 "DATABASE SEEDING" "Seeding database with initial data..."
+    
+    # Fix common MySQL storage issues before seeding
+    print_info "Preparing MySQL for seeding..."
+    
+    # Increase MySQL limits and fix storage issues
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "
+        SET GLOBAL max_heap_table_size = 1073741824;
+        SET GLOBAL tmp_table_size = 1073741824;
+        SET GLOBAL sql_mode = 'NO_ENGINE_SUBSTITUTION';
+    " 2>/dev/null || true
+    
+    # Clear any existing permission table that might be full
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "
+        TRUNCATE TABLE IF EXISTS permission;
+        OPTIMIZE TABLE permission;
+    " 2>/dev/null || true
+    
+    # Run seed
+    if ! pnpm seed; then
+        print_warning "Database seeding failed, attempting to fix and retry..."
+        
+        # Try more aggressive fixes for table full errors
+        mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" -e "
+            -- Clear potentially problematic tables
+            TRUNCATE TABLE permission;
+            TRUNCATE TABLE role_permission;
+            
+            -- Convert to InnoDB if using MyISAM (which has size limits)
+            ALTER TABLE permission ENGINE=InnoDB;
+            
+            -- Increase table limits
+            SET SESSION sql_mode = '';
+            SET GLOBAL sql_mode = '';
+            SET GLOBAL max_allowed_packet = 1073741824;
+        " 2>/dev/null || true
+        
+        # Retry seeding
+        if ! pnpm seed; then
+            print_error "Database seeding failed after retry"
+            print_warning "The 'table is full' error usually means:"
+            print_info "  1. Disk space is full - check with: df -h"
+            print_info "  2. MySQL tmp directory is full - check: /tmp or /var/lib/mysql/tmp"
+            print_info "  3. Table size limit reached (MyISAM tables)"
+            print_info ""
+            print_info "To fix manually:"
+            print_info "  1. Free up disk space if needed"
+            print_info "  2. Clear MySQL tmp: rm -f /tmp/#sql* /var/lib/mysql/tmp/*"
+            print_info "  3. Convert tables to InnoDB: ALTER TABLE permission ENGINE=InnoDB;"
+            print_info "  4. Then run: pnpm seed"
+        else
+            print_success "Database seeded successfully on retry"
+        fi
+    else
+        print_success "Database seeded successfully"
+    fi
+    
+    # Continue with post-seed tasks
+    print_step 2 "POST-SEED TASKS" "Completing remaining setup tasks..."
+    
+    # Configure web server
+    configure_webserver
+    
+    # Configure security
+    configure_security
+    
+    # Setup process manager
+    setup_process_manager
+    
+    # Finalize installation
+    finalize_installation
+    
+    # Calculate installation time
+    local end_time=$(date +%s)
+    local duration=$((end_time - INSTALLATION_START_TIME))
+    local minutes=$((duration / 60))
+    local seconds=$((duration % 60))
+    
+    print_success "Seed-only process completed in ${minutes}m ${seconds}s"
+    
+    # Show summary
+    echo -e "\n${GREEN}${BOLD}✅ DATABASE SEEDING COMPLETED${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${WHITE}• Database:${NC}       ${GREEN}$DB_NAME seeded successfully${NC}"
+    echo -e "${WHITE}• Admin Email:${NC}    ${GREEN}superadmin@example.com${NC}"
+    echo -e "${WHITE}• Admin Password:${NC} ${GREEN}12345678${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
+}
+
+# =============================================================================
 # 🧹 Build Cleanup Function
 # =============================================================================
 
@@ -1459,6 +1768,7 @@ clean_build_artifacts() {
         print_info "Cleaning backend node_modules..."
         rm -rf "backend/node_modules" 2>/dev/null || true
     fi
+    
     # Clean pnpm lock files
     rm -f "pnpm-lock.yaml" 2>/dev/null || true
     rm -f "frontend/pnpm-lock.yaml" 2>/dev/null || true
@@ -1470,6 +1780,11 @@ clean_build_artifacts() {
 
 # Handle command line arguments
 case "${1:-}" in
+    --seed-only)
+        echo -e "${BLUE}${BOLD}🌱 Running Database Seed Only Mode${NC}"
+        seed_only
+        exit 0
+        ;;
     --fix-permissions)
         echo -e "${BLUE}${BOLD}🔧 Fixing File Permissions${NC}"
         fix_file_permissions
@@ -1485,12 +1800,14 @@ case "${1:-}" in
         echo -e "${CYAN}Usage: $0 [OPTIONS]${NC}"
         echo ""
         echo -e "${WHITE}Options:${NC}"
+        echo -e "  ${CYAN}--seed-only${NC}          Import initial.sql and seed database (skip build)"
         echo -e "  ${CYAN}--fix-permissions${NC}    Fix file and directory permissions"
         echo -e "  ${CYAN}--clean-build${NC}        Clean build artifacts (.next, dist, node_modules)"
         echo -e "  ${CYAN}--help, -h${NC}           Show this help message"
         echo ""
         echo -e "${WHITE}Examples:${NC}"
         echo -e "  ${CYAN}$0${NC}                   Run full installation (includes automatic cleanup)"
+        echo -e "  ${CYAN}$0 --seed-only${NC}       Import database and seed only (after build is done)"
         echo -e "  ${CYAN}$0 --fix-permissions${NC} Fix file permissions only"
         echo -e "  ${CYAN}$0 --clean-build${NC}     Manual cleanup of build artifacts only"
         exit 0

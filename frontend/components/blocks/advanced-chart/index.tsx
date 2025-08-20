@@ -194,7 +194,7 @@ export default function AdvancedChart({
         onChartContextReady={handleChartContextReady}
         marketType={memoizedMarketType}
       >
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full min-h-[400px]" style={{ height: "100%" }}>
           <MemoizedChartCanvas positions={memoizedPositions} />
         </div>
       </ChartProvider>

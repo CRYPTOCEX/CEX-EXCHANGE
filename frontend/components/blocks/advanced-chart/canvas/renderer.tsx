@@ -54,25 +54,47 @@ interface PositionMarker {
 // Update the adapter function to create objects with the correct property names
 // Replace the existing adaptOrdersToPositionMarkers function with:
 function adaptOrdersToPositionMarkers(orders: BinaryOrder[]): PositionMarker[] {
-  return orders.map((order) => ({
-    id: order.id || `order-${Math.random().toString(36).substring(2, 9)}`,
-    entryTime:
-      typeof order.createdAt === "number"
-        ? order.createdAt / 1000
-        : Date.now() / 1000,
-    entryPrice: order.entryPrice,
-    expiryTime:
-      typeof order.expiryTime === "number"
-        ? order.expiryTime
-        : typeof order.expiryTime === "string"
-          ? new Date(order.expiryTime).getTime() / 1000
-          : Date.now() / 1000 + 300,
-    type: order.side === "RISE" ? "CALL" : "PUT",
-    amount: order.amount || 0,
-    status: order.status as "ACTIVE" | "COMPLETED" | "EXPIRED" | undefined,
-    createdAt: order.createdAt,
-    side: order.side,
-  }));
+  const currentTimeMs = Date.now();
+  const currentTimeSec = currentTimeMs / 1000;
+  
+  return orders
+    .filter((order) => {
+      // Filter out invalid orders
+      if (!order || !order.entryPrice || order.entryPrice <= 0) return false;
+      
+      // Convert expiryTime from milliseconds to seconds for comparison
+      const orderExpiryTimeSec = order.expiryTime / 1000;
+      const isExpired = orderExpiryTimeSec < currentTimeSec;
+      
+      // For PENDING orders, show them until they expire
+      if (order.status === "PENDING") {
+        return !isExpired;
+      }
+      
+      // For completed orders, show them briefly after expiry for animation
+      if (order.status === "COMPLETED" || order.status === "WIN" || order.status === "LOSS") {
+        // Show completed orders for up to 5 seconds after expiry
+        return !isExpired || (currentTimeSec - orderExpiryTimeSec < 5);
+      }
+      
+      // Default: don't show unknown status orders
+      return false;
+    })
+    .map((order) => ({
+      id: order.id || `order-${Math.random().toString(36).substring(2, 9)}`,
+      entryTime:
+        typeof order.createdAt === "number"
+          ? order.createdAt / 1000  // Convert from ms to seconds
+          : Date.now() / 1000,
+      entryPrice: order.entryPrice,
+      expiryTime: order.expiryTime / 1000,  // Convert from ms to seconds
+      type: order.side === "RISE" ? "CALL" : "PUT",
+      amount: order.amount || 0,
+      status: order.status === "PENDING" ? "ACTIVE" : order.status as "ACTIVE" | "COMPLETED" | "EXPIRED" | undefined,
+      result: order.status === "WIN" ? "WIN" : order.status === "LOSS" ? "LOSS" : null,
+      createdAt: order.createdAt,  // Keep in milliseconds for animation timing
+      side: order.side,
+    }));
 }
 
 // Update the generateExpiryMarkers function to use the provided expiryMinutes

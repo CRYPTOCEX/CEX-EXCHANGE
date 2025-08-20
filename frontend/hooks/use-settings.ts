@@ -35,8 +35,9 @@ export function useSettings() {
         retryCountRef.current = 0;
       }
 
+      // Allow force refresh if isRetry is true
       if (settingsFetched && !isRetry) return;
-      if (isLoading) return;
+      if (isLoading && !isRetry) return;
 
       setIsLoading(true);
       setSettingsError(null);
@@ -71,10 +72,29 @@ export function useSettings() {
             }
           );
           
-          // Convert array to object
+          // Convert array to object and parse values
           const settingsObj = settingsArray.reduce(
             (acc, cur) => {
-              acc[cur.key] = cur.value;
+              // Try to parse the value to its proper type
+              let parsedValue = cur.value;
+              
+              // Parse booleans
+              if (cur.value === 'true') parsedValue = true;
+              else if (cur.value === 'false') parsedValue = false;
+              // Parse numbers (but not empty strings or strings that should remain strings)
+              else if (cur.value && !isNaN(Number(cur.value)) && cur.value !== '') {
+                // Check if it's meant to be a number by looking at the key pattern
+                // Only parse as number if it looks like a numeric setting
+                if (cur.key.includes('Time') || cur.key.includes('Amount') || 
+                    cur.key.includes('Fee') || cur.key.includes('Percent') ||
+                    cur.key.includes('Window') || cur.key.includes('Max') || 
+                    cur.key.includes('Min') || cur.key.includes('Trades') ||
+                    cur.key.includes('Offers')) {
+                  parsedValue = Number(cur.value);
+                }
+              }
+              
+              acc[cur.key] = parsedValue;
               return acc;
             },
             {} as Record<string, any>

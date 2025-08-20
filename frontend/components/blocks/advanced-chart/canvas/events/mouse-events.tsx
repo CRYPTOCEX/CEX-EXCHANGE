@@ -140,8 +140,9 @@ export function useMouseEvents({
         const chartWidth = dimensions.width - priceScaleWidth;
         const visibleCount = visibleRange.end - visibleRange.start;
 
-        // Calculate move amount based on drag distance
-        const moveAmount = (deltaX / chartWidth) * visibleCount * -1;
+        // Calculate move amount based on drag distance with reduced sensitivity for PC
+        const pcSensitivity = 0.3; // Much lower sensitivity for smoother PC dragging
+        const moveAmount = (deltaX / chartWidth) * visibleCount * pcSensitivity * -1;
 
         // Store the current visible range width to maintain zoom level
         const rangeWidth = visibleRange.end - visibleRange.start;

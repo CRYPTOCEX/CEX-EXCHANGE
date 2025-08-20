@@ -186,25 +186,36 @@
                 </p>
                 
                 <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4 overflow-x-auto">
-                    <pre class="whitespace-pre-wrap"><code class="language-nginx text-sm"># Preserve the host header and IP
+                    <pre class="whitespace-pre-wrap"><code class="language-nginx text-sm"># Essential proxy headers
 proxy_set_header Host $host;
 proxy_set_header X-Real-IP $remote_addr;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port $server_port;
 proxy_http_version 1.1;
 
-# KeepAlive and timeouts
-keepalive_timeout 3s;
-keepalive_requests 500;
-proxy_connect_timeout 150s;
-proxy_read_timeout 150s;
-proxy_send_timeout 150s;
+# Buffer settings for large responses with [id] data
+proxy_buffer_size 8k;
+proxy_buffers 16 8k;
+proxy_busy_buffers_size 16k;
+
+# Enhanced timeouts for [id] parameter queries
+keepalive_timeout 30s;
+keepalive_requests 1000;
+proxy_connect_timeout 300s;
+proxy_read_timeout 300s;
+proxy_send_timeout 300s;
+
+# Header size limits for i18n locales (prevents 502 errors)
+large_client_header_buffers 8 64k;
+client_header_buffer_size 64k;
 
 # Gzip compression (like DEFLATE)
 gzip on;
 gzip_types text/plain text/html text/xml text/css 
            application/xml application/xhtml+xml 
            application/rss+xml application/javascript 
-           application/x-javascript;
+           application/x-javascript application/json;
 
 # Proxy to backend for /api/docs
 location /api/docs {
@@ -355,6 +366,41 @@ location / {
                 <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">sudo tail -f /var/log/nginx/error.log</code> - View error logs</li>
                 <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">netstat -tlnp | grep :3000</code> - Check if app is running</li>
             </ul>
+        </div>
+    </div>
+</div>
+
+<!-- i18n Locale Optimization -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🌍 Optimizing i18n Locales for Header Size</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🌐</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Reducing Language Headers</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    If you're still experiencing 502 errors after applying the nginx configuration, your application may have too many languages configured. Next.js generates alternate language headers for every page, and with many languages, these headers can exceed size limits.
+                </p>
+                
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                    <h4 class="font-medium text-yellow-900 dark:text-yellow-100 mb-2">Recommended Essential Languages:</h4>
+                    <code class="block bg-yellow-100 dark:bg-yellow-800 p-3 rounded text-sm mb-3">NEXT_PUBLIC_LANGUAGES="en,es,fr,de,it,pt,ru,ar,ja,ko,hi,tr"</code>
+                    <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                        These 12 languages cover major global markets (~4.5B people) while keeping header sizes manageable.
+                    </p>
+                </div>
+                
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <h4 class="font-medium text-green-900 dark:text-green-100 mb-2">How to Update:</h4>
+                    <ol class="list-decimal list-inside text-green-800 dark:text-green-200 text-sm space-y-1">
+                        <li>Edit <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">frontend/next.config.js</code></li>
+                        <li>Update <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">NEXT_PUBLIC_LANGUAGES</code> to essential languages only</li>
+                        <li>Rebuild frontend: <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">npm run build</code></li>
+                        <li>Restart application: <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">pm2 restart frontend</code></li>
+                    </ol>
+                </div>
+            </div>
         </div>
     </div>
 </div>

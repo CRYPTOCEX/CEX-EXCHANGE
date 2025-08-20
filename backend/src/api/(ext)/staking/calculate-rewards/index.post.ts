@@ -26,10 +26,6 @@ export const metadata = {
               type: "number",
               description: "Duration in days",
             },
-            tokenId: {
-              type: "string",
-              description: "Optional token ID to filter pools",
-            },
           },
         },
       },
@@ -51,7 +47,7 @@ export const metadata = {
                     poolId: { type: "string" },
                     poolName: { type: "string" },
                     tokenSymbol: { type: "string" },
-                    apy: { type: "number" },
+                    apr: { type: "number" },
                     potentialReward: { type: "number" },
                     totalReturn: { type: "number" },
                   },
@@ -74,7 +70,7 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const { amount, duration, tokenId } = body;
+  const { amount, duration } = body;
 
   if (!amount || amount <= 0) {
     throw createError({ statusCode: 400, message: "Invalid amount" });
@@ -87,29 +83,18 @@ export default async (data: Handler) => {
   // Find active pools that match the criteria
   const whereClause: any = {
     status: "ACTIVE",
-    minStakingPeriod: { [Op.lte]: duration },
+    lockPeriod: { [Op.lte]: duration },
   };
-
-  if (tokenId) {
-    whereClause.tokenId = tokenId;
-  }
 
   const pools = await models.stakingPool.findAll({
     where: whereClause,
-    include: [
-      {
-        model: models.token,
-        as: "token",
-        attributes: ["symbol", "name", "icon"],
-      },
-    ],
-    order: [["apy", "DESC"]],
+    order: [["apr", "DESC"]],
   });
 
   // Calculate potential rewards for each pool
   const calculations = pools.map((pool) => {
-    const { id, name, apy, tokenId } = pool;
-    const annualReward = amount * (apy / 100);
+    const { id, name, apr, symbol, icon, token } = pool;
+    const annualReward = amount * (apr / 100);
     const dailyReward = annualReward / 365;
     const potentialReward = dailyReward * duration;
     const totalReturn = amount + potentialReward;
@@ -117,10 +102,10 @@ export default async (data: Handler) => {
     return {
       poolId: id,
       poolName: name,
-      tokenSymbol: pool.token.symbol,
-      tokenName: pool.token.name,
-      tokenIcon: pool.token.icon,
-      apy,
+      tokenSymbol: symbol,
+      tokenName: token,
+      tokenIcon: icon,
+      apr,
       potentialReward,
       totalReturn,
     };
