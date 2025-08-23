@@ -38,7 +38,7 @@
     "@babel/traverse": "^7.28.3",
     "@babel/types": "^7.28.2",
     "@eslint/js": "^9.33.0",
-    "@next/eslint-plugin-next": "^15.4.7",
+    "@next/eslint-plugin-next": "^15.5.0",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.20",
     "@types/node": "^22.17.2",
@@ -117,5 +117,5 @@
     ]
   },
   "lastCommit": "7f369926cc06627d3df72f08f962794591ae3836",
-  "lastCommitDate": "2025-08-19T14:51:41.043Z"
+  "lastCommitDate": "2025-08-19T14:26:37.289Z"
 }

