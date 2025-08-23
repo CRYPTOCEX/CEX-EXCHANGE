@@ -83,8 +83,6 @@ export class BinaryOrderService {
     const minAmount = Number(metadata?.limits?.amount?.min || 0);
     const maxAmount = Number(metadata?.limits?.amount?.max || 0);
 
-  
-
     // Ensure closedAt is in the future
     const closeAtDate = new Date(closedAt);
     if (closeAtDate.getTime() <= Date.now()) {
