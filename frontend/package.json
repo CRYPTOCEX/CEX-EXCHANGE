@@ -59,7 +59,7 @@
     "@smastrom/react-rating": "^1.5.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/typography": "^0.5.16",
-    "@tanstack/react-table": "8.20.6",
+    "@tanstack/react-table": "8.21.3",
     "@types/dompurify": "^3.2.0",
     "add": "^2.0.6",
     "apexcharts": "^5.3.3",
