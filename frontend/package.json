@@ -121,7 +121,7 @@
     "stream-http": "^3.2.0",
     "styled-components": "^6.1.19",
     "swiper": "^11.2.10",
-    "swr": "2.2.6-beta.5",
+    "swr": "2.3.4",
     "tailwind-merge": "^2.6.0",
     "tailwind-scrollbar": "^3.1.0",
     "tailwind-variants": "^0.3.1",
