@@ -18,7 +18,6 @@ import {
   Tag,
   Settings
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import { $fetch } from "@/lib/api";
@@ -52,7 +51,6 @@ interface DefaultPageEditorProps {
 
 export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
   const router = useRouter();
-  const t = useTranslations();
   
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -434,6 +432,35 @@ function SectionalHomeEditor({ variables, onVariablesChange }: {
   variables: Record<string, any>;
   onVariablesChange: (variables: Record<string, any>) => void;
 }) {
+  // Helper function to get nested values from variables
+  const getValue = (path: string) => {
+    const keys = path.split('.');
+    let value = variables;
+    for (const key of keys) {
+      value = value?.[key];
+    }
+    return value;
+  };
+
+  // Helper function to update nested values in variables
+  const updateVariable = (path: string, value: any) => {
+    const keys = path.split('.');
+    const newVariables = { ...variables };
+    let current = newVariables;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!current[key]) {
+        current[key] = {};
+      }
+      current[key] = { ...current[key] };
+      current = current[key];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+    onVariablesChange(newVariables);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -444,28 +471,33 @@ function SectionalHomeEditor({ variables, onVariablesChange }: {
       </div>
       
       <HeroSectionEditor 
-        variables={variables.hero || {}} 
-        onVariablesChange={(hero) => onVariablesChange({ ...variables, hero })}
+        variables={variables}
+        getValue={getValue}
+        updateVariable={updateVariable}
       />
       
       <FeaturesSectionEditor 
-        variables={variables.features || []} 
-        onVariablesChange={(features) => onVariablesChange({ ...variables, features })}
+        variables={variables}
+        getValue={getValue}
+        updateVariable={updateVariable}
       />
       
       <GlobalSectionEditor 
-        variables={variables.global || {}} 
-        onVariablesChange={(global) => onVariablesChange({ ...variables, global })}
+        variables={variables}
+        getValue={getValue}
+        updateVariable={updateVariable}
       />
       
       <GettingStartedEditor 
-        variables={variables.gettingStarted || {}} 
-        onVariablesChange={(gettingStarted) => onVariablesChange({ ...variables, gettingStarted })}
+        variables={variables}
+        getValue={getValue}
+        updateVariable={updateVariable}
       />
       
       <CTASectionEditor 
-        variables={variables.cta || {}} 
-        onVariablesChange={(cta) => onVariablesChange({ ...variables, cta })}
+        variables={variables}
+        getValue={getValue}
+        updateVariable={updateVariable}
       />
     </div>
   );

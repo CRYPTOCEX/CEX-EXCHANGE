@@ -358,7 +358,7 @@ export const adminMenu: MenuItem[] = [
         icon: "solar:transfer-horizontal-bold-duotone",
         description:
           "Complete transaction oversight with detailed logging, reconciliation, and transfer management capabilities.",
-        permission: ["access.transaction", "access.transfer", "access.wallet", "access.withdraw"],
+        permission: ["access.transaction", "access.transfer", "access.wallet"],
         child: [
           {
             key: "admin-transaction-logs",
@@ -387,33 +387,34 @@ export const adminMenu: MenuItem[] = [
             description:
               "Multi-currency wallet administration with balance monitoring, security controls, and backup management.",
           },
+        ],
+      },
+      {
+        key: "admin-withdrawal-management",
+        title: "Withdrawal Management",
+        icon: "ph:hand-withdraw-duotone",
+        href: "/admin/finance/withdraw/log",
+        description:
+          "Comprehensive withdrawal system management with automated processing, fraud prevention, and compliance controls.",
+        permission: ["access.withdraw.method", "access.withdraw"],
+        child: [
           {
-            key: "admin-withdrawal-system",
-            title: "Withdrawal System",
-            icon: "ph:hand-withdraw-duotone",
+            key: "admin-withdrawal-methods",
+            title: "Withdrawal Methods",
+            href: "/admin/finance/withdraw/method",
+            permission: "access.withdraw.method",
+            icon: "ph:bank-duotone",
             description:
-              "Withdrawal processing with automated verification, manual review capabilities, and fraud prevention.",
-            permission: ["access.withdraw.method", "access.withdraw"],
-            child: [
-              {
-                key: "admin-withdrawal-methods",
-                title: "Withdrawal Methods",
-                href: "/admin/finance/withdraw/method",
-                permission: "access.withdraw.method",
-                icon: "ph:bank-duotone",
-                description:
-                  "Configure withdrawal options including bank transfers, crypto withdrawals, and third-party processors.",
-              },
-              {
-                key: "admin-withdrawal-logs",
-                title: "Withdrawal Records",
-                href: "/admin/finance/withdraw/log",
-                permission: "access.withdraw",
-                icon: "ph:upload-simple-duotone",
-                description:
-                  "Monitor withdrawal requests with status tracking, approval workflows, and compliance verification.",
-              },
-            ],
+              "Configure withdrawal options including bank transfers, crypto withdrawals, and third-party processors.",
+          },
+          {
+            key: "admin-withdrawal-logs",
+            title: "Withdrawal Records",
+            href: "/admin/finance/withdraw/log",
+            permission: "access.withdraw",
+            icon: "ph:upload-simple-duotone",
+            description:
+              "Monitor withdrawal requests with status tracking, approval workflows, and compliance verification.",
           },
         ],
       },

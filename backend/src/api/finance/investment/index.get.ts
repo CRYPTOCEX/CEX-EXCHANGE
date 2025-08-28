@@ -130,7 +130,7 @@ async function getActiveInvestment(userId, type) {
       break;
   }
 
-  const response = await model.findOne({
+  const response = await model.findAll({
     where: { userId, status: "ACTIVE" },
     include: [
       {
@@ -141,9 +141,9 @@ async function getActiveInvestment(userId, type) {
     attributes: { exclude: ["userId"] },
   });
 
-  if (!response) {
-    throw new Error("No active investment found");
+  if (!response || response.length === 0) {
+    throw new Error("No active investments found");
   }
 
-  return response.get({ plain: true });
+  return response.map(inv => inv.get({ plain: true }));
 }

@@ -14,8 +14,12 @@ import {
 } from "../utils";
 import { emailQueue } from "@b/utils/emails";
 
-const recaptchaEnabled =
+// Check reCAPTCHA status - use a function to check at runtime
+const isRecaptchaEnabled = () => 
   process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
+
+// For backward compatibility, keep the const but use the function
+const recaptchaEnabled = isRecaptchaEnabled();
 
 export const metadata: OperationObject = {
   summary: "Logs in a user",
@@ -42,13 +46,13 @@ export const metadata: OperationObject = {
             recaptchaToken: {
               type: "string",
               description: "Recaptcha token if enabled",
-              nullable: !recaptchaEnabled,
+              nullable: true, // Always make it nullable in schema
             },
           },
           required: [
             "email",
             "password",
-            ...(recaptchaEnabled ? ["recaptchaToken"] : []),
+            // Don't require it in schema, validate in handler
           ],
         },
       },
@@ -101,7 +105,8 @@ export default async (data: Handler) => {
   try {
     const { email, password, recaptchaToken } = data.body;
 
-    if (recaptchaEnabled) await verifyRecaptchaOrThrow(recaptchaToken);
+    // Check reCAPTCHA at runtime
+    if (isRecaptchaEnabled()) await verifyRecaptchaOrThrow(recaptchaToken);
 
     const user = await findUserWith2FA(email); // Includes status validation
     await handleEmailVerificationIfRequired(user);
@@ -128,6 +133,13 @@ export default async (data: Handler) => {
 // Helper Functions
 
 async function verifyRecaptchaOrThrow(recaptchaToken: string) {
+  if (!recaptchaToken) {
+    throw createError({
+      statusCode: 400,
+      message: "reCAPTCHA token is required",
+    });
+  }
+  
   const isHuman = await verifyRecaptcha(recaptchaToken);
   if (!isHuman) {
     throw createError({

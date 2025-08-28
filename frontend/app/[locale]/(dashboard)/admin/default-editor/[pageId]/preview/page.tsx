@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit3, ExternalLink } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
 
@@ -23,7 +22,6 @@ interface PageContent {
 
 export default function PreviewDefaultPage() {
   const params = useParams();
-  const t = useTranslations();
   const pageId = params.pageId as string;
   
   const [pageContent, setPageContent] = useState<PageContent | null>(null);

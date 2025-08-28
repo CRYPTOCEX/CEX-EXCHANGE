@@ -17,10 +17,10 @@ import TwoFactorForm from "@/components/auth/two-factor-form";
 
 // Environment variables
 const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true" || false;
+  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
 const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
 const googleAuthStatus =
-  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true" || false;
+  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true";
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 interface LoginFormProps {
@@ -67,8 +67,14 @@ export default function LoginForm({
 
   // Initialize recaptcha if enabled
   useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled) {
+    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
       try {
+        // Check if script already exists
+        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
+        if (existingScript) {
+          return;
+        }
+
         const scriptElement = document.createElement("script");
         scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
         scriptElement.async = true;
@@ -80,12 +86,15 @@ export default function LoginForm({
           const { grecaptcha } = window as any;
           if (grecaptcha) {
             grecaptcha.ready(() => {
-              // Recaptcha is ready
+              // reCAPTCHA is ready
             });
           }
         };
+
+        // Silent error handling for reCAPTCHA script loading
+        scriptElement.onerror = () => {};
       } catch (err) {
-        console.error("Error loading reCAPTCHA:", err);
+        // Silent error handling
       }
     }
 
@@ -139,18 +148,36 @@ export default function LoginForm({
       let recaptchaToken = null;
       if (recaptchaEnabled && typeof window !== "undefined") {
         try {
-          const { grecaptcha } = window as any;
-          if (grecaptcha && grecaptcha.ready) {
-            await new Promise((resolve) => {
-              grecaptcha.ready(() => {
-                resolve(true);
+          // Wait for grecaptcha to be available (max 5 seconds)
+          let attempts = 0;
+          const maxAttempts = 10;
+          while (attempts < maxAttempts) {
+            const { grecaptcha } = window as any;
+            if (grecaptcha && grecaptcha.ready) {
+              await new Promise((resolve) => {
+                grecaptcha.ready(() => {
+                  resolve(true);
+                });
               });
+              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
+                action: "login",
+              });
+              break;
+            }
+            attempts++;
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+          
+          if (!recaptchaToken) {
+            toast({
+              title: "reCAPTCHA Loading Error",
+              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
+              variant: "destructive",
             });
-            recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-              action: "login",
-            });
-          } else {
-            console.warn("reCAPTCHA not loaded properly");
+            setLocalLoading(false);
+            return;
           }
         } catch (recaptchaError) {
           console.error("reCAPTCHA error:", recaptchaError);
@@ -169,8 +196,6 @@ export default function LoginForm({
         console.error("Login promise rejection:", err);
         return false;
       });
-
-      console.log("Login result:", success);
 
       // Check if 2FA is required
       if (success && typeof success === 'object' && success.requiresTwoFactor) {
@@ -249,8 +274,8 @@ export default function LoginForm({
   const loginWithRecaptcha = async (email: string, password: string, recaptchaToken: string | null) => {
     const { login } = useUserStore.getState();
     
-    // If we have a recaptchaToken, use the direct API call with token
-    if (recaptchaEnabled && recaptchaToken) {
+    // If reCAPTCHA is enabled, always use the direct API call (with or without token)
+    if (recaptchaEnabled) {
       const { data, error } = await $fetch({
         url: "/api/auth/login",
         method: "POST",
@@ -287,7 +312,7 @@ export default function LoginForm({
 
       return true;
     } else {
-      // Use the store's login function if reCAPTCHA is disabled
+      // Use the store's login function only if reCAPTCHA is completely disabled
       return await login(email, password);
     }
   };

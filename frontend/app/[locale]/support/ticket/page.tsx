@@ -282,7 +282,7 @@ export default function SupportPage() {
       </div>
     );
   }
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const canUseSupport = hasKyc() && canAccessFeature("support_ticket");
   if (kycEnabled && !canUseSupport) {
     return <KycRequiredNotice feature="support_ticket" />;

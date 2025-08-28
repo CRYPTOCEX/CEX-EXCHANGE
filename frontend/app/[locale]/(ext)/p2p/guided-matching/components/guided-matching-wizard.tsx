@@ -126,7 +126,7 @@ export function GuidedMatchingWizard({
 }: GuidedMatchingWizardProps) {
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [walletOptions, setWalletOptions] = useState<WalletOption[]>([]);

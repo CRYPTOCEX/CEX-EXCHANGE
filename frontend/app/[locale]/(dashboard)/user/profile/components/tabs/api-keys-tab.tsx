@@ -88,7 +88,7 @@ export function ApiKeysTab() {
   useEffect(() => {
     fetchApiKeys();
   }, []);
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("api_keys");
   if (kycEnabled && !hasAccess) {
     // This shows the correct message/title/description

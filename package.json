@@ -2,7 +2,7 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.4.3",
+  "version": "5.4.4",
   "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
@@ -37,15 +37,15 @@
     "@babel/parser": "^7.28.3",
     "@babel/traverse": "^7.28.3",
     "@babel/types": "^7.28.2",
-    "@eslint/js": "^9.33.0",
-    "@next/eslint-plugin-next": "^15.5.0",
+    "@eslint/js": "^9.34.0",
+    "@next/eslint-plugin-next": "^15.5.2",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.20",
-    "@types/node": "^22.17.2",
+    "@types/node": "^22.18.0",
     "@typescript-eslint/eslint-plugin": "8.0.0-alpha.26",
     "@typescript-eslint/parser": "8.0.0-alpha.26",
     "concurrently": "^7.6.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
@@ -58,7 +58,7 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.41.0"
   },
   "_moduleAliases": {
     "@": "frontend",
@@ -67,17 +67,17 @@
   },
   "dependencies": {
     "@google-cloud/translate": "^9.2.0",
-    "@reown/appkit": "^1.7.20",
-    "@reown/appkit-adapter-wagmi": "^1.7.20",
+    "@reown/appkit": "^1.8.1",
+    "@reown/appkit-adapter-wagmi": "^1.8.1",
     "@tanstack/react-query": "^5.85.5",
     "@vitalets/google-translate-api": "^9.2.1",
-    "ccxt": "^4.5.1",
+    "ccxt": "^4.5.2",
     "dotenv": "^16.6.1",
     "jose": "^5.10.0",
     "mysql2": "^3.14.3",
     "tonweb": "^0.0.66",
-    "viem": "^2.34.0",
-    "wagmi": "^2.16.4"
+    "viem": "^2.36.0",
+    "wagmi": "^2.16.8"
   },
   "pnpm": {
     "overrides": {
@@ -116,6 +116,6 @@
       "esbuild"
     ]
   },
-  "lastCommit": "7f369926cc06627d3df72f08f962794591ae3836",
-  "lastCommitDate": "2025-08-19T14:26:37.289Z"
+  "lastCommit": "35bb47ddf77b18967baede9f94a2c0c5aadbe2b0",
+  "lastCommitDate": "2025-08-24T01:37:43.930Z"
 }

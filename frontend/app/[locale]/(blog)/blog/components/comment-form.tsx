@@ -23,7 +23,7 @@ export function CommentForm({ postId, userId }: CommentFormProps) {
   const { settings } = useConfigStore();
 
   // Gating logic: block unless user passes KYC & has comment_blog permission
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("comment_blog");
 
   // Check if comments are moderated

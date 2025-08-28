@@ -153,8 +153,8 @@ export const ProfileSidebar = memo(function ProfileSidebar() {
         <div className="mt-4 flex items-center">
           <span className="bg-primary/15 text-primary text-xs font-medium px-3 py-1.5 rounded-full flex items-center shadow-sm">
             <span className="w-2 h-2 bg-primary rounded-full mr-1.5"></span>
-            {t("Level")}
-            {user?.kycLevel}
+            {t("Level")}{" "}
+            {user?.kycLevel}{" "}
             {t("Verified")}
           </span>
         </div>

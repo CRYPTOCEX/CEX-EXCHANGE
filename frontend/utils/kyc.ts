@@ -1,6 +1,6 @@
-// Check if site KYC is enabled
+// Check if site KYC is enabled (handle both string and boolean values)
 export function isKycEnabled(settings: Record<string, any>): boolean {
-  return settings?.kycStatus === "true";
+  return settings?.kycStatus === true || settings?.kycStatus === "true";
 }
 
 // User has completed KYC (e.g. "APPROVED")

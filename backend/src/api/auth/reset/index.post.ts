@@ -6,8 +6,12 @@ import { createError } from "@b/utils/error";
 import { emailQueue } from "@b/utils/emails";
 import { verifyRecaptcha } from "../utils";
 
-const recaptchaEnabled =
+// Check reCAPTCHA status - use a function to check at runtime
+const isRecaptchaEnabled = () => 
   process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
+
+// For backward compatibility, keep the const but use the function
+const recaptchaEnabled = isRecaptchaEnabled();
 
 export const metadata: OperationObject = {
   summary: "Initiates a password reset process for a user",
@@ -31,12 +35,12 @@ export const metadata: OperationObject = {
             recaptchaToken: {
               type: "string",
               description: "Recaptcha token if enabled",
-              nullable: !recaptchaEnabled,
+              nullable: true, // Always make it nullable in schema
             },
           },
           required: [
             "email",
-            ...(recaptchaEnabled ? ["recaptchaToken"] : []),
+            // Don't require it in schema, validate in handler
           ],
         },
       },
@@ -89,8 +93,8 @@ export default (data: Handler) => {
 };
 
 const resetPasswordQuery = async (email: string, recaptchaToken?: string) => {
-  // Verify reCAPTCHA if enabled
-  if (recaptchaEnabled) {
+  // Verify reCAPTCHA if enabled (check at runtime)
+  if (isRecaptchaEnabled()) {
     if (!recaptchaToken) {
       throw createError({
         statusCode: 400,

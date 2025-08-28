@@ -19,7 +19,7 @@ export function AllAuthorsClient() {
   const { settings } = useConfigStore();
 
   // Gating logic
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("author_blog");
   useEffect(() => {
     fetchAllAuthors();

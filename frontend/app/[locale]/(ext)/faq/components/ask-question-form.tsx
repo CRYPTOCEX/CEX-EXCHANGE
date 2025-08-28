@@ -44,7 +44,7 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
     );
   }
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const canAskFaq = hasKyc() && canAccessFeature("ask_faq");
 
   if (kycEnabled && !canAskFaq) {

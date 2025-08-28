@@ -25,7 +25,7 @@ export default function InvestmentClient() {
   }, [hasFetchedPlans]);
 
   // 2. Check feature/kyc
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasViewInvestment = hasKyc() && canAccessFeature("view_investment");
 
   if (kycEnabled && !hasViewInvestment) {

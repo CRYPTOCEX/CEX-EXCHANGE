@@ -73,8 +73,8 @@ export function UserKycClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if KYC is enabled in settings
-  const kycEnabled = settings?.kycStatus === "true";
+  // Check if KYC is enabled in settings (handle both string and boolean values)
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
 
   // If KYC is disabled, show a message with button to go to profile
   if (!kycEnabled) {

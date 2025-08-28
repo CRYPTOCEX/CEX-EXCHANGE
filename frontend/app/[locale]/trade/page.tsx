@@ -32,7 +32,7 @@ export default function TradePage() {
     return { requiredFeature: "trade" };
   }, [pathname, searchParams]);
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
 
   // 2. Websocket cleanup hook — always called!
   useEffect(() => {

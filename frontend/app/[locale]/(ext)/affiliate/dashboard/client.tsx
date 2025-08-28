@@ -74,6 +74,7 @@ import {
 import { useUserStore } from "@/store/user";
 import { useConfigStore } from "@/store/config";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
+import { useLocale } from "next-intl";
 
 // Define chart data types
 interface ReferralChartItem {
@@ -93,6 +94,7 @@ export default function AffiliateDashboardClient() {
   const { user, hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const { conditions, fetchConditions } = useConditionStore();
+  const locale = useLocale();
   const {
     dashboardData: { referrals, rewards, monthlyEarnings, stats },
     loading,
@@ -103,11 +105,12 @@ export default function AffiliateDashboardClient() {
   const [referralLink, setReferralLink] = useState("");
   useEffect(() => {
     if (user?.id) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       setReferralLink(
-        `${process.env.NEXT_PUBLIC_SITE_URL}/register?ref=${user.id}`
+        `${baseUrl}/${locale}/register?ref=${user.id}`
       );
     }
-  }, [user?.id]);
+  }, [user?.id, locale]);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<string[]>([]);
   const [chartPeriod, setChartPeriod] = useState("6m");
@@ -509,7 +512,7 @@ export default function AffiliateDashboardClient() {
   );
 
   // KYC status & feature check
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAffiliateAccess = hasKyc() && canAccessFeature("affiliate_mlm");
   if (kycEnabled && !hasAffiliateAccess) {
     return <KycRequiredNotice feature="affiliate_mlm" />;

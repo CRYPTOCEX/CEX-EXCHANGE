@@ -60,8 +60,8 @@ export default async (data: Handler) => {
 
 export async function getUserInvestment(
   userId: string
-): Promise<investmentAttributes | null> {
-  const response = await models.investment.findOne({
+): Promise<investmentAttributes[] | null> {
+  const response = await models.investment.findAll({
     where: {
       userId: userId,
       status: "ACTIVE",
@@ -79,9 +79,9 @@ export async function getUserInvestment(
     ],
   });
 
-  if (!response) {
-    throw new Error("Investment not found");
+  if (!response || response.length === 0) {
+    throw new Error("No active investments found");
   }
 
-  return response.get({ plain: true }) as unknown as investmentAttributes;
+  return response.map(inv => inv.get({ plain: true })) as unknown as investmentAttributes[];
 }

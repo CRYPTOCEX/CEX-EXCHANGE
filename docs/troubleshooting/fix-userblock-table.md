@@ -3,7 +3,7 @@
 ## Problem
 When starting the backend, you may encounter this error:
 ```
-Can't create table `coinexchangeworld`.`userBlock` (errno: 121 "Duplicate key on write or update")
+Can't create table `userBlock` (errno: 121 "Duplicate key on write or update")
 ```
 
 This error occurs due to:

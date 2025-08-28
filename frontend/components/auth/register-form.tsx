@@ -26,10 +26,10 @@ import { useTranslations } from "next-intl";
 
 // Environment variables
 const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true" || false;
+  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
 const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
 const googleAuthStatus =
-  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true" || false;
+  process.env.NEXT_PUBLIC_GOOGLE_AUTH_STATUS === "true";
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 interface RegisterFormProps {
@@ -51,8 +51,51 @@ export default function RegisterForm({
   const isLoading = useUserStore((state) => state.isLoading);
   const error = useUserStore((state) => state.error);
 
-  // Get referral code from URL if present
-  const refCode = searchParams.get("ref") || "";
+  // Get referral code from URL or sessionStorage
+  const urlRef = searchParams.get("ref") || "";
+  const [refCode, setRefCode] = useState(urlRef);
+  const [referrerInfo, setReferrerInfo] = useState<{ name: string; avatar?: string } | null>(null);
+  const [loadingReferrer, setLoadingReferrer] = useState(false);
+  
+  // Check sessionStorage for affiliate ref on mount
+  useEffect(() => {
+    if (!urlRef && typeof window !== "undefined") {
+      const storedRef = sessionStorage.getItem("affiliateRef");
+      if (storedRef) {
+        setRefCode(storedRef);
+      }
+    }
+  }, [urlRef]);
+
+  // Fetch referrer information when refCode changes
+  useEffect(() => {
+    const fetchReferrerInfo = async () => {
+      if (refCode) {
+        setLoadingReferrer(true);
+        try {
+          const { data, error } = await $fetch({
+            url: `/api/public/referrer/${refCode}`,
+            method: "GET",
+            silent: true,
+          });
+          
+          if (data && !error) {
+            setReferrerInfo(data);
+          } else {
+            // If fetching fails, just show the code
+            setReferrerInfo(null);
+          }
+        } catch (err) {
+          console.error("Failed to fetch referrer info:", err);
+          setReferrerInfo(null);
+        } finally {
+          setLoadingReferrer(false);
+        }
+      }
+    };
+
+    fetchReferrerInfo();
+  }, [refCode]);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -76,22 +119,42 @@ export default function RegisterForm({
 
   // Initialize recaptcha if enabled
   useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled) {
-      const scriptElement = document.createElement("script");
-      scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-      scriptElement.async = true;
-      scriptElement.defer = true;
-      document.body.appendChild(scriptElement);
-      setScript(scriptElement);
-
-      scriptElement.onload = () => {
-        const { grecaptcha } = window as any;
-        if (grecaptcha) {
-          grecaptcha.ready(() => {
-            // Recaptcha is ready
-          });
+    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
+      try {
+        // Check if script already exists
+        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
+        if (existingScript) {
+          console.log("reCAPTCHA script already loaded");
+          return;
         }
-      };
+
+        const scriptElement = document.createElement("script");
+        scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+        scriptElement.async = true;
+        scriptElement.defer = true;
+        document.body.appendChild(scriptElement);
+        setScript(scriptElement);
+
+        scriptElement.onload = () => {
+          console.log("reCAPTCHA script loaded successfully");
+          const { grecaptcha } = window as any;
+          if (grecaptcha) {
+            grecaptcha.ready(() => {
+              console.log("reCAPTCHA is ready for use");
+            });
+          }
+        };
+
+        scriptElement.onerror = () => {
+          console.error("Failed to load reCAPTCHA script");
+        };
+      } catch (err) {
+        console.error("Error loading reCAPTCHA:", err);
+      }
+    } else {
+      if (!recaptchaSiteKey && recaptchaEnabled) {
+        console.error("reCAPTCHA is enabled but site key is missing");
+      }
     }
 
     return () => {
@@ -267,18 +330,39 @@ export default function RegisterForm({
       let recaptchaToken = null;
       if (recaptchaEnabled && typeof window !== "undefined") {
         try {
-          const { grecaptcha } = window as any;
-          if (grecaptcha && grecaptcha.ready) {
-            await new Promise((resolve) => {
-              grecaptcha.ready(() => {
-                resolve(true);
+          // Wait for grecaptcha to be available (max 5 seconds)
+          let attempts = 0;
+          const maxAttempts = 10;
+          while (attempts < maxAttempts) {
+            const { grecaptcha } = window as any;
+            if (grecaptcha && grecaptcha.ready) {
+              await new Promise((resolve) => {
+                grecaptcha.ready(() => {
+                  resolve(true);
+                });
               });
+              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
+                action: "register",
+              });
+              console.log("reCAPTCHA token generated:", recaptchaToken ? "Success" : "Failed");
+              break;
+            }
+            attempts++;
+            if (attempts < maxAttempts) {
+              console.log(`Waiting for reCAPTCHA to load... Attempt ${attempts}/${maxAttempts}`);
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+          
+          if (!recaptchaToken) {
+            console.error("reCAPTCHA not loaded after maximum attempts");
+            toast({
+              title: "reCAPTCHA Loading Error",
+              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
+              variant: "destructive",
             });
-            recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-              action: "register",
-            });
-          } else {
-            console.warn("reCAPTCHA not loaded properly");
+            setLocalLoading(false);
+            return;
           }
         } catch (recaptchaError) {
           console.error("reCAPTCHA error:", recaptchaError);
@@ -747,7 +831,7 @@ export default function RegisterForm({
               <Input
                 type="text"
                 placeholder={t("referrer")}
-                value={refCode}
+                value={loadingReferrer ? "Loading..." : (referrerInfo?.name || refCode)}
                 readOnly
                 className="border-0 pl-10 py-6 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base text-muted-foreground cursor-not-allowed"
                 disabled
@@ -756,12 +840,21 @@ export default function RegisterForm({
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                {loadingReferrer ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                )}
               </div>
             </div>
             <div className="flex items-center text-xs text-muted-foreground">
               <Info className="h-3 w-3 mr-1" />
-              <span>{t("you_were_referred_by")}: <span className="font-medium text-foreground">{refCode}</span></span>
+              <span>
+                {t("you_were_referred_by")}: 
+                <span className="font-medium text-foreground ml-1">
+                  {loadingReferrer ? "..." : (referrerInfo?.name || `ID: ${refCode}`)}
+                </span>
+              </span>
             </div>
           </div>
         )}
@@ -902,7 +995,7 @@ export default function RegisterForm({
             <div className="relative p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center">
                 <span className="text-primary font-medium mr-2">#</span>
-                <span>{refCode}</span>
+                <span>{loadingReferrer ? "Loading..." : (referrerInfo?.name || `ID: ${refCode}`)}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {t("referral_code_applied")}

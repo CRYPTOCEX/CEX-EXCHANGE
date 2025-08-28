@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import type { Symbol, OrderSide } from "@/store/trade/use-binary-store";
 import { useBinaryStore } from "@/store/trade/use-binary-store";
@@ -69,12 +69,22 @@ export function OrderPanel({
   darkMode = true,
 }: OrderPanelProps) {
   const t = useTranslations("binary/components/order/order-panel");
-  // Core state
+  // Core state - Get selectedExpiryMinutes from store
+  const storeSelectedExpiryMinutes = useBinaryStore((state) => state.selectedExpiryMinutes);
   const [amount, setAmount] = useState<number>(1000);
-  const [expiryMinutes, setExpiryMinutes] = useState<number>(5);
+  // Use store value as initial state and sync with it
+  const [expiryMinutes, setInternalExpiryMinutes] = useState<number>(storeSelectedExpiryMinutes || 5);
   const [expiryTime, setExpiryTime] = useState<string>("00:00");
   const [pendingSide, setPendingSide] = useState<OrderSide | null>(null);
   const [timeToNextExpiry, setTimeToNextExpiry] = useState<string>("00:00");
+  
+  // Custom setter that updates both internal state and notifies parent
+  const setExpiryMinutes = useCallback((minutes: number) => {
+    setInternalExpiryMinutes(minutes);
+    if (onExpiryChange) {
+      onExpiryChange(minutes);
+    }
+  }, [onExpiryChange]);
 
   // UI state
   const [activeTab, setActiveTab] = useState<"basic">("basic");
@@ -197,11 +207,13 @@ export function OrderPanel({
         setBinaryDurations(durations);
         setIsLoadingDurations(false);
 
-        // Set default expiry to the first active duration
-        const activeDurations = durations.filter((d) => d.status === true);
-        const defaultDuration =
-          activeDurations.length > 0 ? activeDurations[0] : durations[0];
-        setExpiryMinutes(defaultDuration.duration);
+        // Set default expiry to the first active duration only if not already set
+        if (!storeSelectedExpiryMinutes) {
+          const activeDurations = durations.filter((d) => d.status === true);
+          const defaultDuration =
+            activeDurations.length > 0 ? activeDurations[0] : durations[0];
+          setExpiryMinutes(defaultDuration.duration);
+        }
       } else {
         setIsLoadingDurations(storeIsLoading);
       }
@@ -224,24 +236,34 @@ export function OrderPanel({
           setBinaryDurations(durations);
           setIsLoadingDurations(false);
 
-          // Set default expiry to the first active duration
-          const activeDurations = durations.filter((d) => d.status === true);
-          const defaultDuration =
-            activeDurations.length > 0 ? activeDurations[0] : durations[0];
-          setExpiryMinutes(defaultDuration.duration);
+          // Set default expiry to the first active duration only if not already set
+          if (!storeSelectedExpiryMinutes) {
+            const activeDurations = durations.filter((d) => d.status === true);
+            const defaultDuration =
+              activeDurations.length > 0 ? activeDurations[0] : durations[0];
+            setExpiryMinutes(defaultDuration.duration);
+          }
         }
         setIsLoadingDurations(state.isLoadingDurations);
       }, 0);
     });
 
     return unsubscribe;
-  }, []);
+  }, [storeSelectedExpiryMinutes]);
 
   // Set isMounted to true after component mounts
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
+  
+  // Sync with store changes - when store value changes, update internal state
+  useEffect(() => {
+    if (storeSelectedExpiryMinutes && storeSelectedExpiryMinutes !== expiryMinutes) {
+      console.log(`[OrderPanel] Syncing with store expiry: ${storeSelectedExpiryMinutes} minutes`);
+      setInternalExpiryMinutes(storeSelectedExpiryMinutes);
+    }
+  }, [storeSelectedExpiryMinutes]);
 
   // Calculate expiry times based on adjusted current time and fetched durations
   const calculateExpiryTimes = useCallback(() => {
@@ -339,7 +361,7 @@ export function OrderPanel({
   ]);
 
   // Expiry time navigation
-  const increaseExpiry = () => {
+  const increaseExpiry = useCallback(() => {
     const currentIndex = presetExpiryTimes.findIndex(
       (item) => item.minutes === expiryMinutes
     );
@@ -347,20 +369,22 @@ export function OrderPanel({
       presetExpiryTimes.length > 0 &&
       currentIndex < presetExpiryTimes.length - 1
     ) {
-      setExpiryMinutes(presetExpiryTimes[currentIndex + 1].minutes);
+      const newMinutes = presetExpiryTimes[currentIndex + 1].minutes;
+      setExpiryMinutes(newMinutes);
       setExpiryTime(presetExpiryTimes[currentIndex + 1].display);
     }
-  };
+  }, [expiryMinutes, presetExpiryTimes, setExpiryMinutes]);
 
-  const decreaseExpiry = () => {
+  const decreaseExpiry = useCallback(() => {
     const currentIndex = presetExpiryTimes.findIndex(
       (item) => item.minutes === expiryMinutes
     );
     if (presetExpiryTimes.length > 0 && currentIndex > 0) {
-      setExpiryMinutes(presetExpiryTimes[currentIndex - 1].minutes);
+      const newMinutes = presetExpiryTimes[currentIndex - 1].minutes;
+      setExpiryMinutes(newMinutes);
       setExpiryTime(presetExpiryTimes[currentIndex - 1].display);
     }
-  };
+  }, [expiryMinutes, presetExpiryTimes, setExpiryMinutes]);
 
   // Update expiry time display
   useEffect(() => {
@@ -396,8 +420,17 @@ export function OrderPanel({
       presetExpiryTimes.length > 0 &&
       !presetExpiryTimes.some((item) => item.minutes === expiryMinutes)
     ) {
-      setExpiryMinutes(presetExpiryTimes[0].minutes);
-      setExpiryTime(presetExpiryTimes[0].display);
+      // Try to find the closest available duration
+      const closestDuration = presetExpiryTimes.reduce((prev, curr) => {
+        return Math.abs(curr.minutes - expiryMinutes) < Math.abs(prev.minutes - expiryMinutes) 
+          ? curr 
+          : prev;
+      });
+      
+      if (closestDuration) {
+        setExpiryMinutes(closestDuration.minutes);
+        setExpiryTime(closestDuration.display);
+      }
     }
   }, [presetExpiryTimes.length]); // Only depend on length to avoid infinite loops
 

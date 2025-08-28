@@ -34,7 +34,7 @@ export function WalletDashboard() {
     fetchWallets();
   }, []);
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("view_wallets");
 
   if (kycEnabled && !hasAccess) {

@@ -383,20 +383,38 @@ export async function addOneTimeToken(
 
 export const verifyRecaptcha = async (token) => {
   try {
-  const secretKey = process.env.GOOGLE_RECAPTCHA_SECRET_KEY;
-  const response = await fetch(
-    `https://www.google.com/recaptcha/api/siteverify`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `secret=${secretKey}&response=${token}`,
+    const secretKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SECRET_KEY;
+    
+    if (!secretKey) {
+      console.error('reCAPTCHA secret key not found in environment variables');
+      return false;
     }
-  );
+    
+    if (!token) {
+      console.error('reCAPTCHA token is missing');
+      return false;
+    }
+    
+    console.log('Verifying reCAPTCHA token with Google...');
+    
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `secret=${secretKey}&response=${token}`,
+      }
+    );
 
-  const data = await response.json();
-  return data.success;
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('reCAPTCHA verification failed:', data['error-codes']);
+    }
+    
+    return data.success;
   } catch (error) {
     console.error('reCAPTCHA verification error:', error);
     return false;

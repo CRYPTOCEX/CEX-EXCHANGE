@@ -512,7 +512,7 @@ export default function DefaultHomePage() {
                       href="/market"
                       className="group inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors text-sm md:text-base"
                     >
-                      {getContent(pageContent, "marketSection.viewAllText", "view_all_markets")}
+                      {getContent(pageContent, "marketSection.viewAllText", t("view_all_markets"))}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
@@ -569,7 +569,7 @@ export default function DefaultHomePage() {
                 isDark ? "text-zinc-300" : "text-gray-600"
               )}
             >
-                {getContent(pageContent, "featuresSection.description", "experience_the_most_unmatched_security")}
+                {getContent(pageContent, "featuresSection.description", t("experience_the_most_unmatched_security"))}
             </AnimatedText>
           </AnimatedSection>
 
@@ -757,7 +757,7 @@ export default function DefaultHomePage() {
 
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold mb-6">
-                    {getContent(pageContent, "global.platform_features", "platform_features")}
+                    {getContent(pageContent, "global.platform_features", t("platform_features"))}
                   </h3>
 
                   <div className="space-y-4">

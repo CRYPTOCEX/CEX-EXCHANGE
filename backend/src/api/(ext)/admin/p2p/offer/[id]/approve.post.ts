@@ -55,11 +55,18 @@ export default async (data) => {
 
   try {
     const offer = await models.p2pOffer.findByPk(id, {
-      include: [{
-        model: models.user,
-        as: "user",
-        attributes: ["id", "firstName", "lastName", "email"],
-      }],
+      include: [
+        {
+          model: models.user,
+          as: "user",
+          attributes: ["id", "firstName", "lastName", "email"],
+        },
+        {
+          model: models.p2pPaymentMethod,
+          as: "paymentMethods",
+          through: { attributes: [] },
+        }
+      ],
     });
     
     if (!offer) {

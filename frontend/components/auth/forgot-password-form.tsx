@@ -17,7 +17,7 @@ import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
 
 const recaptchaEnabled =
-  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true" || false;
+  process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
 const recaptchaSiteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
 
 interface ForgotPasswordFormProps {
@@ -45,8 +45,15 @@ export default function ForgotPasswordForm({
 
   // Initialize recaptcha if enabled
   useEffect(() => {
-    if (typeof window !== "undefined" && recaptchaEnabled) {
+    if (typeof window !== "undefined" && recaptchaEnabled && recaptchaSiteKey) {
       try {
+        // Check if script already exists
+        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
+        if (existingScript) {
+          console.log("reCAPTCHA script already loaded");
+          return;
+        }
+
         const scriptElement = document.createElement("script");
         scriptElement.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
         scriptElement.async = true;
@@ -55,15 +62,24 @@ export default function ForgotPasswordForm({
         setScript(scriptElement);
 
         scriptElement.onload = () => {
+          console.log("reCAPTCHA script loaded successfully");
           const { grecaptcha } = window as any;
           if (grecaptcha) {
             grecaptcha.ready(() => {
-              // Recaptcha is ready
+              console.log("reCAPTCHA is ready for use");
             });
           }
         };
+
+        scriptElement.onerror = () => {
+          console.error("Failed to load reCAPTCHA script");
+        };
       } catch (err) {
         console.error("Error loading reCAPTCHA:", err);
+      }
+    } else {
+      if (!recaptchaSiteKey && recaptchaEnabled) {
+        console.error("reCAPTCHA is enabled but site key is missing");
       }
     }
 
@@ -92,18 +108,39 @@ export default function ForgotPasswordForm({
       let recaptchaToken = null;
       if (recaptchaEnabled && typeof window !== "undefined") {
         try {
-          const { grecaptcha } = window as any;
-          if (grecaptcha && grecaptcha.ready) {
-            await new Promise((resolve) => {
-              grecaptcha.ready(() => {
-                resolve(true);
+          // Wait for grecaptcha to be available (max 5 seconds)
+          let attempts = 0;
+          const maxAttempts = 10;
+          while (attempts < maxAttempts) {
+            const { grecaptcha } = window as any;
+            if (grecaptcha && grecaptcha.ready) {
+              await new Promise((resolve) => {
+                grecaptcha.ready(() => {
+                  resolve(true);
+                });
               });
+              recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
+                action: "password_reset",
+              });
+              console.log("reCAPTCHA token generated:", recaptchaToken ? "Success" : "Failed");
+              break;
+            }
+            attempts++;
+            if (attempts < maxAttempts) {
+              console.log(`Waiting for reCAPTCHA to load... Attempt ${attempts}/${maxAttempts}`);
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+          
+          if (!recaptchaToken) {
+            console.error("reCAPTCHA not loaded after maximum attempts");
+            toast({
+              title: "reCAPTCHA Loading Error",
+              description: "reCAPTCHA failed to load. Please refresh the page and try again.",
+              variant: "destructive",
             });
-            recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, {
-              action: "password_reset",
-            });
-          } else {
-            console.warn("reCAPTCHA not loaded properly");
+            setLoading(false);
+            return;
           }
         } catch (recaptchaError) {
           console.error("reCAPTCHA error:", recaptchaError);

@@ -15,7 +15,6 @@ import {
   Code,
   Palette
 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { $fetch } from "@/lib/api";
 
@@ -63,7 +62,6 @@ const formatRelativeDate = (isoString: string): string => {
 };
 
 export default function DefaultEditorPage() {
-  const t = useTranslations();
   const [selectedPage, setSelectedPage] = useState<string | null>(null);
   const [pages, setPages] = useState<DefaultPageWithIcon[]>([]);
   const [loading, setLoading] = useState(true);

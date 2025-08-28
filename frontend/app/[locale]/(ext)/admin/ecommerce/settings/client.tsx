@@ -54,16 +54,13 @@ export default function SettingsConfiguration() {
       body: localSettings,
     });
     if (!error) {
-      // Merge with existing settings to avoid overwriting other extensions' settings
-      const mergedSettings = { ...settings, ...localSettings };
-      setSettings(mergedSettings);
-      setLocalSettings(mergedSettings);
+      setSettings(localSettings);
     }
     setSaving(false);
   };
 
   const handleUpdateSetting = <T extends keyof any>(key: T, value: any) => {
-    setLocalSettings(prev => ({ ...prev, [key as string]: value }));
+    updateSetting(key as string, value);
   };
 
   if (loading) {

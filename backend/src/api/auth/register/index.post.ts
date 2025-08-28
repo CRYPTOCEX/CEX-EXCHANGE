@@ -4,8 +4,12 @@ import { handleReferralRegister } from "@b/utils/affiliate";
 import { returnUserWithTokens, sendEmailVerificationToken, verifyRecaptcha } from "../utils";
 import { createError } from "@b/utils/error";
 
-const recaptchaEnabled =
+// Check reCAPTCHA status - use a function to check at runtime
+const isRecaptchaEnabled = () => 
   process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_STATUS === "true";
+
+// For backward compatibility, keep the const but use the function
+const recaptchaEnabled = isRecaptchaEnabled();
 
 // --- Helper: Sanitize Names ---
 /**
@@ -65,7 +69,7 @@ export const metadata: OperationObject = {
             recaptchaToken: {
               type: "string",
               description: "Recaptcha token if enabled",
-              nullable: !recaptchaEnabled,
+              nullable: true, // Always make it nullable in schema
             },
           },
           required: [
@@ -73,7 +77,7 @@ export const metadata: OperationObject = {
             "lastName",
             "email",
             "password",
-            ...(recaptchaEnabled ? ["recaptchaToken"] : []),
+            // Don't require it in schema, validate in handler
           ],
         },
       },
@@ -137,8 +141,8 @@ export default async (data: Handler) => {
   let { firstName, lastName } = body;
   const { email, password, ref, recaptchaToken } = body;
 
-  // Verify reCAPTCHA if enabled
-  if (recaptchaEnabled) {
+  // Verify reCAPTCHA if enabled (check at runtime)
+  if (isRecaptchaEnabled()) {
     if (!recaptchaToken) {
       throw createError({
         statusCode: 400,
