@@ -36,7 +36,7 @@ If the script doesn't work, manually fix the database:
 
 1. Connect to your MySQL database:
 ```bash
-mysql -u root -p coinexchangeworld
+mysql -u root -p 
 ```
 
 2. Drop the problematic table if it exists:
