@@ -37,11 +37,15 @@ export async function sendEmailWithProvider(
   try {
     switch (provider) {
       case "local":
+        const localSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
+        const localSenderEmail = process.env.NEXT_PUBLIC_APP_EMAIL || "no-reply@localhost";
+        options.from = `"${localSenderName}" <${localSenderEmail}>`;
         await emailWithLocalSMTP(options);
         break;
 
       case "nodemailer-service":
-        options.from = APP_NODEMAILER_SERVICE_SENDER;
+        const serviceSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
+        options.from = `"${serviceSenderName}" <${APP_NODEMAILER_SERVICE_SENDER}>`;
         await emailWithNodemailerService(
           APP_NODEMAILER_SERVICE_SENDER,
           APP_NODEMAILER_SERVICE_PASSWORD,
@@ -51,11 +55,12 @@ export async function sendEmailWithProvider(
         break;
 
       case "nodemailer-smtp":
-        options.from =
-          process.env.NEXT_PUBLIC_APP_EMAIL &&
+        const senderEmail = process.env.NEXT_PUBLIC_APP_EMAIL &&
           process.env.NEXT_PUBLIC_APP_EMAIL !== ""
             ? process.env.NEXT_PUBLIC_APP_EMAIL
             : APP_NODEMAILER_SMTP_SENDER;
+        const senderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
+        options.from = `"${senderName}" <${senderEmail}>`;
         await emailWithNodemailerSmtp(
           APP_NODEMAILER_SMTP_SENDER,
           APP_NODEMAILER_SMTP_PASSWORD,
@@ -67,7 +72,8 @@ export async function sendEmailWithProvider(
         break;
 
       case "nodemailer-sendgrid":
-        options.from = APP_SENDGRID_SENDER;
+        const sendgridSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
+        options.from = `"${sendgridSenderName}" <${APP_SENDGRID_SENDER}>`;
         await emailWithSendgrid(options);
         break;
 
@@ -279,15 +285,16 @@ export async function prepareEmailTemplate(
 
   // Use direct logo links instead of settings
   const logoUrl = `${NEXT_PUBLIC_SITE_URL}/img/logo/logo-text.webp`;
+  const siteName = NEXT_PUBLIC_SITE_NAME || "Bicrypto";
 
   const replacements = {
     "%SITE_URL%": NEXT_PUBLIC_SITE_URL,
-    "%SITE_NAME%": NEXT_PUBLIC_SITE_NAME || "Bicrypto",
+    "%SITE_NAME%": siteName,
     "%LOGO_URL%": logoUrl,
-    "%HEADER%": `<img src="${logoUrl}" style="max-height:96px;" />`,
+    "%HEADER%": processedSubject,
     "%MESSAGE%": processedTemplate,
     "%SUBJECT%": processedSubject,
-    "%FOOTER%": NEXT_PUBLIC_SITE_NAME || "Bicrypto",
+    "%FOOTER%": siteName,
   };
 
   return Object.entries(replacements).reduce(

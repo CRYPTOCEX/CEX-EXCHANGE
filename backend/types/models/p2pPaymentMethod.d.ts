@@ -8,6 +8,7 @@ interface p2pPaymentMethodAttributes {
   processingTime?: string;
   fees?: string;
   available: boolean;
+  isGlobal: boolean;
   popularityRank: number;
   createdAt?: Date;
   updatedAt?: Date;

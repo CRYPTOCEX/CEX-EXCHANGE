@@ -104,15 +104,16 @@ export async function handleP2PTradeTimeouts() {
         await models.p2pActivityLog.create({
           userId: "system",
           type: "TRADE_EXPIRED",
-          entityId: trade.id,
-          entityType: "TRADE",
-          metadata: {
+          action: "EXPIRED",
+          relatedEntity: "TRADE",
+          relatedEntityId: trade.id,
+          details: JSON.stringify({
             previousStatus: lockedTrade.status,
             amount: trade.amount,
             currency: trade.offer.currency,
             buyerId: trade.buyerId,
             sellerId: trade.sellerId,
-          },
+          }),
         }, { transaction });
 
         await transaction.commit();
@@ -173,12 +174,13 @@ async function handleExpiredOffers() {
         await models.p2pActivityLog.create({
           userId: "system",
           type: "OFFER_EXPIRED",
-          entityId: offer.id,
-          entityType: "OFFER",
-          metadata: {
+          action: "EXPIRED",
+          relatedEntity: "OFFER",
+          relatedEntityId: offer.id,
+          details: JSON.stringify({
             reason: "inactivity_and_zero_balance",
             lastUpdated: offer.updatedAt,
-          },
+          }),
         });
 
         // Notify user

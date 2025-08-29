@@ -7,6 +7,7 @@ import {
   Tag,
   Shield,
   Settings,
+  CreditCard,
 } from "lucide-react";
 
 const adminNavItems: NavItem[] = [
@@ -19,6 +20,7 @@ const adminNavItems: NavItem[] = [
   { title: "Trades", href: "/admin/p2p/trade", icon: Repeat },
   { title: "Offers", href: "/admin/p2p/offer", icon: Tag },
   { title: "Disputes", href: "/admin/p2p/dispute", icon: Shield },
+  { title: "Payment Methods", href: "/admin/p2p/payment-method", icon: CreditCard },
   { title: "Settings", href: "/admin/p2p/settings", icon: Settings },
 ];
 

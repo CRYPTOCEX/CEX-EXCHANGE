@@ -80,19 +80,20 @@ export async function createP2PAuditLog(log: P2PAuditLog): Promise<void> {
     // Determine risk level if not provided
     const riskLevel = log.riskLevel || determineRiskLevel(log.eventType, log.metadata);
     
-    // Create the audit log entry
+    // Create the audit log entry with correct field names
     await models.p2pActivityLog.create({
       userId: log.userId,
       type: log.eventType,
-      entityType: log.entityType,
-      entityId: log.entityId,
-      metadata: {
+      action: log.eventType, // Use eventType as action since it describes what happened
+      relatedEntity: log.entityType,
+      relatedEntityId: log.entityId,
+      details: JSON.stringify({
         ...log.metadata,
         timestamp: new Date().toISOString(),
         riskLevel,
         isAdminAction: log.isAdminAction || false,
         adminId: log.adminId,
-      },
+      }),
     });
     
     // For high-risk events, create additional alert
@@ -113,15 +114,16 @@ export async function createP2PAuditLogBatch(logs: P2PAuditLog[]): Promise<void>
     const auditEntries = logs.map(log => ({
       userId: log.userId,
       type: log.eventType,
-      entityType: log.entityType,
-      entityId: log.entityId,
-      metadata: {
+      action: log.eventType, // Use eventType as action
+      relatedEntity: log.entityType,
+      relatedEntityId: log.entityId,
+      details: JSON.stringify({
         ...log.metadata,
         timestamp: new Date().toISOString(),
         riskLevel: log.riskLevel || determineRiskLevel(log.eventType, log.metadata),
         isAdminAction: log.isAdminAction || false,
         adminId: log.adminId,
-      },
+      }),
     }));
     
     await models.p2pActivityLog.bulkCreate(auditEntries);
@@ -281,8 +283,8 @@ export async function getP2PAuditLogs(
   }
 ) {
   const where: any = {
-    entityType,
-    entityId,
+    relatedEntity: entityType,
+    relatedEntityId: entityId,
   };
   
   if (options?.startDate || options?.endDate) {
@@ -328,7 +330,7 @@ export async function exportP2PAuditLogs(
   };
   
   if (options?.entityTypes?.length) {
-    where.entityType = { $in: options.entityTypes };
+    where.relatedEntity = { $in: options.entityTypes };
   }
   
   if (options?.eventTypes?.length) {
@@ -356,11 +358,11 @@ export async function exportP2PAuditLogs(
     userName: log.user ? `${log.user.firstName} ${log.user.lastName}` : "Unknown",
     userEmail: log.user?.email,
     eventType: log.type,
-    entityType: log.entityType,
-    entityId: log.entityId,
-    metadata: log.metadata,
-    riskLevel: log.metadata?.riskLevel,
-    isAdminAction: log.metadata?.isAdminAction,
-    adminId: log.metadata?.adminId,
+    entityType: log.relatedEntity,
+    entityId: log.relatedEntityId,
+    metadata: log.details ? JSON.parse(log.details) : {},
+    riskLevel: log.details ? JSON.parse(log.details).riskLevel : undefined,
+    isAdminAction: log.details ? JSON.parse(log.details).isAdminAction : false,
+    adminId: log.details ? JSON.parse(log.details).adminId : undefined,
   }));
 }

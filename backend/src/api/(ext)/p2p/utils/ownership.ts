@@ -71,13 +71,14 @@ export async function logP2PAdminAction(
     await models.p2pActivityLog.create({
       userId,
       type: `ADMIN_${action}`,
-      entityType,
-      entityId,
-      metadata: {
+      action: action,
+      relatedEntity: entityType,
+      relatedEntityId: entityId,
+      details: JSON.stringify({
         ...metadata,
         timestamp: new Date().toISOString(),
         isAdminAction: true,
-      },
+      }),
     });
   } catch (error) {
     console.error("Failed to log P2P admin action:", error);

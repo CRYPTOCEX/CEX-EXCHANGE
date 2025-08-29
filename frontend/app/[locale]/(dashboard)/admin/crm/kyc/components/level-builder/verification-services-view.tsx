@@ -109,6 +109,97 @@ const SUMSUB_TEMPLATES = [
     requiredDocuments: ["ID_DOCUMENT", "PROOF_OF_ADDRESS"],
   },
 ];
+
+const DEEPSEEK_TEMPLATES = [
+  {
+    id: "document_verification",
+    name: "Document Verification",
+    description: "AI-powered document analysis and verification",
+    fields: [
+      {
+        id: "full_name",
+        type: "TEXT",
+        label: "Full Name",
+        required: true,
+      },
+      {
+        id: "dob",
+        type: "DATE",
+        label: "Date of Birth",
+        required: true,
+      },
+      {
+        id: "id_document",
+        type: "FILE",
+        label: "Identity Document",
+        required: true,
+      },
+      {
+        id: "document_type",
+        type: "SELECT",
+        label: "Document Type",
+        required: true,
+        options: [
+          { value: "passport", label: "Passport" },
+          { value: "drivers_license", label: "Driver's License" },
+          { value: "national_id", label: "National ID" },
+        ],
+      },
+    ],
+    requiredDocuments: ["ID_DOCUMENT"],
+  },
+  {
+    id: "enhanced_verification",
+    name: "Enhanced AI Verification",
+    description: "Comprehensive AI analysis with fraud detection",
+    fields: [
+      {
+        id: "full_name",
+        type: "TEXT",
+        label: "Full Name",
+        required: true,
+      },
+      {
+        id: "dob",
+        type: "DATE",
+        label: "Date of Birth",
+        required: true,
+      },
+      {
+        id: "id_front",
+        type: "FILE",
+        label: "ID Front",
+        required: true,
+      },
+      {
+        id: "id_back",
+        type: "FILE",
+        label: "ID Back",
+        required: false,
+      },
+      {
+        id: "selfie",
+        type: "FILE",
+        label: "Selfie with Document",
+        required: true,
+      },
+      {
+        id: "proof_of_address",
+        type: "FILE",
+        label: "Proof of Address",
+        required: false,
+      },
+      {
+        id: "address",
+        type: "TEXT",
+        label: "Current Address",
+        required: true,
+      },
+    ],
+    requiredDocuments: ["ID_DOCUMENT", "SELFIE"],
+  },
+];
+
 export function VerificationServicesView({
   currentLevel,
   onUpdateLevel,
@@ -148,6 +239,8 @@ export function VerificationServicesView({
           templates = SUMSUB_TEMPLATES;
         } else if (service.id === "gemini-1.5-pro" || service.type === "GEMINI") {
           templates = [];
+        } else if (service.id === "deepseek-1" || service.type === "DEEPSEEK") {
+          templates = DEEPSEEK_TEMPLATES;
         }
         return {
           ...service,
@@ -164,6 +257,9 @@ export function VerificationServicesView({
   const isGeminiService =
     selectedServiceId.startsWith("gemini") ||
     selectedService?.type === "GEMINI";
+  const isDeepSeekService =
+    selectedServiceId.startsWith("deepseek") ||
+    selectedService?.type === "DEEPSEEK";
   const handleSelectService = async (serviceId: string) => {
     setSelectedServiceId(serviceId);
     setSelectedTemplateId("");
@@ -174,17 +270,31 @@ export function VerificationServicesView({
     const service = servicesArray.find((s) => s.id === serviceId);
     try {
       setIsCheckingConnection(true);
-      const { success, missingEnvVars } = await checkEnv(serviceId);
-      if (!success) {
-        setConnectionStatus("error");
-        setConnectionError("Missing required environment variables");
-        setMissingEnvVars(missingEnvVars);
+      const result = await checkEnv(serviceId);
+      if (result && result.success !== undefined) {
+        const { success, missingEnvVars = [] } = result;
+        if (!success && missingEnvVars && missingEnvVars.length > 0) {
+          setConnectionStatus("error");
+          const envVarsList = missingEnvVars.join(", ");
+          setConnectionError(`Missing required environment variables: ${envVarsList}`);
+          setMissingEnvVars(missingEnvVars || []);
+        } else if (!success) {
+          setConnectionStatus("error");
+          setConnectionError("Environment configuration check failed");
+          setMissingEnvVars([]);
+        } else {
+          setMissingEnvVars([]);
+          await handleCheckApiConnection();
+        }
       } else {
-        await handleCheckApiConnection();
+        setConnectionStatus("error");
+        setConnectionError("Failed to check environment variables");
+        setMissingEnvVars([]);
       }
     } catch (error) {
       setConnectionStatus("error");
       setConnectionError("Failed to check environment variables");
+      setMissingEnvVars([]);
     } finally {
       setIsCheckingConnection(false);
     }
@@ -194,14 +304,14 @@ export function VerificationServicesView({
     setIsCheckingConnection(true);
     setConnectionStatus("checking");
     try {
-      const connected = await checkConnection(selectedServiceId);
-      if (connected) {
+      const result = await checkConnection(selectedServiceId);
+      if (result.connected) {
         setConnectionStatus("success");
         setConnectionError(null);
         setTimeout(() => setActiveTab("templates"), 1500);
       } else {
         setConnectionStatus("error");
-        setConnectionError("Failed to connect to the API");
+        setConnectionError(result.message || "Failed to connect to the API");
       }
     } catch (error) {
       setConnectionStatus("error");
@@ -321,10 +431,10 @@ export function VerificationServicesView({
       <div className="w-full h-full overflow-auto p-6">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">KYC Verification Services</h1>
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error Loading Verification Services</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+          <Alert className="mb-6 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertTitle className="text-red-900 dark:text-red-100">Error Loading Verification Services</AlertTitle>
+            <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
           </Alert>
           <Button onClick={fetchServices}>Retry</Button>
         </div>
@@ -484,43 +594,43 @@ export function VerificationServicesView({
                 </div>
 
                 <div className="p-6 space-y-6">
-                  {connectionStatus === "error" && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Connection Failed</AlertTitle>
-                      <AlertDescription>{connectionError}</AlertDescription>
+                  {connectionStatus === "error" && !missingEnvVars?.length && (
+                    <Alert className="bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      <AlertTitle className="text-red-900 dark:text-red-100">Connection Failed</AlertTitle>
+                      <AlertDescription className="text-red-700 dark:text-red-300">{connectionError}</AlertDescription>
                     </Alert>
                   )}
 
                   {connectionStatus === "success" && (
-                    <Alert className="bg-green-50 border-green-200 text-green-800">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <AlertTitle>Connection Successful</AlertTitle>
-                      <AlertDescription>
+                    <Alert className="bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <AlertTitle className="text-green-900 dark:text-green-100">Connection Successful</AlertTitle>
+                      <AlertDescription className="text-green-700 dark:text-green-300">
                         API credentials verified successfully.
                       </AlertDescription>
                     </Alert>
                   )}
 
-                  {missingEnvVars.length > 0 && (
+                  {missingEnvVars && missingEnvVars.length > 0 && (
                     <div className="space-y-4">
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Missing Environment Variables</AlertTitle>
-                        <AlertDescription>
-                          The following variables are required in your .env
-                          file:
+                      <Alert className="bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <AlertTitle className="text-amber-900 dark:text-amber-100">Missing Environment Variables</AlertTitle>
+                        <AlertDescription className="text-amber-700 dark:text-amber-300">
+                          The following environment variables are required but not configured:
                         </AlertDescription>
                       </Alert>
 
-                      <div className="bg-gray-50 p-4 rounded-md border">
-                        <h4 className="font-medium mb-2">
+                      <div className="bg-amber-50/50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                        <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-3">
                           Required Variables:
                         </h4>
-                        <ul className="space-y-2 list-disc pl-5">
+                        <ul className="space-y-2">
                           {missingEnvVars.map((envVar) => (
-                            <li key={envVar} className="text-sm">
-                              <code className="bg-gray-100 px-2 py-1 rounded">
+                            <li key={envVar} className="flex items-center gap-2">
+                              <span className="text-amber-600 dark:text-amber-400">•</span>
+                              <code className="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 px-2 py-1 rounded font-mono text-sm">
                                 {envVar}
                               </code>
                             </li>
@@ -528,14 +638,15 @@ export function VerificationServicesView({
                         </ul>
                       </div>
 
-                      <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                        <h4 className="font-medium text-blue-800 mb-2">
+                      <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           How to Configure:
                         </h4>
-                        <ol className="space-y-2 list-decimal pl-5 text-sm text-blue-700">
+                        <ol className="space-y-2 list-decimal pl-5 text-sm text-blue-800 dark:text-blue-200">
                           <li>
                             Edit your{" "}
-                            <code className="bg-blue-100 px-2 py-0.5 rounded">
+                            <code className="bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 px-2 py-0.5 rounded font-mono">
                               .env
                             </code>{" "}
                             file
@@ -557,10 +668,10 @@ export function VerificationServicesView({
                   )}
 
                   {isGeminiService && (
-                    <Alert className="bg-blue-50 border-blue-200 text-blue-800">
-                      <Info className="h-4 w-4 text-blue-500" />
-                      <AlertTitle>Gemini AI Verification</AlertTitle>
-                      <AlertDescription>
+                    <Alert className="bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800">
+                      <BrainCircuit className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                      <AlertTitle className="text-indigo-900 dark:text-indigo-100">Gemini AI Verification</AlertTitle>
+                      <AlertDescription className="text-indigo-700 dark:text-indigo-300">
                         Gemini requires an API key to access its AI-powered
                         document verification capabilities. Ensure your KYC form
                         includes document uploads for analysis.
@@ -568,18 +679,30 @@ export function VerificationServicesView({
                     </Alert>
                   )}
 
-                  <Alert className="bg-blue-50 border-blue-200 text-blue-800">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    <AlertTitle>Where to Get Credentials</AlertTitle>
-                    <AlertDescription>
-                      <p className="mb-2">
+                  {isDeepSeekService && (
+                    <Alert className="bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800">
+                      <BrainCircuit className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      <AlertTitle className="text-purple-900 dark:text-purple-100">DeepSeek AI Verification</AlertTitle>
+                      <AlertDescription className="text-purple-700 dark:text-purple-300">
+                        DeepSeek provides advanced AI-powered document analysis
+                        with fraud detection capabilities. Select a template to configure
+                        your verification workflow.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <Alert className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+                    <Info className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                    <AlertTitle className="text-slate-900 dark:text-slate-100">Where to Get Credentials</AlertTitle>
+                    <AlertDescription className="text-slate-700 dark:text-slate-300">
+                      <p className="mb-3">
                         Obtain your API credentials from your{" "}
-                        {selectedService.name} dashboard.
+                        <span className="font-semibold">{selectedService.name}</span> dashboard.
                       </p>
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
-                        className="flex items-center text-blue-600"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
                         onClick={() =>
                           window.open(
                             selectedService.type === "SUMSUB" ||
@@ -605,7 +728,7 @@ export function VerificationServicesView({
                   </Button>
                   <Button
                     onClick={handleCheckApiConnection}
-                    disabled={missingEnvVars.length > 0 || isCheckingConnection}
+                    disabled={(missingEnvVars && missingEnvVars.length > 0) || isCheckingConnection}
                     className="flex items-center"
                   >
                     {isCheckingConnection ? (
@@ -637,10 +760,10 @@ export function VerificationServicesView({
                     {selectedService.description}
                   </p>
                   {isGeminiService && (
-                    <Alert className="mt-4 bg-amber-50 border-amber-200 text-amber-800">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                      <AlertTitle>Document Requirement</AlertTitle>
-                      <AlertDescription>
+                    <Alert className="mt-4 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertTitle className="text-amber-900 dark:text-amber-100">Document Requirement</AlertTitle>
+                      <AlertDescription className="text-amber-700 dark:text-amber-300">
                         Gemini requires document images for AI verification.
                         Ensure your form includes them.
                       </AlertDescription>
@@ -819,20 +942,20 @@ export function VerificationServicesView({
                   )}
 
                 {isGeminiService && (
-                  <Alert className="mt-6 bg-blue-50 border-blue-200 text-blue-800">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    <AlertTitle>AI-Powered Verification</AlertTitle>
-                    <AlertDescription>
+                  <Alert className="mt-6 bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800">
+                    <BrainCircuit className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    <AlertTitle className="text-indigo-900 dark:text-indigo-100">AI-Powered Verification</AlertTitle>
+                    <AlertDescription className="text-indigo-700 dark:text-indigo-300">
                       Gemini AI will verify document images against provided
                       data, supporting all languages and countries.
                     </AlertDescription>
                   </Alert>
                 )}
 
-                <Alert className="mt-6 bg-amber-50 border-amber-200 text-amber-800">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <AlertTitle>Important</AlertTitle>
-                  <AlertDescription>
+                <Alert className="mt-6 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <AlertTitle className="text-amber-900 dark:text-amber-100">Important</AlertTitle>
+                  <AlertDescription className="text-amber-700 dark:text-amber-300">
                     Confirming will add these fields to your KYC level, mapped
                     to {selectedService?.name}.
                   </AlertDescription>
@@ -914,20 +1037,20 @@ export function VerificationServicesView({
                     </div>
                   </div>
 
-                  <Alert className="mb-6 bg-amber-50 border-amber-200 text-amber-800">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    <AlertTitle>Document Requirement</AlertTitle>
-                    <AlertDescription>
+                  <Alert className="mb-6 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <AlertTitle className="text-amber-900 dark:text-amber-100">Document Requirement</AlertTitle>
+                    <AlertDescription className="text-amber-700 dark:text-amber-300">
                       Include at least one document image field (e.g., ID,
                       passport) in your form.
                     </AlertDescription>
                   </Alert>
 
-                  <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                    <h4 className="font-medium text-blue-800 mb-2">
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-md border border-blue-100 dark:border-blue-700">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-100 mb-2">
                       Recommended Fields:
                     </h4>
-                    <ul className="space-y-2 list-disc pl-5 text-sm text-blue-700">
+                    <ul className="space-y-2 list-disc pl-5 text-sm text-blue-700 dark:text-blue-300">
                       <li>
                         <strong>ID Front</strong> (required)
                       </li>

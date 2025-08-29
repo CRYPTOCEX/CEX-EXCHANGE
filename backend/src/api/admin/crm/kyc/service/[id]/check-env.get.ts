@@ -51,6 +51,31 @@ async function checkGeminiEnv(): Promise<{
   };
 }
 
+async function checkDeepSeekEnv(): Promise<{
+  success: boolean;
+  missingEnvVars: string[];
+}> {
+  const requiredVars = {
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
+  };
+
+  const missingEnvVars = Object.entries(requiredVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingEnvVars.length > 0) {
+    return {
+      success: false,
+      missingEnvVars,
+    };
+  }
+
+  return {
+    success: true,
+    missingEnvVars: [],
+  };
+}
+
 export const metadata = {
   summary: "Check Verification Service Environment Variables",
   description:
@@ -103,6 +128,8 @@ export default async (data: { params: { id: string } }): Promise<any> => {
       return await checkSumSubEnv();
     } else if (id.startsWith("gemini")) {
       return await checkGeminiEnv();
+    } else if (id.startsWith("deepseek")) {
+      return await checkDeepSeekEnv();
     } else {
       throw createError({
         statusCode: 404,

@@ -140,26 +140,34 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
   },
 
   getPoolById: async (id) => {
-    set({ isLoading: true, error: null });
-    // Check if the pool is already in state
-    const existingPool = get().pools.find((p) => p.id === id);
-    if (existingPool) {
-      // Set the pool state from the existing pool
-      set({ pool: existingPool, isLoading: false });
-      return;
-    }
-    const { data, error } = await $fetch<StakingPool>({
-      url: `/api/staking/pool/${id}`,
-      silentSuccess: true,
-    });
-    if (error) {
-      set({ error, isLoading: false });
-      return;
-    }
-    if (data) {
-      set({ pool: data, isLoading: false });
-    } else {
-      set({ isLoading: false });
+    set({ isLoading: true, error: null, pool: null });
+    try {
+      // Check if the pool is already in state
+      const existingPool = get().pools.find((p) => p.id === id);
+      if (existingPool) {
+        // Set the pool state from the existing pool
+        set({ pool: existingPool, isLoading: false });
+        return;
+      }
+      const { data, error } = await $fetch<StakingPool>({
+        url: `/api/staking/pool/${id}`,
+        silentSuccess: true,
+      });
+      if (error) {
+        set({ error: error || "Failed to load pool", isLoading: false });
+        return;
+      }
+      if (data) {
+        set({ pool: data, isLoading: false });
+      } else {
+        set({ error: "Pool not found", isLoading: false });
+      }
+    } catch (err) {
+      console.error("Error fetching pool:", err);
+      set({ 
+        error: err instanceof Error ? err.message : "An unexpected error occurred",
+        isLoading: false 
+      });
     }
   },
 

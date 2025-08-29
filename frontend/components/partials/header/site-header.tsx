@@ -37,7 +37,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   const t = useTranslations("components/partials/header/site-header");
   const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const { hasPermission } = useUserStore();
+  const { user, hasPermission } = useUserStore();
 
   // Hydration fix: mount state
   const [mounted, setMounted] = useState(false);
@@ -285,10 +285,12 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 </AnimatePresence>
               </motion.button>
               
-              {/* Notifications */}
-              <div className="hidden md:block">
-                <NotificationBell />
-              </div>
+              {/* Notifications - only show when user is logged in */}
+              {user && (
+                <div className="hidden md:block">
+                  <NotificationBell />
+                </div>
+              )}
               
               {/* Auth Controls */}
               <div className="flex items-center">

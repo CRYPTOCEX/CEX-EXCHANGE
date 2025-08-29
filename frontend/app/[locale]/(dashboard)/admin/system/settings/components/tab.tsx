@@ -55,7 +55,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({
           <SettingsField
             key={field.key}
             field={field}
-            value={formValues[field.key] ?? ""}
+            value={formValues[field.key]}
             onChange={handleChange}
           />
         ))}

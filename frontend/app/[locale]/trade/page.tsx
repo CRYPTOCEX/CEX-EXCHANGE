@@ -8,10 +8,11 @@ import { useSettings } from "@/hooks/use-settings";
 import TradingLayout from "./components/trading-layout";
 import KycRequiredNotice from "@/components/blocks/kyc/kyc-required-notice";
 import { usePathname } from "@/i18n/routing";
+import { getKycRequirement } from "@/utils/kyc";
 
 export default function TradePage() {
   // 1. Always call all hooks first
-  const { hasKyc, canAccessFeature } = useUserStore();
+  const { hasKyc, canAccessFeature, user } = useUserStore();
   const { settings } = useConfigStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -54,8 +55,11 @@ export default function TradePage() {
   }, []);
 
   // 3. Now branch and return
-  if (kycEnabled && (!hasKyc() || !canAccessFeature(requiredFeature))) {
-    return <KycRequiredNotice feature={requiredFeature} />;
+  if (kycEnabled) {
+    const kycRequirement = getKycRequirement(user, requiredFeature);
+    if (kycRequirement.required) {
+      return <KycRequiredNotice feature={requiredFeature} />;
+    }
   }
 
   return (

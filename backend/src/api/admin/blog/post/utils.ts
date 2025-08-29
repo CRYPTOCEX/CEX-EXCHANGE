@@ -17,7 +17,6 @@ const description = baseStringSchema("Description of the Post");
 const status = baseEnumSchema("Publication status of the Post", [
   "PUBLISHED",
   "DRAFT",
-  "TRASH",
 ]);
 const image = baseStringSchema("Image URL of the Post");
 const createdAt = baseDateTimeSchema("Creation date of the Post");

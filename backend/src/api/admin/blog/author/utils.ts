@@ -24,6 +24,15 @@ export const baseAuthorSchema = {
   updatedAt,
 };
 
+export const authorCreateSchema = {
+  type: "object",
+  properties: {
+    userId,
+    status,
+  },
+  required: ["userId", "status"],
+};
+
 export const authorUpdateSchema = {
   type: "object",
   properties: {

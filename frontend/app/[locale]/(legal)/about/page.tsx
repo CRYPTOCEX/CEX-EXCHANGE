@@ -10,7 +10,16 @@ export default function About() {
   useEffect(() => {
     const fetchPageContent = async () => {
       try {
-        const res = await fetch("/api/admin/default-editor/about?pageSource=default");
+        // Add cache-busting timestamp to prevent stale content
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/api/admin/default-editor/about?pageSource=default&_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           setPageContent(data);

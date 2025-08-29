@@ -14,6 +14,7 @@ export default class p2pPaymentMethod
   processingTime?: string;
   fees?: string;
   available!: boolean;
+  isGlobal!: boolean;
   popularityRank!: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -70,6 +71,12 @@ export default class p2pPaymentMethod
           allowNull: false,
           defaultValue: true,
         },
+        isGlobal: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+          comment: "If true, this payment method is available to all users (created by admin)",
+        },
         popularityRank: {
           type: DataTypes.INTEGER,
           allowNull: false,
@@ -93,6 +100,14 @@ export default class p2pPaymentMethod
       as: "offers",
       foreignKey: "paymentMethodId",
       otherKey: "offerId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    
+    // Belongs to user (optional - null for system/global methods)
+    p2pPaymentMethod.belongsTo(models.user, {
+      as: "user",
+      foreignKey: "userId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });

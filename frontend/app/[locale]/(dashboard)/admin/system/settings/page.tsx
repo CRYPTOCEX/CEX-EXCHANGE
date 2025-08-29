@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState(validTab);
   const [hasChanges, setHasChanges] = useState(false);
   // Local "draft" copy of settings for editing
+  // Initialize with empty object, will be populated via useEffect
   const [draftSettings, setDraftSettings] = useState<Record<string, any>>({});
   
   // Get all valid field keys from the configuration
@@ -46,12 +47,10 @@ export default function SettingsPage() {
   
   // Initialize draftSettings when config settings are available or changed
   useEffect(() => {
-    if (
-      settingsFetched &&
-      Object.keys(configSettings).length > 0
-    ) {
+    if (settingsFetched) {
       // Always update draft settings when config settings change
       // This ensures the form reflects the latest saved values
+      // Even if configSettings is empty, we should set it
       setDraftSettings({ ...configSettings });
     }
   }, [settingsFetched, configSettings]);
@@ -174,7 +173,8 @@ export default function SettingsPage() {
     retryFetch();
   };
 
-  if (isLoading && !settingsFetched) {
+  // Show loading state while settings are being fetched
+  if (!settingsFetched) {
     return (
       <div className="flex items-center justify-center h-screen">
         {t("loading_settings")}...
@@ -198,6 +198,7 @@ export default function SettingsPage() {
       </div>
     );
   }
+  
   return (
     <div className="mx-auto">
       <div className="flex justify-between items-center pb-4">

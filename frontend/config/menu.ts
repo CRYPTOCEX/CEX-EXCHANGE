@@ -1122,6 +1122,7 @@ function isItemVisible(
   const isEnvValid = !item.env || item.env === "true";
 
   // For admin menu, show extensions even if not enabled (they'll be marked as disabled)
+  // This allows admins to see what extensions are available but not enabled
   if (isAdminMenu && item.extension) {
     return (
       hasPermission &&
@@ -1131,6 +1132,8 @@ function isItemVisible(
     );
   }
 
+  // For regular user menu, hide items that require extensions that are not installed/enabled
+  // This ensures users don't see menu items for features they can't access
   return (
     hasPermission &&
     hasRequiredExtension &&

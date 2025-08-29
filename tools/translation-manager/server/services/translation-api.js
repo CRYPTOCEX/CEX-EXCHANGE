@@ -155,6 +155,16 @@ class TranslationAPI {
                 const newKey = prefix ? `${prefix}.${key}` : key;
                 
                 if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                    // Check if this object has both string properties and nested objects
+                    const hasNestedObjects = Object.keys(obj[key]).some(k => 
+                        typeof obj[key][k] === 'object' && obj[key][k] !== null && !Array.isArray(obj[key][k])
+                    );
+                    
+                    // If it has a 'title' property and nested objects, preserve the title
+                    if (obj[key].title && hasNestedObjects) {
+                        flattened[`${newKey}.title`] = obj[key].title;
+                    }
+                    
                     Object.assign(flattened, this.flattenObject(obj[key], newKey));
                 } else {
                     flattened[newKey] = obj[key];
@@ -168,17 +178,50 @@ class TranslationAPI {
     unflattenObject(obj) {
         const result = {};
         
-        for (const key in obj) {
+        // First, handle keys that might conflict with nested structures
+        // Sort keys to ensure shorter paths are processed first
+        const sortedKeys = Object.keys(obj).sort();
+        
+        for (const key of sortedKeys) {
             const keys = key.split('.');
             let current = result;
             
             for (let i = 0; i < keys.length - 1; i++) {
-                current[keys[i]] = current[keys[i]] || {};
+                // If current[keys[i]] is a string, we need to convert it to an object
+                // and preserve the old value as a special key
+                if (typeof current[keys[i]] === 'string') {
+                    const oldValue = current[keys[i]];
+                    current[keys[i]] = {
+                        '_value': oldValue // Preserve the old string value
+                    };
+                } else if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                    current[keys[i]] = {};
+                }
                 current = current[keys[i]];
             }
             
             current[keys[keys.length - 1]] = obj[key];
         }
+        
+        // Post-process to handle _value keys properly
+        function cleanupValues(obj) {
+            for (const key in obj) {
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    // If object has both _value and title, use title as the main value
+                    if (obj[key]._value && obj[key].title) {
+                        // Keep the nested structure but remove _value
+                        delete obj[key]._value;
+                    } else if (obj[key]._value && Object.keys(obj[key]).length === 1) {
+                        // If only _value exists, replace the object with the string
+                        obj[key] = obj[key]._value;
+                    } else {
+                        cleanupValues(obj[key]);
+                    }
+                }
+            }
+        }
+        
+        cleanupValues(result);
         
         return result;
     }
@@ -191,22 +234,31 @@ class TranslationAPI {
         
         let translated = 0;
         let identical = 0;
+        let missing = 0;
         
         for (const key in enKeys) {
-            if (localeKeys[key]) {
+            if (key in localeKeys) {
+                // Key exists in locale
                 if (localeKeys[key] !== enKeys[key]) {
                     translated++;
                 } else {
                     identical++;
                 }
+            } else {
+                // Key is actually missing from locale
+                missing++;
             }
         }
         
         const total = Object.keys(enKeys).length;
-        const missing = total - translated - identical;
-        const progress = Math.round(((translated) / total) * 100);
+        // Progress reflects actual translation progress
+        // Only count keys that are actually translated (different from English)
+        const progress = total > 0 ? Math.round((translated / total) * 100) : 100;
         
-        return { progress, translated, missing, identical, total };
+        // Add a completion indicator (all keys exist, even if not all translated)
+        const complete = missing === 0;
+        
+        return { progress, translated, missing, identical, total, complete };
     }
 
     async findIdenticalValues(sourceLocale = 'en', targetLocale) {
@@ -342,28 +394,115 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                     }
                     
                     try {
-                        // Try to parse as JSON array
-                        const parsed = JSON.parse(cleanedOutput);
+                        // First, clean up common formatting issues
+                        let processedOutput = cleanedOutput;
+                        
+                        // Remove markdown code blocks if present
+                        if (processedOutput.includes('```json')) {
+                            processedOutput = processedOutput.replace(/```json\s*/g, '').replace(/```/g, '');
+                        } else if (processedOutput.includes('```')) {
+                            processedOutput = processedOutput.replace(/```\s*/g, '');
+                        }
+                        
+                        // Remove any text before the JSON array
+                        if (processedOutput.includes('[') && !processedOutput.trim().startsWith('[')) {
+                            const arrayStart = processedOutput.indexOf('[');
+                            processedOutput = processedOutput.substring(arrayStart);
+                        }
+                        
+                        // Remove any text after the JSON array
+                        if (processedOutput.includes(']')) {
+                            const arrayEnd = processedOutput.lastIndexOf(']');
+                            processedOutput = processedOutput.substring(0, arrayEnd + 1);
+                        }
+                        
+                        // Try to parse the cleaned output
+                        const parsed = JSON.parse(processedOutput.trim());
                         if (Array.isArray(parsed)) {
-                            translations = parsed;
+                            // Check if it's a double-encoded JSON (array with a single JSON string)
+                            if (parsed.length === 1 && typeof parsed[0] === 'string' && parsed[0].startsWith('[')) {
+                                try {
+                                    // It's double-encoded, parse the inner JSON
+                                    const innerParsed = JSON.parse(parsed[0]);
+                                    if (Array.isArray(innerParsed)) {
+                                        translations = innerParsed;
+                                        console.log('Detected and fixed double-encoded JSON response');
+                                    } else {
+                                        translations = parsed;
+                                    }
+                                } catch (e) {
+                                    // Not double-encoded, use as is
+                                    translations = parsed;
+                                }
+                            } else {
+                                translations = parsed;
+                            }
                         } else {
                             throw new Error('Response is not a JSON array');
                         }
                     } catch (jsonError) {
-                        console.warn('Failed to parse as JSON, falling back to line-by-line parsing:', jsonError.message);
+                        console.warn('Failed to parse as JSON after cleanup:', jsonError.message);
                         
-                        // Fallback: try to extract JSON array from the text
-                        const jsonMatch = cleanedOutput.match(/\[[\s\S]*\]/);
+                        // Fallback: try to extract JSON array from the original text
+                        const jsonMatch = cleanedOutput.match(/\[[\s\S]*?\]/);
                         if (jsonMatch) {
                             try {
+                                // First attempt: direct parse
                                 translations = JSON.parse(jsonMatch[0]);
                             } catch (e) {
-                                console.error('Failed to extract JSON array from response');
-                                // Last resort: split by lines
-                                translations = cleanedOutput.split('\n')
-                                    .map(line => line.trim())
-                                    .filter(line => line.length > 0)
-                                    .map(line => line.replace(/^["']|["']$/g, ''));
+                                // Second attempt: try to fix common JSON issues
+                                try {
+                                    let fixedJson = jsonMatch[0];
+                                    
+                                    // Fix unescaped quotes inside strings
+                                    // This regex looks for quotes that are not preceded by \ and not at string boundaries
+                                    fixedJson = fixedJson.replace(
+                                        /"([^"]*)"(?=\s*[,\]])/g, 
+                                        (match, content) => {
+                                            // Escape any unescaped quotes inside the content
+                                            const escaped = content.replace(/(?<!\\)"/g, '\\"');
+                                            return `"${escaped}"`;
+                                        }
+                                    );
+                                    
+                                    translations = JSON.parse(fixedJson);
+                                    console.log('Fixed malformed JSON with unescaped quotes');
+                                } catch (e2) {
+                                    // Third attempt: try to parse as comma-separated strings
+                                    console.error('Failed to fix JSON, attempting CSV-style extraction');
+                                    
+                                    // Remove the array brackets
+                                    let content = cleanedOutput;
+                                    if (content.startsWith('[')) content = content.slice(1);
+                                    if (content.endsWith(']')) content = content.slice(0, -1);
+                                    
+                                    // Split by ", " pattern (comma followed by space and quote)
+                                    const parts = content.split(/",\s*"/);
+                                    
+                                    if (parts.length > 0) {
+                                        translations = parts.map((part, index) => {
+                                            // Clean up each part
+                                            let cleaned = part;
+                                            // Remove leading/trailing quotes
+                                            if (index === 0 && cleaned.startsWith('"')) {
+                                                cleaned = cleaned.slice(1);
+                                            }
+                                            if (index === parts.length - 1 && cleaned.endsWith('"')) {
+                                                cleaned = cleaned.slice(0, -1);
+                                            }
+                                            // Unescape escaped quotes
+                                            cleaned = cleaned.replace(/\\"/g, '"');
+                                            return cleaned;
+                                        });
+                                        console.log(`CSV extraction found ${translations.length} translations`);
+                                    } else {
+                                        // Last resort: split by lines
+                                        translations = cleanedOutput.split('\n')
+                                            .map(line => line.trim())
+                                            .filter(line => line.length > 0)
+                                            .map(line => line.replace(/^["']|["']$/g, ''));
+                                    }
+                                }
                             }
                         } else {
                             // Last resort: split by lines
@@ -457,12 +596,15 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
         const locale = this.locales.get(localeCode);
         if (!locale) throw new Error('Locale not found');
 
-        const unflattened = this.unflattenObject(content);
+        // If no content provided, use the current locale keys
+        const keysToSave = content || locale.keys;
+        
+        const unflattened = this.unflattenObject(keysToSave);
         await fs.writeFile(locale.filePath, JSON.stringify(unflattened, null, 2));
         
         // Update in-memory data
         locale.content = unflattened;
-        locale.keys = content;
+        locale.keys = keysToSave;
         
         return true;
     }

@@ -253,6 +253,7 @@ function TradingInterface({
         <TradingFormPanel 
           symbol={currentSymbol} 
           isFutures={isFutures}
+          isEco={currentMarket?.isEco || false}
           onOrderSubmit={isFutures ? handleFuturesOrderSubmit : undefined}
         />
       );

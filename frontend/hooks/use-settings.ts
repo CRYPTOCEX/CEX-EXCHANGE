@@ -78,9 +78,9 @@ export function useSettings() {
               // Try to parse the value to its proper type
               let parsedValue = cur.value;
               
-              // Parse booleans
-              if (cur.value === 'true') parsedValue = true;
-              else if (cur.value === 'false') parsedValue = false;
+              // Parse booleans - handle string "true"/"false" and "1"/"0"
+              if (cur.value === 'true' || cur.value === '1') parsedValue = true;
+              else if (cur.value === 'false' || cur.value === '0' || cur.value === '') parsedValue = false;
               // Parse numbers (but not empty strings or strings that should remain strings)
               else if (cur.value && !isNaN(Number(cur.value)) && cur.value !== '') {
                 // Check if it's meant to be a number by looking at the key pattern

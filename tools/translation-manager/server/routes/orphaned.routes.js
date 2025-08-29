@@ -28,7 +28,8 @@ function createOrphanedRoutes(api, getTsxFiles) {
             const foundTranslations = new Map(); // key -> { files: [], namespace: '' }
             
             for (const file of allFiles) {
-                const filePath = path.join(frontendPath, file);
+                // file is already a full path from getTsxFiles
+                const filePath = file;
                 try {
                     const content = await fs.readFile(filePath, 'utf8');
                     
@@ -56,7 +57,9 @@ function createOrphanedRoutes(api, getTsxFiles) {
                                     fullKey: fullKey
                                 });
                             }
-                            foundTranslations.get(fullKey).files.push(file);
+                            // Store relative path for display
+                            const relativePath = path.relative(frontendPath, file).replace(/\\/g, '/');
+                            foundTranslations.get(fullKey).files.push(relativePath);
                         }
                     }
                 } catch (error) {
@@ -172,7 +175,8 @@ function createOrphanedRoutes(api, getTsxFiles) {
             
             // Process each file
             for (const file of tsxFiles) {
-                const filePath = path.join(frontendPath, file);
+                // file is already a full path from getTsxFiles
+                const filePath = file;
                 try {
                     let content = await fs.readFile(filePath, 'utf8');
                     let modified = false;

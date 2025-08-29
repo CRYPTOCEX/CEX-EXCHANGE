@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useWithdrawStore } from "@/store/finance/withdraw-store";
+import { getKycRequirement } from "@/utils/kyc";
 import { useWalletStore } from "@/store/finance/wallet-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +90,7 @@ export function WithdrawForm() {
   const searchParams = useSearchParams();
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
-  const { hasKyc, canAccessFeature } = useUserStore();
+  const { hasKyc, canAccessFeature, user } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();
   
@@ -323,7 +324,12 @@ export function WithdrawForm() {
     return null;
   };
   const getDisabledReason = () => {
-    if (!hasKyc) return "KYC verification required";
+    // Check KYC requirements for withdrawal feature
+    const kycRequirement = getKycRequirement(user, 'WITHDRAW');
+    if (kycRequirement.required) {
+      return kycRequirement.message;
+    }
+    
     if (!amount || Number(amount) <= 0) return "Enter valid amount";
 
     // Check for precision errors first

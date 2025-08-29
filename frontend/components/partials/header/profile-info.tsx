@@ -30,7 +30,7 @@ const ProfileInfo = () => {
   const menuItems = [
     { name: "Profile", icon: "ph:user-circle-duotone", href: "/user/profile" },
     { name: "Assets", icon: "ph:wallet", href: "/finance/wallet" },
-    { name: "API Management", icon: "carbon:api", href: "/user/api" },
+    { name: "API Management", icon: "carbon:api", href: "/user/profile?tab=api" },
   ];
 
   // Use ShadCN defaults for text colors and spacing

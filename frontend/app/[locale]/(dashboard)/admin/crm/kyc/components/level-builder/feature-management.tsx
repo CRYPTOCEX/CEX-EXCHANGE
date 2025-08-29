@@ -632,9 +632,9 @@ export function FeatureManagement({
             variant="outline"
             className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
           >
-            {enabledFeaturesCount}
-            {t("of")}
-            {platformFeatures.length}
+            {enabledFeaturesCount}{" "}
+            {t("of")}{" "}
+            {platformFeatures.length}{" "}
             {t("features_enabled")}
           </Badge>
         </div>
@@ -645,9 +645,9 @@ export function FeatureManagement({
         <div className="w-48 border-r border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 flex flex-col">
           <div className="p-3">
             <Badge className="w-full justify-center py-1 mb-2">
-              {enabledFeaturesCount}
-              {t("of")}
-              {platformFeatures.length}
+              {enabledFeaturesCount}{" "}
+              {t("of")}{" "}
+              {platformFeatures.length}{" "}
               {t("Enabled")}
             </Badge>
           </div>

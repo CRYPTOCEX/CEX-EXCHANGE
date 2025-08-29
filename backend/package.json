@@ -57,7 +57,7 @@
     "tonweb": "^0.0.66",
     "tonweb-mnemonic": "^1.0.1",
     "tronweb": "^6.0.4",
-    "twilio": "^5.8.0",
+    "twilio": "^5.8.2",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.51.0",
     "uuid": "^11.1.0",
     "validator": "^13.15.15",

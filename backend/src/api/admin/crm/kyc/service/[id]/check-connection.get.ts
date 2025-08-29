@@ -53,6 +53,8 @@ export default async (data: { params: { id: string } }): Promise<any> => {
       return await checkSumSubConnection();
     } else if (id.startsWith("gemini")) {
       return await checkGeminiConnection(id);
+    } else if (id.startsWith("deepseek")) {
+      return await checkDeepSeekConnection();
     } else {
       throw createError({
         statusCode: 404,
@@ -166,6 +168,64 @@ async function checkGeminiConnection(id): Promise<{
     return {
       connected: false,
       message: errorMessage,
+    };
+  }
+}
+
+async function checkDeepSeekConnection(): Promise<{
+  connected: boolean;
+  message: string;
+}> {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    return {
+      connected: false,
+      message: "Missing API key. Please configure DEEPSEEK_API_KEY.",
+    };
+  }
+
+  try {
+    // Test connection with a minimal API call
+    const response = await fetch("https://api.deepseek.com/v1/models", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      return {
+        connected: true,
+        message: "Successfully connected to DeepSeek API",
+      };
+    } else {
+      const errorData = await response.text();
+      let errorMessage = "DeepSeek connection failed";
+      
+      if (response.status === 401) {
+        errorMessage = "Authentication failed - invalid API key";
+      } else if (response.status === 429) {
+        // Rate limit means the API key is valid but we hit the limit
+        return {
+          connected: true,
+          message: "API key is valid (rate limit reached, but connection successful)",
+        };
+      } else if (response.status === 503) {
+        errorMessage = "DeepSeek service unavailable";
+      } else {
+        errorMessage = `DeepSeek connection failed: ${response.statusText}`;
+      }
+      
+      return {
+        connected: false,
+        message: errorMessage,
+      };
+    }
+  } catch (error: any) {
+    return {
+      connected: false,
+      message: `DeepSeek connection error: ${error.message}`,
     };
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useConfigStore } from "@/store/config";
+import { useSettings } from "@/hooks/use-settings";
 import { $fetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,7 @@ import { useTranslations } from "next-intl";
 export default function AffiliateSettingsClient() {
   const t = useTranslations("ext");
   const { settings, setSettings } = useConfigStore();
+  const { fetchSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,6 +45,27 @@ export default function AffiliateSettingsClient() {
     for (let i = 1; i <= initial.affiliateUnilevelLevels; i++) {
       initial[`affiliateUnilevelLevel${i}`] =
         parseFloat(initial[`unilevelLevel${i}`] as string) || 0;
+    }
+
+    // Commission settings - ensure these are properly loaded from saved settings
+    // Parse string values to numbers if they exist
+    if (initial.affiliateDefaultCommissionRate !== undefined) {
+      initial.affiliateDefaultCommissionRate = 
+        typeof initial.affiliateDefaultCommissionRate === 'string' 
+          ? parseFloat(initial.affiliateDefaultCommissionRate) 
+          : initial.affiliateDefaultCommissionRate;
+    }
+    if (initial.affiliateMaxCommissionRate !== undefined) {
+      initial.affiliateMaxCommissionRate = 
+        typeof initial.affiliateMaxCommissionRate === 'string'
+          ? parseFloat(initial.affiliateMaxCommissionRate)
+          : initial.affiliateMaxCommissionRate;
+    }
+    if (initial.affiliatePayoutThreshold !== undefined) {
+      initial.affiliatePayoutThreshold = 
+        typeof initial.affiliatePayoutThreshold === 'string'
+          ? parseFloat(initial.affiliatePayoutThreshold)
+          : initial.affiliatePayoutThreshold;
     }
 
     setLocalSettings(initial);
@@ -130,11 +153,41 @@ export default function AffiliateSettingsClient() {
       if (result?.error) {
         setError(result.error);
       } else {
+        // Fetch fresh settings from backend to ensure cache is updated
+        await fetchSettings();
+        
         // reflect updated raw settings - merge with existing to avoid overwriting other extensions
         const mergedSettings = { ...settings, ...payload };
         setSettings(mergedSettings);
-        // Update local settings with the merged values
-        setLocalSettings(prev => ({ ...prev, ...payload }));
+        
+        // Update local settings with the new values properly
+        // Need to ensure commission settings are included
+        setLocalSettings(prev => {
+          const updated = { ...prev };
+          
+          // Update commission settings in localSettings
+          if (payload.affiliateDefaultCommissionRate !== undefined) {
+            updated.affiliateDefaultCommissionRate = parseFloat(payload.affiliateDefaultCommissionRate);
+          }
+          if (payload.affiliateMaxCommissionRate !== undefined) {
+            updated.affiliateMaxCommissionRate = parseFloat(payload.affiliateMaxCommissionRate);
+          }
+          if (payload.affiliatePayoutThreshold !== undefined) {
+            updated.affiliatePayoutThreshold = parseFloat(payload.affiliatePayoutThreshold);
+          }
+          
+          // Update other settings
+          Object.keys(payload).forEach(key => {
+            if (!key.includes('Commission') && !key.includes('Payout')) {
+              updated[key] = payload[key];
+            }
+          });
+          
+          return updated;
+        });
+        
+        // Show success message (optional, but good UX)
+        setError(null);
       }
     } catch (err) {
       setError(

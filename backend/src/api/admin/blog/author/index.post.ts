@@ -1,7 +1,7 @@
 // /api/admin/authors/store.post.ts
 
 import { storeRecord, storeRecordResponses } from "@b/utils/query";
-import { authorUpdateSchema, authorStoreSchema } from "./utils";
+import { authorCreateSchema, authorStoreSchema } from "./utils";
 
 export const metadata: OperationObject = {
   summary: "Stores a new Author",
@@ -11,7 +11,7 @@ export const metadata: OperationObject = {
     required: true,
     content: {
       "application/json": {
-        schema: authorUpdateSchema,
+        schema: authorCreateSchema,
       },
     },
   },

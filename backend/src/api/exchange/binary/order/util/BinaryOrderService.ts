@@ -83,6 +83,13 @@ export class BinaryOrderService {
     const minAmount = Number(metadata?.limits?.amount?.min || 0);
     const maxAmount = Number(metadata?.limits?.amount?.max || 0);
 
+    if (amount < minAmount || amount > maxAmount) {
+      throw createError({
+        statusCode: 400,
+        message: `Amount must be between ${minAmount} and ${maxAmount} ${currency}`,
+      });
+    }
+
     // Ensure closedAt is in the future
     const closeAtDate = new Date(closedAt);
     if (closeAtDate.getTime() <= Date.now()) {

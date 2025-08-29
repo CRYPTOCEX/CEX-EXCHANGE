@@ -65,7 +65,9 @@ export default async (data: { body: any; user?: any }) => {
       });
     }
 
-    // Check for duplicate names
+    // Check for duplicate names only within user's own payment methods
+    // Users can create payment methods with the same name as global/system methods
+    // since they might have different instructions
     const duplicate = await models.p2pPaymentMethod.findOne({
       where: { 
         userId: user.id,
@@ -77,7 +79,7 @@ export default async (data: { body: any; user?: any }) => {
     if (duplicate) {
       throw createError({
         statusCode: 400,
-        message: "A payment method with this name already exists",
+        message: "You already have a payment method with this name. Please use a different name or edit your existing method.",
       });
     }
 
@@ -86,6 +88,7 @@ export default async (data: { body: any; user?: any }) => {
       userId: user.id,
       ...validatedData,
       available: typeof body.available === "boolean" ? body.available : true,
+      isGlobal: false, // User-created methods are never global
       popularityRank: 999, // Set high rank for custom methods so they appear after system methods
     });
     
@@ -94,13 +97,14 @@ export default async (data: { body: any; user?: any }) => {
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
-      type: "PAYMENT_METHOD_CREATED",
-      entityId: paymentMethod.id,
-      entityType: "PAYMENT_METHOD",
-      metadata: {
+      type: "PAYMENT_METHOD",
+      action: "CREATED",
+      relatedEntity: "PAYMENT_METHOD",
+      relatedEntityId: paymentMethod.id,
+      details: JSON.stringify({
         name: validatedData.name,
         icon: validatedData.icon,
-      },
+      }),
     });
 
     return {

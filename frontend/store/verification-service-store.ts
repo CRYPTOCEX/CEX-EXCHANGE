@@ -13,7 +13,7 @@ interface VerificationServiceState {
   checkEnv: (
     serviceId: string
   ) => Promise<{ success: boolean; missingEnvVars: string[] }>;
-  checkConnection: (serviceId: string) => Promise<boolean>;
+  checkConnection: (serviceId: string) => Promise<{ connected: boolean; message?: string }>;
   verifyApplication: (
     applicationId: string,
     serviceId: string
@@ -74,9 +74,12 @@ export const useVerificationServiceStore = create<VerificationServiceState>(
       set({ isLoading: false });
       if (error) {
         set({ error });
-        return false;
+        return { connected: false, message: error };
       }
-      return data?.connected || false;
+      return {
+        connected: data?.connected || false,
+        message: data?.message || "",
+      };
     },
 
     verifyApplication: async (applicationId: string, serviceId: string) => {

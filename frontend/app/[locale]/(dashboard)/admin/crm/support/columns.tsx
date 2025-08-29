@@ -28,14 +28,14 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "user",
-    title: "User",
+    title: "Customer",
     type: "compound",
     icon: User,
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "The user who created the ticket",
-    priority: 1, // important
+    description: "The customer who created the ticket",
+    priority: 1, // important - visible by default
     render: {
       type: "compound",
       config: {
@@ -118,8 +118,8 @@ export const columns: ColumnDefinition[] = [
     editable: true,
     usedInCreate: true,
     description: "Short description of the ticket",
-    priority: 2, // less important
-    expandedOnly: true,
+    priority: 1, // important - should be visible
+    // Removed expandedOnly to make it visible in the main table
   },
   {
     key: "importance",
@@ -260,7 +260,7 @@ export const columns: ColumnDefinition[] = [
   },
   {
     key: "createdAt",
-    title: "Created At",
+    title: "Created",
     type: "date",
     icon: CalendarIcon,
     sortable: true,
@@ -269,9 +269,9 @@ export const columns: ColumnDefinition[] = [
     description: "Date when the ticket was created",
     render: {
       type: "date",
-      format: "PPP",
+      format: "PPp", // Changed to show date and time
     },
-    priority: 3, // not important
-    expandedOnly: true,
+    priority: 2, // moderately important
+    // Removed expandedOnly to make it visible in the main table
   },
 ];

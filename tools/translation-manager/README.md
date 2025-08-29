@@ -57,7 +57,7 @@ A comprehensive web-based translation management system with Claude Code integra
    ```
 
 3. **Access the Web Interface**
-   Open your browser and navigate to: `http://localhost:3001`
+   Open your browser and navigate to: `http://localhost:5000`
 
 ### Development Mode
 ```bash
@@ -177,7 +177,7 @@ translation-manager/
 ## Configuration
 
 ### Environment Variables
-- `PORT` - Server port (default: 3001)
+- `PORT` - Server port (default: 5000)
 - `MESSAGES_DIR` - Path to translation files
 - `CLAUDE_API_KEY` - Claude API key (if using API instead of CLI)
 
@@ -192,7 +192,7 @@ The system automatically detects translation files in:
 1. **Server won't start**
    - Check Node.js installation: `node --version`
    - Install dependencies: `npm install`
-   - Check port availability: `netstat -an | findstr 3001`
+   - Check port availability: `netstat -an | findstr 5000`
 
 2. **Claude Code not working**
    - Verify installation: `claude --version`

@@ -678,9 +678,16 @@ export function PaymentMethodsStep() {
                               <MethodIcon className="h-5 w-5" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">
-                                {method.name}
-                              </CardTitle>
+                              <div className="flex items-center gap-2">
+                                <CardTitle className="text-base">
+                                  {method.name}
+                                </CardTitle>
+                                {method.isCustom && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Custom
+                                  </Badge>
+                                )}
+                              </div>
                               <CardDescription>
                                 {method.description}
                               </CardDescription>

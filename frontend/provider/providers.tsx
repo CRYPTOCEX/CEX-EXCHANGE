@@ -11,6 +11,7 @@ import { useConfigStore } from "@/store/config";
 import { useThemeStore } from "@/store";
 import { WebSocketProvider } from "./websocket.provider";
 import { ExtensionChecker } from "@/lib/extensions";
+import FloatingChatProvider from "@/components/global/floating-chat-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -127,6 +128,7 @@ const Providers = ({
         />
         <WebSocketProvider userId={profile?.id}>
           <div className={cn("h-full")}>{children}</div>
+          <FloatingChatProvider />
         </WebSocketProvider>
         <Toaster />
       <GlobalErrorHandler />

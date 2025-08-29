@@ -25,7 +25,7 @@ interface SettingsFieldProps {
 
 export const SettingsField: React.FC<SettingsFieldProps> = ({
   field,
-  value,
+  value = "",
   onChange,
 }) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
@@ -58,7 +58,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
           </div>
           <Switch
             id={field.key}
-            checked={value === "true"}
+            checked={value === "true" || value === true || value === 1 || value === "1"}
             onCheckedChange={(checked) =>
               onChange(field.key, checked ? "true" : "false")
             }

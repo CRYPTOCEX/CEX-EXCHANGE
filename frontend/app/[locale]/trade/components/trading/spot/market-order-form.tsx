@@ -153,7 +153,8 @@ export default function MarketOrderForm({
         }
       } else {
         // Default implementation - submit to the appropriate API endpoint
-        const endpoint = "/api/exchange/order";
+        // Use ecosystem endpoint if isEco is true, otherwise use exchange endpoint
+        const endpoint = isEco ? "/api/ecosystem/order" : "/api/exchange/order";
 
         const { data, error } = await $fetch({
           url: endpoint,
