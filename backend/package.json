@@ -51,7 +51,7 @@
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "sequelize-typescript": "^2.1.6",
-    "sharp": "^0.33.5",
+    "sharp": "^0.34.3",
     "stripe": "^17.7.0",
     "tiny-secp256k1": "^2.2.4",
     "tonweb": "^0.0.66",
