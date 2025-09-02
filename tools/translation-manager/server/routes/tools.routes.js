@@ -80,6 +80,120 @@ function createToolsRoutes() {
         }
     });
     
+    // Find missing translations - keys used in code but not in translation files
+    router.get('/find-missing', async (req, res) => {
+        try {
+            const messagesDir = path.join(__dirname, '../../../../frontend/messages');
+            const frontendDir = path.join(__dirname, '../../../../frontend');
+            const glob = require('glob');
+            
+            // Load all translation keys from en.json (master file)
+            const enFilePath = path.join(messagesDir, 'en.json');
+            const enContent = await fs.readFile(enFilePath, 'utf8');
+            const enData = JSON.parse(enContent);
+            const existingKeys = new Set(Object.keys(enData));
+            
+            // Find all translation usage in code
+            const usedKeys = new Set();
+            const keyUsageMap = new Map(); // key -> { files: [], count: 0 }
+            
+            // Pattern to match translation function calls
+            const patterns = [
+                /\bt\(['"`]([^'"`]+)['"`]\)/g,           // t('key') or t("key") or t(`key`)
+                /\{t\(['"`]([^'"`]+)['"`]\)/g,           // {t('key')} in JSX
+                /useTranslations\(['"`]([^'"`]+)['"`]\)/g, // useTranslations('namespace')
+                /getTranslations\(['"`]([^'"`]+)['"`]\)/g, // getTranslations('namespace')
+            ];
+            
+            // Search only in relevant folders where translations are used
+            const files = glob.sync('{app,components,store,hooks,lib,utils}/**/*.{ts,tsx,js,jsx}', {
+                cwd: frontendDir,
+                ignore: [
+                    'node_modules/**', 
+                    'dist/**', 
+                    'build/**', 
+                    '.next/**',
+                    'public/**',
+                    '**/*.test.*',
+                    '**/*.spec.*',
+                    '**/*.d.ts'
+                ]
+            });
+            
+            for (const file of files) {
+                const filePath = path.join(frontendDir, file);
+                try {
+                    const content = await fs.readFile(filePath, 'utf8');
+                    
+                    for (const pattern of patterns) {
+                        let match;
+                        while ((match = pattern.exec(content)) !== null) {
+                            const key = match[1];
+                            if (key && !key.includes('${') && !key.includes('\\')) { // Skip template literals and escaped strings
+                                usedKeys.add(key);
+                                
+                                if (!keyUsageMap.has(key)) {
+                                    keyUsageMap.set(key, { files: [], count: 0 });
+                                }
+                                
+                                const usage = keyUsageMap.get(key);
+                                if (!usage.files.includes(file)) {
+                                    usage.files.push(file);
+                                }
+                                usage.count++;
+                            }
+                        }
+                        pattern.lastIndex = 0; // Reset regex
+                    }
+                } catch (error) {
+                    console.error(`Error reading ${file}:`, error);
+                }
+            }
+            
+            // Find missing keys (used in code but not in translations)
+            const missingKeys = [];
+            for (const key of usedKeys) {
+                if (!existingKeys.has(key)) {
+                    const usage = keyUsageMap.get(key);
+                    missingKeys.push({
+                        key,
+                        files: usage.files,
+                        count: usage.count
+                    });
+                }
+            }
+            
+            // Sort by usage count (most used first)
+            missingKeys.sort((a, b) => b.count - a.count);
+            
+            // Also find orphaned keys (in translations but not used in code)
+            const orphanedKeys = [];
+            for (const key of existingKeys) {
+                if (!usedKeys.has(key)) {
+                    orphanedKeys.push(key);
+                }
+            }
+            
+            res.json({
+                success: true,
+                missing: missingKeys,
+                orphaned: orphanedKeys.sort(),
+                stats: {
+                    totalMissing: missingKeys.length,
+                    totalOrphaned: orphanedKeys.length,
+                    totalUsedInCode: usedKeys.size,
+                    totalInTranslations: existingKeys.size,
+                    filesScanned: files.length,
+                    foldersScanned: ['app', 'components', 'store', 'hooks', 'lib', 'utils']
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error finding missing translations:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+    
     // Get tools info
     router.get('/info', (req, res) => {
         res.json({
@@ -94,6 +208,12 @@ function createToolsRoutes() {
                     id: 'find-duplicates',
                     name: 'Find Duplicate Values',
                     description: 'Find duplicate values across translation keys',
+                    command: 'api'
+                },
+                {
+                    id: 'find-missing',
+                    name: 'Find Missing Translations',
+                    description: 'Find translation keys used in code but missing from translation files',
                     command: 'api'
                 }
             ]

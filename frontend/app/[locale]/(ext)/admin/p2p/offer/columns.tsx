@@ -152,29 +152,6 @@ export const columns: ColumnDefinition[] = [
     },
   },
   {
-    key: "marketDiff",
-    title: "Market Diff",
-    type: "text",
-    icon: TrendingUp,
-    sortable: true,
-    searchable: false,
-    filterable: true,
-    editable: false,
-    description: "Market difference (e.g., percentage or value)",
-    render: {
-      type: "custom",
-      render: (value: any) => {
-        // Apply a green color if the market difference is positive, otherwise red.
-        const textClass =
-          value && value.toString().startsWith("+")
-            ? "text-green-600"
-            : "text-red-600";
-        return <span className={textClass}>{value}</span>;
-      },
-    },
-    expandedOnly: true,
-  },
-  {
     key: "paymentMethods",
     title: "Payment Methods",
     type: "custom",
@@ -194,28 +171,15 @@ export const columns: ColumnDefinition[] = [
         }
         return (
           <div className="flex flex-wrap gap-1">
-            {value.map((method: string, index: number) => (
+            {value.map((method: any, index: number) => (
               <Badge key={index} variant="outline" className="text-xs">
-                {method}
+                {typeof method === 'string' ? method : method.name || 'Unknown'}
               </Badge>
             ))}
           </div>
         );
       },
     },
-    expandedOnly: true,
-  },
-  {
-    key: "limits",
-    title: "Limits",
-    type: "text",
-    icon: Clipboard,
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    editable: true,
-    usedInCreate: true,
-    description: "Transaction limits",
     expandedOnly: true,
   },
   {
@@ -234,24 +198,30 @@ export const columns: ColumnDefinition[] = [
       config: {
         withDot: true,
         variant: (value: string) => {
-          switch (value.toLowerCase()) {
+          const status = value?.toLowerCase().replace('_', '');
+          switch (status) {
             case "active":
               return "default";
             case "pending":
+            case "pendingapproval":
               return "outline";
             case "flagged":
               return "secondary";
-            default:
+            case "disabled":
+            case "rejected":
               return "destructive";
+            default:
+              return "outline";
           }
         },
       },
     },
     options: [
-      { value: "active", label: "Active" },
-      { value: "pending", label: "Pending" },
-      { value: "flagged", label: "Flagged" },
-      { value: "disabled", label: "Disabled" },
+      { value: "ACTIVE", label: "Active" },
+      { value: "PENDING_APPROVAL", label: "Pending Approval" },
+      { value: "FLAGGED", label: "Flagged" },
+      { value: "DISABLED", label: "Disabled" },
+      { value: "REJECTED", label: "Rejected" },
     ],
   },
   {

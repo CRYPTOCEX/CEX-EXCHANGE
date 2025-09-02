@@ -64,7 +64,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
     }
   };
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const canInvestStaking = hasKyc() && canAccessFeature("invest_staking");
 
   if (kycEnabled && !canInvestStaking) {

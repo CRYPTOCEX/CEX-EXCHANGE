@@ -54,8 +54,26 @@ class WebSocketManager {
     this.notifyStatusListeners(connectionId);
 
     // Create a new WebSocket connection
+    // Note: WebSocket in browser automatically includes cookies for same-origin requests
     try {
-      const ws = new WebSocket(url);
+      // Get access token from cookies if available
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
+      };
+      
+      const accessToken = getCookie('accessToken');
+      
+      // Add token to URL if available (for authentication)
+      let authUrl = url;
+      if (accessToken) {
+        const separator = url.includes('?') ? '&' : '?';
+        authUrl = `${url}${separator}token=${accessToken}`;
+      }
+      
+      const ws = new WebSocket(authUrl);
 
       // Set up event handlers
       ws.onopen = () => this.handleOpen(connectionId);
@@ -102,8 +120,15 @@ class WebSocketManager {
   private handleMessage(event: MessageEvent, connectionId: string): void {
     try {
       const data = JSON.parse(event.data);
-
-      const streamKey = data.stream || "default";
+      // Handle different message formats
+      let streamKey = data.stream || "default";
+      
+      // Special handling for support ticket messages
+      if (data.method === "reply" && data.payload?.id) {
+        streamKey = `ticket-${data.payload.id}`;
+      } else if (data.method === "update" && data.payload?.id) {
+        streamKey = `ticket-${data.payload.id}`;
+      }
 
       // Notify subscribers
       if (this.subscriptions.has(connectionId)) {
@@ -303,12 +328,24 @@ class WebSocketManager {
 
   // Close a WebSocket connection
   public close(connectionId = "default"): void {
+    // Clear any reconnect timeouts for this connection
+    const timeout = this.reconnectTimeouts.get(connectionId);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.reconnectTimeouts.delete(connectionId);
+    }
+    
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.close();
       this.connections.delete(connectionId);
       this.connectionStatus.set(connectionId, ConnectionStatus.DISCONNECTED);
       this.notifyStatusListeners(connectionId);
+      
+      // Clear associated data
+      this.subscriptions.delete(connectionId);
+      this.messageQueues.delete(connectionId);
+      this.reconnectAttempts.delete(connectionId);
     }
   }
 

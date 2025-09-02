@@ -37,7 +37,7 @@ export default function Client({ children }: ClientProps) {
   }, [fetchCategories, fetchProducts]);
 
   // Gating: block unless user has KYC & view_ecommerce feature
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("view_ecommerce");
 
   if (kycEnabled && !hasAccess) {

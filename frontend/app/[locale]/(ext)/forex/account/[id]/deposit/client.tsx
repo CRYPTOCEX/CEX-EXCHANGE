@@ -152,7 +152,7 @@ function DepositClientContent() {
     }
   }, [selectedWalletType.value, step, setStep]);
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("deposit_forex");
   
   if (kycEnabled && !hasAccess) {

@@ -85,7 +85,10 @@ export default function StakingSettingsConfiguration() {
           setSaveError(error);
         }
       } else {
-        setSettings(updatedSettings);
+        // Merge with existing settings to avoid overwriting other extensions' settings
+        const mergedSettings = { ...settings, ...updatedSettings };
+        setSettings(mergedSettings);
+        setLocalSettings(mergedSettings);
         setHasSubmitted(false); // Reset on success
       }
     } catch (error) {

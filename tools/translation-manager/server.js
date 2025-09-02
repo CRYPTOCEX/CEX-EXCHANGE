@@ -19,6 +19,7 @@ const createComparisonRoutes = require('./server/routes/comparison.routes');
 const createOrphanedRoutes = require('./server/routes/orphaned.routes');
 const createJsxRoutes = require('./server/routes/jsx.routes');
 const createToolsRoutes = require('./server/routes/tools.routes');
+const createToolsV2Routes = require('./server/routes/tools-v2.routes');
 const createLocalesRoutes = require('./server/routes/locales.routes');
 
 // Load configuration
@@ -49,6 +50,7 @@ app.use('/api', createComparisonRoutes(api));
 app.use('/api/orphaned', createOrphanedRoutes(api, getTsxFiles));
 app.use('/api/jsx', createJsxRoutes(getTsxFiles));
 app.use('/api/tools', createToolsRoutes());
+app.use('/api/tools-v2', createToolsV2Routes());
 app.use('/api', createLocalesRoutes(api));
 
 // Additional utility routes

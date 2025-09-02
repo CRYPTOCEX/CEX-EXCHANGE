@@ -35,18 +35,68 @@ export default function PoolDetailPage() {
   // Subscribe to the store's state
   const pool = userStakingStore((state) => state.pool);
   const isLoading = userStakingStore((state) => state.isLoading);
+  const error = userStakingStore((state) => state.error);
   const getPoolById = userStakingStore((state) => state.getPoolById);
 
   // Fetch the pool by id when id changes
   useEffect(() => {
-    getPoolById(id);
-  }, [id]);
+    if (id) {
+      getPoolById(id);
+    }
+    
+    // Cleanup function to clear pool when component unmounts
+    return () => {
+      userStakingStore.setState({ pool: null, error: null });
+    };
+  }, [id, getPoolById]);
 
   if (isLoading) {
     return <PoolLoading />;
   }
 
-  if (!pool) return null;
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-red-600">Error Loading Pool</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Link href="/staking/pool">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Pools
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!pool) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Pool Not Found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              The staking pool you're looking for doesn't exist or has been removed.
+            </p>
+            <Link href="/staking/pool">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Pools
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Calculate percentage of total staked vs available
   const totalAvailable = (pool.totalStaked ?? 0) + (pool.availableToStake ?? 0);

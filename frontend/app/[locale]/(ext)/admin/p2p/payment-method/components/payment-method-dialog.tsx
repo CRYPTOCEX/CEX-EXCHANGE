@@ -113,8 +113,8 @@ export default function PaymentMethodDialog({
       }
 
       const url = method 
-        ? `/api/ext/admin/p2p/payment-method/${method.id}`
-        : "/api/ext/admin/p2p/payment-method";
+        ? `/api/admin/p2p/payment-method/${method.id}`
+        : "/api/admin/p2p/payment-method";
       
       const response = await $fetch({
         url,

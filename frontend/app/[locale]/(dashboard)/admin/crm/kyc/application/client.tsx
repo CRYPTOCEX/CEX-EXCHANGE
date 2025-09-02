@@ -565,7 +565,7 @@ export default function ApplicationsClient() {
         return (
           <Badge
             variant="outline"
-            className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1 px-2 py-1"
+            className="bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 flex items-center gap-1 px-2 py-1"
           >
             <CheckCircle className="h-3 w-3 mr-1" /> Approved
           </Badge>
@@ -574,7 +574,7 @@ export default function ApplicationsClient() {
         return (
           <Badge
             variant="outline"
-            className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1 px-2 py-1"
+            className="bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 flex items-center gap-1 px-2 py-1"
           >
             <XCircle className="h-3 w-3 mr-1" /> Rejected
           </Badge>
@@ -583,7 +583,7 @@ export default function ApplicationsClient() {
         return (
           <Badge
             variant="outline"
-            className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1 px-2 py-1"
+            className="bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 flex items-center gap-1 px-2 py-1"
           >
             <AlertCircle className="h-3 w-3 mr-1" /> Info Required
           </Badge>
@@ -593,7 +593,7 @@ export default function ApplicationsClient() {
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1 px-2 py-1"
+            className="bg-yellow-50 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 flex items-center gap-1 px-2 py-1"
           >
             <Clock className="h-3 w-3 mr-1" /> Pending
           </Badge>
@@ -684,8 +684,8 @@ export default function ApplicationsClient() {
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.pending}</h3>
               </div>
-              <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-yellow-600" />
+              <div className="h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
             </div>
             <div className="mt-4">
@@ -693,8 +693,8 @@ export default function ApplicationsClient() {
                 value={
                   stats.total > 0 ? (stats.pending / stats.total) * 100 : 0
                 }
-                className="h-1 bg-yellow-100"
-                indicatorClassName="bg-yellow-500"
+                className="h-1 bg-yellow-100 dark:bg-yellow-900/30"
+                indicatorClassName="bg-yellow-500 dark:bg-yellow-400"
               />
               <p className="text-xs text-muted-foreground mt-2">
                 {stats.total > 0
@@ -715,8 +715,8 @@ export default function ApplicationsClient() {
                 </p>
                 <h3 className="text-3xl font-bold mt-1">{stats.approved}</h3>
               </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <div className="mt-4">
@@ -724,8 +724,8 @@ export default function ApplicationsClient() {
                 value={
                   stats.total > 0 ? (stats.approved / stats.total) * 100 : 0
                 }
-                className="h-1 bg-green-100"
-                indicatorClassName="bg-green-500"
+                className="h-1 bg-green-100 dark:bg-green-900/30"
+                indicatorClassName="bg-green-500 dark:bg-green-400"
               />
               <p className="text-xs text-muted-foreground mt-2">
                 {stats.total > 0
@@ -748,15 +748,15 @@ export default function ApplicationsClient() {
                   {stats.averageProcessingTime.toFixed(1)}h
                 </h3>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             <div className="mt-4">
               <Progress
                 value={Math.min(100, (stats.averageProcessingTime / 24) * 100)}
-                className="h-1 bg-blue-100"
-                indicatorClassName="bg-blue-500"
+                className="h-1 bg-blue-100 dark:bg-blue-900/30"
+                indicatorClassName="bg-blue-500 dark:bg-blue-400"
               />
               <p className="text-xs text-muted-foreground mt-2">
                 Average time to process applications
@@ -950,7 +950,7 @@ export default function ApplicationsClient() {
                               <StatusBadge status={app.status} />
                               <Badge
                                 variant="outline"
-                                className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1"
+                                className="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary border-primary/20 dark:border-primary/30 flex items-center gap-1"
                               >
                                 <Layers className="h-3 w-3 mr-1" />
                                 {app.level?.name || "Unknown"}
@@ -961,7 +961,7 @@ export default function ApplicationsClient() {
                                     {app.level?.verificationService ? (
                                       <Badge
                                         variant="outline"
-                                        className="bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1"
+                                        className="bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 flex items-center gap-1"
                                       >
                                         <ShieldCheck className="h-3 w-3 mr-1" />{" "}
                                         {app.level.verificationService.name}
@@ -969,7 +969,7 @@ export default function ApplicationsClient() {
                                     ) : (
                                       <Badge
                                         variant="outline"
-                                        className="bg-zinc-50 text-zinc-600 border-zinc-200 flex items-center gap-1"
+                                        className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 flex items-center gap-1"
                                       >
                                         <ShieldOff className="h-3 w-3 mr-1" />{" "}
                                         Manual
@@ -1025,9 +1025,9 @@ export default function ApplicationsClient() {
                           </div>
 
                           {app.adminNotes && (
-                            <div className="mt-4 bg-muted/50 p-3 rounded-md border border-muted">
-                              <p className="text-sm font-medium">Admin Notes</p>
-                              <p className="text-sm mt-1">{app.adminNotes}</p>
+                            <div className="mt-4 bg-muted/50 dark:bg-muted/20 p-3 rounded-md border border-muted dark:border-muted/40">
+                              <p className="text-sm font-medium text-foreground">Admin Notes</p>
+                              <p className="text-sm mt-1 text-muted-foreground">{app.adminNotes}</p>
                             </div>
                           )}
                         </div>

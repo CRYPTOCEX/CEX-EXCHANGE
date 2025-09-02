@@ -138,11 +138,11 @@ export const ApplicationDetailsTab = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 opacity-70 hover:opacity-100 hover:bg-blue-50 no-print"
+              className="h-7 w-7 p-0 opacity-70 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-900/30 no-print"
               onClick={() => onCopy(value, field.id)}
             >
               {copiedField === field.id ? (
-                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                <CheckCircle className="h-3.5 w-3.5 text-green-500 dark:text-green-400" />
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -154,7 +154,7 @@ export const ApplicationDetailsTab = ({
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-blue-500"
+                  className="text-blue-500 dark:text-blue-400"
                 >
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -167,21 +167,21 @@ export const ApplicationDetailsTab = ({
       case "SELECT": {
         const option = field.options?.find((opt) => opt.value === value);
         return (
-          <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">
+          <Badge className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800">
             {option?.label || value}
           </Badge>
         );
       }
       case "CHECKBOX": {
         return value ? (
-          <Badge className="bg-green-100 text-green-700 border-green-200 flex items-center gap-1">
+          <Badge className="bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 flex items-center gap-1">
             <CheckCircle className="h-3 w-3" />
             {t("Yes")}
           </Badge>
         ) : (
           <Badge
             variant="outline"
-            className="bg-red-50 text-red-700 border-red-200"
+            className="bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"
           >
             {t("No")}
           </Badge>
@@ -190,7 +190,7 @@ export const ApplicationDetailsTab = ({
       case "RADIO": {
         const radioOption = field.options?.find((opt) => opt.value === value);
         return (
-          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+          <Badge className="bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800">
             {radioOption?.label || value}
           </Badge>
         );
@@ -209,22 +209,22 @@ export const ApplicationDetailsTab = ({
       }
       case "FILE": {
         return (
-          <div className="flex items-center gap-3 rounded-md border border-blue-100 bg-blue-50 p-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <FileText className="h-5 w-5 text-blue-600" />
+          <div className="flex items-center gap-3 rounded-md border border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-blue-700 truncate">
+              <p className="font-medium text-blue-700 dark:text-blue-300 truncate">
                 {field.label.toLowerCase().replace(/\s+/g, "-")}
                 {t("pdf")}
               </p>
-              <p className="text-xs text-blue-600">{t("Document")}</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">{t("Document")}</p>
             </div>
             <div className="flex items-center gap-1 no-print">
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 text-blue-700"
+                className="h-8 w-8 p-0 text-blue-700 dark:text-blue-400"
                 onClick={() => window.open(value, "_blank")}
               >
                 <svg
@@ -245,7 +245,7 @@ export const ApplicationDetailsTab = ({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 text-blue-700"
+                className="h-8 w-8 p-0 text-blue-700 dark:text-blue-400"
                 onClick={() => {
                   const a = document.createElement("a");
                   a.href = value;
@@ -289,7 +289,7 @@ export const ApplicationDetailsTab = ({
         return (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+              <Badge className="bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">
                 {t("id_type")}
                 {identityData.type || "passport"}
               </Badge>
@@ -492,7 +492,7 @@ export const ApplicationDetailsTab = ({
           </div>
           <div className="flex items-center gap-3">
             {section.required && (
-              <Badge className="bg-red-100 text-red-700 border-red-200">
+              <Badge className="bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800">
                 {t("Required")}
               </Badge>
             )}
@@ -532,10 +532,10 @@ export const ApplicationDetailsTab = ({
           {/* Title */}
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-500 flex items-center justify-center">
                 <FileText className="h-4 w-4 text-white" />
               </div>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700 dark:from-blue-400 dark:to-indigo-400">
                 {t("application_form_data")}
               </span>
             </h3>

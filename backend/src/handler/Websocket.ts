@@ -165,7 +165,12 @@ export async function setupWebSocketEndpoint(
         }
         const result = await handler(ws, parsedMessage, isBinary);
         if (result) {
-          messageBroker.sendToClient(ws.user.id, result);
+          // Send response directly back through the WebSocket connection
+          try {
+            ws.send(JSON.stringify(result));
+          } catch (sendError) {
+            console.error(`Failed to send WebSocket response:`, sendError);
+          }
         }
       } catch (error) {
         logError("websocket", error, entryPath);
@@ -434,5 +439,6 @@ export const hasClients = (route: string): boolean => {
 // ----------------------------------------------------------------------
 
 // Start the heartbeat mechanism using the imported module (interval in ms).
-const HEARTBEAT_INTERVAL = 5000;
+// Increased to 30 seconds for better stability with client connections
+const HEARTBEAT_INTERVAL = 30000;
 startHeartbeat(clients, HEARTBEAT_INTERVAL);

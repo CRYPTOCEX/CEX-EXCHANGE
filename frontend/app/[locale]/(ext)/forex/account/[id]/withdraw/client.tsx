@@ -136,7 +136,7 @@ function WithdrawClientContent() {
       clearAll();
     };
   }, [id, accounts, clearAll, fetchAccount]);
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("withdraw_forex");
   
   if (kycEnabled && !hasAccess) {

@@ -51,7 +51,7 @@ export function DeleteAction({ row, onSelect }: DeleteActionProps) {
           onClick={handleDeleteClick}
           disabled={!hasDeleteAccess}
           className={cn(
-            "cursor-pointer text-destructive",
+            "cursor-pointer text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-300",
             !hasDeleteAccess && "cursor-not-allowed opacity-50"
           )}
         >

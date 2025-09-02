@@ -722,7 +722,16 @@
                         <i class="fas fa-tools mr-2"></i> Translation Tools
                     </h2>
                     
-                    <div class="max-w-2xl">
+                    <div class="max-w-2xl space-y-4">
+                        <div class="tool-card">
+                            <button class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg transition-all tool-btn flex items-center justify-center text-lg font-semibold" data-tool="missing">
+                                <i class="fas fa-search mr-3"></i> Find Missing Translations
+                            </button>
+                            <p class="text-sm text-gray-600 mt-3 px-2" id="missing-description">
+                                Scans your codebase to find translation keys that are used in the code but missing from translation files. Also identifies orphaned keys that exist in translation files but are not used anywhere in the code.
+                            </p>
+                        </div>
+                        
                         <div class="tool-card">
                             <button class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-4 rounded-lg transition-all tool-btn flex items-center justify-center text-lg font-semibold" data-tool="duplicates">
                                 <i class="fas fa-copy mr-3"></i> Find Duplicate Values

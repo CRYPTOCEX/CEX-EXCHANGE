@@ -49,7 +49,7 @@ export default function Home() {
     stats.totalRaised > 10_000 &&
     stats.projectsLaunched > 2;
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("view_ico");
 
   if (kycEnabled && !hasAccess) {

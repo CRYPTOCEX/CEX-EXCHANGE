@@ -43,12 +43,15 @@ export function AdminActivityClient() {
     useAdminDashboardStore();
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchAllActivity();
   }, [fetchAllActivity]);
 
-  const filteredActivity = allActivity.filter((activity) => {
+  const activities = Array.isArray(allActivity) ? allActivity : [];
+  
+  const filteredActivity = activities.filter((activity) => {
     if (filter !== "all" && activity.type !== filter) return false;
     if (
       searchQuery &&
@@ -67,6 +70,8 @@ export function AdminActivityClient() {
         return <ArrowUpDown className="h-5 w-5 text-green-500" />;
       case "dispute":
         return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+      case "payment":
+        return <Shield className="h-5 w-5 text-indigo-500" />;
       case "security":
         return <Shield className="h-5 w-5 text-purple-500" />;
       case "system":
@@ -128,6 +133,7 @@ export function AdminActivityClient() {
                   <SelectItem value="user">{t("user_activities")}</SelectItem>
                   <SelectItem value="trade">{t("trade_activities")}</SelectItem>
                   <SelectItem value="dispute">{t("Disputes")}</SelectItem>
+                  <SelectItem value="payment">{t("payment_activities")}</SelectItem>
                   <SelectItem value="security">
                     {t("security_events")}
                   </SelectItem>
@@ -180,10 +186,7 @@ export function AdminActivityClient() {
                         <div className="flex items-center gap-2">
                           {getStatusIcon(activity.status)}
                           <span className="text-xs text-muted-foreground">
-                            {format(
-                              new Date(activity.createdAt),
-                              "MMM d, yyyy h:mm a"
-                            )}
+                            {activity.createdAt}
                           </span>
                         </div>
                       </div>

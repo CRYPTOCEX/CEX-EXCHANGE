@@ -35,11 +35,19 @@ export function WalletDashboard() {
   }, []);
 
   const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasAccess = hasKyc() && canAccessFeature("view_wallets");
+  const hasKycApproved = hasKyc();
+  const hasWalletFeature = canAccessFeature("view_wallets");
 
-  if (kycEnabled && !hasAccess) {
-    // You can pass the feature key to show the right message/title.
-    return <KycRequiredNotice feature="view_wallets" />;
+  // Only check for KYC approval if KYC is enabled
+  // If user has KYC approved but no feature, they need a higher level
+  if (kycEnabled) {
+    if (!hasKycApproved) {
+      return <KycRequiredNotice feature="view_wallets" />;
+    }
+    if (!hasWalletFeature) {
+      // User has KYC but needs higher level for wallet access
+      return <KycRequiredNotice feature="view_wallets" />;
+    }
   }
 
   if (isLoading) {

@@ -151,7 +151,7 @@ export function SteppedLaunchForm({
   const [isSubmissionComplete, setIsSubmissionComplete] = useState(false);
 
   // 1. Only gate if KYC is enabled globally
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasCreateIcoAccess = hasKyc() && canAccessFeature("create_ico");
 
   if (kycEnabled && !hasCreateIcoAccess) {

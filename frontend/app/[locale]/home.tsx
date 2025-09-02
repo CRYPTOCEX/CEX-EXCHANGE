@@ -71,9 +71,11 @@ export default function DefaultHomePage() {
   useEffect(() => {
     const fetchPageContent = async () => {
       try {
-        // Add cache-busting timestamp to prevent stale content
+        // Try both page sources to get the most recent content
         const timestamp = new Date().getTime();
-        const res = await fetch(`/api/content/default-page/home?pageSource=default&_t=${timestamp}`, {
+        
+        // First try default source
+        const defaultRes = await fetch(`/api/content/default-page/home?pageSource=default&_t=${timestamp}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -81,9 +83,37 @@ export default function DefaultHomePage() {
             'Expires': '0'
           }
         });
-        if (res.ok) {
-          const data = await res.json();
-          setPageContent(data);
+        
+        // Then try builder source
+        const builderRes = await fetch(`/api/content/default-page/home?pageSource=builder&_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
+        let defaultData = null;
+        let builderData = null;
+        
+        if (defaultRes.ok) {
+          defaultData = await defaultRes.json();
+        }
+        
+        if (builderRes.ok) {
+          builderData = await builderRes.json();
+        }
+        
+        // Use the most recently modified content
+        if (defaultData && builderData) {
+          const defaultTime = new Date(defaultData.lastModified || 0).getTime();
+          const builderTime = new Date(builderData.lastModified || 0).getTime();
+          setPageContent(builderTime > defaultTime ? builderData : defaultData);
+        } else if (defaultData) {
+          setPageContent(defaultData);
+        } else if (builderData) {
+          setPageContent(builderData);
         }
       } catch (error) {
         console.error("Error loading page content:", error);

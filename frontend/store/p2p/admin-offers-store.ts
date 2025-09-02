@@ -62,19 +62,23 @@ export const adminOffersStore = create<AdminOffersState>((set, get) => ({
   updatingOfferError: null,
 
   getOfferById: async (id) => {
+    console.log("[Store] getOfferById called with ID:", id);
     set({ isLoadingOffer: true, offerError: null });
 
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/offer/${id}`,
-      silentSuccess: true,
+      silent: true,  // Prevent automatic refetch triggers
     });
 
+    console.log("[Store] getOfferById response:", { data, error });
+
     if (error) {
-      set({ offerError: error, isLoadingOffer: false });
+      set({ offerError: error, isLoadingOffer: false, offer: null });
       return;
     }
 
     set({ offer: data || null, isLoadingOffer: false });
+    console.log("[Store] Offer set in store:", data);
   },
 
   getOfferStats: async () => {
@@ -216,24 +220,33 @@ export const adminOffersStore = create<AdminOffersState>((set, get) => ({
   },
 
   updateOffer: async (id, offerData) => {
+    console.log("[Store] updateOffer called with:", { id, offerData });
     set({ isUpdatingOffer: true, updatingOfferError: null });
 
+    console.log("[Store] Making PUT request to:", `/api/admin/p2p/offer/${id}`);
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/offer/${id}`,
       method: "PUT",
       body: offerData,
     });
+    
+    console.log("[Store] API Response:", { data, error });
 
     if (error) {
+      console.error("[Store] Update failed with error:", error);
       set({ updatingOfferError: error, isUpdatingOffer: false });
-      return;
+      throw new Error(error);
     }
 
-    set({ isUpdatingOffer: false });
+    set({ isUpdatingOffer: false, updatingOfferError: null });
 
     // If we were viewing a specific offer, refresh it
     if (get().offer?.id === id) {
+      console.log("[Store] Refreshing offer data after update");
       await get().getOfferById(id);
     }
+    
+    console.log("[Store] Update successful, returning data:", data);
+    return data;
   },
 }));

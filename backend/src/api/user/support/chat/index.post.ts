@@ -1,6 +1,6 @@
-import { models } from "@b/db";
+import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
-import { handleBroadcastMessage } from "@b/handler/Websocket";
+import { handleBroadcastMessage, messageBroker } from "@b/handler/Websocket";
 import { updateRecordResponses } from "@b/utils/query";
 
 export const metadata: OperationObject = {
@@ -85,7 +85,6 @@ export default async (data: Handler) => {
   currentMessages.push(newMessage);
   
   // Update database with new messages
-  const sequelize = models.supportTicket.sequelize;
   await sequelize.query(
     'UPDATE support_ticket SET messages = :messages, updatedAt = :updatedAt WHERE id = :id',
     {
@@ -102,15 +101,27 @@ export default async (data: Handler) => {
     await ticket.update({ status: "OPEN" });
   }
 
-  // Broadcast the update via WebSocket
+  // Broadcast the update via WebSocket to all connected clients
   try {
-    await handleBroadcastMessage({
-      type: "support-ticket",
-      method: "update",
-      id: sessionId,
-      data: ticket.get({ plain: true }),
-      route: "/api/user/support/ticket",
-    });
+    // Get fresh ticket data with the new messages
+    await ticket.reload();
+    const ticketData = ticket.get({ plain: true });
+    ticketData.messages = currentMessages; // Ensure messages array is included
+    
+    // Broadcast to clients subscribed to this specific ticket 
+    messageBroker.broadcastToSubscribedClients(
+      "/api/user/support/ticket",
+      { id: sessionId },  // This matches the subscription payload from SUBSCRIBE action
+      {
+        method: "reply",
+        payload: {  // Keep payload structure for backward compatibility with live chat
+          id: sessionId,
+          message: newMessage,
+          status: ticket.status,
+          updatedAt: new Date(),
+        }
+      }
+    );
   } catch (error) {
     console.error("Failed to broadcast message:", error);
   }

@@ -2,6 +2,7 @@ import { models } from "@b/db";
 import { createAdminNotification, createNotification } from "./notifications";
 import { logError } from "@b/utils/logger";
 import { CacheManager } from "@b/utils/cache";
+import { Op } from "sequelize";
 
 /**
  * Validates and safely parses MLM JSON settings with schema validation
@@ -399,7 +400,7 @@ async function createRewardRecord(referrerId: string, rewardAmount: number, cond
         referrerId,
         conditionId,
         createdAt: {
-          [models.Sequelize.Op.gte]: new Date(Date.now() - 60000) // Within last minute
+          [Op.gte]: new Date(Date.now() - 60000) // Within last minute
         }
       }
     });

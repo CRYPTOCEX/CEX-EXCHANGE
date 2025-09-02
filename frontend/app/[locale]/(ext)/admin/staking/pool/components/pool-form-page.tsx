@@ -25,11 +25,13 @@ import { useTranslations } from "next-intl";
 
 export default function StakingPoolFormPage() {
   const t = useTranslations("ext");
-  const { poolId } = useParams() as { poolId?: string };
+  const { id } = useParams() as { id?: string };
+  const poolId = id;
   const pools = useStakingAdminPoolsStore((state) => state.pools);
   const selectedPool = useStakingAdminPoolsStore((state) => state.selectedPool);
   const isLoading = useStakingAdminPoolsStore((state) => state.isLoading);
   const error = useStakingAdminPoolsStore((state) => state.error);
+  const fetchPools = useStakingAdminPoolsStore((state) => state.fetchPools);
   const getPoolById = useStakingAdminPoolsStore((state) => state.getPoolById);
   const createPool = useStakingAdminPoolsStore((state) => state.createPool);
   const updatePool = useStakingAdminPoolsStore((state) => state.updatePool);
@@ -71,10 +73,17 @@ export default function StakingPoolFormPage() {
   const isEditMode = !!poolId;
 
   useEffect(() => {
-    if (isEditMode && poolId) {
-      getPoolById(poolId);
-    }
-  }, [isEditMode, poolId, getPoolById]);
+    const loadPoolData = async () => {
+      if (isEditMode && poolId) {
+        // If pools are not loaded, fetch them first
+        if (pools.length === 0) {
+          await fetchPools();
+        }
+        await getPoolById(poolId);
+      }
+    };
+    loadPoolData();
+  }, [isEditMode, poolId]); // Remove getPoolById and fetchPools from dependencies to avoid infinite loop
 
   useEffect(() => {
     if (isEditMode && selectedPool) {
@@ -233,6 +242,18 @@ export default function StakingPoolFormPage() {
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Show loading state while fetching pool data in edit mode
+  if (isEditMode && isLoading && !selectedPool) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading pool data...</p>
+        </div>
+      </div>
     );
   }
 

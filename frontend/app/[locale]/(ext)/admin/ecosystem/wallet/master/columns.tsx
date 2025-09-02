@@ -88,6 +88,18 @@ export const columns: ColumnDefinition[] = [
     filterable: true,
     description: "Wallet balance",
     priority: 1,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        // Format balance to 8 decimal places
+        const formattedBalance = value ? parseFloat(value).toFixed(8) : "0.00000000";
+        return (
+          <span className="font-mono">
+            {formattedBalance}
+          </span>
+        );
+      },
+    },
   },
   {
     key: "lastIndex",

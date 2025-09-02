@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { XCircle as XCircleIcon, CheckCircle2, ThumbsDown } from "lucide-react";
+import { XCircle as XCircleIcon, CheckCircle2, ThumbsDown, Eye, Edit } from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,8 @@ import { adminOffersStore } from "@/store/p2p/admin-offers-store";
 import { columns } from "./columns";
 import { offersAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
+import OfferDetailsDrawer from "./offer-details-drawer";
+import OfferEditDrawer from "./offer-edit-drawer";
 
 export default function AdminOffersPage() {
   const t = useTranslations("ext");
@@ -31,10 +33,43 @@ export default function AdminOffersPage() {
     offerId: "",
     offerName: "",
   });
+  
+  // Drawer states for view
+  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // Drawer states for edit
+  const [editOfferId, setEditOfferId] = useState<string | null>(null);
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  const [refreshCallback, setRefreshCallback] = useState<(() => void) | undefined>(undefined);
 
   // Get action functions from your admin offers store.
   const { approveOffer, rejectOffer, flagOffer, disableOffer } =
     adminOffersStore();
+
+  // Open offer details in drawer
+  const openOfferDrawer = (offerId: string) => {
+    setSelectedOfferId(offerId);
+    setIsDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedOfferId(null);
+  };
+  
+  // Open edit drawer
+  const openEditDrawer = (offerId: string, refresh?: () => void) => {
+    setEditOfferId(offerId);
+    setIsEditDrawerOpen(true);
+    setRefreshCallback(() => refresh);
+  };
+  
+  const closeEditDrawer = () => {
+    setIsEditDrawerOpen(false);
+    setEditOfferId(null);
+    setRefreshCallback(undefined);
+  };
 
   // Action handler: sets up the confirmation dialog.
   const handleAction = (
@@ -154,17 +189,35 @@ export default function AdminOffersPage() {
         }}
         pageSize={10}
         canCreate={false}
-        canEdit={true}
-        editLink="/admin/p2p/offer/[id]/edit"
+        canEdit={false}
         canDelete={true}
         canView={true}
-        viewLink="/admin/p2p/offer/[id]"
         title="Offers"
         itemTitle="Offer"
         columns={columns}
         analytics={offersAnalytics}
         isParanoid={true}
         extraRowActions={extraRowActions}
+        expandedButtons={(row, refresh) => (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => openOfferDrawer(row.id)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              {t("view_details")}
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => openEditDrawer(row.id, refresh)}
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              {t("Edit")}
+            </Button>
+          </div>
+        )}
       />
 
       {/* Confirmation Dialog for extra action */}
@@ -192,8 +245,8 @@ export default function AdminOffersPage() {
           </DialogHeader>
           <div className="py-4">
             <p>
-              {t("are_you_sure_you_want_to")}
-              {confirmDialog.type}
+              {t("are_you_sure_you_want_to")}{" "}
+              {confirmDialog.type}{" "}
               {t("the_offer")} <strong>{confirmDialog.offerName}</strong>?
             </p>
           </div>
@@ -210,6 +263,26 @@ export default function AdminOffersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Offer Details Drawer */}
+      <OfferDetailsDrawer
+        isOpen={isDrawerOpen}
+        onClose={closeDrawer}
+        offerId={selectedOfferId}
+      />
+      
+      {/* Offer Edit Drawer */}
+      <OfferEditDrawer
+        isOpen={isEditDrawerOpen}
+        onClose={closeEditDrawer}
+        offerId={editOfferId}
+        onSuccess={() => {
+          if (refreshCallback) {
+            refreshCallback();
+          }
+          closeEditDrawer();
+        }}
+      />
     </>
   );
 }

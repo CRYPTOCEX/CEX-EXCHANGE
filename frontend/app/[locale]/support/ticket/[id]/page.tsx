@@ -287,7 +287,7 @@ export default function TicketDetailPage() {
           case "reply": {
             const { data: replyData } = data;
             if (replyData.message) {
-              const messageContent = replyData.message.content || replyData.message.text || "";
+              const messageContent = replyData.message.text || replyData.message.content || "";
               const messageTime = new Date(replyData.message.timestamp || replyData.message.time || Date.now());
               const messageSender = replyData.message.sender || (replyData.message.type === "client" ? "user" : "agent");
               
@@ -300,7 +300,7 @@ export default function TicketDetailPage() {
                 );
                 
                 const newMessage: Message = {
-                  id: `server-${replyData.message.time || Date.now()}`,
+                  id: replyData.message.id || `server-${replyData.message.time || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   content: messageContent,
                   sender: messageSender as "user" | "agent",
                   timestamp: messageTime,

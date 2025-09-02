@@ -22,17 +22,42 @@ export type ClientsMap = Map<string, Map<string, ClientRecord>>;
  * @returns The interval ID (can be used for clearing the interval).
  */
 export function startHeartbeat(clients: ClientsMap, interval: number) {
+  let isFirstCheck = true;
+  
   return setInterval(() => {
     for (const [route, routeClients] of clients.entries()) {
       for (const [clientId, clientRecord] of routeClients.entries()) {
-        // If the connection is marked as closed or unresponsive, close it.
-        if (clientRecord.ws.isClosed || !clientRecord.ws.isAlive) {
+        // If the connection is marked as closed, remove it
+        if (clientRecord.ws.isClosed) {
           try {
             clientRecord.ws.close();
           } catch (error) {
             logError("websocket", error, route);
           }
           routeClients.delete(clientId);
+        } 
+        // Only check isAlive after the first interval (give clients time to connect)
+        else if (!isFirstCheck && !clientRecord.ws.isAlive) {
+          // Client didn't respond to last ping, but give them one more chance
+          console.log(`Client ${clientId} on route ${route} missed a heartbeat, sending final ping`);
+          try {
+            clientRecord.ws.ping();
+            // Give them one more interval to respond
+            setTimeout(() => {
+              if (!clientRecord.ws.isAlive) {
+                console.log(`Client ${clientId} on route ${route} failed to respond, closing connection`);
+                try {
+                  clientRecord.ws.close();
+                } catch (error) {
+                  logError("websocket", error, route);
+                }
+                routeClients.delete(clientId);
+              }
+            }, interval / 2); // Wait half the interval for response
+          } catch (error) {
+            logError("websocket", error, route);
+            routeClients.delete(clientId);
+          }
         } else {
           // Mark as not alive and send a ping, expecting a pong to mark it alive.
           clientRecord.ws.isAlive = false;
@@ -48,5 +73,6 @@ export function startHeartbeat(clients: ClientsMap, interval: number) {
         clients.delete(route);
       }
     }
+    isFirstCheck = false;
   }, interval);
 }

@@ -36,9 +36,17 @@ import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { $fetch } from "@/lib/api";
+import { WalletOnboarding } from "@/components/ext/nft/WalletOnboarding";
+import { useWalletOnboarding } from "@/hooks/ext/nft/useWalletOnboarding";
 
 export default function MarketplaceClient() {
   const t = useTranslations("nft/marketplace");
+  const {
+    showOnboarding,
+    completeOnboarding,
+    skipOnboarding
+  } = useWalletOnboarding();
+  
   const { 
     listings, 
     categories, 
@@ -662,6 +670,14 @@ export default function MarketplaceClient() {
             )}
           </Button>
         </div>
+      )}
+      
+      {/* Wallet Onboarding Modal */}
+      {showOnboarding && (
+        <WalletOnboarding 
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
       )}
     </div>
   );

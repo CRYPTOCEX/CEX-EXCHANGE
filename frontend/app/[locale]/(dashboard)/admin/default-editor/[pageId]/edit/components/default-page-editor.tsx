@@ -178,12 +178,13 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
 
     try {
       setSaving(true);
+      const pageSource = getPageSource();
       const { error } = await $fetch({
-        url: `/api/admin/default-editor/${actualPageId}`,
+        url: `/api/admin/default-editor/${actualPageId}?pageSource=${pageSource}`,
         method: "PUT",
         body: {
           ...pageContent,
-          pageSource: getPageSource()
+          pageSource: pageSource
         },
       });
 
@@ -191,9 +192,9 @@ export function DefaultPageEditor({ pageId }: DefaultPageEditorProps) {
         toast.error(error);
         return;
       }
-
+      
       setHasChanges(false);
-      toast.success("Page saved successfully!");
+      toast.success("Page saved successfully! Cache has been cleared.");
     } catch (err) {
       console.error("Save error:", err);
       toast.error("Failed to save page");

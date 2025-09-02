@@ -16,7 +16,7 @@ export default function ForexClient() {
   const { settings } = useConfigStore();
 
   // 2. Check feature/kyc
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasViewForex = hasKyc() && canAccessFeature("view_forex");
 
   if (kycEnabled && !hasViewForex) {

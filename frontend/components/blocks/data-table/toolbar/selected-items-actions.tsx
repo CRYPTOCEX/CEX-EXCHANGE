@@ -123,7 +123,9 @@ export function SelectedItemsActions() {
                         : undefined
                     }
                     className={
-                      permissions.delete ? "" : "cursor-not-allowed opacity-50"
+                      permissions.delete 
+                        ? "text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" 
+                        : "cursor-not-allowed opacity-50"
                     }
                   >
                     <Trash2 className="mr-2 h-4 w-4" />

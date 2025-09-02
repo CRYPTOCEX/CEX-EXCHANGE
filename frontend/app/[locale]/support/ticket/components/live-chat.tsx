@@ -22,6 +22,7 @@ import { imageUploader } from "@/utils/upload";
 import { $fetch } from "@/lib/api";
 import { wsManager, ConnectionStatus } from "@/services/ws-manager";
 import { useTranslations } from "next-intl";
+import { useUserStore } from "@/store/user";
 
 interface ChatMessage {
   id: string;
@@ -32,6 +33,12 @@ interface ChatMessage {
   imageUrl?: string;
   fileName?: string;
   sessionId?: string;
+  agentProfile?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+  };
 }
 
 interface LiveChatSession {
@@ -104,6 +111,7 @@ const parseMessages = (messagesData: any): ChatMessage[] => {
 
 export default function LiveChat() {
   const t = useTranslations("support/ticket/components/live-chat");
+  const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -159,6 +167,7 @@ export default function LiveChat() {
     const connectionId = "live-chat";
     const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/user/support/ticket`;
 
+
     // Connect to WebSocket
     wsManager.connect(wsUrl, connectionId);
 
@@ -183,9 +192,10 @@ export default function LiveChat() {
       if (data.method) {
         switch (data.method) {
           case "update": {
-            const { data: updateData } = data;
+            // Now consistently using 'payload' structure
+            const updateData = data.payload;
             setSession((prev) =>
-              prev
+              prev && updateData
                 ? {
                     ...prev,
                     ...updateData,
@@ -204,14 +214,15 @@ export default function LiveChat() {
             break;
           }
           case "reply": {
-            const { data: replyData } = data;
-            if (replyData.message) {
-              const messageContent = replyData.message.content || replyData.message.text || "";
+            // Now consistently using 'payload' structure
+            const replyData = data.payload;
+            if (replyData && replyData.message) {
+              const messageContent = replyData.message.text || replyData.message.content || "";
               const messageTime = new Date(replyData.message.timestamp || replyData.message.time || Date.now());
               const messageSender = replyData.message.sender || (replyData.message.type === "client" ? "user" : "agent");
 
               const newMessage: ChatMessage = {
-                id: replyData.message.id || `server-${replyData.message.time || Date.now()}`,
+                id: replyData.message.id || `server-${replyData.message.time || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 content: messageContent,
                 sender: messageSender,
                 timestamp: messageTime,
@@ -219,6 +230,7 @@ export default function LiveChat() {
                 imageUrl: replyData.message.imageUrl,
                 fileName: replyData.message.fileName,
                 sessionId: session.id,
+                agentProfile: replyData.message.agentProfile, // Include agent profile
               };
 
               setMessages((prev) => {
@@ -250,7 +262,7 @@ export default function LiveChat() {
             }
 
             // Update session status and updatedAt if provided
-            if (replyData.status || replyData.updatedAt) {
+            if (replyData && (replyData.status || replyData.updatedAt)) {
               setSession((prev) =>
                 prev
                   ? {
@@ -280,7 +292,7 @@ export default function LiveChat() {
 
     // Add status listener and message subscriber
     wsManager.addStatusListener(handleStatusChange, connectionId);
-    wsManager.subscribe(`chat-${session.id}`, handleMessage, connectionId);
+    wsManager.subscribe(`ticket-${session.id}`, handleMessage, connectionId);
 
     // Cleanup on unmount
     return () => {
@@ -296,7 +308,7 @@ export default function LiveChat() {
       }
 
       wsManager.removeStatusListener(handleStatusChange, connectionId);
-      wsManager.unsubscribe(`chat-${session.id}`, handleMessage, connectionId);
+      wsManager.unsubscribe(`ticket-${session.id}`, handleMessage, connectionId);
       // Remove this line: wsManager.close(connectionId)
       // Keep the WebSocket connection open for potential reuse
     };
@@ -361,10 +373,6 @@ export default function LiveChat() {
             createdAt: new Date(existingData.createdAt),
             updatedAt: new Date(existingData.updatedAt),
           };
-
-          console.log("Original ticket status:", existingData.status);
-          console.log("Converted session status:", chatSession.status);
-          console.log("Full converted session:", chatSession);
 
           setSession(chatSession); // Set the converted session, not the original ticket
           setMessages(chatSession.messages);
@@ -563,7 +571,7 @@ export default function LiveChat() {
       }
 
       // Remove listeners for this specific session
-      wsManager.unsubscribe(`chat-${session.id}`, () => {}, connectionId);
+      wsManager.unsubscribe(`ticket-${session.id}`, () => {}, connectionId);
 
       // Call the API to end the session
       await $fetch({
@@ -596,7 +604,7 @@ export default function LiveChat() {
       }
 
       // Remove listeners for this specific session
-      wsManager.unsubscribe(`chat-${session.id}`, () => {}, connectionId);
+      wsManager.unsubscribe(`ticket-${session.id}`, () => {}, connectionId);
     }
 
     setIsOpen(false);
@@ -631,12 +639,8 @@ export default function LiveChat() {
               <div className="flex items-center gap-3">
                 {session?.status === "CONNECTED" && session.agentName && (
                   <Avatar className="h-8 w-8 border-2 border-white/20">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32&query=support agent" />
-                    <AvatarFallback className="bg-blue-500 text-white text-xs">
-                      {session.agentName
-                        .split("untitled")
-                        .map((n) => n[0])
-                        .join("")}
+                    <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
+                      {session.agentName.split(" ").map(n => n[0]).join("").substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                 )}
@@ -657,10 +661,10 @@ export default function LiveChat() {
                     </p>
                   )}
                   {session?.status === "CONNECTED" && (
-                    <p className="text-xs text-blue-100 flex items-center gap-1">
+                    <div className="text-xs text-blue-100 flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                       {t("Online")}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -762,12 +766,30 @@ export default function LiveChat() {
                         >
                           {message.sender === "agent" && (
                             <Avatar className="h-8 w-8 border-2 border-white shadow-md">
-                              <AvatarImage src="/placeholder.svg?height=32&width=32&query=support agent" />
-                              <AvatarFallback className="text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                                {session.agentName
-                                  ?.split("untitled")
-                                  .map((n) => n[0])
-                                  .join("") || "SA"}
+                              {message.agentProfile?.avatar && (
+                                <AvatarImage src={message.agentProfile.avatar} alt={`${message.agentProfile.firstName} ${message.agentProfile.lastName}`} />
+                              )}
+                              <AvatarFallback className="text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold">
+                                {(() => {
+                                  let initials = "SA";
+                                  
+                                  // Try to get initials from agent profile first
+                                  if (message.agentProfile?.firstName || message.agentProfile?.lastName) {
+                                    const firstName = message.agentProfile.firstName || "";
+                                    const lastName = message.agentProfile.lastName || "";
+                                    initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase().substring(0, 2);
+                                  }
+                                  // Fall back to sender name
+                                  else if (message.senderName) {
+                                    initials = message.senderName.split(" ").map(n => n[0]).join("").substring(0, 2);
+                                  } 
+                                  // Fall back to session agent name
+                                  else if (session?.agentName) {
+                                    initials = session.agentName.split(" ").map(n => n[0]).join("").substring(0, 2);
+                                  }
+                                  
+                                  return initials;
+                                })()}
                               </AvatarFallback>
                             </Avatar>
                           )}
@@ -828,9 +850,9 @@ export default function LiveChat() {
 
                           {message.sender === "user" && (
                             <Avatar className="h-8 w-8 border-2 border-white shadow-md">
-                              <AvatarImage src="/placeholder.svg?height=32&width=32&query=user avatar" />
+                              <AvatarImage src={user?.avatar || "/placeholder.svg?height=32&width=32&query=user avatar"} />
                               <AvatarFallback className="bg-gradient-to-r from-gray-500 to-gray-600 text-white text-xs">
-                                <User className="h-4 w-4" />
+                                {user?.firstName?.charAt(0) || user?.lastName?.charAt(0) || <User className="h-4 w-4" />}
                               </AvatarFallback>
                             </Avatar>
                           )}

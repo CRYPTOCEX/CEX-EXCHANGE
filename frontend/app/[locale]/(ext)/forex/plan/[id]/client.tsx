@@ -231,7 +231,7 @@ export default function PlanDetailClient() {
     return <PlanDetailLoading />;
   }
 
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasAccess = hasKyc() && canAccessFeature("invest_forex");
 
   if (kycEnabled && !hasAccess) {

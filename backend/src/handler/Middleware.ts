@@ -23,6 +23,19 @@ const PERMISSION_MAP: Record<string, string[]> = {
   withdraw: ["/api/finance/withdraw"],
   transfer: ["/api/finance/transfer"],
   payment: ["/api/payment/intent"],
+  // NFT permissions
+  "nft.admin": [
+    "/api/nft/marketplace/deploy",
+    "/api/nft/marketplace/config",
+    "/api/nft/marketplace/pause",
+    "/api/nft/marketplace/unpause",
+    "/api/nft/marketplace/withdraw",
+    "/api/nft/marketplace/whitelist",
+    "/api/nft/marketplace/balance",
+    "/api/admin/nft"
+  ],
+  "nft.create": ["/api/nft/token/mint", "/api/nft/collection"],
+  "nft.trade": ["/api/nft/listing", "/api/nft/offer", "/api/nft/auction"],
 };
 
 // Define the NextFunction type for middleware chaining.
@@ -77,8 +90,11 @@ export async function authenticate(
     }
 
     // Process JWT-based authentication.
+    // For WebSocket connections, also check query params
     const accessToken: string | undefined =
-      req.cookies.accessToken || req.headers.accesstoken;
+      req.cookies.accessToken || 
+      req.headers.accesstoken || 
+      (req.query?.token as string);
     if (!accessToken) {
       return await attemptRefreshToken(res, req, next).catch((error: any) => {
         logger(

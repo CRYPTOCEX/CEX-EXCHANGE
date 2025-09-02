@@ -77,7 +77,7 @@ export default function StakingLanding() {
   };
 
   // KYC/feature gating logic
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasStakingAccess = hasKyc() && canAccessFeature("view_staking");
 
   if (kycEnabled && !hasStakingAccess) {

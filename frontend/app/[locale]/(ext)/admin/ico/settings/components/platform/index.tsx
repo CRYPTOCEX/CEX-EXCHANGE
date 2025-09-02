@@ -50,7 +50,10 @@ export default function PlatformSettingsConfiguration() {
         body: updatedSettings,
       });
       if (!error) {
-        setSettings(updatedSettings);
+        // Merge with existing settings to avoid overwriting other extensions' settings
+        const mergedSettings = { ...settings, ...updatedSettings };
+        setSettings(mergedSettings);
+        setLocalSettings(mergedSettings);
         toast("Success", {
           description: "Platform settings saved successfully",
         });

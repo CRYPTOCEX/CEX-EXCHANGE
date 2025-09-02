@@ -47,7 +47,7 @@ export default function OfferingPage() {
   const { hasKyc, canAccessFeature } = useUserStore();
 
   // Feature/kyc gating
-  const kycEnabled = settings?.kycStatus === "true";
+  const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
   const hasIcoPurchaseAccess = hasKyc() && canAccessFeature("purchase_ico");
 
   useEffect(() => {

@@ -146,6 +146,6 @@ export const useAdminDashboardStore = create<AdminDashboardStore>((set) => ({
       return;
     }
 
-    set({ allActivity: data || [], isLoadingAllActivity: false });
+    set({ allActivity: data?.activities || data || [], isLoadingAllActivity: false });
   },
 }));

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MessageCircle,
   Clock,
@@ -68,6 +68,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Lightbox } from "@/components/ui/lightbox";
 import { imageUploader } from "@/utils/upload";
 import { useUserStore } from "@/store/user";
+import { useRouter } from "@/i18n/routing";
+import { wsManager, ConnectionStatus } from "@/services/ws-manager";
 
 interface SupportTicket {
   id: string;
@@ -196,6 +198,7 @@ export default function AdminSupportPage() {
   const t = useTranslations("dashboard");
   const { toast } = useToast();
   const { user } = useUserStore();
+  const router = useRouter();
   
   const [allTickets, setAllTickets] = useState<SupportTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -223,11 +226,148 @@ export default function AdminSupportPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [activeTab, setActiveTab] = useState("conversation");
   const [mounted, setMounted] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      const chatContainer = messagesEndRef.current.closest('.overflow-y-auto');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      } else {
+        messagesEndRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+          inline: "nearest"
+        });
+      }
+    }
+  };
+
+  // Auto-scroll when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Mount effect
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // WebSocket connection for LIVE tickets in drawer
+  useEffect(() => {
+    if (!selectedTicket?.id || !isDrawerOpen || selectedTicket.type !== "LIVE") {
+      return;
+    }
+
+    const connectionId = `admin-drawer-${selectedTicket.id}`;
+    const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/api/user/support/ticket`;
+
+    // Connect to WebSocket
+    wsManager.connect(wsUrl, connectionId);
+
+    // Subscribe to WebSocket status changes
+    const handleStatusChange = (status: ConnectionStatus) => {
+      setWsConnected(status === ConnectionStatus.CONNECTED);
+      // Send subscribe message when connected
+      if (status === ConnectionStatus.CONNECTED && selectedTicket?.id) {
+        wsManager.sendMessage(
+          {
+            action: "SUBSCRIBE",
+            payload: {
+              id: selectedTicket.id,
+            },
+          },
+          connectionId
+        );
+      }
+    };
+
+    // Subscribe to ticket updates
+    const handleMessage = (data: any) => {
+      try {
+        if (data.method === "reply") {
+          // Now consistently using 'payload' structure
+          const replyData = data.payload;
+          if (replyData && replyData.message) {
+            const messageContent = replyData.message.text || replyData.message.content || "";
+            const messageTime = new Date(replyData.message.timestamp || replyData.message.time || Date.now());
+            const messageSender = replyData.message.sender || (replyData.message.type === "client" ? "user" : "agent");
+            
+            setMessages((prev) => {
+              // Check if there's an optimistic message with the same content
+              const optimisticIndex = prev.findIndex(msg => 
+                msg.content === messageContent && 
+                msg.sender === messageSender &&
+                Math.abs(msg.timestamp.getTime() - messageTime.getTime()) < 10000
+              );
+              
+              const newMessage: Message = {
+                id: replyData.message.id || `server-${replyData.message.time || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                content: messageContent,
+                sender: messageSender as "user" | "agent",
+                timestamp: messageTime,
+                senderName: replyData.message.senderName || (messageSender === "agent" ? "Support Agent" : "User"),
+                attachments: replyData.message.attachments || (replyData.message.attachment ? [replyData.message.attachment] : []),
+              };
+              
+              if (optimisticIndex !== -1) {
+                // Replace the optimistic message with the confirmed one
+                const updated = [...prev];
+                updated[optimisticIndex] = newMessage;
+                return updated;
+              } else {
+                // Add as new message
+                return [...prev, newMessage];
+              }
+            });
+          }
+          // Update ticket status if provided
+          if (replyData && (replyData.status || replyData.updatedAt)) {
+            setSelectedTicket((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ...(replyData.status && { status: replyData.status }),
+                    ...(replyData.updatedAt && { updatedAt: new Date(replyData.updatedAt) }),
+                  }
+                : null
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error handling WebSocket message:", error);
+      }
+    };
+
+    // Add status listener and message subscriber
+    wsManager.addStatusListener(handleStatusChange, connectionId);
+    wsManager.subscribe(`ticket-${selectedTicket.id}`, handleMessage, connectionId);
+
+    // Cleanup on unmount or when drawer closes
+    return () => {
+      try {
+        // Send unsubscribe message before closing
+        if (wsManager.getStatus(connectionId) === ConnectionStatus.CONNECTED) {
+          wsManager.sendMessage(
+            {
+              action: "UNSUBSCRIBE",
+              payload: {
+                id: selectedTicket.id,
+              },
+            },
+            connectionId
+          );
+        }
+        wsManager.removeStatusListener(handleStatusChange, connectionId);
+        wsManager.unsubscribe(`ticket-${selectedTicket.id}`, handleMessage, connectionId);
+        wsManager.close(connectionId);
+      } catch (error) {
+        console.error("Error during WebSocket cleanup:", error);
+      }
+    };
+  }, [selectedTicket?.id, selectedTicket?.type, isDrawerOpen]);
 
   // Drawer functions
   const openTicketDrawer = async (ticketId: string) => {
@@ -306,6 +446,7 @@ export default function AdminSupportPage() {
     setNewMessage("");
     setDrawerError(null);
     setActiveTab("conversation");
+    setWsConnected(false);
   };
 
   const handleSendMessage = async () => {
@@ -324,9 +465,14 @@ export default function AdminSupportPage() {
     };
     setMessages((prev) => [...prev, agentMessage]);
     
+    // Use admin endpoint for LIVE tickets, regular endpoint for others
+    const endpoint = selectedTicket.type === "LIVE" 
+      ? `/api/admin/crm/support/ticket/${selectedTicket.id}/reply`
+      : `/api/user/support/ticket/${selectedTicket.id}`;
+    
     // Send to API
     const { data, error } = await $fetch({
-      url: `/api/user/support/ticket/${selectedTicket.id}`,
+      url: endpoint,
       method: "POST",
       body: {
         type: "agent",
@@ -702,6 +848,19 @@ export default function AdminSupportPage() {
                                   Response {selectedTicket.responseTime || 0}min
                                 </span>
                               </div>
+                              {/* WebSocket status for LIVE tickets */}
+                              {selectedTicket.type === "LIVE" && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      wsConnected ? "bg-green-500 animate-pulse" : "bg-gray-400"
+                                    }`}
+                                  ></div>
+                                  <span className={wsConnected ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}>
+                                    {wsConnected ? "Live" : "Connecting..."}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </CardDescription>
                         </div>
@@ -946,6 +1105,7 @@ export default function AdminSupportPage() {
                               )}
                             </div>
                           ))}
+                          <div ref={messagesEndRef} />
                         </CardContent>
                         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-800 backdrop-blur-sm">
                           {selectedTicket.status !== "CLOSED" ? (
@@ -1210,6 +1370,7 @@ export default function AdminSupportPage() {
                           )}
                         </div>
                       ))}
+                      <div ref={messagesEndRef} />
                     </CardContent>
                     <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-800 backdrop-blur-sm">
                       {selectedTicket.status !== "CLOSED" ? (

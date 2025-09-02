@@ -19,7 +19,6 @@ const adminNavItems: NavItem[] = [
   { title: "Pools", href: "/admin/staking/pool", icon: Coins },
   { title: "Positions", href: "/admin/staking/position", icon: Wallet },
   { title: "Earnings", href: "/admin/staking/earning", icon: DollarSign },
-  { title: "Analytics", href: "/admin/staking/analytic", icon: Settings },
 ];
 
 export default function AdminNavbar() {
