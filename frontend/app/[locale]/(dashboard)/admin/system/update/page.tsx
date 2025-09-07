@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { TopBar } from "./top-bar";
 import { UpdateInfo } from "./update-info";
 import { UpdateActions } from "./update-actions";
@@ -21,29 +21,42 @@ export default function SystemUpdatePage() {
   
   // Track whether update check has been performed to prevent infinite loops
   const updateCheckPerformedRef = useRef(false);
+  const productInfoFetchedRef = useRef(false);
   
   useEffect(() => {
-    fetchProductInfo();
+    if (!productInfoFetchedRef.current) {
+      productInfoFetchedRef.current = true;
+      fetchProductInfo();
+    }
   }, []);
 
   // Automatically check for updates when product info is loaded and license is verified
   // Only check once by using a ref to track if the check has been performed
   useEffect(() => {
-    if (
+    const shouldCheckForUpdates = 
       productId && 
       productVersion && 
       licenseVerified && 
       !isUpdateChecking && 
-      !updateCheckPerformedRef.current
-    ) {
+      !updateCheckPerformedRef.current;
+    
+    if (shouldCheckForUpdates) {
       updateCheckPerformedRef.current = true;
-      checkForUpdates();
+      
+      // Use a small delay to ensure the state is stable
+      const timeoutId = setTimeout(() => {
+        checkForUpdates();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [productId, productVersion, licenseVerified, checkForUpdates]);
+  }, [productId, productVersion, licenseVerified]);
 
-  // Reset the update check flag when product info changes
+  // Reset the update check flag when product info changes (but not on initial load)
   useEffect(() => {
-    updateCheckPerformedRef.current = false;
+    if (productId && productVersion && productInfoFetchedRef.current) {
+      updateCheckPerformedRef.current = false;
+    }
   }, [productId, productVersion]);
 
   return (

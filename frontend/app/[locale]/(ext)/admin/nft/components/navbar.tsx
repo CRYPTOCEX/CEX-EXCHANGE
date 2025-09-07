@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import NavbarLogo from "@/components/elements/navbar-logo";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -193,12 +194,12 @@ export default function NFTAdminNavbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
-          <Link href="/admin/nft" className="mr-6 flex items-center space-x-2">
-            <Shield className="h-6 w-6" />
-            <span className="hidden font-bold sm:inline-block">
+          <div className="mr-6 flex items-center space-x-2">
+            <NavbarLogo href="/admin/nft" isAdmin={true} />
+            <span className="hidden font-bold sm:inline-block text-blue-600">
               NFT Admin
             </span>
-          </Link>
+          </div>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             {/* Main Navigation Items */}
             {mainNavigationItems.map((item) => {
@@ -290,14 +291,10 @@ export default function NFTAdminNavbar() {
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
             <div className="px-6 py-6">
-              <Link
-                href="/admin/nft"
-                className="flex items-center space-x-2"
-                onClick={() => setIsOpen(false)}
-              >
-                <Shield className="h-6 w-6" />
-                <span className="font-bold">NFT Admin</span>
-              </Link>
+              <div className="flex items-center space-x-2">
+                <NavbarLogo href="/admin/nft" isAdmin={true} />
+                <span className="font-bold text-blue-600">NFT Admin</span>
+              </div>
             </div>
             <div className="px-6">
               <NavItems />
@@ -307,9 +304,10 @@ export default function NFTAdminNavbar() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Link href="/admin/nft" className="md:hidden">
-              <span className="font-bold">NFT Admin</span>
-            </Link>
+            <div className="md:hidden flex items-center space-x-2">
+              <NavbarLogo href="/admin/nft" isAdmin={true} />
+              <span className="font-bold text-blue-600">NFT Admin</span>
+            </div>
           </div>
           
           <nav className="flex items-center gap-2">

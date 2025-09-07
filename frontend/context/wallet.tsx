@@ -21,14 +21,23 @@ function WalletProvider({
   children: ReactNode;
   cookies: string | null;
 }) {
+  // Get wagmi adapter safely
+  const adapter = wagmiAdapter();
+  const wagmiConfig = adapter?.wagmiConfig;
+  
+  // Fallback if wallet config is not available
+  if (!wagmiConfig) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  }
+
   const initialState = cookieToInitialState(
-    wagmiAdapter.wagmiConfig as Config,
+    wagmiConfig as Config,
     cookies
   );
 
   return (
     <WagmiProvider
-      config={wagmiAdapter.wagmiConfig as Config}
+      config={wagmiConfig as Config}
       initialState={initialState}
     >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

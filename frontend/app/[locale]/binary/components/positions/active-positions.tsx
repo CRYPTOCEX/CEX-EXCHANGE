@@ -383,18 +383,28 @@ export default function ActivePositions({
   }
 
   return (
-    <div className={`${className} ${themeClasses.panelBgClass} ${themeClasses.borderClass} border-r flex flex-col`}>
+    <div className={`${className} ${themeClasses.panelBgClass} ${themeClasses.borderClass} border-r flex flex-col transition-all duration-200 ${isCollapsed ? 'w-16' : 'w-80'}`}>
       {/* Header */}
-      <div className={`p-4 ${themeClasses.borderClass} border-b flex items-center justify-between`}>
-        <div className="flex items-center space-x-2">
-          <BarChart3 className="w-4 h-4" />
-          <h3 className={`font-medium ${themeClasses.textClass}`}>
-            {t("title")} ({activeOrders.length})
-          </h3>
-        </div>
+      <div className={`${isCollapsed ? 'p-2' : 'p-4'} ${themeClasses.borderClass} border-b flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} transition-all duration-200`}>
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="w-4 h-4" />
+            <h3 className={`font-medium ${themeClasses.textClass}`}>
+              Active Positions ({activeOrders.length})
+            </h3>
+          </div>
+        )}
+        {isCollapsed && (
+          <div className="flex flex-col items-center space-y-1">
+            <BarChart3 className="w-4 h-4" />
+            <span className={`text-xs ${themeClasses.secondaryTextClass}`}>
+              {activeOrders.length}
+            </span>
+          </div>
+        )}
         <button
           onClick={toggleCollapse}
-          className={`p-1 rounded ${themeClasses.hoverBgClass} transition-colors`}
+          className={`${isCollapsed ? 'absolute top-2 right-2' : ''} p-1 rounded ${themeClasses.hoverBgClass} transition-all duration-200`}
         >
           <ChevronLeft 
             className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} 

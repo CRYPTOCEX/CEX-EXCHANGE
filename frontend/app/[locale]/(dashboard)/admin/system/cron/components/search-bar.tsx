@@ -17,13 +17,13 @@ export function SearchBar() {
   }, [debouncedSearch, setSearchQuery]);
 
   return (
-    <div className="relative w-full max-w-sm">
+    <div className="relative w-full sm:max-w-sm">
       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder="Search cron jobs..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="pl-8 pr-8"
+        className="pl-8 pr-8 text-sm"
       />
       {search && (
         <Button

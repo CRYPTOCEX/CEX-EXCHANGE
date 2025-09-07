@@ -8,6 +8,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import ThemeButton from "@/components/partials/header/theme-button";
 import Language from "@/components/partials/header/language";
 import ProfileInfo from "@/components/partials/header/profile-info";
+import NavbarLogo from "@/components/elements/navbar-logo";
 import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -20,19 +21,15 @@ export interface NavItem {
 }
 
 export interface ExtNavbarProps {
-  branding: {
-    logo: React.ReactNode;
-    text: string;
-    isAdmin?: boolean;
-  };
   navItems: NavItem[];
   showTools?: boolean;
+  isAdmin?: boolean;
 }
 
 export function ExtNavbar({
-  branding,
   navItems,
   showTools = true,
+  isAdmin = false,
 }: ExtNavbarProps) {
   const t = useTranslations("ext");
   const pathname = usePathname();
@@ -72,17 +69,13 @@ export function ExtNavbar({
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center  gap-6">
-          <Link href="/" onClick={() => setIsOpen(false)}>
-            <div className="flex items-center gap-2 font-bold text-xl">
-              {branding.logo}
-              <span className="font-bold">{branding.text}</span>
-
-              {branding.isAdmin && (
-                <span className="text-blue-600">{t("Admin")}</span>
-              )}
-            </div>
-          </Link>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <NavbarLogo isInAdmin={isAdmin} />
+            {isAdmin && (
+              <span className="text-blue-600">{t("Admin")}</span>
+            )}
+          </div>
           {isDesktop && (
             <nav className="flex items-center">{renderNavItems(navItems)}</nav>
           )}
@@ -105,12 +98,7 @@ export function ExtNavbar({
                 <SheetContent side="left" className="w-[80%] sm:w-[350px]">
                   <div className="flex flex-col gap-6 pt-6">
                     <div className="flex items-center justify-between px-4">
-                      <Link href="/" onClick={() => setIsOpen(false)}>
-                        <div className="flex items-center gap-2">
-                          {branding.logo}
-                          <span className="font-bold">{branding.text}</span>
-                        </div>
-                      </Link>
+                      <NavbarLogo isInAdmin={isAdmin} />
                       <Button
                         variant="ghost"
                         size="icon"

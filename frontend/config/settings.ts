@@ -71,6 +71,18 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     subcategory: "UI Options",
   },
   {
+    key: "navbarLogoDisplay",
+    label: "Navbar Logo Display",
+    type: "select",
+    description: "Choose how to display the logo in navigation bars",
+    category: "general",
+    subcategory: "UI Options",
+    options: [
+      { label: "Square Logo + Site Name", value: "SQUARE_WITH_NAME" },
+      { label: "Full Logo Only", value: "FULL_LOGO_ONLY" },
+    ],
+  },
+  {
     key: "newsStatus",
     label: "News Section",
     type: "switch",
@@ -546,6 +558,7 @@ export const DEFAULT_SETTINGS = {
   mlmSettings:
     '{"unilevel":{"levels":"5","levelsPercentage":[{"level":1,"value":"1"},{"level":2,"value":"2"},{"level":3,"value":"3"},{"level":4,"value":"4"},{"level":5,"value":"5"}]}}',
   mlmSystem: "UNILEVEL",
+  navbarLogoDisplay: "SQUARE_WITH_NAME",
   newsStatus: "true",
   referralApprovalRequired: "true",
   siteMaintenanceMode: "true",

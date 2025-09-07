@@ -78,6 +78,17 @@ async function initializeWallet() {
     return { modal: walletModal, ...hooks };
   } catch (error) {
     console.warn('Failed to initialize wallet:', error);
+    // Provide fallback hooks to prevent errors
+    hooks = {
+      useAppKit: () => ({ open: () => {} }),
+      useAppKitState: () => ({}),
+      useAppKitTheme: () => ({}),
+      useAppKitEvents: () => ({}),
+      useAppKitAccount: () => ({ isConnected: false, address: null }),
+      useWalletInfo: () => ({}),
+      useAppKitNetwork: () => ({ chainId: null, caipNetwork: null }),
+      useDisconnect: () => ({ disconnect: async () => {} }),
+    };
     return null;
   }
 }
@@ -94,18 +105,36 @@ function getWalletInitialization() {
 
 // Export safe hooks that only initialize when called
 export function useAppKit() {
-  if (typeof window === 'undefined') return {};
-  return hooks.useAppKit?.() || {};
+  if (typeof window === 'undefined') return { open: () => {} };
+  
+  // Ensure initialization
+  if (!walletPromise) {
+    walletPromise = initializeWallet();
+  }
+  
+  return hooks.useAppKit?.() || { open: () => {} };
 }
 
 export function useAppKitAccount() {
   if (typeof window === 'undefined') return { isConnected: false, address: null };
+  
+  // Ensure initialization
+  if (!walletPromise) {
+    walletPromise = initializeWallet();
+  }
+  
   return hooks.useAppKitAccount?.() || { isConnected: false, address: null };
 }
 
 export function useAppKitNetwork() {
-  if (typeof window === 'undefined') return {};
-  return hooks.useAppKitNetwork?.() || {};
+  if (typeof window === 'undefined') return { chainId: null, caipNetwork: null };
+  
+  // Ensure initialization
+  if (!walletPromise) {
+    walletPromise = initializeWallet();
+  }
+  
+  return hooks.useAppKitNetwork?.() || { chainId: null, caipNetwork: null };
 }
 
 export function useAppKitState() {
@@ -129,8 +158,14 @@ export function useWalletInfo() {
 }
 
 export function useDisconnect() {
-  if (typeof window === 'undefined') return { disconnect: () => {} };
-  return hooks.useDisconnect?.() || { disconnect: () => {} };
+  if (typeof window === 'undefined') return { disconnect: async () => {} };
+  
+  // Ensure initialization
+  if (!walletPromise) {
+    walletPromise = initializeWallet();
+  }
+  
+  return hooks.useDisconnect?.() || { disconnect: async () => {} };
 }
 
 export const modal = () => {

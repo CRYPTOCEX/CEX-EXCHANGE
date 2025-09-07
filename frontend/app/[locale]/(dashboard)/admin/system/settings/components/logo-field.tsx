@@ -69,9 +69,17 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
 
   const handleFileSelect = async (file: File) => {
     if (!file) return;
+    
+    console.log(`[LOGO-FIELD-DEBUG] Processing file for ${field.key}:`, {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
+      console.error(`[LOGO-FIELD-DEBUG] Invalid file type: ${file.type}`);
       alert("Please select an image file");
       return;
     }
@@ -79,6 +87,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
     // Validate file size (10MB limit)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
+      console.error(`[LOGO-FIELD-DEBUG] File too large: ${file.size} bytes`);
       alert("File size must be less than 10MB");
       return;
     }
@@ -90,8 +99,11 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
     try {
       // Convert file to base64
       const base64File = await fileToBase64(file);
+      console.log(`[LOGO-FIELD-DEBUG] Base64 conversion complete for ${field.key}, length: ${base64File.length}`);
+      console.log(`[LOGO-FIELD-DEBUG] Base64 preview: ${base64File.substring(0, 100)}...`);
 
       // Upload using the new logo API
+      console.log(`[LOGO-FIELD-DEBUG] Sending API request for ${field.key}`);
       const { data, error } = await $fetch({
         url: "/api/admin/system/settings/logo",
         method: "PUT",
@@ -103,7 +115,8 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
       });
 
       if (error) {
-        throw new Error(error);
+        console.error(`[LOGO-UPLOAD-ERROR] Logo type: ${logoType}`, error);
+        throw new Error(typeof error === 'string' ? error : JSON.stringify(error));
       }
 
       // Update the field value with the new logo URL
@@ -120,9 +133,14 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
       
       // Update logo cache version to force refresh of all logo components
       updateLogoVersion();
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      alert("Failed to upload logo. Please try again.");
+    } catch (error: any) {
+      console.error(`[LOGO-UPLOAD-CATCH] Error uploading ${logoType}:`, error);
+      console.error(`[LOGO-UPLOAD-CATCH] Error type:`, typeof error);
+      console.error(`[LOGO-UPLOAD-CATCH] Error message:`, error?.message);
+      console.error(`[LOGO-UPLOAD-CATCH] Error stack:`, error?.stack);
+      
+      const errorMessage = error?.message || error?.toString() || "Failed to upload logo. Please try again.";
+      alert(`Failed to upload ${field.label}: ${errorMessage}`);
       setPreviewUrl(null);
       
       // Reset the file input on error to allow retry

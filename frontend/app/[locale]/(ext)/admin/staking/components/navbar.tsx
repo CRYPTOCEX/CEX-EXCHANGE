@@ -24,11 +24,8 @@ const adminNavItems: NavItem[] = [
 export default function AdminNavbar() {
   return (
     <ExtNavbar
-      branding={{
-        logo: <Settings className="h-8 w-8 text-primary" />,
-        text: "Admin Panel",
-      }}
       navItems={adminNavItems}
+      isAdmin={true}
     />
   );
 }

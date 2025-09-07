@@ -42,7 +42,22 @@ export async function processImageUploads(
   const processedValues = { ...values };
 
   for (const column of columns) {
-    const dir = column.key;
+    // Use a more appropriate directory name for different column types
+    let dir = column.key;
+    
+    // Map specific compound columns to better directory names
+    const dirMapping: Record<string, string> = {
+      'depositCompound': 'depositMethods',
+      'withdrawCompound': 'withdrawMethods',
+      'planCompound': 'plans',
+      'methodCompound': 'methods',
+      'compoundTitle': 'titles',
+    };
+    
+    // Use mapped directory if available, otherwise use column key
+    if (dirMapping[column.key]) {
+      dir = dirMapping[column.key];
+    }
 
     // Process top-level image field.
     if (column.type === "image") {

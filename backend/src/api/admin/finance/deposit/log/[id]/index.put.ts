@@ -1,19 +1,19 @@
 // /api/admin/transactions/[id]/update.put.ts
 import { updateRecordResponses } from "@b/utils/query";
 import { models, sequelize } from "@b/db";
-import { transactionUpdateSchema } from "@b/api/finance/transaction/utils";
+import { depositUpdateSchema } from "../utils";
 import { sendTransactionStatusUpdateEmail } from "@b/utils/emails";
 
 export const metadata = {
-  summary: "Updates an existing transaction",
-  operationId: "updateTransaction",
-  tags: ["Admin", "Wallets", "Transactions"],
+  summary: "Updates an existing deposit transaction",
+  operationId: "updateDepositTransaction", 
+  tags: ["Admin", "Finance", "Deposits"],
   parameters: [
     {
       index: 0,
       name: "id",
       in: "path",
-      description: "The ID of the transaction to update",
+      description: "The ID of the deposit transaction to update",
       required: true,
       schema: {
         type: "string",
@@ -22,14 +22,14 @@ export const metadata = {
   ],
   requestBody: {
     required: true,
-    description: "Updated data for the transaction",
+    description: "Updated data for the deposit transaction",
     content: {
       "application/json": {
-        schema: transactionUpdateSchema,
+        schema: depositUpdateSchema,
       },
     },
   },
-  responses: updateRecordResponses("Transaction"),
+  responses: updateRecordResponses("Deposit Transaction"),
   requiresAuth: true,
   permission: "edit.deposit",
 };

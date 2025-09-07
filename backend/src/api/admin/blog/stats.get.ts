@@ -95,7 +95,24 @@ export default async (data: { user?: any }) => {
     const recentPosts = await models.post.findAll({
       order: [["createdAt", "DESC"]],
       limit: 5,
-      raw: true,
+      include: [
+        {
+          model: models.author,
+          as: "author",
+          include: [
+            {
+              model: models.user,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "avatar"],
+            },
+          ],
+        },
+        {
+          model: models.category,
+          as: "category",
+          attributes: ["id", "name", "slug"],
+        },
+      ],
     });
 
     // 2) Authors: counts & recent pending
@@ -109,7 +126,13 @@ export default async (data: { user?: any }) => {
       where: { status: "PENDING" },
       order: [["createdAt", "DESC"]],
       limit: 3,
-      raw: true,
+      include: [
+        {
+          model: models.user,
+          as: "user",
+          attributes: ["id", "firstName", "lastName", "email", "avatar"],
+        },
+      ],
     });
 
     // 3) Categories: total + top 5
@@ -174,12 +197,12 @@ export default async (data: { user?: any }) => {
       posts: {
         publishedCount,
         draftCount,
-        recentPosts,
+        recentPosts: recentPosts.map((post) => post.toJSON()),
       },
       authors: {
         approvedCount,
         pendingCount,
-        recentPendingAuthors,
+        recentPendingAuthors: recentPendingAuthors.map((author) => author.toJSON()),
       },
       categories: {
         count: totalCategories,

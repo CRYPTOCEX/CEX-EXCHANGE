@@ -67,10 +67,14 @@ export function WalletTab() {
   const t = useTranslations("dashboard");
   const { user, setUser, connectWallet, disconnectWallet } = useUserStore();
   const { toast } = useToast();
-  const account = useAppKitAccount();
-  const { open: openAppKit } = useAppKit();
-  const { disconnect } = useDisconnect();
-  const network = useAppKitNetwork() as any;
+  
+  // Safe hook calls with error boundaries
+  const account = useAppKitAccount() || { isConnected: false, address: null };
+  const appKit = useAppKit() || { open: () => {} };
+  const { open: openAppKit } = appKit;
+  const disconnectHook = useDisconnect() || { disconnect: async () => {} };
+  const { disconnect } = disconnectHook;
+  const network = useAppKitNetwork() || { chainId: null, caipNetwork: null };
   const connectWalletRef = useRef(false);
 
   const handleConnect = () => {
@@ -78,18 +82,27 @@ export function WalletTab() {
   };
 
   const handleDisconnect = async () => {
-    if (!account.address) return;
+    if (!account?.address) return;
 
-    await disconnect();
-    await disconnectWallet(account.address);
+    try {
+      await disconnect();
+      await disconnectWallet(account.address);
+    } catch (error) {
+      console.error('Error disconnecting wallet:', error);
+      toast({
+        title: "Disconnect Error",
+        description: "Failed to disconnect wallet. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
     const connectWalletToBackend = async () => {
       if (
-        account.isConnected &&
-        account.address &&
-        network.chainId &&
+        account?.isConnected &&
+        account?.address &&
+        network?.chainId &&
         !connectWalletRef.current &&
         !user?.providers?.some(
           (p) =>
@@ -99,15 +112,24 @@ export function WalletTab() {
       ) {
         connectWalletRef.current = true;
         const chainId = network.chainId;
-        const success = await connectWallet(account.address, chainId);
-        if (success) {
+        try {
+          const success = await connectWallet(account.address, chainId);
+          if (success) {
+            toast({
+              title: "Wallet Connected",
+              description: "Your wallet has been connected successfully.",
+            });
+          } else {
+            toast({
+              title: "Connection Failed",
+              description: "Failed to connect wallet. Please try again.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Error connecting wallet to backend:', error);
           toast({
-            title: "Wallet Connected",
-            description: "Your wallet has been connected successfully.",
-          });
-        } else {
-          toast({
-            title: "Connection Failed",
+            title: "Connection Error",
             description: "Failed to connect wallet. Please try again.",
             variant: "destructive",
           });
@@ -115,12 +137,12 @@ export function WalletTab() {
       }
     };
     connectWalletToBackend();
-  }, [account.isConnected, account.address, network.caipNetwork?.id]);
+  }, [account?.isConnected, account?.address, network?.caipNetwork?.id]);
 
   return (
     <WalletProvider cookies="">
       <div className="space-y-6">
-        {!account.isConnected ? (
+        {!account?.isConnected ? (
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-xl p-6 border border-blue-100 dark:border-blue-800">
               <div className="flex items-start gap-4">
@@ -174,8 +196,8 @@ export function WalletTab() {
                     {t("wallet_connected")}
                   </h3>
                   <p className="text-green-700 dark:text-green-300">
-                    {t("your_wallet_is_connected")}. {t("address")}
-                    {account.address}
+                    {t("your_wallet_is_connected")}. {t("address")}: 
+                    {account?.address || 'N/A'}
                   </p>
                   <p className="text-green-700 dark:text-green-300">
                     {t("to_log_in_same_wallet")}.

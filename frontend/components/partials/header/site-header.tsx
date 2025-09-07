@@ -17,7 +17,7 @@ import { useTranslations } from "next-intl";
 import MobileMenuHandler from "./mobile-menu-handler";
 import MobileSidebar from "@/components/partials/sidebar";
 import CustomMobileMenu from "./custom-mobile-menu";
-import Logo from "@/components/elements/logo";
+import NavbarLogo from "@/components/elements/navbar-logo";
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Bicrypto";
 
@@ -109,35 +109,35 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                   >
                     <ChevronLeft className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
                   </Link>
-                  <Link href="/" className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.2 }}
                       className="relative"  
                     >
-                      <Logo className="w-8 h-8 lg:w-9 lg:h-9" />
+                      <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9" isInAdmin={isInAdminArea} />
                     </motion.div>
-                    <div className="hidden sm:flex flex-col">
-                      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
-                        {siteName}
-                      </span>
-                      {title && (
+                    {title && (
+                      <div className="hidden sm:flex flex-col">
+                        <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
+                          {title}
+                        </span>
                         <span className="text-xs text-primary font-medium">
                           {t("Admin")}
                         </span>
-                      )}
-                    </div>
-                  </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : isCustomMenu ? (
                 // Custom menu (not admin area) - show chevron on hover
-                <Link href="/" className="group flex items-center gap-3 relative">
+                <div className="group flex items-center gap-3 relative">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                     className="relative flex items-center"
                   >
-                    <Logo className="w-8 h-8 lg:w-9 lg:h-9 transition-transform duration-200" />
+                    <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9 transition-transform duration-200" isInAdmin={false} />
                     
                     {/* Animated chevron that appears on hover */}
                     <div className="absolute -left-6 opacity-0 translate-x-2 scale-75 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-300 ease-out">
@@ -149,34 +149,18 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                       />
                     </div>
                   </motion.div>
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="hidden sm:block font-bold text-xl lg:text-2xl text-zinc-900 dark:text-zinc-100"
-                  >
-                    {siteName}
-                  </motion.span>
-                </Link>
+                </div>
               ) : (
                 // Default user menu
-                <Link href="/" className="flex items-center gap-3">
+                <div className="flex items-center gap-3">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                     className="relative"
                   >
-                      <Logo className="w-8 h-8 lg:w-9 lg:h-9" />
+                    <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9" isInAdmin={false} />
                   </motion.div>
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="hidden sm:block font-bold text-xl lg:text-2xl text-zinc-900 dark:text-zinc-100"
-                  >
-                    {siteName}
-                  </motion.span>
-                </Link>
+                </div>
               )}
               
               {/* Desktop Navigation */}

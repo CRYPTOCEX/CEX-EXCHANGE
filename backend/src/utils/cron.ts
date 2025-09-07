@@ -362,13 +362,94 @@ class CronJobManager {
     if (job) {
       job.lastRun = lastRun;
       job.lastRunError = lastRunError;
+      
+      // Update job status based on execution result
+      if (lastRunError) {
+        job.status = "failed";
+      } else {
+        job.status = "completed";
+      }
+      
       if (executionTime !== undefined) {
         job.executionTime = executionTime;
       }
       if (nextScheduledRun) {
         job.nextScheduledRun = nextScheduledRun;
       }
-      // Optionally, you could also push to job.lastExecutions array here for historical metrics.
+      
+      // Add execution to historical metrics
+      if (!job.lastExecutions) {
+        job.lastExecutions = [];
+      }
+      job.lastExecutions.unshift({
+        timestamp: lastRun,
+        duration: executionTime || 0,
+        status: lastRunError ? "failed" : "completed"
+      });
+      
+      // Keep only last 10 executions for memory efficiency
+      if (job.lastExecutions.length > 10) {
+        job.lastExecutions = job.lastExecutions.slice(0, 10);
+      }
+
+      // Calculate success rate
+      const totalExecutions = job.lastExecutions.length;
+      const successfulExecutions = job.lastExecutions.filter(exec => exec.status === "completed").length;
+      job.successRate = totalExecutions > 0 ? Math.round((successfulExecutions / totalExecutions) * 100) : 0;
+
+      // Set job back to idle after a short delay (to allow UI to show completed status)
+      setTimeout(() => {
+        if (job.status === "completed" || job.status === "failed") {
+          job.status = "idle";
+          job.progress = 0;
+        }
+      }, 5000); // Reset to idle after 5 seconds
+    }
+  }
+
+  // New method to update job status during execution
+  public updateJobRunningStatus(name: string, status: CronJobStatus, progress?: number) {
+    const job = this.cronJobs.find((job) => job.name === name);
+    if (job) {
+      job.status = status;
+      if (progress !== undefined) {
+        job.progress = progress;
+      }
+      
+      // Reset progress when job completes or fails
+      if (status === "completed" || status === "failed") {
+        job.progress = 0;
+      }
+    }
+  }
+
+  // Method to manually trigger a cron job (for testing purposes)
+  public async triggerJob(name: string): Promise<boolean> {
+    const job = this.cronJobs.find((job) => job.name === name);
+    if (!job) {
+      return false;
+    }
+
+    // Don't trigger if job is already running
+    if (job.status === "running") {
+      return false;
+    }
+
+    const startTime = Date.now();
+    try {
+      this.updateJobRunningStatus(name, "running", 0);
+      
+      await job.handler();
+      
+      const executionTime = Date.now() - startTime;
+      this.updateJobStatus(name, new Date(startTime), null, executionTime);
+      
+      return true;
+    } catch (error: any) {
+      const executionTime = Date.now() - startTime;
+      this.updateJobStatus(name, new Date(startTime), error.message, executionTime);
+      logError("manual trigger", error, __filename);
+      return false;
     }
   }
 
@@ -397,7 +478,11 @@ export const createWorker = async (
     async (job) => {
       const startTime = Date.now();
       try {
+        // Set job status to running when it starts
+        cronJobManager.updateJobRunningStatus(name, "running", 0);
+        
         await handler();
+        
         const executionTime = Date.now() - startTime;
         const nextScheduledRun = new Date(Date.now() + period);
         cronJobManager.updateJobStatus(

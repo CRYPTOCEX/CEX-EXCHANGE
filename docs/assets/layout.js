@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.045254'; // Update this when deploying changes
+        this.cacheVersion = '1.0.564841'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration

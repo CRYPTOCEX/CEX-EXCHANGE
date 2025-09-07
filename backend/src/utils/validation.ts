@@ -230,13 +230,24 @@ export function validateSchema<T>(value: T, schema: object): T {
       const customMessage = formatErrorMessage(pathStr, error, schema);
       return { path: pathStr, message: customMessage };
     });
+    
     // Log the detailed error messages to the console.
     console.error(
       "Schema validation failed with errors:",
       JSON.stringify(errorDetails, null, 2)
     );
-    // Throw an error with detailed error information.
-    throw new Error("Validation error: " + JSON.stringify(errorDetails));
+    
+    // Create a user-friendly error message
+    const userFriendlyMessages = errorDetails.map(err => err.message);
+    const friendlyMessage = userFriendlyMessages.length === 1 
+      ? userFriendlyMessages[0]
+      : userFriendlyMessages.join("; ");
+    
+    // Create a validation error with both user-friendly message and detailed info
+    const validationError = new Error(friendlyMessage);
+    (validationError as any).details = errorDetails;
+    (validationError as any).isValidationError = true;
+    throw validationError;
   }
   return transformedValue as T;
 }

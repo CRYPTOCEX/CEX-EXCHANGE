@@ -4,14 +4,14 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
-import lightImage from "@/public/images/error/light-404.png";
-import darkImage from "@/public/images/error/dark-404.png";
 import { useTranslations } from "next-intl";
 
 const ErrorBlock = () => {
   const t = useTranslations("components/error-block");
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const lightImage = "/images/error/light-404.png";
+  const darkImage = "/images/error/dark-404.png";
 
   useEffect(() => {
     setMounted(true);
@@ -27,7 +27,10 @@ const ErrorBlock = () => {
           <Image
             src={imageSrc}
             alt="error image"
+            width={740}
+            height={400}
             className="w-full h-full object-cover"
+            unoptimized={true}
           />
         </div>
         <div className="mt-16 text-center">

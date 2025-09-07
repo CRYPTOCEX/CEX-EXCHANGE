@@ -1,18 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from "@/public/images/logo/logo-2.png";
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import LightImage from "@/public/images/utility/comming-soon-light.png";
-import DarkImage from "@/public/images/utility/comming-soon-dark.png";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 const CommingSoonPage = () => {
   const t = useTranslations("utility");
   const { theme } = useTheme();
+  const logo = "/images/logo/logo-2.png";
+  const LightImage = "/images/utility/comming-soon-light.png";
+  const DarkImage = "/images/utility/comming-soon-dark.png";
   const socials = [
     { link: "/", icon: <Twitter /> },
     { link: "/", icon: <Facebook /> },
@@ -32,8 +32,11 @@ const CommingSoonPage = () => {
           <Image
             src={logo}
             alt="logo"
+            width={170}
+            height={38}
             className="w-full h-full object-cover"
             priority={true}
+            unoptimized={true}
           />
         </div>
         <Link href="/dashboard">
@@ -74,8 +77,11 @@ const CommingSoonPage = () => {
               <Image
                 src={theme === "dark" ? DarkImage : LightImage}
                 alt="comming soon"
+                width={600}
+                height={400}
                 className="w-full h-full object-cover"
                 priority={true}
+                unoptimized={true}
               />
             </div>
           </div>

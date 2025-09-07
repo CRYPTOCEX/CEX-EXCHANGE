@@ -142,7 +142,7 @@ export const MethodModal: React.FC<MethodModalProps> = ({
       if (formData.imageFile instanceof File) {
         const uploadResult = await imageUploader({
           file: formData.imageFile,
-          dir: "methods",
+          dir: "depositMethods",
           size: {
             width: 200,
             height: 100,

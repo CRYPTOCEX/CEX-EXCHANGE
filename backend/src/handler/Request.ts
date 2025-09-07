@@ -173,10 +173,19 @@ export class Request {
           __filename,
           `Schema validation failed: ${error.message}\n${error.stack}`
         );
-        throw createError({
-          statusCode: 400,
-          message: `Schema validation error: ${error.message}`,
-        });
+        
+        // Check if this is our custom validation error with user-friendly messages
+        if (error.isValidationError) {
+          throw createError({
+            statusCode: 400,
+            message: error.message, // This is now user-friendly
+          });
+        } else {
+          throw createError({
+            statusCode: 400,
+            message: `Schema validation error: ${error.message}`,
+          });
+        }
       }
     }
   }
@@ -243,9 +252,16 @@ export class Request {
             validateSchema(value, parameter.schema)
           );
         } catch (error: any) {
-          throw new Error(
-            `Validation error for ${parameter.in} parameter "${parameter.name}": ${error.message}`
-          );
+          // Check if this is our custom validation error with user-friendly messages
+          if (error.isValidationError) {
+            throw new Error(
+              `Parameter "${parameter.name}": ${error.message}`
+            );
+          } else {
+            throw new Error(
+              `Validation error for ${parameter.in} parameter "${parameter.name}": ${error.message}`
+            );
+          }
         }
       }
     }

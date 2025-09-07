@@ -1,7 +1,5 @@
 "use client";
 import Image from "next/image";
-import lightImage from "@/public/images/error/light-403.png";
-import darkImage from "@/public/images/error/dark-403.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
 import { useTheme } from "next-themes";
@@ -10,6 +8,8 @@ import { useTranslations } from "next-intl";
 const ErrorPage = () => {
   const t = useTranslations("error-page/403");
   const { theme } = useTheme();
+  const lightImage = "/images/error/light-403.png";
+  const darkImage = "/images/error/dark-403.png";
   return (
     <div className="min-h-screen overflow-y-auto flex justify-center items-center p-10">
       <div className="w-full flex flex-col items-center">
@@ -17,8 +17,11 @@ const ErrorPage = () => {
           <Image
             src={theme === "dark" ? darkImage : lightImage}
             alt="error image"
+            width={542}
+            height={400}
             className="w-full h-full object-cover"
             priority={true}
+            unoptimized={true}
           />
         </div>
         <div className="mt-16 text-center">

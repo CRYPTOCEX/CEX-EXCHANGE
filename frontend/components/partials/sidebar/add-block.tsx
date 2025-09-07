@@ -4,19 +4,18 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import thumbnail from "@/public/images/all-img/thumbnail.png";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
 
 const AddBlock = ({
   className,
-  image = thumbnail,
+  image = "/images/all-img/thumbnail.png",
   title = "Storage capacity",
   desc = " Out of your total storage on Premium Plan, you have used up 40%.",
 }: {
   className?: string;
-  image?: any;
+  image?: string;
   title?: string;
   desc?: string;
 }) => {
@@ -38,8 +37,11 @@ const AddBlock = ({
           <Image
             src={image}
             alt="footer-thumbnail"
+            width={300}
+            height={200}
             className="w-full h-full"
             priority={true}
+            unoptimized={true}
           />
           <Button
             size="icon"

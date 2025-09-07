@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
-import { HelpCircle, Menu, Sun, Moon, ChevronLeft } from "lucide-react";
+import { Menu, Sun, Moon, ChevronLeft } from "lucide-react";
 import type { Symbol, Order } from "@/store/trade/use-binary-store";
 import {
   extractBaseCurrency,
@@ -23,7 +23,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@/i18n/routing";
-import GuideModal from "../guide/guide-modal";
 import { useTranslations } from "next-intl";
 import { useUserStore } from "@/store/user";
 import { AuthHeaderControls } from "@/components/auth/auth-header-controls";
@@ -77,7 +76,6 @@ export default function Header({
   const t = useTranslations("binary/components/header/header");
   const [showBalanceMenu, setShowBalanceMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showGuideModal, setShowGuideModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   // Get user authentication state
@@ -315,32 +313,6 @@ export default function Header({
             </button>
           )}
 
-          {/* Help button */}
-          <div className="flex items-center">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.button
-                    className={`p-1 rounded-full ${darkMode ? "hover:bg-zinc-800/30" : "hover:bg-zinc-100"} transition-colors`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowGuideModal(true)}
-                  >
-                    <HelpCircle
-                      size={14}
-                      className={darkMode ? "text-white" : "text-zinc-700"}
-                    />
-                  </motion.button>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  className={`text-xs ${darkMode ? "bg-zinc-900 text-white border-zinc-800" : "bg-white text-zinc-800 border-zinc-200"}`}
-                >
-                  <p>{t("help_&_support")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
 
           {/* Dark/Light mode toggle */}
           <div className="flex items-center">
@@ -677,11 +649,6 @@ export default function Header({
         </div>
       </motion.div>
 
-      {/* Guide Modal */}
-      <GuideModal
-        isOpen={showGuideModal}
-        onClose={() => setShowGuideModal(false)}
-      />
     </>
   );
 }

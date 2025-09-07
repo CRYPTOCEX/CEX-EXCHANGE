@@ -55,6 +55,16 @@ const nextConfig = {
     NEXT_PUBLIC_DEFAULT_LANGUAGE: process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE || "en",
   },
   webpack: (config, { dev, isServer }) => {
+    // Disable image optimization for static imports to avoid sharp dependency
+    config.module.rules.forEach((rule) => {
+      if (rule.loader === 'next-image-loader') {
+        rule.options = {
+          ...rule.options,
+          unoptimized: true,
+        };
+      }
+    });
+    
     // Fixes npm packages that depend on `fs` module
     if (!isServer) {
       config.resolve.fallback = {
@@ -118,6 +128,8 @@ const nextConfig = {
     ];
   },
   images: {
+    // Disable image optimization to avoid Sharp dependency issues on servers without v2 microarchitecture
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

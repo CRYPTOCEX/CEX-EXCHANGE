@@ -27,16 +27,8 @@ export default function ForexNavbar() {
   const t = useTranslations("ext");
   return (
     <ExtNavbar
-      branding={{
-        logo: (
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">FX</span>
-          </div>
-        ),
-        text: "Forex",
-        isAdmin: true,
-      }}
       navItems={navItems}
+      isAdmin={true}
     />
   );
 }

@@ -87,33 +87,34 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
       layout
     >
       <Card
-        className={`h-full border-l-4 ${getBorderColor()} overflow-hidden rounded-md`}
+        className={`h-full border-l-4 ${getBorderColor()} overflow-hidden rounded-md hover:shadow-md transition-shadow`}
       >
-        <CardHeader className="pb-2 relative">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg">{cron.title}</CardTitle>
-            {getStatusBadge()}
+        <CardHeader className="pb-2 relative p-3 sm:p-4">
+          <div className="flex justify-between items-start gap-2">
+            <CardTitle className="text-base sm:text-lg truncate flex-1 min-w-0">{cron.title}</CardTitle>
+            <div className="flex-shrink-0">
+              {getStatusBadge()}
+            </div>
           </div>
-          <CardDescription className="line-clamp-2">
+          <CardDescription className="line-clamp-2 text-xs sm:text-sm">
             {cron.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="pb-2">
-          <div className="space-y-3">
-            <div className="flex items-center text-sm">
-              <Code className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="font-mono text-xs text-muted-foreground">
+        <CardContent className="pb-2 p-3 sm:p-4 pt-0">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center text-xs sm:text-sm">
+              <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
+              <span className="font-mono text-xs text-muted-foreground truncate">
                 {cron.name}
               </span>
             </div>
-            <div className="flex items-center text-sm">
-              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                {t("Every")}
-                {formatPeriod(cron.period)}
+            <div className="flex items-center text-xs sm:text-sm">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
+              <span className="text-muted-foreground flex-1 min-w-0">
+                {t("Every")} {formatPeriod(cron.period)}
               </span>
               {cron.lastRun && (
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="ml-2 text-xs text-muted-foreground whitespace-nowrap">
                   {t("last")}{" "}
                   {formatDistanceToNow(new Date(cron.lastRun), {
                     addSuffix: true,
@@ -121,16 +122,16 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
                 </span>
               )}
             </div>
-            <div className="flex items-center text-sm">
-              <Tag className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="capitalize text-muted-foreground">
+            <div className="flex items-center text-xs sm:text-sm">
+              <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
+              <span className="capitalize text-muted-foreground truncate">
                 {(cron.category || "normal").replace("_", " ")}
               </span>
             </div>
 
             {cron.status === "running" && (
-              <div className="pt-2">
-                <div className="flex justify-between text-sm mb-1">
+              <div className="pt-1 sm:pt-2">
+                <div className="flex justify-between text-xs sm:text-sm mb-1">
                   <span className="text-muted-foreground">
                     {t("progress")}
                   </span>
@@ -138,16 +139,16 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
                 </div>
                 <Progress
                   value={cron.progress || 0}
-                  className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full"
+                  className="h-1.5 sm:h-2 bg-slate-200 dark:bg-slate-700 rounded-full"
                 />
               </div>
             )}
           </div>
         </CardContent>
-        <CardFooter className="pt-2">
+        <CardFooter className="pt-2 p-3 sm:p-4">
           <div className="w-full flex items-center gap-2">
             <div
-              className={`w-3 h-3 rounded-full ${
+              className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0 ${
                 cron.status === "running"
                   ? "status-running"
                   : cron.status === "completed"
@@ -157,7 +158,7 @@ const CronCard = memo(function CronCard({ cron, onClick }: CronCardProps) {
                       : "status-idle"
               }`}
             ></div>
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground capitalize truncate">
               {cron.status || "idle"}
             </span>
           </div>

@@ -27,12 +27,8 @@ const adminNavItems: NavItem[] = [
 export default function P2PAdminNavbar() {
   return (
     <ExtNavbar
-      branding={{
-        logo: <Shield className="h-8 w-8 text-primary" />,
-        text: "P2P",
-        isAdmin: true,
-      }}
       navItems={adminNavItems}
+      isAdmin={true}
     />
   );
 } 

@@ -234,6 +234,9 @@ export default async (data: { body: { logoType: string; file: string } }) => {
   }
 
   try {
+    console.log(`[LOGO-API-DEBUG] Processing logo upload for type: ${logoType}`);
+    console.log(`[LOGO-API-DEBUG] File size: ${file.length} characters`);
+    
     // Determine the correct path based on environment with better detection
     const isProduction = process.env.NODE_ENV === 'production';
     
@@ -281,6 +284,7 @@ export default async (data: { body: { logoType: string; file: string } }) => {
     }
 
     const buffer = Buffer.from(base64Data, "base64");
+    console.log(`[LOGO-API-DEBUG] Buffer created, size: ${buffer.length} bytes`);
     
     // Try to ensure the directory exists, with fallback to alternative paths
     let finalLogoDir = logoDir;
@@ -361,7 +365,8 @@ export default async (data: { body: { logoType: string; file: string } }) => {
         if (isWebP) {
           processedImage = processedImage.webp({ quality: 90 });
         } else {
-          processedImage = processedImage.png({ quality: 90 });
+          // PNG doesn't use quality parameter the same way as JPEG
+          processedImage = processedImage.png({ compressionLevel: 6 });
         }
         
         // Save the processed image
@@ -387,10 +392,14 @@ export default async (data: { body: { logoType: string; file: string } }) => {
       results,
     };
     
-  } catch (error) {
+  } catch (error: any) {
+    console.error(`[LOGO-API-ERROR] Failed to update logo ${logoType}:`, error);
+    console.error(`[LOGO-API-ERROR] Error message:`, error?.message);
+    console.error(`[LOGO-API-ERROR] Error stack:`, error?.stack);
+    
     throw createError({
       statusCode: 500,
-      message: "Failed to update logo",
+      message: `Failed to update logo ${logoType}: ${error?.message || error}`,
     });
   }
 };

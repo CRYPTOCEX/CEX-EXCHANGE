@@ -23,13 +23,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       icon: "lucide:user-plus",
     },
     {
-      key: "network",
+      key: "conditions",
       title: "Conditions",
       href: "/admin/affiliate/condition",
       icon: "lucide:bar-chart-3",
     },
     {
       key: "rewards",
+      title: "Rewards",
+      href: "/admin/affiliate/reward",
+      icon: "lucide:trophy",
+    },
+    {
+      key: "settings",
       title: "Settings",
       href: "/admin/affiliate/settings",
       icon: "lucide:settings",

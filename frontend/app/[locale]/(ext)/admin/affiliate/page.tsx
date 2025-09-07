@@ -474,7 +474,7 @@ export default function AdminDashboard() {
               <ArrowUpRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/admin/affiliate/conditions"
+              href="/admin/affiliate/condition"
               className="flex items-center justify-between rounded-lg border p-3 text-sm transition-colors hover:bg-accent"
             >
               <div className="flex items-center gap-3">
@@ -484,12 +484,12 @@ export default function AdminDashboard() {
               <ArrowUpRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/admin/affiliate/payouts"
+              href="/admin/affiliate/reward"
               className="flex items-center justify-between rounded-lg border p-3 text-sm transition-colors hover:bg-accent"
             >
               <div className="flex items-center gap-3">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span>{t("process_payouts")}</span>
+                <span>{t("manage_rewards")}</span>
               </div>
               <ArrowUpRight className="h-4 w-4" />
             </Link>

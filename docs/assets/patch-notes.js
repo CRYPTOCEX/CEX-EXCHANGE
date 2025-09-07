@@ -2,7 +2,7 @@
 class PatchNotesSystem {
     constructor() {
         this.patchNotes = new Map();
-        this.cacheVersion = '1.0.045254'; // Update this when deploying changes
+        this.cacheVersion = '1.0.564841'; // Update this when deploying changes
         this.extensionIcons = {
             core: '🚀',
             ai: '🤖',

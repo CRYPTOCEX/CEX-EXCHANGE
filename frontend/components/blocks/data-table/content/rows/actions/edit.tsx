@@ -6,7 +6,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useTableStore } from "../../../store";
 import { TooltipWrapper } from "./tooltip-wrapper";
 import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { processEndpointLink } from "../../../utils/cell";
 import { useTranslations } from "next-intl";
 
@@ -22,6 +22,7 @@ export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
   );
   const handleEdit = useTableStore((state) => state.handleEdit);
   const tableConfig = useTableStore((state) => state.tableConfig);
+  const router = useRouter();
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,7 +30,7 @@ export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
       onSelect();
       if (tableConfig.editLink) {
         const editUrl = processEndpointLink(tableConfig.editLink, row);
-        window.location.href = editUrl;
+        router.push(editUrl);
       } else {
         handleEdit(row);
       }

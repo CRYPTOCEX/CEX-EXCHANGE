@@ -54,6 +54,10 @@ export const DepositModal: React.FC<DepositModalProps> = ({
     "Please provide a reason for rejection."
   );
 
+  // For validation errors
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [generalError, setGeneralError] = useState("");
+
   const fetchTransaction = useCallback(async () => {
     if (!depositId) return;
     setIsLoading(true);
@@ -82,9 +86,53 @@ export const DepositModal: React.FC<DepositModalProps> = ({
     }
   }, [depositId, isOpen, fetchTransaction]);
 
+  // Function to parse validation errors from backend response
+  const parseValidationErrors = (errorMessage: string) => {
+    try {
+      // Try to extract validation details from the error message
+      // Expected format: "Invalid request body: Schema validation error: Validation error: [{"path":"referenceId","message":"Reference Id must be at least 1 characters long."}]"
+      const match = errorMessage.match(/Validation error: (\[.*\])/);
+      if (match) {
+        const details = JSON.parse(match[1]);
+        const errors: {[key: string]: string} = {};
+        details.forEach((detail: any) => {
+          if (detail.path && detail.message) {
+            errors[detail.path] = detail.message;
+          }
+        });
+        return errors;
+      }
+      
+      // If it's already a clean validation message (from our updated backend)
+      if (errorMessage.includes("must be at least") || 
+          errorMessage.includes("is required") || 
+          errorMessage.includes("must be") ||
+          errorMessage.includes("Invalid")) {
+        // Try to infer the field from common patterns
+        if (errorMessage.toLowerCase().includes("reference id")) {
+          return { referenceId: errorMessage };
+        } else if (errorMessage.toLowerCase().includes("amount")) {
+          return { amount: errorMessage };
+        } else if (errorMessage.toLowerCase().includes("fee")) {
+          return { fee: errorMessage };
+        } else if (errorMessage.toLowerCase().includes("description")) {
+          return { description: errorMessage };
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse validation errors:", e);
+    }
+    return {};
+  };
+
   const updateTransaction = async (newStatus: string) => {
     if (!depositId) return;
     setIsLoading(true);
+    
+    // Clear previous errors
+    setValidationErrors({});
+    setGeneralError("");
+    
     try {
       // Build the payload.
       const payload: any = {
@@ -120,6 +168,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
         url: `/api/admin/finance/deposit/log/${depositId}`,
         body: payload,
       });
+      
       if (!error) {
         setTransaction((prev) =>
           prev
@@ -136,9 +185,24 @@ export const DepositModal: React.FC<DepositModalProps> = ({
         }
         // Notify parent component to refresh data
         onDepositUpdated?.();
+      } else {
+        // Handle validation errors
+        const parsedErrors = parseValidationErrors(error.message || error);
+        if (Object.keys(parsedErrors).length > 0) {
+          setValidationErrors(parsedErrors);
+        } else {
+          setGeneralError(error.message || error || "Failed to update transaction");
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update deposit", err);
+      const errorMessage = err?.message || err || "An unexpected error occurred";
+      const parsedErrors = parseValidationErrors(errorMessage);
+      if (Object.keys(parsedErrors).length > 0) {
+        setValidationErrors(parsedErrors);
+      } else {
+        setGeneralError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -152,6 +216,8 @@ export const DepositModal: React.FC<DepositModalProps> = ({
     setReferenceId("");
     setIsRejectDialogOpen(false);
     setRejectionMessage("Please provide a reason for rejection.");
+    setValidationErrors({});
+    setGeneralError("");
     onClose();
   };
 
@@ -327,6 +393,25 @@ export const DepositModal: React.FC<DepositModalProps> = ({
                       </svg>
                       Transaction Management
                     </h3>
+
+                    {/* General Error Display */}
+                    {generalError && (
+                      <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+                              Transaction Update Failed
+                            </h4>
+                            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                              {generalError}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     
                     <TransactionEditForm
                       amount={amount}
@@ -338,6 +423,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
                       onDescriptionChange={(e) => setDescription(e.target.value)}
                       onReferenceIdChange={(e) => setReferenceId(e.target.value)}
                       disabled={!isEditable}
+                      errors={validationErrors}
                     />
                     
                     {isEditable && (
