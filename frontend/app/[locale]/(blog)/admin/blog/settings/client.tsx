@@ -192,7 +192,8 @@ export function SettingsClient() {
       // Merge with existing settings to avoid overwriting other extensions' settings
       const mergedSettings = { ...settings, ...bodyToSave };
       setSettings(mergedSettings);
-      setLocalSettings(bodyToSave);
+      // Don't set bodyToSave to localSettings since types are different (strings vs booleans)
+      // localSettings should keep its original boolean values
     }
     setIsSaving(false);
   };

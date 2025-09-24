@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecosystemUtxoAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: UTXO Overview – KPI Grid on Left, Pie Chart on Right

@@ -12,7 +12,7 @@ export default function BinaryTradingPage() {
   const searchParams = useSearchParams();
   const initialSymbolParam = searchParams.get("symbol");
   
-  // Set body background immediately to prevent flash of wrong color
+  // Set body background and ensure dark mode is applied immediately
   useEffect(() => {
     // Save original background
     const originalBackground = document.body.style.backgroundColor;
@@ -20,9 +20,21 @@ export default function BinaryTradingPage() {
     // Set zinc-950 background immediately
     document.body.style.backgroundColor = '#09090b'; // zinc-950
     
+    // Force dark theme class on html element to prevent light mode flash
+    const htmlElement = document.documentElement;
+    const originalTheme = htmlElement.classList.contains('light') ? 'light' : 'dark';
+    
+    // Ensure dark mode is applied if it's the current theme
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      htmlElement.classList.remove('light');
+      htmlElement.classList.add('dark');
+    }
+    
     // Cleanup on unmount
     return () => {
       document.body.style.backgroundColor = originalBackground;
+      // Don't revert theme class as it should persist based on user preference
     };
   }, []);
   

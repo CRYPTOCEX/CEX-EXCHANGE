@@ -10,6 +10,7 @@ import {
 } from "@b/utils/query";
 import { models } from "@b/db";
 import { Op } from "sequelize";
+import { CacheManager } from "@b/utils/cache";
 
 export const metadata: OperationObject = {
   summary: "Lists all currencies with their current rates",
@@ -88,6 +89,17 @@ export default async (data: Handler) => {
   if (!user?.id) throw createError(401, "Unauthorized");
 
   const { action, walletType, targetWalletType } = query;
+  
+  // Check if spot wallets are disabled
+  const cacheManager = CacheManager.getInstance();
+  const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+  const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+  
+  // If SPOT is involved and disabled, return empty array or error
+  if (!isSpotEnabled && (walletType === "SPOT" || targetWalletType === "SPOT")) {
+    return [];
+  }
+  
   const where = { status: true };
 
   switch (action) {
@@ -95,9 +107,9 @@ export default async (data: Handler) => {
       return handleDeposit(walletType, where);
     case "withdraw":
     case "payment":
-      return handleWithdraw(walletType, user.id);
+      return handleWithdraw(walletType, user.id, isSpotEnabled);
     case "transfer":
-      return handleTransfer(walletType, targetWalletType, user.id);
+      return handleTransfer(walletType, targetWalletType, user.id, isSpotEnabled);
     default:
       throw createError(400, "Invalid action");
   }
@@ -145,7 +157,7 @@ async function handleDeposit(walletType, where) {
   }
 }
 
-async function handleWithdraw(walletType, userId) {
+async function handleWithdraw(walletType, userId, isSpotEnabled = true) {
   const wallets = await models.wallet.findAll({
     where: { userId, type: walletType, balance: { [Op.gt]: 0 } },
   });
@@ -211,7 +223,7 @@ async function handleWithdraw(walletType, userId) {
   return currencies;
 }
 
-async function handleTransfer(walletType, targetWalletType, userId) {
+async function handleTransfer(walletType, targetWalletType, userId, isSpotEnabled = true) {
   // Validate source wallet type
   const validWalletTypes = ["FIAT", "SPOT", "ECO", "FUTURES"];
   if (!validWalletTypes.includes(walletType)) {

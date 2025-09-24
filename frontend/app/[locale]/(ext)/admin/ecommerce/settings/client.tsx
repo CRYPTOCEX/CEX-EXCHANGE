@@ -88,7 +88,6 @@ export default function SettingsConfiguration() {
         <Button
           onClick={handleSaveSettings}
           disabled={saving}
-          className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <Save className="mr-2 h-4 w-4" />

@@ -142,7 +142,8 @@ export function WithdrawForm() {
   // Check which wallet types have available currencies for withdrawal
   const checkAvailableWalletTypes = useCallback(async () => {
     // Exclude FUTURES from withdrawal options (futures can only transfer to ECO)
-    const walletTypes = ["FIAT", "SPOT", "ECO"];
+    const isSpotEnabled = settings?.spotWallets === true || settings?.spotWallets === "true";
+    const walletTypes = isSpotEnabled ? ["FIAT", "SPOT", "ECO"] : ["FIAT", "ECO"];
     const availableTypes = new Set<string>();
 
     for (const type of walletTypes) {
@@ -160,7 +161,7 @@ export function WithdrawForm() {
     }
     
     setWalletTypesWithBalance(availableTypes);
-  }, []);
+  }, [settings]);
 
   // Initialize store
   useEffect(() => {

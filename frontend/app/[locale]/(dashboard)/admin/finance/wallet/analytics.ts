@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const walletAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Wallet Overview – Counts & Financial KPIs

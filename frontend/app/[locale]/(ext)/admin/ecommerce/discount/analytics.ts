@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecommerceDiscountAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Discount Overview (Status)

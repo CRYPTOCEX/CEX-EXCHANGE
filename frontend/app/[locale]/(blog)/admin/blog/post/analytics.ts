@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const postAnalytics: AnalyticsConfig = [
   // Group 1: Post Overview – KPI Grid on Left, Pie Chart on Right
   [

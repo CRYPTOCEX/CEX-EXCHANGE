@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslations } from "next-intl";
+import { useConfigStore } from "@/store/config";
 
 // Helper function to safely convert any value to a string
 const safeString = (value: any): string => {
@@ -33,9 +34,13 @@ export function WalletList() {
   const router = useRouter();
   const { fiatWallets, spotWallets, ecoWallets, futuresWallets } =
     useWalletStore();
+  const { settings } = useConfigStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const isMobile = useIsMobile();
+  
+  // Check if spot wallets are enabled
+  const isSpotEnabled = settings?.spotWallets === true || settings?.spotWallets === "true";
 
   // Normalize wallet data
   const normalizedWallets = useMemo(() => {
@@ -53,11 +58,11 @@ export function WalletList() {
     }
     return {
       fiat: (fiatWallets || []).map((w) => normalize(w, "FIAT")),
-      spot: (spotWallets || []).map((w) => normalize(w, "SPOT")),
+      spot: isSpotEnabled ? (spotWallets || []).map((w) => normalize(w, "SPOT")) : [],
       eco: (ecoWallets || []).map((w) => normalize(w, "ECO")),
       futures: (futuresWallets || []).map((w) => normalize(w, "FUTURES")),
     };
-  }, [fiatWallets, spotWallets, ecoWallets, futuresWallets]);
+  }, [fiatWallets, spotWallets, ecoWallets, futuresWallets, isSpotEnabled]);
 
   // Combine all wallet types into a single array
   const allWallets = useMemo(() => {
@@ -184,15 +189,17 @@ export function WalletList() {
               {t("Fiat")}
             </span>
           </TabsTrigger>
-          <TabsTrigger
-            value="spot"
-            className="flex items-center gap-1 text-xs sm:text-sm py-1.5 sm:py-2"
-          >
-            <Coins className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            <span className={isMobile ? "hidden sm:inline" : ""}>
-              {t("Spot")}
-            </span>
-          </TabsTrigger>
+          {isSpotEnabled && (
+            <TabsTrigger
+              value="spot"
+              className="flex items-center gap-1 text-xs sm:text-sm py-1.5 sm:py-2"
+            >
+              <Coins className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className={isMobile ? "hidden sm:inline" : ""}>
+                {t("Spot")}
+              </span>
+            </TabsTrigger>
+          )}
           <TabsTrigger
             value="eco"
             className="flex items-center gap-1 text-xs sm:text-sm py-1.5 sm:py-2"

@@ -58,7 +58,11 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
           </div>
           <Switch
             id={field.key}
-            checked={value === "true" || value === true || value === 1 || value === "1"}
+            checked={
+              (typeof value === 'string' && (value === "true" || value === "1")) || 
+              (typeof value === 'boolean' && value) || 
+              (typeof value === 'number' && value === 1)
+            }
             onCheckedChange={(checked) =>
               onChange(field.key, checked ? "true" : "false")
             }

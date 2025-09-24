@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecosystemOrderAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Row 1: Status KPIs and Status Pie Chart

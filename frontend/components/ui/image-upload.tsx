@@ -36,7 +36,7 @@ interface ImageUploadProps {
   /** Optional removal callback */
   onRemove?: () => void;
   /** Size of the image upload component: 'default', 'sm', 'lg', 'xl', or 'adaptive' */
-  size?: "default" | "sm" | "lg" | "xl" | "adaptive";
+  size?: "xs" | "default" | "sm" | "lg" | "xl" | "adaptive";
   /** Aspect ratio for the upload area */
   aspectRatio?: "square" | "video" | "wide" | "tall" | "auto";
   /** Show image metadata and info */
@@ -366,12 +366,12 @@ export function ImageUpload({
                 <div className={cn(
                   "relative mx-auto rounded-full bg-gradient-to-br from-primary/10 to-primary/5 transition-all duration-300 group-hover:scale-110",
                   isDraggingOver ? "scale-110 from-primary/20 to-primary/10" : "",
-                  size === "sm" ? "p-4" : size === "lg" ? "p-8" : "p-6"
+                  size === "xs" ? "p-2" : size === "sm" ? "p-4" : size === "lg" ? "p-8" : "p-6"
                 )}>
                   <ImageIcon className={cn(
                     "text-primary transition-all duration-300",
                     isDraggingOver ? "scale-110" : "",
-                    size === "sm" ? "h-8 w-8" : size === "lg" ? "h-16 w-16" : "h-12 w-12"
+                    size === "xs" ? "h-6 w-6" : size === "sm" ? "h-8 w-8" : size === "lg" ? "h-16 w-16" : "h-12 w-12"
                   )} />
                   
                   {/* Animated rings */}
@@ -389,14 +389,14 @@ export function ImageUpload({
                 <div className="space-y-2">
                   <h3 className={cn(
                     "font-semibold text-gray-900 dark:text-gray-100",
-                    size === "sm" ? "text-sm" : size === "lg" ? "text-lg" : "text-base"
+                    size === "xs" ? "text-xs" : size === "sm" ? "text-sm" : size === "lg" ? "text-lg" : "text-base"
                   )}>
                     {isDraggingOver ? "Drop your image here" : "Upload an image"}
                   </h3>
                   
                   <p className={cn(
                     "text-muted-foreground",
-                    size === "sm" ? "text-xs" : "text-sm"
+                    size === "xs" ? "text-xs" : size === "sm" ? "text-xs" : "text-sm"
                   )}>
                     {isDraggingOver 
                       ? "Release to upload" 
@@ -404,7 +404,7 @@ export function ImageUpload({
                     }
                   </p>
                   
-                  {size !== "sm" && (
+                  {size !== "xs" && size !== "sm" && (
                     <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
                       <span>Max {maxSize}MB</span>
                       <span>•</span>
@@ -417,7 +417,7 @@ export function ImageUpload({
                  <Button
                    type="button"
                    variant="outline"
-                   size={size === "sm" ? "sm" : "default"}
+                   size={size === "xs" || size === "sm" ? "sm" : "default"}
                    className="mt-4 transition-all duration-300 hover:scale-105"
                    onClick={(e) => e.stopPropagation()}
                  >

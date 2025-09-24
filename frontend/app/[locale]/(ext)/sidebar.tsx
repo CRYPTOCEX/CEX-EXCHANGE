@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import SidebarLogo from "@/components/partials/sidebar/logo";
 
 export interface SidebarNavItem {
   href: string;
@@ -14,17 +15,11 @@ export interface SidebarNavItem {
 }
 
 export interface ExtSidebarProps {
-  branding: {
-    logo: React.ReactNode;
-    text: string;
-    subText?: string;
-  };
   navItems: SidebarNavItem[];
   closeSidebar?: () => void;
 }
 
 export function ExtSidebar({
-  branding,
   navItems,
   closeSidebar,
 }: ExtSidebarProps) {
@@ -124,24 +119,8 @@ export function ExtSidebar({
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-background">
-      <div className="p-6 border-b flex-shrink-0">
-        <Link
-          href="/"
-          className="flex items-center gap-2"
-          onClick={closeSidebar}
-        >
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-            {branding.logo}
-          </div>
-          <div>
-            <span className="font-bold">{branding.text}</span>
-            {branding.subText && (
-              <p className="text-xs text-muted-foreground">
-                {branding.subText}
-              </p>
-            )}
-          </div>
-        </Link>
+      <div className="border-b flex-shrink-0">
+        <SidebarLogo />
       </div>
       <div className="flex-1 min-h-0 py-6 px-4 space-y-1 overflow-y-auto">
         {renderNavItems(navItems)}

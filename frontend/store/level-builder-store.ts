@@ -348,7 +348,7 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
         break;
     }
     const updatedLevel = { ...currentLevel };
-    const fields = [...updatedLevel.fields];
+    const fields = [...(updatedLevel.fields || [])];
     if (position !== undefined && position >= 0 && position <= fields.length) {
       fields.splice(position, 0, newField as KycField);
       fields.forEach((field, index) => {
@@ -386,7 +386,7 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
     const { currentLevel } = get();
     if (!currentLevel) return;
     const updatedLevel = { ...currentLevel };
-    const fields = [...updatedLevel.fields];
+    const fields = [...(updatedLevel.fields || [])];
     const fieldIndex = fields.findIndex((f) => f.id === fieldId);
     if (fieldIndex === -1) return;
     const [movedField] = fields.splice(fieldIndex, 1);
@@ -403,13 +403,13 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
     const { currentLevel } = get();
     if (!currentLevel) return;
     const updatedLevel = { ...currentLevel };
-    const fields = updatedLevel.fields;
+    const fields = updatedLevel.fields || [];
     const fieldToDuplicate = fields.find((f) => f.id === fieldId);
     if (!fieldToDuplicate) return;
     const duplicatedField = JSON.parse(JSON.stringify(fieldToDuplicate));
     duplicatedField.id = makeUuid();
     duplicatedField.label = `${fieldToDuplicate.label} (Copy)`;
-    duplicatedField.order = fieldToDuplicate.order + 1;
+    duplicatedField.order = (fieldToDuplicate.order || 0) + 1;
     if (
       fieldToDuplicate.type === "SELECT" ||
       fieldToDuplicate.type === "RADIO" ||
@@ -424,7 +424,7 @@ export const useLevelBuilderStore = create<LevelBuilderState>((set, get) => ({
     }
     const adjustedFields = fields.map((f) => ({
       ...f,
-      order: f.order > fieldToDuplicate.order ? f.order + 1 : f.order,
+      order: (f.order || 0) > (fieldToDuplicate.order || 0) ? (f.order || 0) + 1 : (f.order || 0),
     }));
     updatedLevel.fields = [...adjustedFields, duplicatedField].sort(
       (a, b) => a.order - b.order

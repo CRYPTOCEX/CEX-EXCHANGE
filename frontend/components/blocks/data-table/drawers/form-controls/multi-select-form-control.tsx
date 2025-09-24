@@ -121,7 +121,8 @@ export function MultiSelectFormControl({
             e.preventDefault();
           }
         }}
-        className="z-[75] w-[var(--radix-popover-trigger-width)] p-0 pointer-events-auto max-h-80 overflow-hidden border rounded-md shadow-md bg-popover text-popover-foreground"
+        className="z-[100] w-[var(--radix-popover-trigger-width)] p-0 pointer-events-auto max-h-80 overflow-hidden border rounded-md shadow-md bg-popover text-popover-foreground"
+        data-vaul-no-drag
       >
         {loading ? (
           <div className="flex items-center space-x-2 p-2">
@@ -151,6 +152,7 @@ export function MultiSelectFormControl({
                 overflowY: 'auto',
                 scrollbarWidth: 'thin'
               }}
+              onWheel={(e) => e.stopPropagation()}
             >
               {filteredOptions.length === 0 ? (
                 <div className="p-2 text-sm text-muted-foreground">

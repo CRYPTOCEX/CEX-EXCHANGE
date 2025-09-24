@@ -35,15 +35,19 @@ export const metadata = {
 export default async () => {
   const type = [{ id: "FIAT", name: "Fiat" }];
 
+  // Check if spot wallets are enabled
+  const cacheManager = CacheManager.getInstance();
+  const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+  const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+
   const exchangeEnabled = await models.exchange.findOne({
     where: { status: true },
   });
 
-  if (exchangeEnabled) {
+  if (exchangeEnabled && isSpotEnabled) {
     type.push({ id: "SPOT", name: "Spot" });
   }
 
-  const cacheManager = CacheManager.getInstance();
   const extensions = await cacheManager.getExtensions();
   if (extensions.has("ecosystem")) {
     type.push({ id: "ECO", name: "Funding" });

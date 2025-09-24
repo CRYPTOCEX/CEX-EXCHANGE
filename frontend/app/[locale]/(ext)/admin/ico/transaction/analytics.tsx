@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const analytics: AnalyticsConfig = [
   // First row: KPI cards and a pie chart for transaction status.
   [

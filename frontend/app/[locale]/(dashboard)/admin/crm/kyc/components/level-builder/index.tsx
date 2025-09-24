@@ -245,7 +245,7 @@ export default function LevelBuilderComponent({
   };
 
   const handleDuplicateField = (fieldId: string) => {
-    if (currentLevel) {
+    if (currentLevel && currentLevel.fields) {
       const fieldToDuplicate = currentLevel.fields.find(
         (f) => f.id === fieldId
       );
@@ -254,7 +254,7 @@ export default function LevelBuilderComponent({
       duplicatedField.id = makeUuid();
       duplicatedField.label = `${fieldToDuplicate.label} (Copy)`;
       duplicatedField.order = (fieldToDuplicate.order || 0) + 1;
-      const adjustedFields = currentLevel.fields.map((f) => ({
+      const adjustedFields = currentLevel.fields?.map((f) => ({
         ...f,
         order:
           f.order && f.order > (fieldToDuplicate.order || 0)
@@ -294,7 +294,7 @@ export default function LevelBuilderComponent({
   const applyLevelPreset = (presetId: string) => {
     const preset = LEVEL_PRESETS.find((p) => p.id === presetId);
     if (!preset || !currentLevel) return;
-    const updatedLevel = { ...currentLevel, fields: preset.fields };
+    const updatedLevel = { ...currentLevel, fields: preset.fields as KycField[] };
     setCurrentLevel(updatedLevel);
     setLeftSidebarOpen(false);
   };

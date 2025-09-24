@@ -1,6 +1,7 @@
 import { StateCreator } from "zustand";
 import { TableStore } from "../types/table";
 import { $fetch } from "@/lib/api";
+import { AnalyticsConfig } from "../types/analytics";
 
 export interface AnalyticsState {
   analyticsTab: "overview" | "analytics";

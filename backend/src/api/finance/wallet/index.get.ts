@@ -10,6 +10,7 @@ import {
 import { crudParameters, paginationSchema } from "@b/utils/constants";
 import { walletSchema } from "@b/api/admin/finance/wallet/utils";
 import { createError } from "@b/utils/error";
+import { CacheManager } from "@b/utils/cache";
 // Safe import for MatchingEngine (only available if extension is installed)
 async function getMatchingEngine() {
   try {
@@ -83,8 +84,18 @@ export default async (data: Handler) => {
   const { pnl } = query;
   if (pnl) return handlePnl(user);
 
+  // Check if spot wallets are enabled
+  const cacheManager = CacheManager.getInstance();
+  const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+  const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+
   const where = { userId: user.id };
-  if (walletType) where["type"] = walletType;
+  if (walletType) {
+    where["type"] = walletType;
+  } else if (!isSpotEnabled) {
+    // If spot wallets are disabled and no specific type is requested, exclude SPOT
+    where["type"] = { [Op.ne]: "SPOT" };
+  }
 
   const { items, pagination } = (await getFiltered({
     model: models.wallet,

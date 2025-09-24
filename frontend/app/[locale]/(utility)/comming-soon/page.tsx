@@ -6,11 +6,11 @@ import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import NavbarLogo from "@/components/elements/navbar-logo";
 
 const CommingSoonPage = () => {
   const t = useTranslations("utility");
   const { theme } = useTheme();
-  const logo = "/images/logo/logo-2.png";
   const LightImage = "/images/utility/comming-soon-light.png";
   const DarkImage = "/images/utility/comming-soon-dark.png";
   const socials = [
@@ -28,17 +28,7 @@ const CommingSoonPage = () => {
     <div className="flex flex-col min-h-screen">
       {/* header */}
       <div className="flex-none p-10 flex flex-wrap justify-between gap-4">
-        <div className="w-[170px] h-[38px]">
-          <Image
-            src={logo}
-            alt="logo"
-            width={170}
-            height={38}
-            className="w-full h-full object-cover"
-            priority={true}
-            unoptimized={true}
-          />
-        </div>
+        <NavbarLogo href="/" />
         <Link href="/dashboard">
           <Button variant="outline" size="lg">
             {t("contact_us")}

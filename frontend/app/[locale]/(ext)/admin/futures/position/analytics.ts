@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const futuresPositionsAnalytics: AnalyticsConfig = [
   // Row 1: Status KPIs + Pie Chart for positions status.
   [

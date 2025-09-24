@@ -316,6 +316,7 @@ export const adminMenu: MenuItem[] = [
             key: "admin-binary-orders",
             title: "Binary Orders",
             href: "/admin/finance/order/binary",
+            icon: "tabler:binary-tree",
             permission: "access.binary.order",
             env: process.env.NEXT_PUBLIC_BINARY_STATUS,
             description:
@@ -460,7 +461,7 @@ export const adminMenu: MenuItem[] = [
     key: "admin-platform-extensions",
     title: "Extensions",
     href: "/admin/extensions",
-    icon: "solar:puzzle-bold-duotone",
+    icon: "ph:puzzle-piece-duotone",
     description:
       "Advanced platform extensions providing specialized functionality for trading, marketplace, and business operations.",
     megaMenu: [

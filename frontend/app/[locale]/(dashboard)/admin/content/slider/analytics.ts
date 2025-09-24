@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const sliderAnalytics: AnalyticsConfig = [
   // Group 1: Slider Overview – KPI Grid on Left, Pie Chart on Right
   [

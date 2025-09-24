@@ -217,8 +217,10 @@ export function ApiKeysTab() {
   const handleEditApiKey = (apiKey: apiKeyAttributes) => {
     setEditingApiKey(apiKey);
     setEditKeyPermissions([...apiKey.permissions]);
-    setEditEnableIpRestrictions(apiKey.ipRestriction);
-    setEditKeyIpRestrictions(apiKey.ipWhitelist.join(", "));
+    setEditEnableIpRestrictions(apiKey.ipRestriction || false);
+    const ipWhitelist = apiKey.ipWhitelist || [];
+    const ipString = Array.isArray(ipWhitelist) ? ipWhitelist.join(", ") : ipWhitelist;
+    setEditKeyIpRestrictions(ipString);
     setIsEditingApiKey(true);
   };
   const handleSaveApiKeyEdit = async () => {
@@ -378,9 +380,10 @@ export function ApiKeysTab() {
                           IP Restrictions:{" "}
                         </span>
                         {apiKey.ipRestriction &&
-                        apiKey.ipWhitelist?.length > 0 ? (
+                        apiKey.ipWhitelist && 
+                        (Array.isArray(apiKey.ipWhitelist) ? apiKey.ipWhitelist.length > 0 : apiKey.ipWhitelist.length > 0) ? (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {apiKey.ipWhitelist.map((ip: string) => (
+                            {(Array.isArray(apiKey.ipWhitelist) ? apiKey.ipWhitelist : apiKey.ipWhitelist.split(',')).map((ip: string) => (
                               <Badge
                                 key={ip}
                                 variant="outline"

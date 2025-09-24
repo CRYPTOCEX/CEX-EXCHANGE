@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const aiInvestmentAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Investment Status Overview – KPI Grid & Pie Chart

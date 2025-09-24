@@ -117,7 +117,7 @@ export default function DashboardClient() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
+        <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-zinc-900/50 rounded-lg border border-gray-200 dark:border-zinc-800">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {t("failed_to_load_dashboard")}
@@ -136,7 +136,7 @@ export default function DashboardClient() {
   return (
     <div className="space-y-6">
       {/* Header with refresh button and date range selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-zinc-900/50 p-4 rounded-lg border border-gray-200 dark:border-zinc-800">
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {t("Dashboard")}
@@ -233,7 +233,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Sales chart */}
-      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
@@ -420,7 +420,7 @@ export default function DashboardClient() {
       {/* Dashboard grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent orders */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-lg shadow-sm overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900/50 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
           <div className="p-4 border-b border-gray-200 dark:border-zinc-700 flex justify-between items-center">
             <h2 className="text-base font-medium text-gray-900 dark:text-white flex items-center">
               <ShoppingBag className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
@@ -561,7 +561,7 @@ export default function DashboardClient() {
           </div>
 
           {/* Top selling products */}
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900/50 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
             <div className="p-4 border-b border-gray-200 dark:border-zinc-700 flex justify-between items-center">
               <h2 className="text-base font-medium text-gray-900 dark:text-white flex items-center">
                 <Package className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
@@ -695,7 +695,7 @@ function MetricCard({
   const shouldShowChange =
     change !== null && change !== undefined && change !== 0;
   return (
-    <div className="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm rounded-lg">
+    <div className="bg-white dark:bg-zinc-900/50 overflow-hidden rounded-lg border border-gray-200 dark:border-zinc-800">
       <div className="p-4">
         <div className="flex items-center">
           <div
@@ -790,7 +790,7 @@ function StatusCard({
             {value}
           </p>
         </div>
-        <div className="p-2 rounded-full bg-white dark:bg-zinc-800 shadow-sm">
+        <div className="p-2 rounded-full bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
           {icon}
         </div>
       </div>
@@ -801,7 +801,7 @@ function QuickActionCard({ title, description, icon, iconBg, href }) {
   return (
     <Link
       href={href}
-      className="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm rounded-lg hover:shadow-md transition-shadow duration-200"
+      className="bg-white dark:bg-zinc-900/50 overflow-hidden rounded-lg border border-gray-200 dark:border-zinc-800 hover:shadow-md transition-shadow duration-200"
     >
       <div className="p-4">
         <div className="flex items-center">

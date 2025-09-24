@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecommerceShippingAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Group 1: Shipment Overview – KPI Grid on Left, Pie Chart on Right

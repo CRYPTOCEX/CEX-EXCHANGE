@@ -35,12 +35,16 @@ export default function FloatingChatProvider() {
     // Don't show on auth pages
     const isAuthPage = pathname.includes("/auth") || pathname.includes("/login") || pathname.includes("/register");
     
+    // Don't show on trading pages
+    const isTradingPage = pathname.includes("/trade") || pathname.includes("/binary");
+    
     // Only show floating chat if:
     // 1. Setting is enabled
     // 2. Not on support pages (to avoid duplicate)
     // 3. Not on admin pages
     // 4. Not on auth pages
-    const shouldShow = isFloatingChatEnabled && !isSupportPage && !isAdminPage && !isAuthPage;
+    // 5. Not on trading pages (trade and binary)
+    const shouldShow = isFloatingChatEnabled && !isSupportPage && !isAdminPage && !isAuthPage && !isTradingPage;
     
     setShouldShowChat(shouldShow);
   }, [settings, pathname]);

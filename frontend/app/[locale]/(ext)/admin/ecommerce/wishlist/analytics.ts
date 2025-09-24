@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecommerceWishlistAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Row 1: KPI for Total Wishlists

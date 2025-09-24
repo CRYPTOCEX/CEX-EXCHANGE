@@ -1,3 +1,5 @@
+/// <reference path="./models.d.ts" />
+
 interface Post extends postAttributes {
   category?: categoryAttributes;
   author?: Author;

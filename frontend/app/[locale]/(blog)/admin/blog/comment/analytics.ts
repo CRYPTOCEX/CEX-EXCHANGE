@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const commentAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Row 1: KPI Block (full-width) for Total Comments

@@ -15,11 +15,11 @@ export default function MegaMenu({ megaMenu }: MegaMenuProps) {
     <Tabs
       defaultValue={defaultTabValue}
       onValueChange={() => setHoveredExtension(null)}
-      className="inline-block p-0"
+      className="inline-block p-0 max-w-[calc(100vw-2rem)]"
     >
       <MegaMenuTabs megaMenu={megaMenu} />
 
-      <div className="px-4 pt-2 pb-4">
+      <div className="px-4 pt-2 pb-4 overflow-x-auto">
         {megaMenu.map((category: any, catIndex: number) => {
           const tabValue = category.key || category.title || `tab-${catIndex}`;
           return (

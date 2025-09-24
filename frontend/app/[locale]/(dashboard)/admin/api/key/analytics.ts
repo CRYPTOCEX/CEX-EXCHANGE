@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 // analytics config snippet
 export const analytics: AnalyticsConfig = [
   [

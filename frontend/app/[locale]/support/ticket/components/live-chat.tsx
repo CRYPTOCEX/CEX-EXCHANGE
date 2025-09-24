@@ -617,10 +617,10 @@ export default function LiveChat() {
         <div className="relative">
           <Button
             onClick={() => setIsOpen(true)}
-            className="rounded-full h-16 w-16 shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transform hover:scale-105"
+            className="rounded-full h-12 w-12 shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transform hover:scale-105"
             size="icon"
           >
-            <MessageCircle className="h-7 w-7" />
+            <MessageCircle className="h-5 w-5" />
           </Button>
           {unreadCount > 0 && (
             <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-bounce">

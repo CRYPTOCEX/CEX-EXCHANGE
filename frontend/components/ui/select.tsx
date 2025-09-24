@@ -132,6 +132,7 @@ function SelectContent({
           className
         )}
         position={position}
+        onWheel={(e) => e.stopPropagation()}
         // "search" is not spread into the DOM because it is already destructured.
         {...props}
       >
@@ -142,6 +143,7 @@ function SelectContent({
             position === "popper" &&
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
+          onWheel={(e) => e.stopPropagation()}
         >
           {children}
         </SelectPrimitive.Viewport>

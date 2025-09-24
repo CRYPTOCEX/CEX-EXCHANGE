@@ -2,6 +2,22 @@
 
 import { $fetch } from "@/lib/api";
 import { hasFeature, isUserKycApproved } from "@/utils/kyc";
+
+// Helper function to convert User to the format expected by KYC utils
+function convertToKycUserType(user: User | null): any {
+  if (!user) return null;
+  
+  return {
+    ...user,
+    kyc: {
+      status: user.kyc?.status || '',
+      level: {
+        level: typeof user.kyc?.level === 'number' ? user.kyc.level : user.kyc?.level?.level,
+        features: user.kyc?.level?.features || user.featureAccess || []
+      }
+    }
+  };
+}
 import { create } from "zustand";
 
 interface ApiPermission {
@@ -200,11 +216,11 @@ export const useUserStore = create<UserState>((set, get) => {
 
     hasKyc: () => {
       const { user } = get();
-      return isUserKycApproved(user);
+      return isUserKycApproved(convertToKycUserType(user));
     },
     canAccessFeature: (feature: string) => {
       const { user } = get();
-      return hasFeature(user, feature);
+      return hasFeature(convertToKycUserType(user), feature);
     },
 
     logout: async () => {

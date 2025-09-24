@@ -43,7 +43,7 @@ interface faqQuestionAttributes {
   name: string;
   email: string;
   question: string;
-  status: 'PENDING' | 'ANSWERED' | 'ARCHIVED';
+  status: 'PENDING' | 'ANSWERED' | 'ARCHIVED' | 'REJECTED';
   answer?: string;
   answeredBy?: string;
   answeredAt?: Date | string;

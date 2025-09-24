@@ -83,15 +83,30 @@ export default function Header({
   const isAuthenticated = !!user;
 
   // Use next-themes hook
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   // Handle mounting state to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Ensure theme consistency on mount
+    if (typeof window !== 'undefined') {
+      const htmlElement = document.documentElement;
+      const currentTheme = resolvedTheme || theme;
+      
+      // Apply the correct theme class
+      if (currentTheme === 'dark') {
+        htmlElement.classList.remove('light');
+        htmlElement.classList.add('dark');
+      } else if (currentTheme === 'light') {
+        htmlElement.classList.remove('dark');
+        htmlElement.classList.add('light');
+      }
+    }
+  }, [theme, resolvedTheme]);
 
-  // Determine dark mode based on theme
-  const darkMode = mounted && theme === "dark";
+  // Determine dark mode based on resolved theme (handles system theme)
+  const darkMode = mounted && (resolvedTheme === "dark");
 
   // Wallet data
   const wallets: WalletType[] = [
@@ -210,10 +225,23 @@ export default function Header({
     }
   });
 
-  // Toggle theme function
+  // Toggle theme function with proper synchronization
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
+    const newTheme = resolvedTheme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    
+    // Immediately apply the theme class to prevent delay
+    if (typeof window !== 'undefined') {
+      const htmlElement = document.documentElement;
+      if (newTheme === 'dark') {
+        htmlElement.classList.remove('light');
+        htmlElement.classList.add('dark');
+      } else {
+        htmlElement.classList.remove('dark');
+        htmlElement.classList.add('light');
+      }
+    }
+  }, [resolvedTheme, setTheme]);
 
   return (
     <>

@@ -18,7 +18,7 @@ export default function GeneralSettingsSection({
   const t = useTranslations("ext");
   return (
     <div className="space-y-6">
-      <Card className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100">
+      <Card className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
         <CardContent className="space-y-6 pt-6">
           <h3 className="text-lg font-medium">{t("tax_settings")}</h3>
           <div className="space-y-4">
@@ -29,15 +29,15 @@ export default function GeneralSettingsSection({
                 onCheckedChange={(checked) =>
                   onUpdate("ecommerceTaxEnabled", !!checked)
                 }
-                className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
               />
-              <Label htmlFor="taxEnabled" className="dark:text-zinc-300">
+              <Label htmlFor="taxEnabled" className="text-gray-700 dark:text-gray-300">
                 {t("enable_tax_calculation")}
               </Label>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="defaultTaxRate" className="dark:text-zinc-300">
+                <Label htmlFor="defaultTaxRate" className="text-gray-700 dark:text-gray-300">
                   {t("default_tax_rate_(%)")}
                 </Label>
                 <Input
@@ -52,7 +52,7 @@ export default function GeneralSettingsSection({
                   max="100"
                   step="0.01"
                   disabled={!settings["ecommerceTaxEnabled"]}
-                  className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+                  className="bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700"
                 />
               </div>
             </div>
@@ -60,7 +60,7 @@ export default function GeneralSettingsSection({
         </CardContent>
       </Card>
 
-      <Card className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100">
+      <Card className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
         <CardContent className="space-y-6 pt-6">
           <h3 className="text-lg font-medium">{t("shipping_settings")}</h3>
           <div className="space-y-4">
@@ -71,9 +71,9 @@ export default function GeneralSettingsSection({
                 onCheckedChange={(checked) =>
                   onUpdate("ecommerceShippingEnabled", !!checked)
                 }
-                className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+                className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
               />
-              <Label htmlFor="shippingEnabled" className="dark:text-zinc-300">
+              <Label htmlFor="shippingEnabled" className="text-gray-700 dark:text-gray-300">
                 {t("enable_shipping")}
               </Label>
             </div>
@@ -81,7 +81,7 @@ export default function GeneralSettingsSection({
               <div className="space-y-2">
                 <Label
                   htmlFor="defaultShippingCost"
-                  className="dark:text-zinc-300"
+                  className="text-gray-700 dark:text-gray-300"
                 >
                   {t("default_shipping_cost")}
                 </Label>
@@ -99,7 +99,7 @@ export default function GeneralSettingsSection({
                   min="0"
                   step="0.01"
                   disabled={!settings["ecommerceShippingEnabled"]}
-                  className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+                  className="bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700"
                 />
               </div>
             </div>

@@ -2,9 +2,15 @@
  * Blockchain utility functions for wallet detection and interaction
  */
 
+interface EthereumProvider {
+  request: (args: { method: string; params?: any[] }) => Promise<any>;
+  isMetaMask?: boolean;
+  [key: string]: any;
+}
+
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: EthereumProvider;
   }
 }
 
@@ -44,18 +50,14 @@ export async function detectProvider() {
 export async function requestAccount() {
   const provider = await detectProvider();
   
-  if (!provider) {
+  if (!provider || !provider.request) {
     throw new Error("No Web3 provider detected");
   }
 
-  try {
-    const accounts = await provider.request({ 
-      method: "eth_requestAccounts" 
-    });
-    return accounts[0];
-  } catch (error) {
-    throw error;
-  }
+  const accounts = await provider.request({ 
+    method: "eth_requestAccounts" 
+  });
+  return accounts[0];
 }
 
 /**
@@ -64,7 +66,7 @@ export async function requestAccount() {
 export async function getAccounts() {
   const provider = await detectProvider();
   
-  if (!provider) {
+  if (!provider || !provider.request) {
     return [];
   }
 
@@ -85,7 +87,7 @@ export async function getAccounts() {
 export async function getChainId() {
   const provider = await detectProvider();
   
-  if (!provider) {
+  if (!provider || !provider.request) {
     return null;
   }
 

@@ -297,7 +297,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
                       className="w-full"
                       onClick={() => {
                         logout();
-                        router.push("/auth/reset");
+                        router.push("/reset");
                       }}
                     >
                       <LogOut className="h-4 w-4 mr-2" />
@@ -363,7 +363,7 @@ export function SecurityTab({ startTwoFactorSetup }: SecurityTabProps) {
               <li>{t("log_out_from_your_account")}</li>
               <li>
                 {t("visit_the_login_page_at")}{" "}
-                <span className="font-medium">{'/auth/login'}</span>
+                <span className="font-medium">{'/login'}</span>
               </li>
               <li>{t("click_on_forgot_password_link")}</li>
               <li>{t("enter_your_email_address_to_receive_a_reset_link")}</li>

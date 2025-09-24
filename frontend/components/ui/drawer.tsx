@@ -63,6 +63,7 @@ function DrawerContent({
           "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 sm:data-[vaul-drawer-direction=left]:max-w-sm",
           className
         )}
+        data-vaul-no-drag
         {...props}
       >
         <div className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />

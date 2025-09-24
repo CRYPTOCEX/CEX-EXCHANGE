@@ -530,3 +530,62 @@ html[dir="rtl"] .react-select .select__loading-indicator {
   z-index: 50;
   background: hsl(var(--background));
 }
+
+/* Reown AppKit Modal Z-Index Fix */
+/* Ensure wallet modal appears above auth modal and other UI elements */
+
+/* Reown AppKit uses appkit- prefix instead of w3m/wcm */
+appkit-modal,
+appkit-modal-overlay,
+[data-appkit-modal],
+[data-testid*="appkit-modal"] {
+  z-index: 2147483647 !important; /* Maximum z-index value */
+  position: fixed !important;
+}
+
+/* Legacy selectors for compatibility */
+w3m-modal,
+wcm-modal,
+[data-w3m-modal],
+[data-wcm-modal] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+}
+
+/* Reown AppKit specific components */
+appkit-w3m-modal,
+appkit-w3m-modal-overlay,
+appkit-w3m-modal-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* Web Components used by Reown */
+wui-flex,
+wui-modal,
+wui-overlay,
+wui-backdrop {
+  z-index: 2147483645 !important;
+}
+
+/* Shadow DOM host elements */
+:host(appkit-modal),
+:host(wui-modal) {
+  z-index: 2147483647 !important;
+}
+
+/* Ensure proper stacking for all modal-related elements */
+[class*="appkit-"],
+[class*="wui-"],
+[class*="w3m-"],
+[class*="wcm-"] {
+  position: relative;
+}
+
+/* Override any inline styles with maximum specificity */
+body > appkit-modal,
+body > w3m-modal,
+body > [data-testid*="modal"] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}

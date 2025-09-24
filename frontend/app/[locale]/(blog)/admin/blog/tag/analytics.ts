@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const tagAnalytics: AnalyticsConfig = [
   // Group 1: Tag Overview – KPI Card for Total Tags
   {

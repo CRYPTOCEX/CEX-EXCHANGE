@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const exchangeOrderAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Row #1: Status KPIs (2x2) on the left + Status Pie Chart on the right

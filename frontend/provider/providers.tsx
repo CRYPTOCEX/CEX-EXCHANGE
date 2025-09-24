@@ -12,6 +12,7 @@ import { useThemeStore } from "@/store";
 import { WebSocketProvider } from "./websocket.provider";
 import { ExtensionChecker } from "@/lib/extensions";
 import FloatingChatProvider from "@/components/global/floating-chat-provider";
+import { useSettingsSync } from "@/hooks/use-settings-sync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,9 @@ const ConfigInitializer = ({
   const { setSettings, setExtensions, setSettingsFetched, setSettingsError } =
     useConfigStore();
 
+  // Use the settings sync hook for optimistic updates
+  useSettingsSync();
+
   useEffect(() => {
     setUser(profile);
 
@@ -46,7 +50,7 @@ const ConfigInitializer = ({
     if (settings && Object.keys(settings).length > 0) {
       setSettings(settings);
       setExtensions(extensions || []);
-      
+
       // Initialize extension checker with available extensions
       if (extensions && extensions.length > 0) {
         ExtensionChecker.getInstance().initialize(extensions);
@@ -126,10 +130,17 @@ const Providers = ({
           settings={settings}
           extensions={extensions}
         />
-        <WebSocketProvider userId={profile?.id}>
-          <div className={cn("h-full")}>{children}</div>
-          <FloatingChatProvider />
-        </WebSocketProvider>
+        {profile?.id ? (
+          <WebSocketProvider userId={profile.id}>
+            <div className={cn("h-full")}>{children}</div>
+            <FloatingChatProvider />
+          </WebSocketProvider>
+        ) : (
+          <>
+            <div className={cn("h-full")}>{children}</div>
+            <FloatingChatProvider />
+          </>
+        )}
         <Toaster />
       <GlobalErrorHandler />
     </ThemeProvider>

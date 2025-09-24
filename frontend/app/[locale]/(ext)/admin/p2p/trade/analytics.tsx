@@ -1,5 +1,7 @@
 // src/config/tradeAnalytics.ts
 
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const tradeAnalytics: AnalyticsConfig = [
   [
     {

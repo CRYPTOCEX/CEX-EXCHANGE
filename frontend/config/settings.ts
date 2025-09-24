@@ -26,7 +26,7 @@ export interface FieldDefinition {
 export const TABS = [
   { id: "general", label: "General" },
   { id: "wallet", label: "Wallet" },
-  { id: "features", label: "Features" },
+  { id: "features", label: "Trading & Features" },
   { id: "social", label: "Social" },
   { id: "logos", label: "Logos" },
 ];
@@ -204,6 +204,14 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     description: "Enable KYC verification for users",
     category: "features",
     subcategory: "Verification",
+  },
+  {
+    key: "spotWallets",
+    label: "Spot Trading",
+    type: "switch",
+    description: "Enable spot trading functionality",
+    category: "features",
+    subcategory: "Trading",
   },
   {
     key: "chartType",
@@ -542,6 +550,7 @@ export const DEFAULT_SETTINGS = {
   enableStickyTopNavigationHeader: "true",
   facebookLink: "https://facebook.com/#mash",
   fiatWallets: "true",
+  spotWallets: "true",
   floatingLiveChat: "true",
   forexInvestment: "true",
   forexRestrictions: "false",

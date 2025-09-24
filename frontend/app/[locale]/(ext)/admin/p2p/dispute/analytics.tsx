@@ -1,5 +1,7 @@
 // src/config/disputeAnalytics.ts
 
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const disputeAnalytics: AnalyticsConfig = [
   [
     {

@@ -81,11 +81,12 @@ export default function Logo({
         key={`logo-${type}-${logoVersion}`} // Force re-render when version changes
         src={url}
         alt="Logo"
-        width={width || (type === "icon" ? 32 : 120)}
-        height={height || (type === "icon" ? 32 : 32)}
+        width={width || (type === "icon" ? 32 : 180)}
+        height={height || (type === "icon" ? 32 : 48)}
         className={cn(
           "object-contain",
-          type === "icon" ? "h-8 w-8" : "h-8 w-auto"
+          type === "icon" ? "h-full w-full" : "h-full w-auto",
+          className
         )}
         unoptimized // Allow cache busting to work properly
         onError={handleError}

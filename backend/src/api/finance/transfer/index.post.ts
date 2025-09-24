@@ -288,10 +288,20 @@ async function handleWalletTransfer(
   toType: "FIAT" | "SPOT" | "ECO" | "FUTURES",
   toCurrency: string
 ) {
+  // Check if spot wallets are enabled
+  const cacheManager = CacheManager.getInstance();
+  const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+  const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+  
+  // Prevent SPOT transfers if spot wallets are disabled
+  if (!isSpotEnabled && (fromType === "SPOT" || toType === "SPOT")) {
+    throw createError(400, "Spot wallet transfers are currently disabled");
+  }
+
   const validTransfers = {
-    FIAT: ["SPOT", "ECO"],
+    FIAT: isSpotEnabled ? ["SPOT", "ECO"] : ["ECO"],
     SPOT: ["FIAT", "ECO"],
-    ECO: ["FIAT", "SPOT", "FUTURES"],
+    ECO: isSpotEnabled ? ["FIAT", "SPOT", "FUTURES"] : ["FIAT", "FUTURES"],
     FUTURES: ["ECO"],
   };
 

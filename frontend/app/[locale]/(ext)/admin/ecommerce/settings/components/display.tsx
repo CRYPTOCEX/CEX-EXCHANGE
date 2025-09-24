@@ -18,7 +18,7 @@ export default function DisplaySettingsSection({
 }: DisplaySettingsSectionProps) {
   const t = useTranslations("ext");
   return (
-    <Card className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100">
+    <Card className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-zinc-800">
       <CardContent className="space-y-6 pt-6">
         <h3 className="text-lg font-medium">{t("display_settings")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -34,7 +34,7 @@ export default function DisplaySettingsSection({
               placeholder="Enter products per page"
               min="1"
               max="100"
-              className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
             <p className="text-xs text-muted-foreground">
               {t("number_of_products_product_listings")}
@@ -49,9 +49,9 @@ export default function DisplaySettingsSection({
               onCheckedChange={(checked) =>
                 onUpdate("ecommerceShowProductRatings", !!checked)
               }
-              className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
-            <Label htmlFor="showProductRatings" className="dark:text-zinc-300">
+            <Label htmlFor="showProductRatings" className="text-gray-700 dark:text-gray-300">
               {t("show_product_ratings")}
             </Label>
           </div>
@@ -62,9 +62,9 @@ export default function DisplaySettingsSection({
               onCheckedChange={(checked) =>
                 onUpdate("ecommerceShowRelatedProducts", !!checked)
               }
-              className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
-            <Label htmlFor="showRelatedProducts" className="dark:text-zinc-300">
+            <Label htmlFor="showRelatedProducts" className="text-gray-700 dark:text-gray-300">
               {t("show_related_products")}
             </Label>
           </div>
@@ -75,11 +75,11 @@ export default function DisplaySettingsSection({
               onCheckedChange={(checked) =>
                 onUpdate("ecommerceShowFeaturedProducts", !!checked)
               }
-              className="dark:bg-zinc-700 dark:border-zinc-600 dark:text-zinc-100"
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
             <Label
               htmlFor="showFeaturedProducts"
-              className="dark:text-zinc-300"
+              className="text-gray-700 dark:text-gray-300"
             >
               {t("show_featured_products")}
             </Label>

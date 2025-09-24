@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const supportTicketAnalytics: AnalyticsConfig = [
   // 1) A row of KPI cards + a pie chart
   [

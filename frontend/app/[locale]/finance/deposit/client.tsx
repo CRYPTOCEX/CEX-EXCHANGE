@@ -290,6 +290,9 @@ export function DepositForm() {
   const { user } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();
+  
+  // Check if spot wallets are enabled
+  const isSpotEnabled = settings?.spotWallets === true || settings?.spotWallets === "true";
 
   // Local state
   const [depositExpired, setDepositExpired] = useState(false);
@@ -1788,7 +1791,7 @@ export function DepositForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
                   { value: "FIAT", label: "Fiat" },
-                  { value: "SPOT", label: "Spot" },
+                  ...(isSpotEnabled ? [{ value: "SPOT", label: "Spot" }] : []),
                   { value: "ECO", label: "Eco" },
                 ].map((wallet) => (
                   <motion.button

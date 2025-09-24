@@ -35,13 +35,21 @@ export default async () => {
   const types = [{ id: "FIAT", name: "Fiat" }];
 
   try {
+    // Check if spot wallets are enabled in settings
+    const cacheManager = CacheManager.getInstance();
+    const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+    const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+
     // Check if exchange is enabled with error handling
     const exchangeEnabled = await models.exchange.findOne({
       where: { status: true },
     });
 
     if (exchangeEnabled) {
-      types.push({ id: "SPOT", name: "Spot" });
+      // Only add SPOT if it's enabled in settings
+      if (isSpotEnabled) {
+        types.push({ id: "SPOT", name: "Spot" });
+      }
       types.push({ id: "FUTURES", name: "Futures" });
     }
   } catch (error) {

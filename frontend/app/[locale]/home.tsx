@@ -35,6 +35,7 @@ import { useUserStore } from "@/store/user";
 import { useTranslations } from "next-intl";
 import { MobileAppSection } from "./components/mobile-app-section";
 import { getCryptoImageUrl } from "@/utils/image-fallback";
+import { useConfigStore } from "@/store/config";
 
 // Helper function to get text from database variables only (no translation fallback)
 const getContent = (pageContent: any, path: string, defaultValue: string = "") => {
@@ -66,6 +67,10 @@ export default function DefaultHomePage() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const { user } = useUserStore();
+  const { settings } = useConfigStore();
+  
+  // Check if spot wallets are enabled
+  const isSpotEnabled = settings?.spotWallets === true || settings?.spotWallets === "true";
 
   // Load page content from database
   useEffect(() => {
@@ -127,6 +132,12 @@ export default function DefaultHomePage() {
   useEffect(() => {
     let spotUnsubscribe: (() => void) | null = null;
 
+    // Only fetch markets if spot is enabled
+    if (!isSpotEnabled) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchMarkets = async () => {
       try {
         setError(null);
@@ -186,7 +197,7 @@ export default function DefaultHomePage() {
         }
       }
     };
-  }, []);
+  }, [isSpotEnabled]);
 
   const topAssets = useMemo(() => {
     if (!markets.length || !Object.keys(tickers).length) return [];
@@ -333,9 +344,15 @@ export default function DefaultHomePage() {
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 pt-20">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          <div className={cn(
+            "flex flex-col lg:flex-row items-center gap-8 lg:gap-12",
+            isSpotEnabled ? "justify-between" : "justify-center"
+          )}>
             {/* Left Content */}
-            <div className="lg:w-3/5 text-center lg:text-left">
+            <div className={cn(
+              "text-center",
+              isSpotEnabled ? "lg:w-3/5 lg:text-left" : "lg:text-center max-w-4xl"
+            )}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -376,7 +393,10 @@ export default function DefaultHomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8 md:mb-12"
+                className={cn(
+                  "flex flex-col sm:flex-row gap-4 mb-8 md:mb-12",
+                  isSpotEnabled ? "justify-center lg:justify-start" : "justify-center"
+                )}
               >
                 <Link
                   href={user ? "/market" : "/register"}
@@ -395,7 +415,10 @@ export default function DefaultHomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
-                className="flex flex-wrap justify-center lg:justify-start gap-4 md:gap-6"
+                className={cn(
+                  "flex flex-wrap gap-4 md:gap-6",
+                  isSpotEnabled ? "justify-center lg:justify-start" : "justify-center"
+                )}
               >
                 {(pageContent?.variables?.hero?.features || ["Secure Trading", "Real-time Data", "24/7 Support"]).map((feature: string, index: number) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
@@ -410,13 +433,14 @@ export default function DefaultHomePage() {
               </motion.div>
             </div>
 
-            {/* Enhanced Market Overview */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="lg:w-2/5 w-full"
-            >
+            {/* Enhanced Market Overview - Only show if spot is enabled */}
+            {isSpotEnabled && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="lg:w-2/5 w-full"
+              >
               <div
                 className={cn(
                   "relative backdrop-blur-xl rounded-2xl p-4 md:p-6 lg:p-8 shadow-2xl border",
@@ -465,7 +489,7 @@ export default function DefaultHomePage() {
                                 <div className="col-span-1 flex items-center gap-2 md:gap-3">
                                   <div
                                     className={cn(
-                                      "w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center overflow-hidden border-2",
+                                      "min-w-[2rem] min-h-[2rem] w-8 h-8 md:min-w-[3rem] md:min-h-[3rem] md:w-12 md:h-12 rounded-full flex items-center justify-center overflow-hidden border-2 flex-shrink-0",
                                       isDark 
                                         ? "bg-zinc-800 border-zinc-700" 
                                         : "bg-white border-gray-200"
@@ -476,8 +500,7 @@ export default function DefaultHomePage() {
                                       alt={asset.currency || "generic"}
                                       width={32}
                                       height={32}
-                                      className="w-6 h-6 md:w-8 md:h-8 object-cover rounded-full"
-                                      style={{ height: "auto" }}
+                                      className="w-6 h-6 md:w-8 md:h-8 object-cover"
                                       onError={(e) => {
                                         // Prevent infinite loops by checking if we already tried fallback
                                         const target = e.currentTarget;
@@ -558,21 +581,24 @@ export default function DefaultHomePage() {
                 </div>
               </div>
             </motion.div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Enhanced Ticker */}
-      <section
-        className={cn(
-          "py-6 border-y backdrop-blur-sm",
-          isDark
-            ? "bg-zinc-900/50 border-zinc-700/50"
-            : "bg-gray-50/80 border-gray-200/50"
-        )}
-      >
-        <AnimatedTicker assets={topAssets} />
-      </section>
+      {/* Enhanced Ticker - Only show if spot is enabled */}
+      {isSpotEnabled && (
+        <section
+          className={cn(
+            "py-6 border-y backdrop-blur-sm",
+            isDark
+              ? "bg-zinc-900/50 border-zinc-700/50"
+              : "bg-gray-50/80 border-gray-200/50"
+          )}
+        >
+          <AnimatedTicker assets={topAssets} />
+        </section>
+      )}
 
       {/* Enhanced Features Section */}
       <section className="py-16 md:py-24 lg:py-32 relative overflow-hidden">

@@ -187,11 +187,12 @@ export const DepositModal: React.FC<DepositModalProps> = ({
         onDepositUpdated?.();
       } else {
         // Handle validation errors
-        const parsedErrors = parseValidationErrors(error.message || error);
+        const errorMessage = typeof error === 'string' ? error : (error as any)?.message || 'Unknown error';
+        const parsedErrors = parseValidationErrors(errorMessage);
         if (Object.keys(parsedErrors).length > 0) {
           setValidationErrors(parsedErrors);
         } else {
-          setGeneralError(error.message || error || "Failed to update transaction");
+          setGeneralError(errorMessage || "Failed to update transaction");
         }
       }
     } catch (err: any) {

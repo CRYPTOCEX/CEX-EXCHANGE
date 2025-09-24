@@ -115,15 +115,12 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                       transition={{ duration: 0.2 }}
                       className="relative"  
                     >
-                      <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9" isInAdmin={isInAdminArea} />
+                      <NavbarLogo href="/" isInAdmin={isInAdminArea} />
                     </motion.div>
                     {title && (
                       <div className="hidden sm:flex flex-col">
                         <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
                           {title}
-                        </span>
-                        <span className="text-xs text-primary font-medium">
-                          {t("Admin")}
                         </span>
                       </div>
                     )}
@@ -137,7 +134,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                     transition={{ duration: 0.2 }}
                     className="relative flex items-center"
                   >
-                    <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9 transition-transform duration-200" isInAdmin={false} />
+                    <NavbarLogo href="/" isInAdmin={false} />
                     
                     {/* Animated chevron that appears on hover */}
                     <div className="absolute -left-6 opacity-0 translate-x-2 scale-75 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-300 ease-out">
@@ -158,7 +155,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                     transition={{ duration: 0.2 }}
                     className="relative"
                   >
-                    <NavbarLogo href="/" className="w-8 h-8 lg:w-9 lg:h-9" isInAdmin={false} />
+                    <NavbarLogo href="/" isInAdmin={false} />
                   </motion.div>
                 </div>
               )}

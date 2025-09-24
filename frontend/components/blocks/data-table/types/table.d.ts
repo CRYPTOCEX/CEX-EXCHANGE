@@ -6,7 +6,7 @@ import { AnalyticsConfig } from "./analytics";
 
 export interface ChartConfig {
   title: string;
-  type: "line" | "bar" | "pie";
+  type: "line" | "bar" | "pie" | "stackedArea";
   metrics: string[];
   labels: {
     [key: string]: string;
@@ -283,13 +283,4 @@ export type CellRenderType =
   | { type: "compound"; config: CompoundConfig }
   | { type: "custom"; render: (value: any) => React.ReactNode };
 
-export interface DataTableProps extends TableConfig {
-  apiEndpoint: string;
-  permissions: TablePermissions;
-  columns: any[];
-  viewContent?: (row: any) => React.ReactNode;
-  kpis?: string[];
-  charts?: {
-    [key: string]: ChartConfig;
-  };
-}
+// Removed duplicate interface - already defined above at line 185

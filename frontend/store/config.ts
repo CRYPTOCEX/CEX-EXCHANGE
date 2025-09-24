@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 // ------------------------------------------
 // 1) Menu Types & Helpers
@@ -90,49 +91,62 @@ interface ConfigState {
   resetSettings: () => void; // Reset settings state for retry
 }
 
-export const useConfigStore = create<ConfigState>()((set) => ({
-  // State
-  settings: {},
-  extensions: [],
-  isLoading: false,
-  settingsFetched: false,
-  settingsError: null,
-
-  navMenu: null,
-  sideMenu: null,
-
-  // Mutations
-  setSettings: (settings) =>
-    set({ settings, settingsFetched: true, settingsError: null }),
-  setExtensions: (extensions) => set({ extensions }),
-  setIsLoading: (isLoading) => set({ isLoading }),
-  setSettingsFetched: (fetched) => set({ settingsFetched: fetched }),
-  setSettingsError: (error) => set({ settingsError: error }),
-
-  // Reset settings state for retry
-  resetSettings: () =>
-    set({
+export const useConfigStore = create<ConfigState>()(
+  persist(
+    (set) => ({
+      // State
       settings: {},
       extensions: [],
+      isLoading: false,
       settingsFetched: false,
       settingsError: null,
+
       navMenu: null,
       sideMenu: null,
+
+      // Mutations
+      setSettings: (settings) =>
+        set({ settings, settingsFetched: true, settingsError: null }),
+      setExtensions: (extensions) => set({ extensions }),
+      setIsLoading: (isLoading) => set({ isLoading }),
+      setSettingsFetched: (fetched) => set({ settingsFetched: fetched }),
+      setSettingsError: (error) => set({ settingsError: error }),
+
+      // Reset settings state for retry
+      resetSettings: () =>
+        set({
+          settings: {},
+          extensions: [],
+          settingsFetched: false,
+          settingsError: null,
+          navMenu: null,
+          sideMenu: null,
+        }),
+
+      // Update or add a single setting
+      updateSetting: (key, value) =>
+        set((state) => ({
+          settings: { ...state.settings, [key]: value },
+        })),
+
+      // Menu
+      setMenu: (menu) => {
+        const normalized = normalizeMenuItems(menu);
+        const processed = processSideMenu(normalized);
+        set({
+          navMenu: normalized,
+          sideMenu: processed,
+        });
+      },
     }),
-
-  // Update or add a single setting
-  updateSetting: (key, value) =>
-    set((state) => ({
-      settings: { ...state.settings, [key]: value },
-    })),
-
-  // Menu
-  setMenu: (menu) => {
-    const normalized = normalizeMenuItems(menu);
-    const processed = processSideMenu(normalized);
-    set({
-      navMenu: normalized,
-      sideMenu: processed,
-    });
-  },
-}));
+    {
+      name: 'bicrypto-config-store',
+      partialize: (state) => ({
+        settings: state.settings,
+        extensions: state.extensions,
+        navMenu: state.navMenu,
+        sideMenu: state.sideMenu,
+      }),
+    }
+  )
+);

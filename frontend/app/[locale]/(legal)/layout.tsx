@@ -8,9 +8,9 @@ interface LegalLayoutProps {
 
 export default function LegalLayout({ children }: LegalLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 pt-16">{children}</main>
+      <main className="flex-1 pt-16 bg-background">{children}</main>
       <SiteFooter />
     </div>
   );

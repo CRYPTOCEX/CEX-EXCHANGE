@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const ecommerceOrderAnalytics: AnalyticsConfig = [
   // ─────────────────────────────────────────────────────────────
   // Row 1: KPI Grid (3×2) for Order Statuses on the left + Status Pie Chart on the right

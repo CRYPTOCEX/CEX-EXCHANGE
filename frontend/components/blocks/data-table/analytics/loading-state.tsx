@@ -4,6 +4,7 @@ import { KpiCardSkeleton } from "./kpi/skeleton";
 import { ChartSkeleton } from "./charts/chart-skeleton";
 import { DonutChartSkeleton } from "./charts/donut/skeleton";
 import { cn } from "@/lib/utils";
+import { AnalyticsConfig } from "../types/analytics";
 
 interface LoadingStateProps {
   analyticsConfig: AnalyticsConfig | null;

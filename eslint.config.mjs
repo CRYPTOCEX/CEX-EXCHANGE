@@ -6,8 +6,13 @@ import pluginNext from "@next/eslint-plugin-next";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  { files: ["**/*.{tsx}"] },
-  { languageOptions: { globals: globals.browser } },
+  {
+    ignores: ["**/public/**", "**/node_modules/**", "**/.next/**", "**/lib/**", "frontend/public/**"]
+  },
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: { globals: globals.browser },
+  },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
@@ -44,6 +49,7 @@ export default [
       "@typescript-eslint/no-unnecessary-type-constraint": "off",
       "@typescript-eslint/no-unsafe-declaration-merging": "off",
       "@typescript-eslint/triple-slash-reference": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
       // "react/jsx-no-literals": "error",
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off",
@@ -52,8 +58,7 @@ export default [
       "react/no-unknown-property": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-require-imports": "off",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/explicit-function-return-type": "off",
+      "no-useless-catch": "off",
       "no-restricted-imports": [
         "error",
         {
@@ -72,7 +77,6 @@ export default [
         },
       ],
     },
-    ignores: ["**/public/"],
   },
   {
     settings: {

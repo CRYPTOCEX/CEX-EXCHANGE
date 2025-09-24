@@ -123,7 +123,7 @@ export function SelectFormControl({
         <SelectTrigger className={triggerErrorClass}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent search={searchable} className="z-[75] max-h-80">
+        <SelectContent search={searchable} className="z-[100] max-h-80" data-vaul-no-drag>
           {options.length === 0 ? (
             <div className="px-2 py-1 text-sm text-muted-foreground">
               {t("no_options_found")}.

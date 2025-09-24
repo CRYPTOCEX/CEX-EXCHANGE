@@ -130,6 +130,12 @@ export const WebSocketProvider = ({
 
   // Create the WebSocketManager only once per userId/config (removed handleNotificationMessage dependency)
   useEffect(() => {
+    // Don't create WebSocket connection if userId is not provided
+    if (!userId) {
+      console.warn("WebSocketProvider: No userId provided, skipping WebSocket connection");
+      return;
+    }
+    
     // Instantiate the WebSocketManager.
     const manager = new WebSocketManager(`/api/user?userId=${userId}`, config);
 

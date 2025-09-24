@@ -274,7 +274,7 @@ jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,
     columns,
     analytics,
     extraRowActions: renderActionButtons,
-    extraTopButtons: (refresh: () => void) => (
+    extraTopButtons: (refresh?: () => void) => (
       <div className="flex gap-2">
         {canImport && (
           <Button

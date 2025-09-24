@@ -1,0 +1,55 @@
+{
+  "name": "nft-marketplace-contracts",
+  "version": "2.0.0",
+  "description": "Upgradeable NFT Marketplace Smart Contracts",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "clean": "hardhat clean",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy": "hardhat run scripts/deploy-upgradeable.js",
+    "deploy:mainnet": "HARDHAT_NETWORK=mainnet hardhat run scripts/deploy-upgradeable.js",
+    "deploy:goerli": "HARDHAT_NETWORK=goerli hardhat run scripts/deploy-upgradeable.js",
+    "deploy:polygon": "HARDHAT_NETWORK=polygon hardhat run scripts/deploy-upgradeable.js",
+    "deploy:bsc": "HARDHAT_NETWORK=bsc hardhat run scripts/deploy-upgradeable.js",
+    "deploy:arbitrum": "HARDHAT_NETWORK=arbitrum hardhat run scripts/deploy-upgradeable.js",
+    "deploy:optimism": "HARDHAT_NETWORK=optimism hardhat run scripts/deploy-upgradeable.js",
+    "verify:all": "node scripts/verify-contracts.js all",
+    "verify:contract": "node scripts/verify-contracts.js contract",
+    "verify:report": "node scripts/verify-contracts.js report",
+    "upgrade": "hardhat run scripts/upgrade-contract.js",
+    "size": "hardhat size-contracts",
+    "flatten": "hardhat flatten",
+    "node": "hardhat node",
+    "console": "hardhat console"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/contracts-upgradeable": "^5.0.0",
+    "ethers": "^6.9.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@openzeppelin/hardhat-upgrades": "^3.0.0",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.10.5",
+    "chai": "^4.3.10",
+    "hardhat": "^2.19.3",
+    "hardhat-contract-sizer": "^2.10.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

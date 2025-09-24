@@ -1,3 +1,5 @@
+/// <reference path="./models.d.ts" />
+
 // Extended types with relations
 interface StakingPool extends stakingPoolAttributes {
   positions?: StakingPosition[];

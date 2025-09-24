@@ -7,6 +7,7 @@ import {
 } from "@b/utils/query";
 import { walletSchema } from "@b/api/admin/finance/wallet/utils";
 import { createError } from "@b/utils/error";
+import { CacheManager } from "@b/utils/cache";
 
 export const metadata: OperationObject = {
   summary: "Lists all wallets for a given type",
@@ -54,6 +55,18 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const walletType = params.type;
+
+  // Check if spot wallets are disabled
+  if (walletType === "SPOT") {
+    const cacheManager = CacheManager.getInstance();
+    const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+    const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+    
+    if (!isSpotEnabled) {
+      // Return empty array if SPOT is disabled
+      return [];
+    }
+  }
 
   const where = { userId: user.id, type: walletType };
 

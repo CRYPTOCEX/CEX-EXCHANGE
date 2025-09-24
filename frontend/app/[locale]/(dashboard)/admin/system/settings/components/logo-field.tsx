@@ -115,7 +115,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
       });
 
       if (error) {
-        console.error(`[LOGO-UPLOAD-ERROR] Logo type: ${logoType}`, error);
+        console.error(`[LOGO-UPLOAD-ERROR] Logo type: ${field.key}`, error);
         throw new Error(typeof error === 'string' ? error : JSON.stringify(error));
       }
 
@@ -134,7 +134,7 @@ export function LogoField({ field, value, onChange }: LogoFieldProps) {
       // Update logo cache version to force refresh of all logo components
       updateLogoVersion();
     } catch (error: any) {
-      console.error(`[LOGO-UPLOAD-CATCH] Error uploading ${logoType}:`, error);
+      console.error(`[LOGO-UPLOAD-CATCH] Error uploading ${field.key}:`, error);
       console.error(`[LOGO-UPLOAD-CATCH] Error type:`, typeof error);
       console.error(`[LOGO-UPLOAD-CATCH] Error message:`, error?.message);
       console.error(`[LOGO-UPLOAD-CATCH] Error stack:`, error?.stack);

@@ -22,7 +22,7 @@ export default function MegaMenuPanel({
 }: MegaMenuPanelProps) {
   // Add safety checks to prevent errors
   if (!category) {
-    return <div className="flex items-center justify-center w-full h-full min-w-[500px]">
+    return <div className="flex items-center justify-center w-full h-full max-w-[90vw]">
       <div className="text-muted-foreground text-sm">Loading...</div>
     </div>;
   }
@@ -39,9 +39,9 @@ export default function MegaMenuPanel({
 
   try {
     return (
-      <div className="flex items-stretch w-full h-full min-w-[500px]">
+      <div className="flex items-stretch w-full h-full max-w-[90vw]">
         {categoryHasChildren && (
-          <div className="w-1/3 flex flex-col gap-2">
+          <div className="w-[250px] min-w-[250px] flex flex-col gap-2">
             {category.child.map((extensionItem: any, eIndex: number) => {
               const extensionHref = extensionItem?.href || "#";
               const isActive = hoveredExtension === extensionItem;
@@ -66,12 +66,12 @@ export default function MegaMenuPanel({
                     <div className="flex items-center justify-between gap-2 text-sm font-medium text-muted-foreground">
                       <div className="flex items-center gap-2">
                         {extensionItem?.icon && (
-                          <Icon icon={extensionItem.icon} className="h-5 w-5" />
+                          <Icon icon={extensionItem.icon} className="h-5 w-5 flex-shrink-0" />
                         )}
-                        <span className="capitalize">{extensionItem?.title || 'Unknown'}</span>
+                        <span className="capitalize whitespace-nowrap">{extensionItem?.title || 'Unknown'}</span>
                       </div>
                       {extensionItem?.child && extensionItem.child.length > 0 && (
-                        <Icon icon="mdi:chevron-right" className="h-5 w-5 opacity-50" />
+                        <Icon icon="mdi:chevron-right" className="h-5 w-5 flex-shrink-0 opacity-50" />
                       )}
                     </div>
                   ) : (
@@ -81,12 +81,12 @@ export default function MegaMenuPanel({
                     >
                       <div className="flex items-center gap-2">
                         {extensionItem?.icon && (
-                          <Icon icon={extensionItem.icon} className="h-5 w-5" />
+                          <Icon icon={extensionItem.icon} className="h-5 w-5 flex-shrink-0" />
                         )}
-                        <span className="capitalize">{extensionItem?.title || 'Unknown'}</span>
+                        <span className="capitalize whitespace-nowrap">{extensionItem?.title || 'Unknown'}</span>
                       </div>
                       {extensionItem?.child && extensionItem.child.length > 0 && (
-                        <Icon icon="mdi:chevron-right" className="h-5 w-5" />
+                        <Icon icon="mdi:chevron-right" className="h-5 w-5 flex-shrink-0" />
                       )}
                     </Link>
                   )}
@@ -98,7 +98,7 @@ export default function MegaMenuPanel({
 
         <div
           className={cn(
-            "flex-1 flex items-center justify-center",
+            "flex-1 min-w-[350px] flex items-center justify-center",
             (localIsFirst || isFirst) && "rounded-tl-none",
             (localIsLast || isLast) && "rounded-bl-none"
           )}
@@ -106,7 +106,7 @@ export default function MegaMenuPanel({
           {hoveredExtension?.child?.length > 0 ? (
             <div
               className={cn(
-                "flex flex-col bg-muted/50 no-underline outline-hidden focus:shadow-md p-4 rounded-md w-full h-full",
+                "flex flex-col bg-muted/50 no-underline outline-hidden focus:shadow-md p-4 rounded-md w-full h-full min-h-[300px]",
                 (localIsFirst || isFirst) && "rounded-tl-none",
                 (localIsLast || isLast) && "rounded-bl-none"
               )}
@@ -121,7 +121,7 @@ export default function MegaMenuPanel({
                     className="w-full p-2 bg-primary/5 hover:bg-primary/10 transition-colors rounded-md"
                   >
                     {subItem?.icon && (
-                      <Icon icon={subItem.icon} className="h-5 w-5" />
+                      <Icon icon={subItem.icon} className="h-5 w-5 flex-shrink-0" />
                     )}
                   </ListItem>
                 );
@@ -130,10 +130,9 @@ export default function MegaMenuPanel({
           ) : (
             <div
               className={cn(
-                "h-full w-full relative flex items-center justify-center",
+                "h-full w-full min-h-[300px] relative flex items-center justify-center bg-muted/20 rounded-md",
                 (localIsFirst || isFirst) && "rounded-tl-none",
-                (localIsLast || isLast) && "rounded-bl-none",
-                category.image && "min-h-[300px]"
+                (localIsLast || isLast) && "rounded-bl-none"
               )}
             >
               {category.image ? (
@@ -144,7 +143,7 @@ export default function MegaMenuPanel({
                   style={{ objectFit: "contain" }}
                 />
               ) : (
-                <div className="text-muted-foreground text-sm max-w-[300px] text-center px-4">
+                <div className="text-muted-foreground text-sm max-w-[350px] text-center px-4">
                   {category.description || 'No description available'}
                 </div>
               )}
@@ -156,7 +155,7 @@ export default function MegaMenuPanel({
   } catch (error) {
     console.error('Error rendering mega menu panel:', error);
     return (
-      <div className="flex items-center justify-center w-full h-full min-w-[500px]">
+      <div className="flex items-center justify-center w-full h-full max-w-[90vw]">
         <div className="text-center">
           <div className="text-muted-foreground text-sm mb-2">Something went wrong</div>
           <div className="text-xs text-muted-foreground">Please refresh the page</div>

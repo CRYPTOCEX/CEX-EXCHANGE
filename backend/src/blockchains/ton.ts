@@ -2,10 +2,11 @@ import TonWeb from "tonweb"; // TON SDK
 import { logError } from "@b/utils/logger";
 import { decrypt } from "@b/utils/encrypt";
 import { models } from "@b/db";
-import { readdirSync } from "fs";
 import { storeAndBroadcastTransaction } from "@b/api/(ext)/ecosystem/utils/redis/deposit";
 import * as tonMnemonic from "tonweb-mnemonic";
 import { RedisSingleton } from "@b/utils/redis";
+import path from "path";
+import fs from "fs";
 const redis = RedisSingleton.getInstance();
 
 const BN = TonWeb.utils.BN;
@@ -106,15 +107,33 @@ class TonService {
    */
   private async checkChainStatus(): Promise<void> {
     try {
-      const currentDir = __dirname;
-      const files = readdirSync(currentDir);
-      const tonBinFile = files.find((file) => file.startsWith("ton.bin"));
+      // Try multiple paths for the bin file - similar to how index.ts handles .env files
+      const possiblePaths = [
+        path.resolve(__dirname, "ton.bin.ts"),        // Development TypeScript
+        path.resolve(__dirname, "ton.bin.js"),        // Production JavaScript
+        path.resolve(process.cwd(), "backend/src/blockchains/ton.bin.ts"), // Development from root
+        path.resolve(process.cwd(), "backend/src/blockchains/ton.bin.js"), // Production from root
+        path.resolve(process.cwd(), "dist/blockchains/ton.bin.js"),        // Production dist
+        path.resolve(process.cwd(), "src/blockchains/ton.bin.js"),         // Production src
+      ];
 
-      if (tonBinFile) {
+      let tonBinFileExists = false;
+      let foundPath = "";
+
+      for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+          tonBinFileExists = true;
+          foundPath = filePath;
+          break;
+        }
+      }
+
+      if (tonBinFileExists) {
         this.chainActive = true;
-        console.log("Chain 'TON' is active based on local file check.");
+        console.log(`Chain 'TON' is active based on file check: ${foundPath}`);
       } else {
-        console.error("Chain 'TON' is not active in ecosystemBlockchain.");
+        console.log("Chain 'TON' is not active - ton.bin file not found in any expected location.");
+        console.log(`Tried paths: ${possiblePaths.join(", ")}`);
         this.chainActive = false;
       }
     } catch (error) {

@@ -112,32 +112,8 @@ const CustomMobileMenu = ({
           >
             <div className="flex flex-col h-full">
               {/* Logo */}
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-                <div className="relative w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-600">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M3 13.125C3 12.5727 3.44772 12.125 4 12.125H6C6.55228 12.125 7 12.5727 7 13.125V19.125C7 19.6773 6.55228 20.125 6 20.125H4C3.44772 20.125 3 19.6773 3 19.125V13.125Z"
-                      fill="white"
-                    />
-                    <path
-                      d="M10 8.125C10 7.57272 10.4477 7.125 11 7.125H13C13.5523 7.125 14 7.57272 14 8.125V19.125C14 19.6773 13.5523 20.125 13 20.125H11C10.4477 20.125 10 19.6773 10 19.125V8.125Z"
-                      fill="white"
-                    />
-                    <path
-                      d="M17 3.125C17 2.57272 17.4477 2.125 18 2.125H20C20.5523 2.125 21 2.57272 21 3.125V19.125C21 19.6773 20.5523 20.125 20 20.125H18C17.4477 20.125 17 19.6773 17 19.125V3.125Z"
-                      fill="white"
-                    />
-                  </svg>
-                </div>
-                <span className="font-bold text-xl text-foreground">
-                  {siteName}
-                </span>
+              <div className="border-b border-border">
+                <SidebarLogo isMobile={true} />
               </div>
 
               {/* Menu Items */}
@@ -146,27 +122,43 @@ const CustomMobileMenu = ({
                   {menuItems.map((item, index) => {
                     const itemKey = item.key || `item-${index}`;
                     const active = isActiveMenu(pathname, item);
+                    const isDisabled = item.disabled || false;
 
                     return (
                       <div key={itemKey}>
-                        <Link
-                          href={item.href || "#"}
-                          onClick={() => setMobileMenu(false)}
-                          className={cn(
-                            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
-                            active
-                              ? "bg-primary/10 text-primary border-l-2 border-primary"
-                              : "text-foreground hover:bg-muted hover:text-foreground"
-                          )}
-                        >
-                          {item.icon && (
-                            <Icon
-                              icon={item.icon}
-                              className="h-5 w-5 shrink-0"
-                            />
-                          )}
-                          <span>{item.title}</span>
-                        </Link>
+                        {isDisabled ? (
+                          <div className={cn(
+                            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors opacity-60 cursor-not-allowed",
+                            "text-muted-foreground bg-muted/20"
+                          )}>
+                            {item.icon && (
+                              <Icon
+                                icon={item.icon}
+                                className="h-5 w-5 shrink-0"
+                              />
+                            )}
+                            <span>{item.title}</span>
+                          </div>
+                        ) : (
+                          <Link
+                            href={item.href || "#"}
+                            onClick={() => setMobileMenu(false)}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                              active
+                                ? "bg-primary/10 text-primary border-l-2 border-primary"
+                                : "text-foreground hover:bg-muted hover:text-foreground"
+                            )}
+                          >
+                            {item.icon && (
+                              <Icon
+                                icon={item.icon}
+                                className="h-5 w-5 shrink-0"
+                              />
+                            )}
+                            <span>{item.title}</span>
+                          </Link>
+                        )}
 
                         {/* Child menu items */}
                         {item.child && item.child.length > 0 && (
@@ -175,8 +167,25 @@ const CustomMobileMenu = ({
                               const childKey =
                                 child.key || `child-${childIndex}`;
                               const childActive = isActiveMenu(pathname, child);
+                              const isChildDisabled = child.disabled || false;
 
-                              return (
+                              return isChildDisabled ? (
+                                <div
+                                  key={childKey}
+                                  className={cn(
+                                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors opacity-60 cursor-not-allowed",
+                                    "text-muted-foreground bg-muted/20"
+                                  )}
+                                >
+                                  {child.icon && (
+                                    <Icon
+                                      icon={child.icon}
+                                      className="h-4 w-4 shrink-0"
+                                    />
+                                  )}
+                                  <span>{child.title}</span>
+                                </div>
+                              ) : (
                                 <Link
                                   key={childKey}
                                   href={child.href || "#"}

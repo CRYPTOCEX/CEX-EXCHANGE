@@ -1,3 +1,5 @@
+import { AnalyticsConfig } from "@/components/blocks/data-table/types/analytics";
+
 export const binaryOrderAnalytics: AnalyticsConfig = [
   // 1) Row #1: First set of KPI cards
   {

@@ -34,18 +34,25 @@ export async function sendEmailWithProvider(
   provider: string,
   options: EmailOptions
 ) {
+  console.log(`[EMAIL DEBUG] Starting email send with provider: ${provider}`);
+  console.log(`[EMAIL DEBUG] Recipient: ${options.to}`);
+  console.log(`[EMAIL DEBUG] Subject: ${options.subject}`);
+  
   try {
     switch (provider) {
       case "local":
         const localSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
         const localSenderEmail = process.env.NEXT_PUBLIC_APP_EMAIL || "no-reply@localhost";
         options.from = `"${localSenderName}" <${localSenderEmail}>`;
+        console.log(`[EMAIL DEBUG] Local SMTP - From: ${options.from}`);
         await emailWithLocalSMTP(options);
         break;
 
       case "nodemailer-service":
         const serviceSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
         options.from = `"${serviceSenderName}" <${APP_NODEMAILER_SERVICE_SENDER}>`;
+        console.log(`[EMAIL DEBUG] Nodemailer Service - From: ${options.from}`);
+        console.log(`[EMAIL DEBUG] Service: ${APP_NODEMAILER_SERVICE}`);
         await emailWithNodemailerService(
           APP_NODEMAILER_SERVICE_SENDER,
           APP_NODEMAILER_SERVICE_PASSWORD,
@@ -61,12 +68,19 @@ export async function sendEmailWithProvider(
             : APP_NODEMAILER_SMTP_SENDER;
         const senderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
         options.from = `"${senderName}" <${senderEmail}>`;
+        console.log(`[EMAIL DEBUG] SMTP - From: ${options.from}`);
+        console.log(`[EMAIL DEBUG] SMTP Host: ${APP_NODEMAILER_SMTP_HOST}:${APP_NODEMAILER_SMTP_PORT}`);
+        console.log(`[EMAIL DEBUG] SMTP Encryption: ${APP_NODEMAILER_SMTP_ENCRYPTION}`);
+        
+        // Determine secure setting based on port and encryption setting
+        const isSecure = APP_NODEMAILER_SMTP_PORT === "465" || APP_NODEMAILER_SMTP_ENCRYPTION === "ssl";
+        
         await emailWithNodemailerSmtp(
           APP_NODEMAILER_SMTP_SENDER,
           APP_NODEMAILER_SMTP_PASSWORD,
           APP_NODEMAILER_SMTP_HOST,
           APP_NODEMAILER_SMTP_PORT,
-          APP_NODEMAILER_SMTP_ENCRYPTION === "ssl",
+          isSecure,
           options
         );
         break;
@@ -74,13 +88,17 @@ export async function sendEmailWithProvider(
       case "nodemailer-sendgrid":
         const sendgridSenderName = process.env.APP_EMAIL_SENDER_NAME || NEXT_PUBLIC_SITE_NAME || "Support";
         options.from = `"${sendgridSenderName}" <${APP_SENDGRID_SENDER}>`;
+        console.log(`[EMAIL DEBUG] SendGrid - From: ${options.from}`);
         await emailWithSendgrid(options);
         break;
 
       default:
+        console.error(`[EMAIL DEBUG] Unsupported provider: ${provider}`);
         throw new Error("Unsupported email provider");
     }
+    console.log(`[EMAIL DEBUG] Email sent successfully to ${options.to}`);
   } catch (error) {
+    console.error(`[EMAIL DEBUG] Error sending email:`, error);
     logError("email", error, __filename);
     throw error;
   }
@@ -178,6 +196,11 @@ export async function emailWithNodemailerService(
     html: options.html,
   };
 
+  console.log(`[EMAIL DEBUG] Nodemailer Service Config:`);
+  console.log(`[EMAIL DEBUG] - Service: ${service}`);
+  console.log(`[EMAIL DEBUG] - Sender: ${sender}`);
+  console.log(`[EMAIL DEBUG] - Has Password: ${password ? 'Yes' : 'No'}`);
+
   if (!service)
     throw createError({
       statusCode: 500,
@@ -197,6 +220,7 @@ export async function emailWithNodemailerService(
     });
 
   try {
+    console.log(`[EMAIL DEBUG] Creating transporter...`);
     const transporter = await nodemailer.createTransport({
       service: service,
       auth: {
@@ -207,9 +231,17 @@ export async function emailWithNodemailerService(
         rejectUnauthorized: false,
       },
     });
+    
+    console.log(`[EMAIL DEBUG] Verifying transporter...`);
     await transporter.verify();
-    await transporter.sendMail(emailOptions);
+    console.log(`[EMAIL DEBUG] Transporter verified successfully`);
+    
+    console.log(`[EMAIL DEBUG] Sending email...`);
+    const info = await transporter.sendMail(emailOptions);
+    console.log(`[EMAIL DEBUG] Email sent! Message ID: ${info.messageId}`);
+    console.log(`[EMAIL DEBUG] Response: ${info.response}`);
   } catch (error) {
+    console.error(`[EMAIL DEBUG] Service error:`, error);
     logError("email", error, __filename);
     throw error;
   }
@@ -230,6 +262,13 @@ export async function emailWithNodemailerSmtp(
     html: options.html,
   };
 
+  console.log(`[EMAIL DEBUG] SMTP Config:`);
+  console.log(`[EMAIL DEBUG] - Host: ${host}`);
+  console.log(`[EMAIL DEBUG] - Port: ${port}`);
+  console.log(`[EMAIL DEBUG] - Sender: ${sender}`);
+  console.log(`[EMAIL DEBUG] - Has Password: ${password ? 'Yes' : 'No'}`);
+  console.log(`[EMAIL DEBUG] - Encryption: ${smtpEncryption}`);
+
   if (!host)
     throw createError({
       statusCode: 500,
@@ -249,11 +288,12 @@ export async function emailWithNodemailerSmtp(
     });
 
   try {
-    const transporter = await nodemailer.createTransport({
+    console.log(`[EMAIL DEBUG] Creating SMTP transporter...`);
+    const transportConfig = {
       host: host,
-      port: port,
+      port: parseInt(port),
       pool: true,
-      secure: false,
+      secure: smtpEncryption,
       auth: {
         user: sender,
         pass: password,
@@ -261,10 +301,25 @@ export async function emailWithNodemailerSmtp(
       tls: {
         rejectUnauthorized: false,
       },
-    });
+      debug: true,
+      logger: true
+    };
+    
+    console.log(`[EMAIL DEBUG] Transport config:`, JSON.stringify(transportConfig, null, 2));
+    const transporter = await nodemailer.createTransport(transportConfig);
+    
+    console.log(`[EMAIL DEBUG] Verifying SMTP connection...`);
     await transporter.verify();
-    await transporter.sendMail(emailOptions);
+    console.log(`[EMAIL DEBUG] SMTP connection verified`);
+    
+    console.log(`[EMAIL DEBUG] Sending email via SMTP...`);
+    const info = await transporter.sendMail(emailOptions);
+    console.log(`[EMAIL DEBUG] Email sent! Message ID: ${info.messageId}`);
+    console.log(`[EMAIL DEBUG] Accepted recipients:`, info.accepted);
+    console.log(`[EMAIL DEBUG] Rejected recipients:`, info.rejected);
+    console.log(`[EMAIL DEBUG] Response: ${info.response}`);
   } catch (error) {
+    console.error(`[EMAIL DEBUG] SMTP error:`, error);
     logError("email", error, __filename);
     throw error;
   }
