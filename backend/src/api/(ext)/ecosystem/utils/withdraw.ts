@@ -23,18 +23,42 @@ export const handleEvmWithdrawal = async (
   amount: number,
   toAddress: string
 ): Promise<boolean> => {
-  validateAddress(toAddress, chain);
+  console.log(`[EVM_WITHDRAW] Starting EVM withdrawal:`, {
+    transactionId: id,
+    walletId,
+    chain,
+    amount,
+    toAddress: toAddress?.substring(0, 10) + '...'
+  });
 
+  validateAddress(toAddress, chain);
+  console.log(`[EVM_WITHDRAW] Address validation passed`);
+
+  console.log(`[EVM_WITHDRAW] Initializing provider for chain: ${chain}`);
   const provider = await initializeProvider(chain);
+
+  console.log(`[EVM_WITHDRAW] Fetching user wallet: ${walletId}`);
   const userWallet = await models.wallet.findByPk(walletId);
   if (!userWallet) {
+    console.error(`[EVM_WITHDRAW] User wallet not found: ${walletId}`);
     throw new Error("User wallet not found");
   }
+  console.log(`[EVM_WITHDRAW] Wallet found, currency: ${userWallet.currency}`);
 
   const { currency } = userWallet;
+
+  console.log(`[EVM_WITHDRAW] Initializing contracts for ${currency} on ${chain}`);
   const { contract, contractAddress, gasPayer, contractType, tokenDecimals } =
     await initializeContracts(chain, currency, provider);
+
+  console.log(`[EVM_WITHDRAW] Contract details:`, {
+    contractType,
+    contractAddress,
+    tokenDecimals
+  });
+
   const amountEth = ethers.parseUnits(amount.toString(), tokenDecimals);
+  console.log(`[EVM_WITHDRAW] Amount in wei: ${amountEth.toString()}`);
 
   let walletData,
     actualTokenOwner,
@@ -42,6 +66,7 @@ export const handleEvmWithdrawal = async (
     transaction,
     alternativeWallet;
   if (contractType === "PERMIT") {
+    console.log(`[EVM_WITHDRAW] Processing PERMIT contract type`);
     walletData = await getWalletData(walletId, chain);
     const ownerData = await getAndValidateTokenOwner(
       walletData,
@@ -63,7 +88,7 @@ export const handleEvmWithdrawal = async (
         provider
       );
     } catch (error) {
-      console.error(`Failed to execute permit: ${error.message}`);
+      console.error(`[EVM_WITHDRAW] Failed to execute permit:`, error);
       throw new Error(`Failed to execute permit: ${error.message}`);
     }
 

@@ -46,6 +46,6 @@ export const metadata: OperationObject = {
 
 export default async () => {
   const cronJobManager = await CronJobManager.getInstance();
-  const cronJobs = cronJobManager.getCronJobs();
+  const cronJobs = await cronJobManager.getCronJobs();
   return cronJobs;
 };

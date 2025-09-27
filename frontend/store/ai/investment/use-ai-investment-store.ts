@@ -124,13 +124,10 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
               silentSuccess: true,
             });
 
-            // Log the raw response for debugging
-            console.log("AI investment plans API response:", { data, error });
 
             if (!error && data) {
               // Validate the data structure
               if (Array.isArray(data)) {
-                console.log("Setting plans from API:", data);
                 set({ plans: data });
 
                 // Select first plan if none selected and plans exist
@@ -304,14 +301,12 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
 
 // Initialize the store
 export const initializeAiInvestmentStore = async () => {
-  console.log("Initializing AI investment store...");
   const store = useAiInvestmentStore.getState();
 
   try {
     // Fetch initial data
     await store.fetchPlans();
     await store.fetchInvestments();
-    console.log("AI investment store initialized successfully");
   } catch (error) {
     console.error("Failed to initialize AI investment store:", error);
   }

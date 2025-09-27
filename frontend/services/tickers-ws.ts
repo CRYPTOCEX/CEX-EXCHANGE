@@ -150,13 +150,11 @@ export class TickersWebSocketManager {
 
     this.spotConnectionPromise = new Promise<void>((resolve, reject) => {
       const url = this.createWebSocketUrl("api/exchange/ticker");
-      console.log("Connecting to spot WebSocket:", url);
 
       try {
         this.spotWs = new WebSocket(url);
 
         this.spotWs.onopen = () => {
-          console.log("Spot WebSocket connected");
           this.spotConnectionState = ConnectionStatus.CONNECTED;
           this.updateAllConnectionStatus();
 
@@ -247,13 +245,11 @@ export class TickersWebSocketManager {
 
     this.ecoConnectionPromise = new Promise<void>((resolve, reject) => {
       const url = this.createWebSocketUrl("api/ecosystem/ticker");
-      console.log("Connecting to eco WebSocket:", url);
 
       try {
         this.ecoWs = new WebSocket(url);
 
         this.ecoWs.onopen = () => {
-          console.log("Eco WebSocket connected");
           this.ecoConnectionState = ConnectionStatus.CONNECTED;
           this.updateAllConnectionStatus();
 
@@ -347,13 +343,11 @@ export class TickersWebSocketManager {
 
     this.futuresConnectionPromise = new Promise<void>((resolve, reject) => {
       const url = this.createWebSocketUrl("api/futures/ticker");
-      console.log("Connecting to futures WebSocket:", url);
 
       try {
         this.futuresWs = new WebSocket(url);
 
         this.futuresWs.onopen = () => {
-          console.log("Futures WebSocket connected");
           this.futuresConnectionState = ConnectionStatus.CONNECTED;
           this.updateAllConnectionStatus();
 
@@ -375,7 +369,6 @@ export class TickersWebSocketManager {
             
             if (message.stream === "tickers" && message.data) {
               // Bulk tickers format: {"stream": "tickers", "data": {"SYMBOL": {...}}}
-              console.log("Received bulk futures tickers:", Object.keys(message.data));
               Object.entries(message.data).forEach(([symbol, tickerData]) => {
                 if (tickerData && (tickerData as TickerData).last !== undefined) {
                   this.futuresData[symbol] = tickerData as TickerData;
@@ -385,7 +378,6 @@ export class TickersWebSocketManager {
             } else if (message.stream === "ticker" && message.data) {
               // Individual ticker format: {"stream": "ticker", "data": {"symbol": "SYMBOL", ...}}
               const tickerData = message.data;
-              console.log("Received individual futures ticker:", tickerData.symbol, tickerData);
               if (tickerData.symbol && tickerData.last !== undefined) {
                 this.futuresData[tickerData.symbol] = {
                   last: tickerData.last,
@@ -478,7 +470,6 @@ export class TickersWebSocketManager {
       // If no more subscribers, schedule closing the connection after a delay
       // This prevents rapid subscribe/unsubscribe cycles from breaking connections
       if (this.spotSubscriptionCount === 0 && this.spotWs) {
-        console.log("No more spot subscribers, scheduling connection close");
 
         // Clear any existing timeout
         if (this.spotCloseTimeout) {
@@ -487,7 +478,6 @@ export class TickersWebSocketManager {
 
         // Set a new timeout to close the connection after a delay
         this.spotCloseTimeout = setTimeout(() => {
-          console.log("Closing spot connection due to inactivity");
           if (this.spotWs) {
             this.spotWs.close();
             this.spotWs = null;
@@ -538,7 +528,6 @@ export class TickersWebSocketManager {
 
       // If no more subscribers, schedule closing the connection after a delay
       if (this.ecoSubscriptionCount === 0 && this.ecoWs) {
-        console.log("No more eco subscribers, scheduling connection close");
 
         // Clear any existing timeout
         if (this.ecoCloseTimeout) {
@@ -547,7 +536,6 @@ export class TickersWebSocketManager {
 
         // Set a new timeout to close the connection after a delay
         this.ecoCloseTimeout = setTimeout(() => {
-          console.log("Closing eco connection due to inactivity");
           if (this.ecoWs) {
             this.ecoWs.close();
             this.ecoWs = null;
@@ -598,7 +586,6 @@ export class TickersWebSocketManager {
 
       // If no more subscribers, schedule closing the connection after a delay
       if (this.futuresSubscriptionCount === 0 && this.futuresWs) {
-        console.log("No more futures subscribers, scheduling connection close");
 
         // Clear any existing timeout
         if (this.futuresCloseTimeout) {
@@ -607,7 +594,6 @@ export class TickersWebSocketManager {
 
         // Set a new timeout to close the connection after a delay
         this.futuresCloseTimeout = setTimeout(() => {
-          console.log("Closing futures connection due to inactivity");
           if (this.futuresWs) {
             this.futuresWs.close();
             this.futuresWs = null;

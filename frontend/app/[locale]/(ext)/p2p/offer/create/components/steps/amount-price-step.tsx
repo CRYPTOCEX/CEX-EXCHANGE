@@ -362,6 +362,22 @@ export function AmountPriceStep() {
   // Update the handleAmountChange function to store data in the expected format
   const handleAmountChange = useCallback(
     (value: string) => {
+      // Allow empty string to let users clear the field
+      if (value === "") {
+        updateTradeData({
+          amountConfig: {
+            total: 0,
+            min: Number.parseFloat(minLimit) || 0,
+            max: Number.parseFloat(maxLimit) || 0,
+            availableBalance: tradeData.availableBalance,
+          },
+          // Keep the amount field for backward compatibility
+          amount: 0,
+        });
+        return;
+      }
+
+      // Parse the value, default to 0 if invalid
       const amountValue = Number.parseFloat(value) || 0;
 
       // Format according to the API schema
@@ -603,17 +619,17 @@ export function AmountPriceStep() {
               amount: sellAmount,
             });
           } else {
-            // For buy flow, calculate minimum amount based on minimum limit and price
-            const minAmount = calculateMinimumAmount();
+            // For buy flow, don't set a default amount - let the user enter it
+            // Just initialize the config structure with empty values
             updateTradeData({
               amountConfig: {
-                total: minAmount,
+                total: 0, // Start with 0 but display as empty string
                 min: Number.parseFloat(minLimit) || 0,
                 max: Number.parseFloat(maxLimit) || 0,
                 availableBalance: tradeData.availableBalance,
               },
               // Keep the amount field for backward compatibility
-              amount: minAmount,
+              amount: 0,
             });
           }
         }
@@ -737,9 +753,11 @@ export function AmountPriceStep() {
   // Get the amount value to display in the input
   const getAmountValue = useCallback(() => {
     if (tradeData.amountConfig && tradeData.amountConfig.total !== undefined) {
-      return tradeData.amountConfig.total;
+      // Return empty string if the value is 0 to allow users to type freely
+      return tradeData.amountConfig.total === 0 ? "" : tradeData.amountConfig.total;
     }
-    return tradeData.amount || "";
+    // Return empty string if the value is 0 to allow users to type freely
+    return tradeData.amount === 0 ? "" : (tradeData.amount || "");
   }, [tradeData.amount, tradeData.amountConfig]);
 
   // Get the price value to display in the input

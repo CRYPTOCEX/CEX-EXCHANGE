@@ -468,6 +468,13 @@ interface icoLaunchPlanAttributes {
   phase: string;
   startDate: Date;
   endDate: Date;
+  name: string;
+  price: number;
+  currency: string;
+  walletType: "FIAT" | "SPOT" | "ECO";
+  recommended: boolean;
+  status: boolean;
+  sortOrder: number;
   description?: string;
   features?: string[] | string;
   createdAt?: Date;
@@ -517,10 +524,21 @@ interface icoBlockchainAttributes {
   name: string;
   symbol: string;
   network: string;
+  value: string;
+  status: boolean;
   chainId?: number;
   rpcUrl?: string;
   explorerUrl?: string;
-  status: "ACTIVE" | "INACTIVE";
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface icoTokenTypeAttributes {
+  id: string;
+  name: string;
+  value: string;
+  description?: string;
+  status: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -529,6 +547,9 @@ interface icoAdminActivityAttributes {
   id: string;
   adminId: string;
   action: string;
+  type?: string;
+  offeringName?: string;
+  offeringId?: string;
   description?: string;
   metadata?: any;
   createdAt?: Date;

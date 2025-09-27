@@ -1,6 +1,13 @@
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
+// Safe import for ecosystem modules
+let client: any;
+let scyllaFuturesKeyspace: any;
+try {
+  const module = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = module.default;
+  scyllaFuturesKeyspace = module.scyllaFuturesKeyspace;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { makeUuid } from "@b/utils/passwords";
 import { uuidToString } from "./order";
 
@@ -25,6 +32,10 @@ export async function getPosition(
   symbol: string,
   side: string
 ): Promise<FuturesPosition | null> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.positions_by_symbol
     WHERE symbol = ? AND "userId" = ? AND side = ? AND status = 'OPEN' ALLOW FILTERING;
@@ -67,6 +78,10 @@ export async function getPositions(
   symbol?: string,
   status?: string
 ): Promise<FuturesPosition[]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   let query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.position
     WHERE "userId" = ?
@@ -111,6 +126,10 @@ export async function getPositions(
 }
 
 export async function getAllOpenPositions(): Promise<FuturesPosition[]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.position WHERE status = 'OPEN' ALLOW FILTERING;
   `;
@@ -151,6 +170,10 @@ export async function createPosition(
   stopLossPrice?: bigint,
   takeProfitPrice?: bigint
 ): Promise<void> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     INSERT INTO ${scyllaFuturesKeyspace}.position (id, "userId", symbol, side, "entryPrice", amount, leverage, "unrealizedPnl", "stopLossPrice", "takeProfitPrice", status, "createdAt", "updatedAt")
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?);
@@ -187,6 +210,10 @@ export async function updatePositionInDB(
   stopLossPrice?: bigint,
   takeProfitPrice?: bigint
 ): Promise<void> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     UPDATE ${scyllaFuturesKeyspace}.position
     SET "entryPrice" = ?, amount = ?, "unrealizedPnl" = ?, "stopLossPrice" = ?, "takeProfitPrice" = ?, "updatedAt" = ?
@@ -216,6 +243,10 @@ export async function updatePositionStatus(
   id: string,
   status: string
 ): Promise<void> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     UPDATE ${scyllaFuturesKeyspace}.position
     SET status = ?, "updatedAt" = ?

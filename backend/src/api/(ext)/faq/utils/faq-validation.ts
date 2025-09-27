@@ -205,7 +205,7 @@ export function validatePagePath(pagePath: string): ValidationResult {
     errors.push('Page path must not exceed 200 characters');
   }
   
-  if (!/^[a-zA-Z0-9\-_\/]+$/.test(trimmedPath)) {
+  if (!/^[a-zA-Z0-9\-_/]+$/.test(trimmedPath)) {
     errors.push('Page path contains invalid characters');
   }
   

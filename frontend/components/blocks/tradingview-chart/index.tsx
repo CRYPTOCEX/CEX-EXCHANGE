@@ -336,15 +336,6 @@ const TradingViewChartBase = ({
         
         const formattedSymbol = formatSymbolForAPI(symbol);
         
-        // Log the API request for debugging
-        console.log("TradingView requesting data for:", {
-          originalSymbol: symbol,
-          formattedSymbol,
-          interval,
-          marketType,
-          from: new Date(from).toISOString(),
-          to: new Date(to).toISOString()
-        });
 
         try {
           // Determine API endpoint based on market type
@@ -389,7 +380,6 @@ const TradingViewChartBase = ({
 
           // Check if there was an error in the response
           if (response.error) {
-            console.log("TradingView API error:", response.error);
             onHistoryCallback([], { noData: true });
             return;
           }
@@ -399,7 +389,6 @@ const TradingViewChartBase = ({
 
           // Check if data was returned
           if (!data || !Array.isArray(data) || data.length === 0) {
-            console.log("TradingView API returned empty or invalid data for", formattedSymbol, interval);
             onHistoryCallback([], { noData: true });
             return;
           }

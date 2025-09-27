@@ -1,7 +1,30 @@
+// Safe import for ecosystem modules
+let client: any;
+let scyllaFuturesKeyspace: any;
+let fromBigInt: any;
+let removeTolerance: any;
+let toBigIntFloat: any;
+let normalizeTimeToInterval: any;
+let Candle: any;
+try {
+  const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = clientModule.default;
+  scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  removeTolerance = blockchainModule.removeTolerance;
+  toBigIntFloat = blockchainModule.toBigIntFloat;
+
+  const wsModule = require("@b/api/(ext)/ecosystem/utils/ws");
+  normalizeTimeToInterval = wsModule.normalizeTimeToInterval;
+
+  const queriesModule = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+  Candle = queriesModule.Candle;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { applyUpdatesToOrderBook } from "./orderbook";
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
 import {
   handleCandleBroadcast,
   handleOrderBookBroadcast,
@@ -12,15 +35,8 @@ import {
 } from "./ws";
 import { getFuturesMarkets } from "./markets";
 import { logError } from "@b/utils/logger";
-import {
-  fromBigInt,
-  removeTolerance,
-  toBigIntFloat,
-} from "@b/api/(ext)/ecosystem/utils/blockchain";
 import { getLatestOrdersForCandles, intervals } from "./candles";
-import { normalizeTimeToInterval } from "@b/api/(ext)/ecosystem/utils/ws";
 import { matchAndCalculateOrders, validateOrder } from "./matchmaking";
-import { Candle } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
 import {
   FuturesOrder,
   generateOrderUpdateQueries,
@@ -47,8 +63,8 @@ export class FuturesMatchingEngine {
   private orderQueue: Record<string, FuturesOrder[]> = {};
   private marketsBySymbol: Record<string, any> = {};
   private lockedOrders: Set<string> = new Set();
-  private lastCandle: Record<string, Record<string, Candle>> = {};
-  private yesterdayCandle: Record<string, Candle> = {};
+  private lastCandle: Record<string, Record<string, any>> = {};
+  private yesterdayCandle: Record<string, any> = {};
 
   public static getInstance(): Promise<FuturesMatchingEngine> {
     if (!this.instancePromise) {
@@ -62,6 +78,11 @@ export class FuturesMatchingEngine {
   }
 
   public async init() {
+    if (!client || !scyllaFuturesKeyspace) {
+      console.warn("Ecosystem extension not available, futures matching engine disabled");
+      return;
+    }
+
     await this.initializeMarkets();
     await this.initializeOrders();
     await this.initializeLastCandles();
@@ -175,6 +196,11 @@ export class FuturesMatchingEngine {
   }
 
   private async initializePositions() {
+    if (!toBigIntFloat || !fromBigInt) {
+      console.warn("Ecosystem extension not available for position initialization");
+      return;
+    }
+
     try {
       const openPositions = await getAllOpenPositions();
       const userIds = [
@@ -224,6 +250,11 @@ export class FuturesMatchingEngine {
   }
 
   private async processQueue() {
+    if (!client || !removeTolerance || !toBigIntFloat) {
+      console.warn("Ecosystem extension not available for queue processing");
+      return;
+    }
+
     const ordersToUpdate: FuturesOrder[] = [];
     const orderBookUpdates: Record<string, any> = {};
 
@@ -337,11 +368,13 @@ export class FuturesMatchingEngine {
     const positionPromises = ordersToUpdate.map(async (order) => {
       const positions = await getPositions(order.userId, order.symbol, "OPEN");
       if (positions.length > 0) {
-        await Promise.all(
-          positions.map((position) =>
-            checkForLiquidation(position, fromBigInt(order.price))
-          )
-        );
+        if (fromBigInt) {
+          await Promise.all(
+            positions.map((position) =>
+              checkForLiquidation(position, fromBigInt(order.price))
+            )
+          );
+        }
         await Promise.all(
           positions.map((position) => handlePositionBroadcast(position))
         );
@@ -385,6 +418,11 @@ export class FuturesMatchingEngine {
   private updateLastCandles(
     order: FuturesOrder
   ): Array<{ query: string; params: any[] }> {
+    if (!toBigIntFloat || !fromBigInt || !scyllaFuturesKeyspace || !normalizeTimeToInterval) {
+      console.warn("Ecosystem extension not available for candle updates");
+      return [];
+    }
+
     let finalPrice = BigInt(0);
     let trades;
     try {
@@ -400,7 +438,7 @@ export class FuturesMatchingEngine {
       trades.length > 0 &&
       (trades[trades.length - 1] as any).price !== undefined
     ) {
-      finalPrice = toBigIntFloat((trades[trades.length - 1] as any).price);
+      finalPrice = toBigIntFloat ? toBigIntFloat((trades[trades.length - 1] as any).price) : BigInt(0);
     } else if (order.price !== undefined) {
       finalPrice = order.price;
     } else {
@@ -456,13 +494,13 @@ export class FuturesMatchingEngine {
     if (shouldCreateNewCandle) {
       const newOpenPrice = existingLastCandle
         ? existingLastCandle.close
-        : fromBigInt(finalPrice);
+        : (fromBigInt ? fromBigInt(finalPrice) : 0);
 
       if (!newOpenPrice) {
         return null;
       }
 
-      const finalPriceNumber = fromBigInt(finalPrice);
+      const finalPriceNumber = fromBigInt ? fromBigInt(finalPrice) : 0;
 
       const normalizedTime = new Date(
         normalizeTimeToInterval(new Date().getTime(), interval)
@@ -475,7 +513,7 @@ export class FuturesMatchingEngine {
         high: Math.max(newOpenPrice, finalPriceNumber),
         low: Math.min(newOpenPrice, finalPriceNumber),
         close: finalPriceNumber,
-        volume: fromBigInt(order.amount),
+        volume: fromBigInt ? fromBigInt(order.amount) : 0,
         createdAt: normalizedTime,
         updatedAt: new Date(),
       };
@@ -499,10 +537,10 @@ export class FuturesMatchingEngine {
     } else {
       let updateQuery = `UPDATE ${scyllaFuturesKeyspace}.candles SET "updatedAt" = ?, close = ?`;
       const now = new Date();
-      const finalPriceNumber = fromBigInt(finalPrice);
+      const finalPriceNumber = fromBigInt ? fromBigInt(finalPrice) : 0;
       const updateParams: any[] = [now, finalPriceNumber];
 
-      const newVolume = existingLastCandle.volume + fromBigInt(order.amount);
+      const newVolume = existingLastCandle.volume + (fromBigInt ? fromBigInt(order.amount) : 0);
       updateQuery += ", volume = ?";
       updateParams.push(newVolume);
 

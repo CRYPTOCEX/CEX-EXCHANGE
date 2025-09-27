@@ -1,5 +1,14 @@
 import { getWallet } from "@b/api/finance/wallet/utils";
-import { fromBigIntMultiply, fromBigInt } from "@b/api/(ext)/ecosystem/utils/blockchain";
+// Safe import for ecosystem modules
+let fromBigIntMultiply: any;
+let fromBigInt: any;
+try {
+  const module = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigIntMultiply = module.fromBigIntMultiply;
+  fromBigInt = module.fromBigInt;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { FuturesOrder } from "./queries/order";
 import {
   FuturesPosition,
@@ -8,7 +17,14 @@ import {
   updatePositionInDB,
   updatePositionStatus,
 } from "./queries/positions";
-import { updateWalletBalance } from "../../ecosystem/utils/wallet";
+// Safe import for ecosystem modules
+let updateWalletBalance: any;
+try {
+  const module = require("../../ecosystem/utils/wallet");
+  updateWalletBalance = module.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
 
 // Constants
 const SCALE_FACTOR = BigInt(10 ** 18);
@@ -130,7 +146,7 @@ export const closePosition = async (order: FuturesOrder): Promise<void> => {
   const position = await getPosition(order.userId, order.symbol, order.side);
 
   if (position) {
-    const realizedPnl = fromBigIntMultiply(position.unrealizedPnl, BigInt(1));
+    const realizedPnl = fromBigIntMultiply ? fromBigIntMultiply(position.unrealizedPnl, BigInt(1)) : position.unrealizedPnl;
     const baseCurrency = order.symbol.split("/")[1];
     const wallet = await getWallet(
       order.userId,
@@ -139,7 +155,11 @@ export const closePosition = async (order: FuturesOrder): Promise<void> => {
     );
 
     if (wallet) {
-      await updateWalletBalance(wallet, realizedPnl, "add");
+      if (updateWalletBalance) {
+        await updateWalletBalance(wallet, realizedPnl, "add");
+      } else {
+        throw new Error("Ecosystem extension not available for wallet operations");
+      }
     } else {
       throw new Error(
         `Wallet not found for user ${order.userId} and currency ${baseCurrency}`

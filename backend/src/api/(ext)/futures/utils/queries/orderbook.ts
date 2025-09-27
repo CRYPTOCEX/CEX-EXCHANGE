@@ -1,18 +1,34 @@
-import {
-  fromBigInt,
-  removeTolerance,
-  toBigIntFloat,
-} from "@b/api/(ext)/ecosystem/utils/blockchain";
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
-import { OrderBookDatas } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let removeTolerance: any;
+let toBigIntFloat: any;
+let client: any;
+let scyllaFuturesKeyspace: any;
+let OrderBookDatas: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  removeTolerance = blockchainModule.removeTolerance;
+  toBigIntFloat = blockchainModule.toBigIntFloat;
+
+  const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = clientModule.default;
+  scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+
+  const queriesModule = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+  OrderBookDatas = queriesModule.OrderBookDatas;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { logError } from "@b/utils/logger";
 import { FuturesOrder } from "./order";
 
 export type OrderBookSide = "bids" | "asks";
 
 export async function query(q: string, params: any[] = []): Promise<any> {
+  if (!client) {
+    throw new Error("Ecosystem extension not available");
+  }
   return client.execute(q, params, { prepare: true });
 }
 
@@ -21,6 +37,10 @@ export async function getOrderbookEntry(
   price: number,
   side: string
 ): Promise<any> {
+  if (!client || !scyllaFuturesKeyspace || !toBigIntFloat) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orderbook
     WHERE symbol = ? AND price = ? AND side = ?;
@@ -49,6 +69,10 @@ export async function getOrderbookEntry(
 export async function getOrderBook(
   symbol: string
 ): Promise<{ asks: number[][]; bids: number[][] }> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const askQuery = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orderbook
     WHERE symbol = ? AND side = 'ASKS'
@@ -72,7 +96,11 @@ export async function getOrderBook(
   return { asks, bids };
 }
 
-export async function fetchOrderBooks(): Promise<OrderBookDatas[] | null> {
+export async function fetchOrderBooks(): Promise<any[] | null> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orderbook;
   `;
@@ -97,6 +125,10 @@ export async function updateOrderBookInDB(
   amount: number,
   side: string
 ) {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   let query: string;
   let params: any[];
 
@@ -124,6 +156,10 @@ export async function updateOrderBookInDB(
 export async function fetchExistingAmounts(
   symbol: string
 ): Promise<Record<OrderBookSide, Record<string, bigint>>> {
+  if (!client || !scyllaFuturesKeyspace || !removeTolerance || !toBigIntFloat) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   try {
     const result = await client.execute(
       `SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`,
@@ -151,6 +187,10 @@ export async function updateSingleOrderBook(
   order: FuturesOrder,
   operation: "add" | "subtract"
 ) {
+  if (!client || !scyllaFuturesKeyspace || !removeTolerance || !toBigIntFloat || !fromBigInt) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   try {
     const result = await client.execute(
       `SELECT price, side, amount FROM ${scyllaFuturesKeyspace}.orderbook_by_symbol WHERE symbol = ?;`,
@@ -213,6 +253,10 @@ export function generateOrderBookUpdateQueries(
     Record<"bids" | "asks", Record<string, number>>
   >
 ): Array<{ query: string; params: any[] }> {
+  if (!scyllaFuturesKeyspace || !fromBigInt || !removeTolerance) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const queries: Array<{ query: string; params: any[] }> = [];
 
   for (const [symbol, sides] of Object.entries(mappedOrderBook)) {

@@ -47,25 +47,22 @@ export default function TradingFormPanel({
   const [lastPrice, setLastPrice] = useState<number | null>(null);
   const [currency, setCurrency] = useState("BTC");
   const [pair, setPair] = useState("USDT");
+  const [isMarketEco, setIsMarketEco] = useState(isEco);
 
   // Add refs to prevent duplicate fetching
   const isFetchingRef = useRef(false);
   const lastFetchTimeRef = useRef(0);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
-  // Reset market price immediately when symbol changes
+  // Reset market price and wallet data immediately when symbol changes
   useEffect(() => {
     // Reset price to loading state when symbol changes
     setMarketPrice("--");
     setLastPrice(null);
     setPriceDirection("neutral");
     setTickerData(null);
-    
-    // Clear session cache for the new symbol to force fresh data
-    if (typeof window !== 'undefined') {
-      const cacheKey = `trade_wallet_${symbol}`;
-      sessionStorage.removeItem(cacheKey);
-    }
+    // Reset wallet data to prevent showing old market's balance
+    setWalletData(null);
   }, [symbol]);
 
   // Fetch market data on component mount
@@ -75,7 +72,9 @@ export default function TradingFormPanel({
       const findMarketMetadata = async () => {
         try {
           const markets = await marketService.getSpotMarkets();
-          const market = markets.find((m: any) => m.symbol === symbol);
+          // Normalize symbol format (convert BTC-USDT to BTC/USDT)
+          const normalizedSymbol = symbol.replace('-', '/');
+          const market = markets.find((m: any) => m.symbol === normalizedSymbol);
 
           if (market) {
             const metadata = market.metadata;
@@ -83,6 +82,9 @@ export default function TradingFormPanel({
             // Extract currency and pair from market data
             setCurrency(market.currency || "BTC");
             setPair(market.pair || "USDT");
+
+            // Set the correct market type (eco or spot)
+            setIsMarketEco(market.isEco || false);
 
             // Set precision based on market metadata
             if (metadata?.precision) {
@@ -97,8 +99,17 @@ export default function TradingFormPanel({
             }
           } else {
             // Fallback: extract from symbol if market not found
+            // Reset to prop value when market not found
+            setIsMarketEco(isEco);
+
+            // Normalize symbol first
+            const normalizedSymbol = symbol.replace('-', '/');
             // This is a basic fallback for common patterns
-            if (symbol.endsWith("USDT")) {
+            if (normalizedSymbol.includes('/')) {
+              const [curr, pr] = normalizedSymbol.split('/');
+              setCurrency(curr);
+              setPair(pr);
+            } else if (symbol.endsWith("USDT")) {
               setCurrency(symbol.replace("USDT", ""));
               setPair("USDT");
             } else if (symbol.endsWith("BUSD")) {
@@ -114,10 +125,10 @@ export default function TradingFormPanel({
             }
           }
         } catch (error) {
-          console.error("Error getting market metadata:", error);
           // Use default values if there's an error
           setCurrency("BTC");
           setPair("USDT");
+          setIsMarketEco(isEco);
           setPricePrecision(2);
           setAmountPrecision(4);
           setMinAmount(0.0001);
@@ -127,7 +138,6 @@ export default function TradingFormPanel({
 
       findMarketMetadata();
     } catch (error) {
-      console.error("Error parsing market data:", error);
       // Use default values if there's an error
       setCurrency("BTC");
       setPair("USDT");
@@ -141,42 +151,36 @@ export default function TradingFormPanel({
     fetchWalletData();
   }, [symbol]);
 
-  // Refetch wallet data when currency or pair changes
+  // Refetch wallet data when currency, pair or market type changes
   useEffect(() => {
     if (currency && pair) {
       fetchWalletData();
     }
-  }, [currency, pair]);
+  }, [currency, pair, isMarketEco]);
 
-  // Fetch wallet data for both currencies (only needs to be called once)
+  // Set up periodic wallet balance refresh (every 30 seconds)
+  useEffect(() => {
+    if (!currency || !pair) return;
+
+    const interval = setInterval(() => {
+      fetchWalletData();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [currency, pair, isMarketEco]);
+
+  // Fetch wallet data for both currencies
   const fetchWalletData = async () => {
-    // Prevent duplicate calls within 1 second
-    const now = Date.now();
-    if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
-      console.log(`[Trade] Wallet fetch throttled for ${symbol}`);
-      return;
-    }
+    // Clear wallet data immediately when switching markets to prevent showing old data
+    setWalletData(null);
 
-    // Create cache key for this symbol
-    const cacheKey = `trade_wallet_${currency}_${pair}`;
-    
-    // Check if we have recent cached data (within 30 seconds)
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const { data: cachedData, timestamp } = JSON.parse(cached);
-        if (now - timestamp < 30000) { // 30 seconds cache
-          console.log(`[Trade] Using cached wallet data for ${symbol}`);
-          setWalletData({
-            balance: cachedData.CURRENCY,
-            availableBalance: cachedData.CURRENCY,
-            currency: currency,
-            currencyBalance: cachedData.CURRENCY,
-            pairBalance: cachedData.PAIR,
-          });
-          return;
-        }
-      }
+    // Prevent duplicate calls within 1 second for the same market
+    const now = Date.now();
+    const cacheKey = `${isMarketEco ? 'ECO' : 'SPOT'}-${currency}-${pair}`;
+
+    // Track the last fetch per market to avoid duplicate calls
+    if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
+      return;
     }
 
     try {
@@ -184,9 +188,9 @@ export default function TradingFormPanel({
       lastFetchTimeRef.current = now;
       setIsLoadingWallet(true);
 
-      console.log(`[Trade] Fetching wallet data for ${symbol}`);
       // Use the symbol endpoint to fetch both currency and pair balances
-      const endpoint = `/api/finance/wallet/symbol?type=SPOT&currency=${currency}&pair=${pair}`;
+      const walletType = isMarketEco ? 'ECO' : 'SPOT';
+      const endpoint = `/api/finance/wallet/symbol?type=${walletType}&currency=${currency}&pair=${pair}`;
 
       const { data, error } = await $fetch({
         url: endpoint,
@@ -194,14 +198,6 @@ export default function TradingFormPanel({
       });
 
       if (!error && data) {
-        // Cache the successful response
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(cacheKey, JSON.stringify({
-            data,
-            timestamp: now
-          }));
-        }
-
         // Store both balances - the display logic will handle which one to show
         setWalletData({
           balance: data.CURRENCY, // Default to currency balance
@@ -210,8 +206,6 @@ export default function TradingFormPanel({
           currencyBalance: data.CURRENCY, // Store both balances for reference
           pairBalance: data.PAIR,
         });
-      } else {
-        console.error("Error fetching wallet data:", error);
       }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
@@ -297,13 +291,13 @@ export default function TradingFormPanel({
     priceDirection,
     onOrderSubmit,
     fetchWalletData,
-    isEco,
+    isEco: isMarketEco,
   };
 
   return (
     <div className="flex flex-col h-full bg-background dark:bg-black overflow-y-auto scrollbar-hide">
       {/* Market type indicator - only show for Eco markets */}
-      {isEco && (
+      {isMarketEco && (
         <div className="px-3 py-1.5 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center">
           <Leaf className="h-3.5 w-3.5 text-emerald-500 mr-1.5" />
           <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
@@ -348,6 +342,8 @@ export default function TradingFormPanel({
         currency={currency}
         pair={pair}
         marketPrice={marketPrice}
+        pricePrecision={pricePrecision}
+        amountPrecision={amountPrecision}
       />
 
       {tradingType === "standard" ? (
@@ -378,7 +374,7 @@ export default function TradingFormPanel({
           </TabContent>
         </Tabs>
       ) : (
-        <AiInvestmentForm isEco={isEco} symbol={symbol} />
+        <AiInvestmentForm isEco={isMarketEco} symbol={symbol} />
       )}
     </div>
   );

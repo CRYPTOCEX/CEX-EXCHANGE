@@ -316,7 +316,7 @@ export default async (data: Handler) => {
     const errors: any[] = [];
     let importedCount = 0;
     let failedCount = 0;
-    let skippedDuringParsing = rawRecords.length - records.length;
+    const skippedDuringParsing = rawRecords.length - records.length;
 
     // Add info about records skipped during parsing
     if (skippedDuringParsing > 0) {

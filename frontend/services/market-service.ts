@@ -70,7 +70,6 @@ class MarketService {
   public async getFuturesMarkets(): Promise<any[]> {
     // Check if futures extension is available
     if (!isExtensionAvailable("futures")) {
-      console.warn("Futures extension not available, returning empty futures markets");
       return [];
     }
 
@@ -192,7 +191,6 @@ class MarketService {
         ecoMarkets.forEach(market => {
           if (marketMap.has(market.symbol)) {
             overriddenSymbols.push(market.symbol);
-            console.log(`[Market Service] Ecosystem market ${market.symbol} takes priority over spot market`);
           }
           marketMap.set(market.symbol, market);
         });
@@ -201,12 +199,6 @@ class MarketService {
         const deduplicatedMarkets = Array.from(marketMap.values())
           .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
-        console.log(`[Market Service] Loaded ${deduplicatedMarkets.length} markets:`);
-        console.log(`  - ${spotMarkets.length} spot markets`);
-        console.log(`  - ${ecoMarkets.length} ecosystem markets`);
-        if (overriddenSymbols.length > 0) {
-          console.log(`  - ${overriddenSymbols.length} symbols where eco takes priority: ${overriddenSymbols.join(', ')}`);
-        }
         
         return deduplicatedMarkets;
       }
@@ -277,7 +269,6 @@ class MarketService {
 
   // Initialize all market data (called once on app load)
   public async initialize(): Promise<void> {
-    console.log("Initializing market service...");
 
     try {
       const promises = [this.getSpotMarkets()];
@@ -289,7 +280,6 @@ class MarketService {
       
       await Promise.all(promises);
 
-      console.log("Market service initialized successfully");
     } catch (error) {
       console.error("Error initializing market service:", error);
     }

@@ -277,26 +277,46 @@ sudo systemctl status monero-wallet-rpc.service</code></pre>
 <!-- Step 4: Environment Configuration -->
 <div class="mb-12">
     <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Bicrypto Environment Variables</h2>
-    
+
     <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
         <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Add to .env File</h3>
-        
+
         <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
             <pre><code class="language-bash text-sm"># Monero RPC Configuration
 XMR_RPC_USER="wallet_rpc"
 XMR_RPC_PASSWORD="your_wallet_rpc_password"
 
+# Optional: Custom RPC URLs (if using non-standard ports)
+# These override the default ports if set
+XMR_DAEMON_RPC_URL=""  # Example: "http://127.0.0.1:18081/json_rpc"
+XMR_WALLET_RPC_URL=""  # Example: "http://127.0.0.1:28083/json_rpc"
+
 # Optional: Wallet password if you want to encrypt wallets
 # XMR_WALLET_PASSWORD="your_wallet_encryption_password"</code></pre>
         </div>
-        
+
         <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
             <p><strong>Environment variable descriptions:</strong></p>
             <ul class="space-y-1 ml-4">
                 <li>• <code>XMR_RPC_USER</code>: Username for wallet RPC authentication</li>
                 <li>• <code>XMR_RPC_PASSWORD</code>: Password for wallet RPC authentication</li>
+                <li>• <code>XMR_DAEMON_RPC_URL</code>: Full URL for daemon RPC (optional, uses default port 18081 if not set)</li>
+                <li>• <code>XMR_WALLET_RPC_URL</code>: Full URL for wallet RPC (optional, uses default port 18083 if not set)</li>
                 <li>• <code>XMR_WALLET_PASSWORD</code>: Optional password to encrypt wallet files</li>
             </ul>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Custom Port Configuration</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                If your Monero RPC services are running on non-standard ports (e.g., wallet RPC on port 28083 instead of 18083),
+                use the <code>XMR_DAEMON_RPC_URL</code> and <code>XMR_WALLET_RPC_URL</code> variables to specify the full URLs including the custom ports.
+            </p>
         </div>
     </div>
 </div>
@@ -356,12 +376,12 @@ XMR_RPC_PASSWORD="your_wallet_rpc_password"
 <!-- Step 6: Testing RPC Connections -->
 <div class="mb-12">
     <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Testing RPC Connections</h2>
-    
+
     <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
         <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Test Daemon RPC</h3>
-        
+
         <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
-            <pre><code class="language-bash text-sm"># Check daemon sync status
+            <pre><code class="language-bash text-sm"># Check daemon sync status (default port)
 curl -X POST http://127.0.0.1:18081/json_rpc \
     -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' \
     -H 'Content-Type: application/json' \
@@ -373,12 +393,18 @@ curl -X POST http://127.0.0.1:18081/json_rpc \
     -H 'Content-Type: application/json' \
     -u monero_rpc:your_secure_password_here</code></pre>
         </div>
-        
+
         <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100 mt-6">Test Wallet RPC</h3>
-        
+
         <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
-            <pre><code class="language-bash text-sm"># Create a test wallet
+            <pre><code class="language-bash text-sm"># Create a test wallet (default port 18083)
 curl -X POST http://127.0.0.1:18083/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"test_wallet","password":"","language":"English"}}' \
+    -H 'Content-Type: application/json' \
+    -u wallet_rpc:your_wallet_rpc_password
+
+# If using custom port (e.g., 28083)
+curl -X POST http://127.0.0.1:28083/json_rpc \
     -d '{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"test_wallet","password":"","language":"English"}}' \
     -H 'Content-Type: application/json' \
     -u wallet_rpc:your_wallet_rpc_password
@@ -394,6 +420,19 @@ curl -X POST http://127.0.0.1:18083/json_rpc \
     -d '{"jsonrpc":"2.0","id":"0","method":"get_address","params":{"account_index":0}}' \
     -H 'Content-Type: application/json' \
     -u wallet_rpc:your_wallet_rpc_password</code></pre>
+        </div>
+
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="font-medium text-yellow-900 dark:text-yellow-100">Port Mismatch Issues</span>
+            </div>
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                If you get "fetch failed" errors when the system tries to connect to the wallet RPC, ensure your <code>XMR_WALLET_RPC_URL</code>
+                environment variable matches your actual wallet RPC port. The system will log the configured URLs on startup for verification.
+            </p>
         </div>
     </div>
 </div>

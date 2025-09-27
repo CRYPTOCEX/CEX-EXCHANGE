@@ -1,12 +1,26 @@
-import { fromBigInt, toBigIntFloat } from "@b/api/(ext)/ecosystem/utils/blockchain";
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let toBigIntFloat: any;
+let client: any;
+let scyllaFuturesKeyspace: any;
+let getWalletByUserIdAndCurrency: any;
+let updateWalletBalance: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  toBigIntFloat = blockchainModule.toBigIntFloat;
+
+  const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = clientModule.default;
+  scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+
+  const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+  getWalletByUserIdAndCurrency = walletModule.getWalletByUserIdAndCurrency;
+  updateWalletBalance = walletModule.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { emailQueue } from "../../../../utils/emails";
-import {
-  getWalletByUserIdAndCurrency,
-  updateWalletBalance,
-} from "@b/api/(ext)/ecosystem/utils/wallet";
 import { models } from "@b/db";
 import { FuturesPosition } from "./queries/positions";
 import { handlePositionBroadcast } from "./ws";
@@ -15,6 +29,10 @@ const calculateMargin = (
   position: FuturesPosition,
   matchedPrice: number
 ): number => {
+  if (!toBigIntFloat) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const currentPriceBigInt = toBigIntFloat(matchedPrice); // Scale up by 18
   const entryPriceBigInt = position.entryPrice;
   const leverageBigInt = BigInt(position.leverage);
@@ -44,6 +62,11 @@ export const checkForLiquidation = async (
   position: FuturesPosition,
   matchedPrice: number
 ) => {
+  if (!toBigIntFloat) {
+    console.warn("Ecosystem extension not available for liquidation checks");
+    return;
+  }
+
   const margin = calculateMargin(position, matchedPrice);
 
   const partialLiquidationThreshold = -0.8; // 80% loss for partial liquidation
@@ -64,6 +87,10 @@ export const liquidatePosition = async (
   matchedPrice: number,
   partial: boolean = false
 ) => {
+  if (!client || !scyllaFuturesKeyspace || !fromBigInt || !getWalletByUserIdAndCurrency || !updateWalletBalance) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   // Calculate the amount to liquidate
   const amountToLiquidate = partial
     ? (position.amount * BigInt(80)) / BigInt(100) // Liquidate 80% of the position in partial liquidation
@@ -137,7 +164,7 @@ export async function sendLiquidationWarningEmail(
     SYMBOL: position.symbol,
     MARGIN: margin.toFixed(2),
     LEVERAGE: position.leverage,
-    ENTRY_PRICE: fromBigInt(position.entryPrice),
+    ENTRY_PRICE: fromBigInt ? fromBigInt(position.entryPrice) : position.entryPrice,
     CURRENT_PRICE: matchedPrice,
   };
 
@@ -156,7 +183,7 @@ export async function sendPartialLiquidationNotificationEmail(
     FIRSTNAME: user.firstName,
     SYMBOL: position.symbol,
     LEVERAGE: position.leverage,
-    ENTRY_PRICE: fromBigInt(position.entryPrice),
+    ENTRY_PRICE: fromBigInt ? fromBigInt(position.entryPrice) : position.entryPrice,
     CURRENT_PRICE: matchedPrice,
   };
 
@@ -175,7 +202,7 @@ export async function sendLiquidationNotificationEmail(
     FIRSTNAME: user.firstName,
     SYMBOL: position.symbol,
     LEVERAGE: position.leverage,
-    ENTRY_PRICE: fromBigInt(position.entryPrice),
+    ENTRY_PRICE: fromBigInt ? fromBigInt(position.entryPrice) : position.entryPrice,
     CURRENT_PRICE: matchedPrice,
   };
 

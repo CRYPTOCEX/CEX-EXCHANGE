@@ -21,6 +21,8 @@ import { Icon } from "@iconify/react";
 
 // MenuItem interface is defined globally in types/menu.d.ts
 
+const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME || "dark";
+
 interface CustomMobileMenuProps {
   className?: string;
   menu?: "user" | MenuItem[];
@@ -39,6 +41,16 @@ const CustomMobileMenu = ({
   const { settings, extensions, settingsFetched } = useSettings();
   const isDesktop = useMediaQuery("(min-width: 1280px)");
   const isDark = resolvedTheme === "dark";
+
+  // Check if layout switcher is enabled (handle both string and boolean values)
+  const layoutSwitcherEnabled = settings?.layoutSwitcher === true || settings?.layoutSwitcher === "true";
+
+  // Set default theme if layout switcher is disabled
+  useEffect(() => {
+    if (!layoutSwitcherEnabled && theme !== defaultTheme) {
+      setTheme(defaultTheme);
+    }
+  }, [layoutSwitcherEnabled, theme, setTheme]);
 
   // Normalize menu items
   const normalizeMenuItems = (menuItems: any[]): MenuItem[] =>
@@ -220,43 +232,46 @@ const CustomMobileMenu = ({
                 <div className="flex items-center justify-between gap-2">
                   <LanguageSelector variant="compact" />
                   <NotificationBell />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "rounded-full",
-                      isDark
-                        ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
-                    )}
-                    onClick={() =>
-                      setTheme(theme === "dark" ? "light" : "dark")
-                    }
-                  >
-                    <AnimatePresence mode="wait">
-                      {isDark ? (
-                        <motion.div
-                          key="sun"
-                          initial={{ opacity: 0, rotate: -90 }}
-                          animate={{ opacity: 1, rotate: 0 }}
-                          exit={{ opacity: 0, rotate: 90 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Sun className="h-5 w-5" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="moon"
-                          initial={{ opacity: 0, rotate: 90 }}
-                          animate={{ opacity: 1, rotate: 0 }}
-                          exit={{ opacity: 0, rotate: -90 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Moon className="h-5 w-5" />
-                        </motion.div>
+                  {/* Theme Toggle - only show if layout switcher is enabled */}
+                  {layoutSwitcherEnabled && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "rounded-full",
+                        isDark
+                          ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+                          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
                       )}
-                    </AnimatePresence>
-                  </Button>
+                      onClick={() =>
+                        setTheme(theme === "dark" ? "light" : "dark")
+                      }
+                    >
+                      <AnimatePresence mode="wait">
+                        {isDark ? (
+                          <motion.div
+                            key="sun"
+                            initial={{ opacity: 0, rotate: -90 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: 90 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Sun className="h-5 w-5" />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="moon"
+                            initial={{ opacity: 0, rotate: 90 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: -90 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Moon className="h-5 w-5" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

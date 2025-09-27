@@ -1,7 +1,22 @@
 import { getWallet } from "@b/api/finance/wallet/utils";
-import { fromBigInt } from "@b/api/(ext)/ecosystem/utils/blockchain";
 import { FuturesMatchingEngine } from "@b/api/(ext)/futures/utils/matchingEngine";
-import { updateWalletBalance } from "@b/api/(ext)/ecosystem/utils/wallet";
+
+// Safe imports for ecosystem modules
+let fromBigInt: any;
+let updateWalletBalance: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+} catch (e) {
+  // Ecosystem extension not available
+}
+
+try {
+  const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+  updateWalletBalance = walletModule.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { createError } from "@b/utils/error";
 
 import {

@@ -71,7 +71,8 @@ export default async (data) => {
   const { pageId } = params;
   // Get pageSource from body first, then query, then default
   const pageSource = body.pageSource || query.pageSource || 'default';
-  let { title, variables, content, meta, status } = body;
+  const { title, content, meta, status } = body;
+  let { variables } = body;
 
   const validPageIds = ['home', 'about', 'privacy', 'terms', 'contact'];
   const validPageSources = ['default', 'builder'];

@@ -373,6 +373,72 @@ export function DepositForm() {
   // Add ref to track PayPal initialization
   const paypalInitialized = useRef(false);
 
+  // Helper function to get required confirmations based on chain
+  const getRequiredConfirmations = (chain: string): number => {
+    const confirmationMap: { [key: string]: number } = {
+      'XMR': 6,  // Updated to 6 confirmations for XMR
+      'BTC': 3,
+      'ETH': 12,
+      'BSC': 15,
+      'POLYGON': 30,
+      'SOL': 31,
+      'TON': 1,
+      'TRON': 20,
+      'LTC': 6,
+      'DOGE': 6,
+      'DASH': 6,
+      'ARBITRUM': 12,
+      'OPTIMISM': 12,
+      'AVALANCHE': 12,
+      'FANTOM': 12,
+    };
+    return confirmationMap[chain?.toUpperCase()] || 12; // Default to 12 confirmations
+  };
+
+  // Helper function to get blockchain explorer URL
+  const getBlockchainExplorerUrl = (chain: string, txHash: string): string => {
+    const explorerMap: { [key: string]: string } = {
+      'XMR': `https://blockchair.com/monero/transaction/${txHash}`,  // Updated to use Blockchair for XMR
+      'BTC': `https://blockchair.com/bitcoin/transaction/${txHash}`,
+      'ETH': `https://etherscan.io/tx/${txHash}`,
+      'BSC': `https://bscscan.com/tx/${txHash}`,
+      'POLYGON': `https://polygonscan.com/tx/${txHash}`,
+      'SOL': `https://solscan.io/tx/${txHash}`,
+      'TON': `https://tonscan.org/tx/${txHash}`,
+      'TRON': `https://tronscan.org/#/transaction/${txHash}`,
+      'LTC': `https://blockchair.com/litecoin/transaction/${txHash}`,
+      'DOGE': `https://blockchair.com/dogecoin/transaction/${txHash}`,
+      'DASH': `https://blockchair.com/dash/transaction/${txHash}`,
+      'ARBITRUM': `https://arbiscan.io/tx/${txHash}`,
+      'OPTIMISM': `https://optimistic.etherscan.io/tx/${txHash}`,
+      'AVALANCHE': `https://snowtrace.io/tx/${txHash}`,
+      'FANTOM': `https://ftmscan.com/tx/${txHash}`,
+    };
+    return explorerMap[chain?.toUpperCase()] || `https://blockchair.com/search?q=${txHash}`;
+  };
+
+  // Helper function to estimate confirmation time
+  const getEstimatedTime = (chain: string): string => {
+    const timeMap: { [key: string]: string } = {
+      'XMR': '20-30 minutes',
+      'BTC': '30-60 minutes',
+      'ETH': '2-5 minutes',
+      'BSC': '1-3 minutes',
+      'POLYGON': '2-5 minutes',
+      'SOL': '1-2 minutes',
+      'TON': '5-10 seconds',
+      'TRON': '1-3 minutes',
+      'LTC': '15-30 minutes',
+      'DOGE': '15-30 minutes',
+      'DASH': '15-30 minutes',
+      'ARBITRUM': '2-5 minutes',
+      'OPTIMISM': '2-5 minutes',
+      'AVALANCHE': '1-3 minutes',
+      'FANTOM': '1-3 minutes',
+    };
+    return timeMap[chain?.toUpperCase()] || '5-15 minutes';
+  };
+
   // Initialize store
   useEffect(() => {
     reset();
@@ -425,7 +491,63 @@ export function DepositForm() {
         const shouldUnlockAddress =
           selectedDepositMethod?.contractType === "NO_PERMIT" &&
           depositAddress?.address;
-        
+
+        // Handle pending XMR transactions with confirmations
+        if (data?.type === "pending_confirmation" || data?.confirmations !== undefined) {
+          const confirmations = data?.confirmations || 0;
+          const requiredConfirmations = data?.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain);
+          const txHash = data?.transactionHash || data?.txHash || data?.hash;
+
+          // Show pending transaction notification only for ECO wallets
+          if (confirmations < requiredConfirmations && selectedWalletType?.value === "ECO") {
+            toast.info(
+              <div>
+                <div>Transaction detected!</div>
+                <div className="text-sm mt-1">
+                  Confirmations: {confirmations}/{requiredConfirmations}
+                </div>
+                {txHash && (
+                  <a
+                    href={getBlockchainExplorerUrl(selectedDepositMethod?.chain, txHash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-400 hover:underline mt-1 inline-block"
+                  >
+                    View on blockchain →
+                  </a>
+                )}
+              </div>,
+              {
+                duration: 10000,
+                id: `pending-tx-${txHash}`, // Prevent duplicate toasts
+              }
+            );
+
+            // Store pending transaction info in deposit state only for ECO wallets
+            if (selectedWalletType?.value === "ECO") {
+              const pendingDepositData = {
+                confirmed: false,
+                status: "PENDING",
+                id: data?.transaction?.id || txHash,
+                amount: data?.transaction?.amount || data?.trx?.amount || data?.amount,
+                currency: data?.currency || selectedCurrency,
+                method: data?.method || selectedDepositMethod?.name || selectedDepositMethod?.chain,
+                fee: data?.transaction?.fee || data?.trx?.fee || 0,
+                balance: data?.balance || data?.wallet?.balance,
+                transactionHash: txHash,
+                confirmations: confirmations,
+                requiredConfirmations: requiredConfirmations,
+                blockNumber: data?.trx?.blockNumber || data?.blockNumber,
+                from: data?.trx?.from || data?.from,
+                to: data?.trx?.to || data?.to,
+                chain: selectedDepositMethod?.chain,
+              };
+              setDeposit(pendingDepositData);
+            }
+          }
+          return; // Don't process further for pending transactions
+        }
+
         switch (data?.status) {
           case 200:
           case 201: {
@@ -444,6 +566,7 @@ export function DepositForm() {
               gasUsed: data?.trx?.gasUsed,
               from: data?.trx?.from,
               to: data?.trx?.to,
+              chain: selectedDepositMethod?.chain,
             };
             setDeposit(depositData);
 
@@ -465,9 +588,10 @@ export function DepositForm() {
             }
             break;
           default:
-            if (shouldUnlockAddress) {
-              unlockDepositAddress(depositAddress.address);
-              setCountdownActive(false);
+            // Handle any other message types that might contain transaction info
+            if (data?.transactionHash || data?.txHash) {
+              // This might be a transaction notification from the backend
+              console.log("Received transaction update:", data);
             }
             break;
         }
@@ -2339,7 +2463,7 @@ export function DepositForm() {
         )}
       </AnimatePresence>
 
-      {/* Step 4: ECO/SPOT Deposit Address Display - Full Screen */}
+      {/* Step 4: ECO/SPOT Deposit Address Display or Pending Transaction View - Full Screen */}
       {step === 4 && (selectedWalletType?.value === "ECO" || selectedWalletType?.value === "SPOT") && depositAddress && (
         <div className="max-w-4xl mx-auto space-y-6">
           <motion.div {...fadeInUp}>
@@ -2349,88 +2473,246 @@ export function DepositForm() {
                   <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white text-sm font-semibold">
                     4
                   </span>
-                  Deposit {selectedCurrency} to Your Wallet
+                  {/* Only show processing title for ECO wallets with pending transactions */}
+                  {selectedWalletType?.value === "ECO" && deposit?.status === "PENDING" && deposit?.confirmations !== undefined
+                    ? `Processing ${selectedCurrency} Deposit`
+                    : `Deposit ${selectedCurrency} to Your Wallet`}
                 </CardTitle>
                 <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-                  Send {selectedCurrency} to the address below. Your deposit will be credited after network confirmation.
+                  {/* Only show processing message for ECO wallets with pending transactions */}
+                  {selectedWalletType?.value === "ECO" && deposit?.status === "PENDING" && deposit?.confirmations !== undefined
+                    ? "Your transaction has been detected and is being confirmed on the blockchain."
+                    : `Send ${selectedCurrency} to the address below. Your deposit will be credited after network confirmation.`}
                 </p>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Left Side - QR Code */}
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                        Scan QR Code
-                      </h3>
-                      <div className="flex justify-center">
-                        <div className="bg-white p-6 rounded-2xl shadow-lg border">
-                          <QRCodeCanvas
-                            value={depositAddress?.address || depositAddress}
-                            size={256}
-                            level="M"
-                            includeMargin={true}
-                            bgColor="#FFFFFF"
-                            fgColor="#000000"
-                          />
+                {/* Show pending transaction view ONLY for ECO wallets when transaction is detected but not confirmed */}
+                {selectedWalletType?.value === "ECO" && deposit?.status === "PENDING" && deposit?.confirmations !== undefined ? (
+                  <>
+                    {/* Pending Transaction View */}
+                    <div className="space-y-6">
+                      {/* Transaction Status Card */}
+                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                                <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400 animate-pulse" />
+                              </div>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100">
+                                Transaction Pending
+                              </h3>
+                              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                                Waiting for blockchain confirmations
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Confirmation Progress */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-yellow-800 dark:text-yellow-200">Confirmations</span>
+                            <span className="font-mono font-semibold text-yellow-900 dark:text-yellow-100">
+                              {deposit.confirmations} / {deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain)}
+                            </span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="relative">
+                            <div className="w-full bg-yellow-200 dark:bg-yellow-800 rounded-full h-3 overflow-hidden">
+                              <motion.div
+                                className="bg-gradient-to-r from-yellow-400 to-orange-400 dark:from-yellow-500 dark:to-orange-500 h-full rounded-full flex items-center justify-end pr-2"
+                                initial={{ width: "0%" }}
+                                animate={{
+                                  width: `${Math.min(100, (deposit.confirmations / (deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain))) * 100)}%`
+                                }}
+                                transition={{ duration: 0.5 }}
+                              >
+                                {deposit.confirmations > 0 && (
+                                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                )}
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                            {deposit.confirmations < (deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain))
+                              ? `Your deposit needs ${(deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain)) - deposit.confirmations} more confirmations`
+                              : "Processing your deposit..."}
+                          </p>
                         </div>
                       </div>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3">
-                        Scan with your crypto wallet app
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Right Side - Address Details */}
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                        Deposit Address
-                      </h3>
-                      
-                      {/* Address Display */}
-                      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {selectedCurrency} Address
-                          </label>
-                          <div className="relative">
-                            <div className="font-mono text-sm bg-white dark:bg-zinc-900 p-4 rounded-lg border break-all pr-12">
-                              {depositAddress?.address || depositAddress}
+
+                      {/* Transaction Details */}
+                      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-6 space-y-4">
+                        <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <DollarSign className="w-5 h-5 text-green-500" />
+                          Transaction Details
+                        </h4>
+
+                        <div className="space-y-3">
+                          {/* Transaction Hash */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-zinc-600 dark:text-zinc-400">Transaction Hash</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm text-zinc-900 dark:text-zinc-100 max-w-[200px] truncate">
+                                {deposit.transactionHash}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(deposit.transactionHash)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(depositAddress?.address || depositAddress)}
-                              className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
                           </div>
-                        </div>
-                        
-                        {/* Network and Balance Info */}
-                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                          <div>
+
+                          {/* Amount */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-zinc-600 dark:text-zinc-400">Amount</span>
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                              {deposit.amount} {selectedCurrency}
+                            </span>
+                          </div>
+
+                          {/* Network */}
+                          <div className="flex items-center justify-between">
                             <span className="text-sm text-zinc-600 dark:text-zinc-400">Network</span>
-                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {depositAddress?.network || selectedDepositMethod?.chain}
-                            </div>
+                            <span className="text-sm text-zinc-900 dark:text-zinc-100">
+                              {deposit.chain || selectedDepositMethod?.chain}
+                            </span>
                           </div>
-                          {depositAddress?.balance !== undefined && (
-                            <div>
-                              <span className="text-sm text-zinc-600 dark:text-zinc-400">Current Balance</span>
-                              <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {depositAddress.balance} {selectedCurrency}
-                              </div>
+
+                          {/* Fee */}
+                          {deposit.fee !== undefined && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-zinc-600 dark:text-zinc-400">Network Fee</span>
+                              <span className="text-sm text-zinc-900 dark:text-zinc-100">
+                                {deposit.fee} {selectedCurrency}
+                              </span>
                             </div>
                           )}
                         </div>
+
+                        {/* View on Blockchain Explorer */}
+                        {deposit.transactionHash && (
+                          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                            <a
+                              href={getBlockchainExplorerUrl(deposit.chain || selectedDepositMethod?.chain, deposit.transactionHash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                            >
+                              <QrCode className="w-4 h-4" />
+                              View on Blockchain Explorer
+                              <ChevronRight className="w-4 h-4" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Information Banner */}
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                          <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                            <p className="font-medium">What happens next?</p>
+                            <ul className="space-y-1">
+                              <li>• Your transaction is being verified on the {deposit.chain || selectedDepositMethod?.chain} blockchain</li>
+                              <li>• Once {deposit.requiredConfirmations || getRequiredConfirmations(selectedDepositMethod?.chain)} confirmations are reached, your funds will be credited</li>
+                              <li>• This usually takes {getEstimatedTime(selectedDepositMethod?.chain)} depending on network congestion</li>
+                              <li>• You can safely leave this page - we'll notify you when complete</li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Normal deposit address view */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* Left Side - QR Code */}
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                            Scan QR Code
+                          </h3>
+                          <div className="flex justify-center">
+                            <div className="bg-white p-6 rounded-2xl shadow-lg border">
+                              <QRCodeCanvas
+                                value={depositAddress?.address || depositAddress}
+                                size={256}
+                                level="M"
+                                includeMargin={true}
+                                bgColor="#FFFFFF"
+                                fgColor="#000000"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3">
+                            Scan with your crypto wallet app
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right Side - Address Details */}
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                            Deposit Address
+                          </h3>
+
+                          {/* Address Display */}
+                          <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 space-y-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                {selectedCurrency} Address
+                              </label>
+                              <div className="relative">
+                                <div className="font-mono text-sm bg-white dark:bg-zinc-900 p-4 rounded-lg border break-all pr-12">
+                                  {depositAddress?.address || depositAddress}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(depositAddress?.address || depositAddress)}
+                                  className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Network and Balance Info */}
+                            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                              <div>
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400">Network</span>
+                                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {depositAddress?.network || selectedDepositMethod?.chain}
+                                </div>
+                              </div>
+                              {depositAddress?.balance !== undefined && (
+                                <div>
+                                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Current Balance</span>
+                                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                    {depositAddress.balance} {selectedCurrency}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Important Information */}
                 <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">

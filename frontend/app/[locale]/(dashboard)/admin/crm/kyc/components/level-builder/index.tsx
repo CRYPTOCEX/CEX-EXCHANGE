@@ -279,7 +279,7 @@ export default function LevelBuilderComponent({
     if (!currentLevel) return;
     const fieldId = allFields[sourceIndex].id;
     const updatedLevel = { ...currentLevel };
-    const fields = [...updatedLevel.fields];
+    const fields = [...(updatedLevel.fields || [])];
     const [movedField] = fields.splice(sourceIndex, 1);
     fields.splice(destinationIndex, 0, movedField);
     const reorderedFields = fields.map((field, index) => ({

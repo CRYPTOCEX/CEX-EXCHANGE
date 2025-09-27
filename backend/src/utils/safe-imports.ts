@@ -6,8 +6,8 @@ interface BlockchainService {
 // Safe import function that returns null if module doesn't exist
 async function safeImport(modulePath: string): Promise<any> {
   try {
-    const module = await import(modulePath);
-    return module.default;
+    const importedModule = await import(modulePath);
+    return importedModule.default;
   } catch (error) {
     // Module doesn't exist or failed to load
     return null;

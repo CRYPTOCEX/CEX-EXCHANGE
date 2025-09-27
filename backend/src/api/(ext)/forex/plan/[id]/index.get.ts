@@ -6,7 +6,6 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { baseForexPlanSchema } from "../../utils";
-import { Op } from "sequelize";
 
 export const metadata = {
   summary: "Retrieve specific Forex Investment Plan",

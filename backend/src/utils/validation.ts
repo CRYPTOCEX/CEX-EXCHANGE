@@ -27,6 +27,7 @@ export function sanitizeUserPath(inputPath: string): string {
   }
 
   // Block obvious directory traversal attempts
+  /* eslint-disable no-control-regex */
   const dangerousPatterns = [
     /\.\./g,           // Parent directory
     /\.\\/g,           // Current directory with slash
@@ -39,6 +40,7 @@ export function sanitizeUserPath(inputPath: string): string {
     /[<>:"|?*]/g,      // Windows invalid characters
     /[\x00-\x1F]/g,    // Control characters
   ];
+  /* eslint-enable no-control-regex */
 
   let sanitized = inputPath;
 
@@ -74,7 +76,7 @@ export function sanitizeUserPath(inputPath: string): string {
   }
 
   // Ensure path only contains safe characters
-  if (!/^[a-zA-Z0-9_\-\/]+$/.test(sanitized)) {
+  if (!/^[a-zA-Z0-9_\-/]+$/.test(sanitized)) {
     throw new Error('Path contains invalid characters');
   }
 

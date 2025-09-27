@@ -194,11 +194,11 @@ async function handleDeposit(type: string, code: string) {
         
         return tokens.map((token) => {
           const tokenData = token.get({ plain: true }) as any;
-          
+
           // Parse fee and limits if they are strings
-          let fee = typeof tokenData.fee === "string" ? JSON.parse(tokenData.fee) : tokenData.fee;
-          let limits = typeof tokenData.limits === "string" ? JSON.parse(tokenData.limits) : tokenData.limits;
-          
+          const fee = typeof tokenData.fee === "string" ? JSON.parse(tokenData.fee) : tokenData.fee;
+          const limits = typeof tokenData.limits === "string" ? JSON.parse(tokenData.limits) : tokenData.limits;
+
           return {
             id: `${tokenData.chain}_${tokenData.type}`,
             chain: tokenData.chain,
@@ -213,7 +213,6 @@ async function handleDeposit(type: string, code: string) {
           };
         });
       }
-      break;
     default:
       throw createError(400, "Invalid wallet type");
   }

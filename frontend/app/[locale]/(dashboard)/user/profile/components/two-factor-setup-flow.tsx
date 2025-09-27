@@ -38,7 +38,7 @@ export function TwoFactorSetupFlow({
   const { toast } = useToast();
   const [step, setStep] = useState<TwoFactorSetupStep>("select");
   const [method, setMethod] = useState<TwoFactorMethod>(
-    user?.twoFactor?.type || null
+    (user?.twoFactor?.type as TwoFactorMethod) || null
   );
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);

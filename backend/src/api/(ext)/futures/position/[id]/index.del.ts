@@ -1,6 +1,17 @@
 import { createError } from "@b/utils/error";
-import { fromBigInt } from "@b/api/(ext)/ecosystem/utils/blockchain";
-import { updateWalletBalance } from "@b/api/(ext)/ecosystem/utils/wallet";
+
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let updateWalletBalance: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+
+  const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+  updateWalletBalance = walletModule.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import {
   notFoundMetadataResponse,
   serverErrorResponse,
@@ -101,6 +112,10 @@ export default async (data: Handler) => {
     );
 
     if (wallet) {
+      if (!updateWalletBalance) {
+        throw new Error("Ecosystem extension not available for wallet operations");
+      }
+
       if (finalBalanceChange > 0) {
         await updateWalletBalance(wallet, finalBalanceChange, "add");
       } else {
@@ -124,6 +139,10 @@ export default async (data: Handler) => {
 };
 
 const calculateFinalBalanceChange = (position) => {
+  if (!fromBigInt) {
+    throw new Error("Ecosystem extension not available for number conversion");
+  }
+
   const entryPrice = fromBigInt(position.entryPrice);
   const amount = fromBigInt(position.amount);
   const unrealizedPnl = fromBigInt(position.unrealizedPnl); // Ensure PnL is a number

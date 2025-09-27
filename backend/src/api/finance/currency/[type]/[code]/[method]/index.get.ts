@@ -529,8 +529,6 @@ export default async (data: Handler) => {
     const message = sanitizeErrorMessage(error.message);
     throw createError(404, message);
   }
-
-  throw createError(404, "Method not found");
 };
 
 /**

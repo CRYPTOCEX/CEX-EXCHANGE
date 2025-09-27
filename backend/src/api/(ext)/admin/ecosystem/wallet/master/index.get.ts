@@ -79,13 +79,6 @@ export default async (data: Handler) => {
             ? walletItem.get({ plain: true }) 
             : walletItem) as ecosystemMasterWalletAttributes;
           
-          // Skip unsupported or problematic chains
-          const skipChains = ['XMR', 'MONERO']; // Add any chains that cause issues
-          if (skipChains.includes(wallet.chain?.toUpperCase())) {
-            console.log(`Skipping balance update for ${wallet.chain} - chain not synchronized`);
-            return;
-          }
-          
           // Only fetch balance, don't wait for database update
           await getEcosystemMasterWalletBalance(wallet);
           

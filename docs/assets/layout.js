@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.564841'; // Update this when deploying changes
+        this.cacheVersion = '1.0.030259'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration
@@ -146,6 +146,7 @@ class DocsLayout {
                                     { title: 'Optimism', href: '#blockchain-optimism', icon: '🔴' },
                                     { title: 'Arbitrum', href: '#blockchain-arbitrum', icon: '🌀' },
                                     { title: 'Celo', href: '#blockchain-celo', icon: '🌱' },
+                                    { title: 'Monero', href: '#blockchain-monero', icon: '🔒' },
                                     { title: 'UTXO Networks', href: '#blockchain-utxo', icon: '₿' },
                                     { title: 'Solana', href: '#blockchain-solana', icon: '◎' }
                                 ]
@@ -1408,6 +1409,10 @@ class DocsLayout {
             title: 'Celo Integration',
             contentFile: 'content/ecosystem/blockchain/celo.html'
         });
+        this.routes.set('blockchain-monero', {
+            title: 'Monero Integration',
+            contentFile: 'content/ecosystem/blockchain/monero.html'
+        });
         this.routes.set('blockchain-utxo', {
             title: 'UTXO Networks Integration',
             contentFile: 'content/ecosystem/blockchain/utxo.html'
@@ -1619,7 +1624,7 @@ class DocsLayout {
                     </div>
                     <p class="text-blue-800 dark:text-blue-200 mt-1">
                         For additional support, visit our 
-                        <a href="https://support.mash3div.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+                        <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
                     </p>
                 </div>
             </div>

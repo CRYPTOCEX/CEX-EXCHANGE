@@ -5,6 +5,8 @@ import {
 } from "@b/utils/cron";
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
+import { logInfo, logError } from "@b/utils/logger";
+import { ForexFraudDetector } from "@b/api/(ext)/forex/utils/forex-fraud-detector";
 
 import {
   notFoundMetadataResponse,
@@ -18,6 +20,10 @@ export const metadata: OperationObject = {
     "Allows a user to deposit money from their wallet into a Forex account.",
   operationId: "depositForexAccount",
   tags: ["Forex", "Accounts"],
+  rateLimit: {
+    windowMs: 60000, // 1 minute
+    max: 5 // 5 financial operations per minute
+  },
   parameters: [
     {
       index: 0,
@@ -101,24 +107,45 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, params, body, req } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
   const { id } = params;
   const { amount, type, currency, chain } = body;
-  if (!amount || amount <= 0)
-    throw new Error("Amount is required and must be greater than zero");
 
-  if (amount <= 0) throw new Error("Amount must be greater than zero");
+  try {
+    if (!amount || amount <= 0)
+      throw new Error("Amount is required and must be greater than zero");
 
-  let updatedBalance;
-  const transaction = await sequelize.transaction(async (t) => {
+    if (amount <= 0) throw new Error("Amount must be greater than zero");
+
+    let updatedBalance;
+    const transaction = await sequelize.transaction(async (t) => {
     const account = await models.forexAccount.findByPk(id, {
       transaction: t,
     });
     if (!account) throw new Error("Account not found");
+    
+    // Fraud detection check inside transaction
+    const fraudCheck = await ForexFraudDetector.checkDeposit(
+      user.id,
+      amount,
+      currency
+    );
+    
+    if (!fraudCheck.isValid) {
+      throw createError({ 
+        statusCode: 400, 
+        message: fraudCheck.reason || "Deposit flagged for security review" 
+      });
+    }
+    
+    // Validate user ownership
+    if (account.userId !== user.id) {
+      throw createError({ statusCode: 403, message: "Access denied: You can only deposit to your own forex accounts" });
+    }
 
     const wallet = await models.wallet.findOne({
       where: { userId: user.id, type, currency },
@@ -168,8 +195,9 @@ export default async (data: Handler) => {
           const currencies: Record<string, exchangeCurrencyAttributes> =
             await exchange.fetchCurrencies();
 
-          const exchangeCurrency = Object.values(currencies).find(
-            (c) => c.id === currency
+          const isXt = provider === "xt";
+          const exchangeCurrency = Object.values(currencies).find((c) =>
+            isXt ? (c as any).code === currency : c.id === currency
           ) as exchangeCurrencyAttributes & {
             networks?: Record<
               string,
@@ -182,10 +210,12 @@ export default async (data: Handler) => {
           switch (provider) {
             case "binance":
             case "kucoin":
-              fixedFee =
-                exchangeCurrency.networks?.[chain]?.fee ||
-                exchangeCurrency.networks?.[chain]?.fees?.withdraw ||
-                0;
+              if (chain && exchangeCurrency.networks) {
+                fixedFee =
+                  exchangeCurrency.networks[chain]?.fee ||
+                  exchangeCurrency.networks[chain]?.fees?.withdraw ||
+                  0;
+              }
               break;
             default:
               break;
@@ -210,6 +240,8 @@ export default async (data: Handler) => {
     if (wallet.balance < Total) {
       throw new Error("Insufficient funds");
     }
+    
+    // Transaction will be created below
 
     updatedBalance = parseFloat(
       (wallet.balance - Total).toFixed(
@@ -240,15 +272,31 @@ export default async (data: Handler) => {
       { transaction: t }
     );
 
+    // Log the deposit operation
+    logInfo(
+      "forex-deposit",
+      `User ${user.id} deposited ${amount} ${currency} to forex account ${account.id}. Transaction ID: ${transaction.id}, Wallet Type: ${type}, Chain: ${chain || 'N/A'}`,
+      __filename
+    );
+
     return transaction;
   });
 
-  return {
-    message: "Deposit successful",
-    transaction: transaction,
-    balance: updatedBalance,
-    currency,
-    chain,
-    type,
-  };
+    return {
+      message: "Deposit successful",
+      transaction: transaction,
+      balance: updatedBalance,
+      currency,
+      chain,
+      type,
+    };
+  } catch (error: any) {
+    // Log the error
+    logError(
+      "forex-deposit-error",
+      new Error(`Forex deposit failed for user ${user.id}, account ${id}: ${error.message}. Details: amount=${amount}, currency=${currency}, type=${type}, chain=${chain || 'N/A'}`),
+      __filename
+    );
+    throw error;
+  }
 };

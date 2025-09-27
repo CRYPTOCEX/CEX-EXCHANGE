@@ -7,6 +7,10 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
+// Type definitions
+type Transaction = any; // Using any to avoid errors when model doesn't exist
+type Wallet = any; // Using any to avoid errors when model doesn't exist
+
 export const metadata = {
   summary: "Rejects a spot wallet withdrawal request",
   operationId: "rejectSpotWalletWithdrawal",

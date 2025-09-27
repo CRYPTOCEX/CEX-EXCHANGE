@@ -101,7 +101,16 @@ export default async (data: Handler) => {
   try {
     const { currency, chain, amount, toAddress } = body;
 
+    console.log(`[ECO_WITHDRAW] Starting withdrawal process:`, {
+      userId: user.id,
+      currency,
+      chain,
+      amount,
+      toAddress: toAddress?.substring(0, 10) + '...'
+    });
+
     if (!chain) {
+      console.error(`[ECO_WITHDRAW] Chain parameter missing`);
       throw createError({
         statusCode: 400,
         message: "Chain parameter is required",
@@ -110,10 +119,12 @@ export default async (data: Handler) => {
     const parsedAmount = Math.abs(parseFloat(amount));
 
     // Check if the toAddress belongs to an internal user
+    console.log(`[ECO_WITHDRAW] Checking if address is internal...`);
     const recipientWallet = await findWalletByAddress(toAddress);
 
     if (recipientWallet) {
       // Process as internal transfer
+      console.log(`[ECO_WITHDRAW] Address is internal, processing as transfer`);
       return await processInternalTransfer(
         user.id,
         recipientWallet.userId,
@@ -123,6 +134,7 @@ export default async (data: Handler) => {
       );
     } else {
       // Proceed with the regular withdrawal process
+      console.log(`[ECO_WITHDRAW] Address is external, processing withdrawal`);
       return await storeWithdrawal(
         user.id,
         currency,
@@ -132,8 +144,9 @@ export default async (data: Handler) => {
       );
     }
   } catch (error) {
+    console.error(`[ECO_WITHDRAW] Error in withdrawal:`, error);
     if (error.message === "INSUFFICIENT_FUNDS") {
-      console.log("You do not have enough Ether to perform this transaction.");
+      console.log("[ECO_WITHDRAW] Insufficient funds error");
       throw createError({ statusCode: 400, message: "Insufficient funds" });
     }
     throw createError({
@@ -150,7 +163,16 @@ const storeWithdrawal = async (
   amount: number,
   toAddress: string
 ) => {
+  console.log(`[ECO_WITHDRAW_STORE] Starting storeWithdrawal:`, {
+    userId,
+    currency,
+    chain,
+    amount,
+    toAddress: toAddress?.substring(0, 10) + '...'
+  });
+
   if (!chain || typeof chain !== "string") {
+    console.error(`[ECO_WITHDRAW_STORE] Invalid chain parameter:`, chain);
     throw new Error("Invalid or missing chain parameter");
   }
 
@@ -160,19 +182,32 @@ const storeWithdrawal = async (
   }
 
   // Find the user's wallet
+  console.log(`[ECO_WITHDRAW_STORE] Looking for wallet:`, { userId, currency, type: "ECO" });
   const userWallet = await models.wallet.findOne({
     where: { userId, currency, type: "ECO" },
   });
 
   if (!userWallet) {
+    console.error(`[ECO_WITHDRAW_STORE] Wallet not found for user ${userId}, currency ${currency}`);
     throw new Error("User wallet not found");
   }
+  console.log(`[ECO_WITHDRAW_STORE] Found wallet:`, {
+    walletId: userWallet.id,
+    balance: userWallet.balance
+  });
 
   // Fetch token settings (like withdrawal fees)
+  console.log(`[ECO_WITHDRAW_STORE] Fetching token settings for ${currency} on ${chain}`);
   const token = await getEcosystemToken(chain, currency);
   if (!token) {
+    console.error(`[ECO_WITHDRAW_STORE] Token not found for ${currency} on ${chain}`);
     throw new Error("Token not found");
   }
+  console.log(`[ECO_WITHDRAW_STORE] Token found:`, {
+    currency: token.currency,
+    decimals: token.decimals,
+    precision: token.precision
+  });
 
   // Validate decimal precision based on token configuration
   const maxPrecision = token.precision ?? token.decimals ?? 8;
@@ -257,7 +292,17 @@ const storeWithdrawal = async (
   // Calculate the total amount to deduct from the wallet (including fees)
   const totalAmount = amount + totalFee;
 
+  console.log(`[ECO_WITHDRAW_STORE] Fee calculation:`, {
+    withdrawAmount: amount,
+    withdrawalFee,
+    activationFee,
+    estimatedNetworkFee: estimatedFee,
+    totalFee,
+    totalToDeduct: totalAmount
+  });
+
   if (userWallet.balance < totalAmount) {
+    console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: balance ${userWallet.balance} < required ${totalAmount}`);
     throw new Error("Insufficient funds");
   }
 
@@ -280,11 +325,18 @@ const storeWithdrawal = async (
   const withdrawalQueue = WithdrawalQueue.getInstance();
   withdrawalQueue.addTransaction(transaction.id);
 
+  // Return updated wallet balance for immediate UI update
   return {
     transaction: transaction.get({ plain: true }),
     balance: userWallet.balance - totalAmount,
     method: chain,
     currency,
+    message: "Withdrawal request submitted successfully",
+    walletUpdate: {
+      currency,
+      balance: userWallet.balance - totalAmount,
+      type: "ECO"
+    }
   };
 };
 

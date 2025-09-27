@@ -204,7 +204,7 @@ export class MashServer extends RouteHandler {
   private async setupCronJobs(): Promise<void> {
     if (!isMainThread) return; // Only the main thread should setup cron jobs
     const cronJobManager = await CronJobManager.getInstance(); // Ensure all cron jobs are loaded
-    const cronJobs = cronJobManager.getCronJobs();
+    const cronJobs = await cronJobManager.getCronJobs();
     const threadType = isMainThread ? "Main Thread" : `Worker ${threadId}`;
 
     // Create workers for each job

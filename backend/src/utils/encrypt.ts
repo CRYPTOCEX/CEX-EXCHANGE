@@ -80,23 +80,38 @@ export function encrypt(text: string): string {
 
 export function decrypt(text: string): string {
   if (!dynamicEncryptionKey) {
-    console.error("Encryption key is not set");
+    console.error("[DECRYPT] Encryption key is not set");
     throw new Error("Encryption key is not set");
   }
 
-  const [ivHex, authTagHex, encryptedText] = text.split(":");
-  const iv = Buffer.from(ivHex, "hex");
-  const authTag = Buffer.from(authTagHex, "hex");
+  try {
+    const parts = text.split(":");
+    if (parts.length !== 3) {
+      console.error(`[DECRYPT] Invalid encrypted text format, expected 3 parts, got ${parts.length}`);
+      throw new Error("Invalid encrypted text format");
+    }
 
-  const decipher = crypto.createDecipheriv(
-    "aes-256-gcm",
-    dynamicEncryptionKey,
-    iv
-  );
-  decipher.setAuthTag(authTag);
-  let decrypted = decipher.update(encryptedText, "hex", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
+    const [ivHex, authTagHex, encryptedText] = parts;
+    const iv = Buffer.from(ivHex, "hex");
+    const authTag = Buffer.from(authTagHex, "hex");
+
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      dynamicEncryptionKey,
+      iv
+    );
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(encryptedText, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
+  } catch (error) {
+    console.error("[DECRYPT] Decryption failed:", error.message);
+    console.error("[DECRYPT] Error details:", error);
+    if (error.message.includes("Unsupported state")) {
+      throw new Error("Invalid encryption data or wrong encryption key");
+    }
+    throw error;
+  }
 }
 
 export function isUnlockedEcosystemVault(): boolean {

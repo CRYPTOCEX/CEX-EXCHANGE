@@ -33,14 +33,14 @@ export const TABS = [
 
 export const FIELD_DEFINITIONS: FieldDefinition[] = [
   // General Settings
-  // {
-  //   key: "layoutSwitcher",
-  //   label: "Layout Switcher",
-  //   type: "switch",
-  //   description: "Allow users to switch between different layouts",
-  //   category: "general",
-  //   subcategory: "UI Options",
-  // },
+  {
+    key: "layoutSwitcher",
+    label: "Theme Switcher",
+    type: "switch",
+    description: "Allow users to switch between light and dark themes",
+    category: "general",
+    subcategory: "UI Options",
+  },
   {
     key: "landingPageType",
     label: "Landing Page Type",

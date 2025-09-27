@@ -5,7 +5,15 @@ import {
   serverErrorResponse,
 } from "@b/utils/query";
 import { positionSchema } from "./utils"; // Adjust as needed
-import { getFiltered } from "@b/api/(ext)/ecosystem/utils/scylla/query";
+
+// Safe import for ecosystem modules
+let getFiltered: any;
+try {
+  const module = require("@b/api/(ext)/ecosystem/utils/scylla/query");
+  getFiltered = module.getFiltered;
+} catch (e) {
+  // Ecosystem extension not available
+}
 
 export const metadata = {
   summary: "List all futures positions",
@@ -50,6 +58,14 @@ const keyspace = process.env.SCYLLA_FUTURES_KEYSPACE || "futures";
 
 export default async (data: Handler) => {
   const { query } = data;
+
+  if (!getFiltered) {
+    return {
+      error: "Ecosystem extension not available",
+      status: 500
+    };
+  }
+
   const table = "position"; // Note: table name is "position" (singular) as created
   const partitionKeys = ["userId"];
 

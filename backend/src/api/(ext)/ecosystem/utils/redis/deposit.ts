@@ -10,9 +10,46 @@ const getAsync = (key: string) => redis.get(key);
 const delAsync = (key: string) => redis.del(key);
 const keysAsync = (pattern: string) => redis.keys(pattern);
 
-export async function storeAndBroadcastTransaction(txDetails, txHash) {
+export async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false) {
   try {
     console.log(`[INFO] Processing deposit for immediate broadcast: ${txHash}`);
+
+    // Check if this is a pending transaction update (for confirmations)
+    if (isPending && txDetails.type === "pending_confirmation") {
+      console.log(`[INFO] Broadcasting pending transaction update for ${txHash}`);
+
+      const address = txDetails.address?.toLowerCase() || txDetails.to?.toLowerCase();
+
+      // Broadcast pending transaction status to WebSocket subscribers
+      const broadcastPayload = {
+        currency: txDetails.currency || "XMR",
+        chain: txDetails.chain,
+        address: address,
+      };
+
+      messageBroker.broadcastToSubscribedClients(
+        "/api/ecosystem/deposit",
+        broadcastPayload,
+        {
+          stream: "verification",
+          data: {
+            type: "pending_confirmation",
+            transactionHash: txDetails.transactionHash,
+            hash: txDetails.hash,
+            confirmations: txDetails.confirmations,
+            requiredConfirmations: txDetails.requiredConfirmations,
+            amount: txDetails.amount,
+            fee: txDetails.fee,
+            status: "PENDING",
+            chain: txDetails.chain,
+            walletId: txDetails.walletId,
+          },
+        }
+      );
+
+      console.log(`[SUCCESS] Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations`);
+      return;
+    }
 
     // First, try to handle the ecosystem deposit immediately
     const response = await handleEcosystemDeposit(txDetails);

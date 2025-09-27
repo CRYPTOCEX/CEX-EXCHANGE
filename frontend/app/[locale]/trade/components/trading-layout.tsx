@@ -17,6 +17,7 @@ import { CollapseButton } from "./panel/collapse-button";
 import { CollapsedPanel } from "./panel/collapsed-panel";
 // Add at the top of imports
 import { useSearchParams } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 
 // Import individual panel components
 import MarketsPanel from "./markets/markets-panel";
@@ -702,6 +703,7 @@ function TradingInterface({
 // Inside the TradingLayout component, at the beginning:
 export default function TradingLayout() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const initialSymbol = searchParams.get("symbol");
   const type = searchParams.get("type");
 
@@ -802,7 +804,6 @@ export default function TradingLayout() {
         takeProfitPrice: orderData.takeProfit ? Number(orderData.takeProfit) : undefined,
       };
 
-      console.log("Submitting futures order:", payload);
 
       const response = await $fetch({
         url: "/api/futures/order",
@@ -812,7 +813,6 @@ export default function TradingLayout() {
       });
 
       if (response.data) {
-        console.log("Futures order submitted successfully:", response.data);
         return response.data;
       } else {
         throw new Error(response.error || "Failed to submit futures order");
@@ -836,7 +836,6 @@ export default function TradingLayout() {
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        console.log("Initializing trading services...");
 
         // Initialize market service (this will fetch market data once)
         await marketService.initialize();
@@ -853,7 +852,6 @@ export default function TradingLayout() {
         marketDataWs.initialize();
 
         setMarketDataLoaded(true);
-        console.log("Trading services initialized successfully");
       } catch (error) {
         console.error("Error initializing trading services:", error);
         setMarketDataLoaded(true);
@@ -964,7 +962,7 @@ export default function TradingLayout() {
     // Only update URL if we have valid market data
     if (market) {
       const formattedSymbol = `${market.currency}-${market.pair}`;
-      const url = `/trade?symbol=${formattedSymbol}&type=${targetMarketType}`;
+      const url = `${pathname}?symbol=${formattedSymbol}&type=${targetMarketType}`;
       window.history.pushState({ path: url }, "", url);
     } else {
       console.warn(`[Trading Layout] Market data not found for symbol: ${symbol}`);

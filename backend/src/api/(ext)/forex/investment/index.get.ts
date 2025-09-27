@@ -1,5 +1,5 @@
 import { models } from "@b/db";
-
+import { createError } from "@b/utils/error";
 import { crudParameters, paginationSchema } from "@b/utils/constants";
 import {
   getFiltered,
@@ -10,13 +10,13 @@ import {
 import { forexInvestmentSchema } from "../../admin/forex/investment/utils";
 
 export const metadata: OperationObject = {
-  summary: "Lists all Forex Investments with pagination and optional filtering",
-  operationId: "listForexInvestments",
-  tags: ["Admin", "Forex", "Investments"],
+  summary: "Lists user's Forex Investments with pagination and optional filtering",
+  operationId: "listUserForexInvestments",
+  tags: ["Forex", "Investments"],
   parameters: crudParameters,
   responses: {
     200: {
-      description: "List of Forex Investments with pagination information",
+      description: "List of user's Forex Investments with pagination information",
       content: {
         "application/json": {
           schema: {
@@ -43,18 +43,18 @@ export const metadata: OperationObject = {
 };
 
 export default async (data: Handler) => {
-  const { query } = data;
+  const { query, user } = data;
+
+  if (!user?.id) {
+    throw createError({ statusCode: 401, message: "Unauthorized" });
+  }
 
   return getFiltered({
     model: models.forexInvestment,
     query,
+    where: { userId: user.id },
     sortField: query.sortField || "createdAt",
     includeModels: [
-      {
-        model: models.user,
-        as: "user",
-        attributes: ["id", "firstName", "lastName", "email", "avatar"],
-      },
       {
         model: models.forexPlan,
         as: "plan",

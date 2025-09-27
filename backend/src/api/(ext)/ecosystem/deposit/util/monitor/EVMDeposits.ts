@@ -29,6 +29,7 @@ export class EVMDeposits implements IDepositMonitor {
   public active: boolean = true;
   private intervalId?: NodeJS.Timeout;
   private eventListener?: any;
+  private eventFilter?: any;
 
   constructor(options: EVMOptions) {
     this.wallet = options.wallet;
@@ -208,6 +209,9 @@ export class EVMDeposits implements IDepositMonitor {
         ],
       };
 
+      // Store the filter for later cleanup
+      this.eventFilter = filter;
+
       // Enhanced event listener with better error handling
       this.eventListener = async (log) => {
         if (!this.active) {
@@ -306,11 +310,11 @@ export class EVMDeposits implements IDepositMonitor {
   }
 
   private stopEventListener() {
-    if (this.eventListener) {
+    if (this.eventListener && this.eventFilter) {
       const provider = chainProviders.get(this.chain);
       if (provider) {
         try {
-          provider.off("Transfer", this.eventListener);
+          provider.off(this.eventFilter, this.eventListener);
           console.log(`[INFO] Event listener removed for ${this.chain}`);
         } catch (error) {
           console.error(
@@ -319,6 +323,7 @@ export class EVMDeposits implements IDepositMonitor {
         }
       }
       this.eventListener = null;
+      this.eventFilter = null;
     }
   }
 

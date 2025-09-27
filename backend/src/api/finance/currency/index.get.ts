@@ -166,7 +166,7 @@ async function handleWithdraw(walletType, userId, isSpotEnabled = true) {
     throw createError(404, `No ${walletType} wallets found to withdraw from`);
 
   // Filter wallets based on currency status
-  let validWallets: walletAttributes[] = [];
+  const validWallets: walletAttributes[] = [];
   
   for (const wallet of wallets) {
     let isValidCurrency = false;

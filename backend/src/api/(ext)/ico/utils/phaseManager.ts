@@ -68,7 +68,7 @@ export async function getNextPhase(offeringId: string, currentPhaseIndex: number
 
   if (currentPhaseIndex + 1 >= phases.length) return null;
 
-  let currentDate = new Date(offering.startDate);
+  const currentDate = new Date(offering.startDate);
   for (let i = 0; i <= currentPhaseIndex + 1; i++) {
     const phase = phases[i];
     

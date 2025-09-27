@@ -1,13 +1,25 @@
 import { createError } from "@b/utils/error";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
-import {
-  fromBigInt,
-  toBigIntFloat,
-  fromBigIntMultiply,
-} from "@b/api/(ext)/ecosystem/utils/blockchain";
+
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let toBigIntFloat: any;
+let fromBigIntMultiply: any;
+let updateWalletBalance: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  toBigIntFloat = blockchainModule.toBigIntFloat;
+  fromBigIntMultiply = blockchainModule.fromBigIntMultiply;
+
+  const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+  updateWalletBalance = walletModule.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
+
 import { createRecordResponses } from "@b/utils/query";
 import { models } from "@b/db";
-import { updateWalletBalance } from "@b/api/(ext)/ecosystem/utils/wallet";
 import {
   createOrder,
   cancelOrderByUuid,

@@ -228,15 +228,25 @@ export async function getEcosystemToken(
   chain: string,
   currency: string
 ): Promise<ecosystemTokenAttributes> {
-  const network = process.env[`${chain}_NETWORK`]; // Ensuring the network is dynamically fetched based on the chain
+  // Special chains that don't require network environment variable
+  const specialChains = ['XMR', 'TON', 'SOL', 'TRON', 'BTC', 'LTC', 'DOGE', 'DASH'];
+
+  const whereClause: any = {
+    chain: chain,
+    currency: currency,
+    status: true,
+  };
+
+  // Only add network constraint for chains that require it
+  if (!specialChains.includes(chain)) {
+    const network = process.env[`${chain}_NETWORK`];
+    if (network) {
+      whereClause.network = network;
+    }
+  }
 
   const token = await models.ecosystemToken.findOne({
-    where: {
-      chain: chain,
-      currency: currency,
-      network: network,
-      status: true,
-    },
+    where: whereClause,
   });
 
   if (!token) {

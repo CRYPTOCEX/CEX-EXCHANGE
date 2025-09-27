@@ -2,11 +2,13 @@
 
 import { models } from "@b/db";
 import { paypalOrdersController } from "./utils";
-import { 
-  OrderRequest, 
-  CheckoutPaymentIntent, 
-  ItemCategory 
-} from "@paypal/paypal-server-sdk";
+// @ts-ignore - PayPal SDK types issue
+// import {
+//   OrderRequest,
+//   CheckoutPaymentIntent,
+//   ItemCategory
+// } from "@paypal/paypal-server-sdk";
+const { OrderRequest, CheckoutPaymentIntent, ItemCategory } = require("@paypal/paypal-server-sdk");
 import { createRecordResponses } from "@b/utils/query";
 
 const publicUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -71,7 +73,7 @@ export default async (data: Handler) => {
   }
   const totalAmount = parseFloat(amount).toFixed(2); // Total amount includes tax
 
-  const orderRequest: OrderRequest = {
+  const orderRequest: any = {
     intent: CheckoutPaymentIntent.Capture,
     purchaseUnits: [
       {

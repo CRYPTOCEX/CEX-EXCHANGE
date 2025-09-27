@@ -1,7 +1,17 @@
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
-import { Candle } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
+// Safe import for ecosystem modules
+let client: any;
+let scyllaFuturesKeyspace: any;
+let Candle: any;
+try {
+  const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = clientModule.default;
+  scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+
+  const queriesModule = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+  Candle = queriesModule.Candle;
+} catch (e) {
+  // Ecosystem extension not available
+}
 
 export async function getHistoricalCandles(
   symbol: string,
@@ -9,6 +19,10 @@ export async function getHistoricalCandles(
   from: number,
   to: number
 ): Promise<number[][]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   try {
     const query = `
       SELECT * FROM ${scyllaFuturesKeyspace}.candles
@@ -45,7 +59,11 @@ export async function getHistoricalCandles(
  * Fetches the latest futures candle for each interval.
  * @returns A Promise that resolves with an array of the latest futures candles.
  */
-export async function getLastCandles(): Promise<Candle[]> {
+export async function getLastCandles(): Promise<any[]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   try {
     // Fetch the latest candle for each symbol and interval
     const query = `
@@ -77,8 +95,12 @@ export async function getLastCandles(): Promise<Candle[]> {
 }
 
 export async function getYesterdayCandles(): Promise<{
-  [symbol: string]: Candle[];
+  [symbol: string]: any[];
 }> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   try {
     // Calculate the date range for "yesterday"
     const endOfYesterday = new Date();
@@ -99,7 +121,7 @@ export async function getYesterdayCandles(): Promise<{
       { prepare: true }
     );
 
-    const yesterdayCandles: { [symbol: string]: Candle[] } = {};
+    const yesterdayCandles: { [symbol: string]: any[] } = {};
 
     for (const row of result.rows) {
       // Only consider candles with a '1d' interval
@@ -107,7 +129,7 @@ export async function getYesterdayCandles(): Promise<{
         continue;
       }
 
-      const candle: Candle = {
+      const candle: any = {
         symbol: row.symbol,
         interval: row.interval,
         open: row.open,

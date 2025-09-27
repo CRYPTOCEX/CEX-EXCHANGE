@@ -1,4 +1,4 @@
-import { models } from "@b/db";
+import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op, literal } from "sequelize";
 
@@ -140,7 +140,7 @@ export default async (data: Handler) => {
   ];
 
   // Get the sequelize instance.
-  const sequelizeInstance = models.forexPlan.sequelize;
+  const sequelizeInstance = sequelize;
 
   // Build order clause.
   const orderClause: any[] = [];

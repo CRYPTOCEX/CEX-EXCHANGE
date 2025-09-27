@@ -56,11 +56,17 @@ export async function getActiveTokensByCurrency(
   const tokens = await models.ecosystemToken.findAll({
     where: { currency, status: true },
   });
-  
+
   const filteredTokens = tokens.filter((token) => {
+    // Special handling for chains with dedicated services or UTXO chains - always allow
+    const specialChains = ['XMR', 'TON', 'SOL', 'TRON', 'BTC', 'LTC', 'DOGE', 'DASH'];
+    if (specialChains.includes(token.chain)) {
+      return true; // These chains have dedicated services/UTXO handling and don't require network env var matching
+    }
+
     const chainEnvVar = `${token.chain.toUpperCase()}_NETWORK`;
     const expectedNetwork = process.env[chainEnvVar];
-    
+
     // If no environment variable is set, skip this token
     if (!expectedNetwork) {
       return false;
@@ -74,7 +80,7 @@ export async function getActiveTokensByCurrency(
     // Handle common network name variations
     const networkMappings = {
       'BSC': 'mainnet',
-      'ETH': 'mainnet', 
+      'ETH': 'mainnet',
       'POLYGON': 'mainnet',
       'ARBITRUM': 'mainnet',
       'OPTIMISM': 'mainnet',
@@ -761,14 +767,27 @@ export async function checkEcosystemAvailableFunds(
   totalAmount
 ) {
   try {
-    const totalAvailable = await getTotalAvailable(userWallet, walletData);
+    console.log(`[WALLET] Checking funds availability:`, {
+      walletId: userWallet.id,
+      totalAmount,
+      currentBalance: userWallet.balance
+    });
 
-    if (totalAvailable < totalAmount)
+    const totalAvailable = await getTotalAvailable(userWallet, walletData);
+    console.log(`[WALLET] Total available: ${totalAvailable}`);
+
+    if (totalAvailable < totalAmount) {
+      console.error(`[WALLET] Insufficient funds: available ${totalAvailable} < required ${totalAmount}`);
       throw new Error("Insufficient funds for withdrawal including fee");
+    }
 
     return totalAvailable;
   } catch (error) {
+    console.error(`[WALLET] Error checking funds:`, error);
     logError("wallet", error, __filename);
+    if (error.message === "Insufficient funds for withdrawal including fee") {
+      throw error;
+    }
     throw new Error("Withdrawal failed - please try again later");
   }
 }
@@ -787,17 +806,22 @@ const getTotalAvailable = async (userWallet, walletData) => {
 
 export async function getGasPayer(chain, provider) {
   try {
+    console.log(`[WALLET] Getting gas payer for chain: ${chain}`);
     const masterWallet = await getMasterWalletByChainFull(chain);
     if (!masterWallet) {
+      console.error(`[WALLET] Master wallet not found for chain: ${chain}`);
       throw new Error("Master wallet not found");
     }
     const { data } = masterWallet;
     if (!data) {
+      console.error(`[WALLET] Master wallet data not found for chain: ${chain}`);
       throw new Error("Master wallet data not found");
     }
+    console.log(`[WALLET] Decrypting master wallet data`);
     const decryptedMasterData = JSON.parse(decrypt(data));
     return new ethers.Wallet(decryptedMasterData.privateKey, provider);
   } catch (error) {
+    console.error(`[WALLET] Error getting gas payer:`, error);
     logError("wallet", error, __filename);
     throw new Error("Withdrawal failed - please try again later");
   }

@@ -24,7 +24,7 @@ export async function verifyPendingTransactions() {
   }
 
   const processingTransactions = new Set();
-  let processingStats = {
+  const processingStats = {
     total: 0,
     processed: 0,
     failed: 0,

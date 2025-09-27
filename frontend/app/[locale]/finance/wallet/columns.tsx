@@ -54,19 +54,19 @@ function renderEcoAddresses(value: any, row?: any) {
             <div className="font-bold">{chain}</div>
             {address && (
               <div>
-                {t("address")}
+                {t("address")}{" "}
                 {address}
               </div>
             )}
             {network && (
               <div>
-                {t("network")}
+                {t("network")}{" "}
                 {network}
               </div>
             )}
             <div>
-              {t("balance")}
-              {balance}
+              {t("balance")}{" "}
+              {(typeof balance === 'number' ? balance : parseFloat(balance) || 0).toFixed(8)}
             </div>
           </div>
         );
@@ -141,6 +141,13 @@ export const columns: ColumnDefinition[] = [
     condition: (values) => !["ECO", "FUTURES"].includes(values.type),
     description: "Current balance",
     priority: 1,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        const numValue = parseFloat(value) || 0;
+        return numValue.toFixed(8);
+      },
+    },
   },
   {
     key: "inOrder",
@@ -154,6 +161,13 @@ export const columns: ColumnDefinition[] = [
     condition: (values) => !["ECO", "FUTURES"].includes(values.type),
     description: "Funds locked in orders",
     priority: 2,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        const numValue = parseFloat(value) || 0;
+        return numValue.toFixed(8);
+      },
+    },
   },
   {
     key: "address",

@@ -1,6 +1,9 @@
-import { Client, Environment, OrdersController } from "@paypal/paypal-server-sdk";
+// @ts-ignore - PayPal SDK types issue
+// import { Client, Environment, OrdersController } from "@paypal/paypal-server-sdk";
+const paypalSdk = require("@paypal/paypal-server-sdk");
+const { Client, Environment, OrdersController } = paypalSdk;
 
-function getEnvironment(): Environment {
+function getEnvironment(): any {
   const isProduction = process.env.NODE_ENV === "production";
   return isProduction ? Environment.Production : Environment.Sandbox;
 }
@@ -14,7 +17,7 @@ function getClientSecret(): string {
 }
 
 // Initialize the PayPal SDK client
-export function paypalClient(): Client {
+export function paypalClient(): any {
   return new Client({
     clientCredentialsAuthCredentials: {
       oAuthClientId: getClientId(),
@@ -25,7 +28,7 @@ export function paypalClient(): Client {
 }
 
 // Initialize the PayPal Orders Controller
-export function paypalOrdersController(): OrdersController {
+export function paypalOrdersController(): any {
   const client = paypalClient();
   return new OrdersController(client);
 }

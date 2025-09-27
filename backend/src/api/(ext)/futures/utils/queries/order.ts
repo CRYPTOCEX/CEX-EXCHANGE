@@ -1,17 +1,29 @@
-import {
-  fromBigInt,
-  fromBigIntMultiply,
-  removeTolerance,
-} from "@b/api/(ext)/ecosystem/utils/blockchain";
-import client, {
-  scyllaFuturesKeyspace,
-} from "@b/api/(ext)/ecosystem/utils/scylla/client";
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let fromBigIntMultiply: any;
+let removeTolerance: any;
+let client: any;
+let scyllaFuturesKeyspace: any;
+let getWalletByUserIdAndCurrency: any;
+let updateWalletBalance: any;
+try {
+  const blockchainModule = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  fromBigIntMultiply = blockchainModule.fromBigIntMultiply;
+  removeTolerance = blockchainModule.removeTolerance;
+
+  const clientModule = require("@b/api/(ext)/ecosystem/utils/scylla/client");
+  client = clientModule.default;
+  scyllaFuturesKeyspace = clientModule.scyllaFuturesKeyspace;
+
+  const walletModule = require("@b/api/(ext)/ecosystem/utils/wallet");
+  getWalletByUserIdAndCurrency = walletModule.getWalletByUserIdAndCurrency;
+  updateWalletBalance = walletModule.updateWalletBalance;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { makeUuid } from "@b/utils/passwords";
 import { FuturesMatchingEngine } from "../matchingEngine";
-import {
-  getWalletByUserIdAndCurrency,
-  updateWalletBalance,
-} from "@b/api/(ext)/ecosystem/utils/wallet";
 import { getOrderbookEntry } from "./orderbook";
 import { stringify as uuidStringify } from "uuid";
 
@@ -63,6 +75,9 @@ export function uuidToString(uuid: Uuid): string {
 }
 
 export async function query(q: string, params: any[] = []): Promise<any> {
+  if (!client) {
+    throw new Error("Ecosystem extension not available");
+  }
   return client.execute(q, params, { prepare: true });
 }
 
@@ -76,6 +91,10 @@ export async function query(q: string, params: any[] = []): Promise<any> {
 export async function getOrdersByUserId(
   userId: string
 ): Promise<FuturesOrder[]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orders
     WHERE "userId" = ?
@@ -125,6 +144,10 @@ export function getOrderByUuid(
   id: string,
   createdAt: string
 ): Promise<FuturesOrder> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orders
     WHERE "userId" = ? AND id = ? AND "createdAt" = ?;
@@ -146,6 +169,10 @@ export async function cancelOrderByUuid(
   side: string,
   amount: bigint
 ): Promise<any> {
+  if (!client || !scyllaFuturesKeyspace || !fromBigInt) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const priceFormatted = fromBigInt(price);
   const orderbookSide = side === "BUY" ? "BIDS" : "ASKS";
   const orderbookAmount = await getOrderbookEntry(
@@ -235,6 +262,10 @@ export async function createOrder({
   stopLossPrice?: bigint;
   takeProfitPrice?: bigint;
 }): Promise<FuturesOrder> {
+  if (!client || !scyllaFuturesKeyspace || !removeTolerance) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const currentTimestamp = new Date();
   const leveragedAmount = applyLeverage(amount, leverage);
   const query = `
@@ -321,6 +352,10 @@ export async function createOrder({
  * @returns A Promise that resolves with an array of open  orders.
  */
 export async function getAllOpenOrders(): Promise<any[]> {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.open_order
     WHERE status = 'OPEN' ALLOW FILTERING;
@@ -340,6 +375,10 @@ export async function getAllOpenOrders(): Promise<any[]> {
 export function generateOrderUpdateQueries(
   ordersToUpdate: FuturesOrder[]
 ): Array<{ query: string; params: any[] }> {
+  if (!scyllaFuturesKeyspace || !removeTolerance) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   const queries = ordersToUpdate.map((order) => {
     return {
       query: `
@@ -363,6 +402,10 @@ export function generateOrderUpdateQueries(
 }
 
 export async function deleteAllMarketData(symbol: string) {
+  if (!client || !scyllaFuturesKeyspace) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   // Step 1: Fetch the primary keys from the materialized view for orders
   const ordersResult = await client.execute(
     `
@@ -465,6 +508,11 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
   }
 
   // Calculate refund amount based on remaining amount for partially filled orders
+  if (!fromBigIntMultiply || !fromBigInt || !getWalletByUserIdAndCurrency || !updateWalletBalance) {
+    console.warn("Ecosystem extension not available for wallet operations");
+    return;
+  }
+
   const refundAmount =
     order.side === "BUY"
       ? fromBigIntMultiply(
@@ -499,11 +547,15 @@ export async function getOrders(
   symbol?: string,
   isOpen?: boolean
 ): Promise<any[]> {
+  if (!client || !scyllaFuturesKeyspace || !fromBigInt) {
+    throw new Error("Ecosystem extension not available");
+  }
+
   let query = `
     SELECT * FROM ${scyllaFuturesKeyspace}.orders
     WHERE "userId" = ?
   `;
-  let params = [userId];
+  const params = [userId];
 
   if (symbol) {
     query += ` AND symbol = ?`;

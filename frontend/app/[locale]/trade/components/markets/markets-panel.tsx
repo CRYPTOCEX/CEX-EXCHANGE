@@ -7,6 +7,7 @@ import { Star, BarChart2, Zap } from "lucide-react";
 import { ConnectionStatus } from "@/services/ws-manager";
 import type { Symbol } from "@/store/trade/use-binary-store";
 import { useTranslations } from "next-intl";
+import { usePathname } from "@/i18n/routing";
 import { marketService } from "@/services/market-service";
 import { tickersWs } from "@/services/tickers-ws";
 import { marketDataWs, MarketDataSubscription, TickerData as MarketTickerData } from "@/services/market-data-ws";
@@ -37,6 +38,7 @@ export default function MarketsPanel({
   defaultMarketType = "spot",
 }: MarketsPanelProps) {
   const t = useTranslations("trade/components/markets/markets-panel");
+  const pathname = usePathname();
   const { isExtensionAvailable, extensions } = useExtensionChecker();
   const [searchQuery, setSearchQuery] = useState("");
   const [spotSelectedMarket, setSpotSelectedMarket] =
@@ -100,8 +102,8 @@ export default function MarketsPanel({
       setActiveTab("markets");
       setSpotSelectedMarket("BTC/USDT");
 
-      // Update URL with defaults
-      const url = `/trade?symbol=BTC-USDT&type=spot`;
+      // Update URL with defaults, preserving locale
+      const url = `${pathname}?symbol=BTC-USDT&type=spot`;
       window.history.replaceState({ path: url }, "", url);
 
       if (onMarketSelect) {
@@ -429,8 +431,8 @@ export default function MarketsPanel({
       }
 
       if (currency && pair) {
-        // Update URL with currency-pair format and market type
-        const url = `/trade?symbol=${currency}-${pair}&type=${marketType}`;
+        // Update URL with currency-pair format and market type, preserving locale
+        const url = `${pathname}?symbol=${currency}-${pair}&type=${marketType}`;
         window.history.pushState({ path: url }, "", url);
       }
     },

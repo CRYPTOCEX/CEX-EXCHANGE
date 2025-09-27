@@ -85,7 +85,7 @@ export const standardizeXtData = (data: any): StandardizedNetworkData[] => {
 export function countDecimals(num: number): number {
   if (Math.floor(num) === num) return 0;
   const str = num.toString();
-  const scientificNotationMatch = /^(\d+\.?\d*|\.\d+)e([\+\-]\d+)$/.exec(str);
+  const scientificNotationMatch = /^(\d+\.?\d*|\.\d+)e([+-]\d+)$/.exec(str);
 
   if (scientificNotationMatch) {
     const decimalStr = scientificNotationMatch[1].split(".")[1] || "";

@@ -195,7 +195,7 @@ export default function NFTAdminNavbar() {
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <div className="mr-6 flex items-center space-x-2">
-            <NavbarLogo href="/admin/nft" isAdmin={true} />
+            <NavbarLogo href="/admin/nft" isInAdmin={true} />
             <span className="hidden font-bold sm:inline-block text-blue-600">
               NFT Admin
             </span>
@@ -292,7 +292,7 @@ export default function NFTAdminNavbar() {
           <SheetContent side="left" className="pr-0">
             <div className="px-6 py-6">
               <div className="flex items-center space-x-2">
-                <NavbarLogo href="/admin/nft" isAdmin={true} />
+                <NavbarLogo href="/admin/nft" isInAdmin={true} />
                 <span className="font-bold text-blue-600">NFT Admin</span>
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function NFTAdminNavbar() {
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="md:hidden flex items-center space-x-2">
-              <NavbarLogo href="/admin/nft" isAdmin={true} />
+              <NavbarLogo href="/admin/nft" isInAdmin={true} />
               <span className="font-bold text-blue-600">NFT Admin</span>
             </div>
           </div>

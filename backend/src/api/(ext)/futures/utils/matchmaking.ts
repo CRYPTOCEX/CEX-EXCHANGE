@@ -1,20 +1,35 @@
+// Safe import for ecosystem modules
+let OrderBook: any;
+let fromBigInt: any;
+let fromBigIntMultiply: any;
+let BigIntReplacer: any;
+try {
+  const queriesModule = require("../../ecosystem/utils/scylla/queries");
+  OrderBook = queriesModule.OrderBook;
+
+  const blockchainModule = require("../../ecosystem/utils/blockchain");
+  fromBigInt = blockchainModule.fromBigInt;
+  fromBigIntMultiply = blockchainModule.fromBigIntMultiply;
+  BigIntReplacer = blockchainModule.BigIntReplacer;
+} catch (e) {
+  // Ecosystem extension not available
+}
 import { handleTradesBroadcast } from "./ws";
 import { logError } from "@b/utils/logger";
-import { OrderBook } from "../../ecosystem/utils/scylla/queries";
 import { FuturesOrder } from "./queries/order";
 import { updatePositions } from "./position";
-import {
-  fromBigInt,
-  fromBigIntMultiply,
-  BigIntReplacer,
-} from "../../ecosystem/utils/blockchain";
 
 export const matchAndCalculateOrders = async (
   orders: FuturesOrder[],
-  currentOrderBook: OrderBook
+  currentOrderBook: any
 ) => {
+  if (!fromBigInt || !fromBigIntMultiply) {
+    console.warn("Ecosystem extension not available for order matching");
+    return { matchedOrders: [], bookUpdates: { bids: {}, asks: {} } };
+  }
+
   const matchedOrders: FuturesOrder[] = [];
-  const bookUpdates: OrderBook = { bids: {}, asks: {} };
+  const bookUpdates: any = { bids: {}, asks: {} };
   const processedOrders: Set<string> = new Set();
 
   const buyOrders = filterAndSortOrders(orders, "BUY", true);
@@ -104,8 +119,8 @@ export const matchAndCalculateOrders = async (
 export const processMatchedOrders = async (
   buyOrder: FuturesOrder,
   sellOrder: FuturesOrder,
-  currentOrderBook: OrderBook,
-  bookUpdates: OrderBook,
+  currentOrderBook: any,
+  bookUpdates: any,
   matchedPrice: bigint
 ) => {
   const amountToFill =
@@ -234,14 +249,14 @@ export function addTradeToOrder(order: FuturesOrder, trade: TradeDetail) {
     (a, b) => a.timestamp - b.timestamp
   );
 
-  order.trades = JSON.stringify(mergedTrades, BigIntReplacer);
+  order.trades = JSON.stringify(mergedTrades, BigIntReplacer || undefined);
   return order.trades;
 }
 
 const updateOrderBook = (
-  bookUpdates: OrderBook,
+  bookUpdates: any,
   order: FuturesOrder,
-  currentOrderBook: OrderBook,
+  currentOrderBook: any,
   amount: bigint
 ) => {
   const priceStr = order.price.toString();

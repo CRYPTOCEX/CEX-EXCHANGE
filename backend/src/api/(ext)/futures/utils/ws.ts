@@ -1,10 +1,25 @@
 import { messageBroker } from "@b/handler/Websocket";
-import { fromBigInt, fromWei } from "../../ecosystem/utils/blockchain";
+
+// Safe import for ecosystem modules
+let fromBigInt: any;
+let fromWei: any;
+try {
+  const module = require("../../ecosystem/utils/blockchain");
+  fromBigInt = module.fromBigInt;
+  fromWei = module.fromWei;
+} catch (e) {
+  // Ecosystem extension not available
+}
 
 export async function handleOrderBookBroadcast(symbol: string, book: any) {
   try {
     if (!book) {
       console.error("Book is undefined");
+      return;
+    }
+
+    if (!fromWei) {
+      console.warn("Ecosystem extension not available for order book broadcast");
       return;
     }
 
@@ -39,6 +54,11 @@ export async function handleOrderBookBroadcast(symbol: string, book: any) {
 }
 
 export async function handleOrderBroadcast(order: any) {
+  if (!fromBigInt) {
+    console.warn("Ecosystem extension not available for order broadcast");
+    return;
+  }
+
   const filteredOrder = {
     ...order,
     price: fromBigInt(order.price),
@@ -130,6 +150,11 @@ export async function handleTickersBroadcast(tickers: any) {
 }
 
 export async function handlePositionBroadcast(position: any) {
+  if (!fromBigInt) {
+    console.warn("Ecosystem extension not available for position broadcast");
+    return;
+  }
+
   const filteredPosition = {
     ...position,
     entryPrice: fromBigInt(position.entryPrice),

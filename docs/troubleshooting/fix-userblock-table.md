@@ -3,7 +3,7 @@
 ## Problem
 When starting the backend, you may encounter this error:
 ```
-Can't create table `userBlock` (errno: 121 "Duplicate key on write or update")
+Can't create table `coinexchangeworld`.`userBlock` (errno: 121 "Duplicate key on write or update")
 ```
 
 This error occurs due to:
@@ -36,11 +36,7 @@ If the script doesn't work, manually fix the database:
 
 1. Connect to your MySQL database:
 ```bash
-<<<<<<< HEAD
-mysql -u root -p password
-=======
-mysql -u root -p 
->>>>>>> 37ec68c15c8d32570b93e553add4de90461823d2
+mysql -u root -p coinexchangeworld
 ```
 
 2. Drop the problematic table if it exists:
@@ -85,6 +81,7 @@ ALTER TABLE user_blocks DROP FOREIGN KEY CONSTRAINT_NAME;
 exit
 npm run dev
 ```
+
 ## What Changed
 
 ### Model File Updates

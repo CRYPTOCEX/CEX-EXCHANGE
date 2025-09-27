@@ -6,7 +6,9 @@ export async function cachePages() {
   try {
     const pages = await getPages();
     await redis.set("pages", JSON.stringify(pages), "EX", 43200); // Cache for 12 hours (720 * 60)
-  } catch (error) {}
+  } catch (error) {
+    // Silently ignore cache errors
+  }
 }
 
 cachePages();

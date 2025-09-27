@@ -12,6 +12,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import MainMenu from "./horizontal-menu";
 import { AuthHeaderControls } from "@/components/auth/auth-header-controls";
 import { useUserStore } from "@/store/user";
+import { useConfigStore } from "@/store/config";
 import LanguageSelector from "./language-selector";
 import { useTranslations } from "next-intl";
 import MobileMenuHandler from "./mobile-menu-handler";
@@ -20,6 +21,7 @@ import CustomMobileMenu from "./custom-mobile-menu";
 import NavbarLogo from "@/components/elements/navbar-logo";
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Bicrypto";
+const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME || "dark";
 
 // MenuItem interface is defined globally in types/menu.d.ts
 
@@ -38,10 +40,21 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user, hasPermission } = useUserStore();
+  const { settings } = useConfigStore();
 
   // Hydration fix: mount state
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Check if layout switcher is enabled (handle both string and boolean values)
+  const layoutSwitcherEnabled = settings?.layoutSwitcher === true || settings?.layoutSwitcher === "true";
+
+  // Set default theme if layout switcher is disabled
+  useEffect(() => {
+    if (mounted && !layoutSwitcherEnabled && theme !== defaultTheme) {
+      setTheme(defaultTheme);
+    }
+  }, [mounted, layoutSwitcherEnabled, theme, setTheme]);
 
   // Call all hooks unconditionally, per React rules
   const mediaQueryDesktop = useMediaQuery("(min-width: 1280px)");
@@ -229,42 +242,44 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
                 <LanguageSelector variant="compact" />
               </div>
               
-              {/* Theme Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  "p-2.5 rounded-lg transition-all duration-200 hidden md:flex items-center justify-center",
-                  isDark
-                    ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70 border border-zinc-700/50"
-                    : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70 border border-zinc-200/50"
-                )}
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                <AnimatePresence mode="wait">
-                  {isDark ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
-                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Sun className="h-4 w-4" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ opacity: 0, rotate: 90, scale: 0.8 }}
-                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      exit={{ opacity: 0, rotate: -90, scale: 0.8 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Moon className="h-4 w-4" />
-                    </motion.div>
+              {/* Theme Toggle - only show if layout switcher is enabled */}
+              {layoutSwitcherEnabled && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-all duration-200 hidden md:flex items-center justify-center",
+                    isDark
+                      ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70 border border-zinc-700/50"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70 border border-zinc-200/50"
                   )}
-                </AnimatePresence>
-              </motion.button>
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
+                  <AnimatePresence mode="wait">
+                    {isDark ? (
+                      <motion.div
+                        key="sun"
+                        initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
+                        animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                        exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Sun className="h-4 w-4" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="moon"
+                        initial={{ opacity: 0, rotate: 90, scale: 0.8 }}
+                        animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                        exit={{ opacity: 0, rotate: -90, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Moon className="h-4 w-4" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              )}
               
               {/* Notifications - only show when user is logged in */}
               {user && (

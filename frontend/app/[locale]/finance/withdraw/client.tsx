@@ -325,12 +325,15 @@ export function WithdrawForm() {
     return null;
   };
   const getDisabledReason = () => {
-    // Check KYC requirements for withdrawal feature
-    const kycRequirement = getKycRequirement(user, 'WITHDRAW');
-    if (kycRequirement.required) {
-      return kycRequirement.message;
+    // Check KYC requirements for withdrawal feature only if KYC is enabled
+    const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
+    if (kycEnabled) {
+      const kycRequirement = getKycRequirement(user, 'WITHDRAW');
+      if (kycRequirement.required) {
+        return kycRequirement.message;
+      }
     }
-    
+
     if (!amount || Number(amount) <= 0) return "Enter valid amount";
 
     // Check for precision errors first

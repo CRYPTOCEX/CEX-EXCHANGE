@@ -5,7 +5,15 @@ import {
 } from "@b/utils/query";
 import { createError } from "@b/utils/error";
 import { getPositions } from "@b/api/(ext)/futures/utils/queries/positions";
-import { fromBigInt } from "@b/api/(ext)/ecosystem/utils/blockchain";
+
+// Safe import for ecosystem modules
+let fromBigInt: any;
+try {
+  const module = require("@b/api/(ext)/ecosystem/utils/blockchain");
+  fromBigInt = module.fromBigInt;
+} catch (e) {
+  // Ecosystem extension not available
+}
 
 export const metadata: OperationObject = {
   summary: "List Futures Positions",
@@ -85,10 +93,10 @@ export default async (data: Handler) => {
 
     const result = positions.map((position) => ({
       ...position,
-      entryPrice: fromBigInt(position.entryPrice),
-      amount: fromBigInt(position.amount),
+      entryPrice: fromBigInt ? fromBigInt(position.entryPrice) : position.entryPrice,
+      amount: fromBigInt ? fromBigInt(position.amount) : position.amount,
       leverage: position.leverage,
-      unrealizedPnl: fromBigInt(position.unrealizedPnl),
+      unrealizedPnl: fromBigInt ? fromBigInt(position.unrealizedPnl) : position.unrealizedPnl,
       createdAt: position.createdAt.toISOString(),
       updatedAt: position.updatedAt.toISOString(),
     }));
