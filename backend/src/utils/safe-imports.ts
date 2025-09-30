@@ -19,12 +19,14 @@ let solanaService: any = null;
 let tronService: any = null;
 let moneroService: any = null;
 let tonService: any = null;
+let bitcoinNodeService: any = null;
 
 // Flags to track if we've attempted to load services
 let solanaChecked = false;
 let tronChecked = false;
 let moneroChecked = false;
 let tonChecked = false;
+let bitcoinNodeChecked = false;
 
 export async function getSolanaService(): Promise<any> {
   if (!solanaChecked) {
@@ -56,6 +58,23 @@ export async function getTonService(): Promise<any> {
     tonChecked = true;
   }
   return tonService;
+}
+
+export async function getBitcoinNodeService(): Promise<any> {
+  if (!bitcoinNodeChecked) {
+    bitcoinNodeService = await safeImport('@b/api/(ext)/ecosystem/utils/utxo/btc-node');
+    bitcoinNodeChecked = true;
+  }
+  return bitcoinNodeService;
+}
+
+export async function getEcosystemWalletUtils(): Promise<any> {
+  try {
+    const module = await import('@b/api/(ext)/ecosystem/utils/wallet');
+    return module;
+  } catch (error) {
+    return null;
+  }
 }
 
 // Helper function to check if a service is available

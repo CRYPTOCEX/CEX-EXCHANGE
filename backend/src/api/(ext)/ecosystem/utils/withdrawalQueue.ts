@@ -196,10 +196,13 @@ class WithdrawalQueue {
     }
 
     // Mark the transaction as completed after successful processing
-    await models.transaction.update(
-      { status: "COMPLETED" },
-      { where: { id: transaction.id } }
-    );
+    // Note: For XMR and TRON, the handlers already update the status with trxId, so we skip the update
+    if (!["XMR", "TRON"].includes(metadata.chain)) {
+      await models.transaction.update(
+        { status: "COMPLETED" },
+        { where: { id: transaction.id } }
+      );
+    }
   }
 
   private async sendWithdrawalConfirmationEmail(

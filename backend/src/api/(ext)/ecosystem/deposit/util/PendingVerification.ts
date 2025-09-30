@@ -274,11 +274,11 @@ export async function verifyPendingTransactions() {
                     title: "Deposit Confirmation",
                     message: `Your deposit of ${updatedTxDetails.amount} ${response.wallet.currency} has been confirmed.`,
                     type: "system",
-                    link: `/ecosystem/deposits/${response.transaction?.id}`,
+                    link: `/finance/history`,
                     actions: [
                       {
                         label: "View Deposit",
-                        link: `/ecosystem/deposits/${response.transaction?.id}`,
+                        link: `/finance/history`,
                         primary: true,
                       },
                     ],

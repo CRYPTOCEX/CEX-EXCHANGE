@@ -20,12 +20,17 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
 
       const address = txDetails.address?.toLowerCase() || txDetails.to?.toLowerCase();
 
+      // For UTXO chains (BTC, LTC, DOGE, DASH, XMR), currency === chain
+      const currency = txDetails.currency || txDetails.chain;
+
       // Broadcast pending transaction status to WebSocket subscribers
       const broadcastPayload = {
-        currency: txDetails.currency || "XMR",
+        currency: currency,
         chain: txDetails.chain,
         address: address,
       };
+
+      console.log(`[WS_DEBUG] Broadcasting to subscribed clients with payload:`, JSON.stringify(broadcastPayload));
 
       messageBroker.broadcastToSubscribedClients(
         "/api/ecosystem/deposit",
@@ -47,7 +52,7 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
         }
       );
 
-      console.log(`[SUCCESS] Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations`);
+      console.log(`[SUCCESS] Broadcasted pending transaction ${txHash} with ${txDetails.confirmations}/${txDetails.requiredConfirmations} confirmations to currency:${currency}, chain:${txDetails.chain}, address:${address}`);
       return;
     }
 
@@ -60,10 +65,16 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
         `[SUCCESS] Deposit processed immediately for ${txHash}, broadcasting to WebSocket`
       );
 
-      const address =
-        txDetails.chain === "MO"
-          ? txDetails.to?.toLowerCase()
-          : txDetails.to?.toLowerCase() || txDetails.address?.toLowerCase();
+      // Handle address - it could be a string or array
+      let address: string;
+      if (txDetails.chain === "MO") {
+        address = Array.isArray(txDetails.to)
+          ? txDetails.to[0]?.toLowerCase()
+          : txDetails.to?.toLowerCase();
+      } else {
+        address = txDetails.address?.toLowerCase() ||
+          (Array.isArray(txDetails.to) ? txDetails.to[0]?.toLowerCase() : txDetails.to?.toLowerCase());
+      }
 
       // Broadcast to WebSocket subscribers
       const broadcastPayload = {
@@ -114,11 +125,11 @@ export async function storeAndBroadcastTransaction(txDetails, txHash, isPending 
             title: "Deposit Confirmation",
             message: `Your deposit of ${txDetails.amount} ${response.wallet.currency} has been confirmed.`,
             type: "system",
-            link: `/ecosystem/deposits/${response.transaction?.id}`,
+            link: `/finance/history`,
             actions: [
               {
                 label: "View Deposit",
-                link: `/ecosystem/deposits/${response.transaction?.id}`,
+                link: `/finance/history`,
                 primary: true,
               },
             ],

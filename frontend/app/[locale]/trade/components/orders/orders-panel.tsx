@@ -86,6 +86,7 @@ interface FuturesPosition {
 interface OrdersPanelProps {
   symbol?: string;
   isEco?: boolean;
+  pair?: string;
 }
 
 // Format date helper
@@ -107,6 +108,7 @@ const formatDate = (date: Date | string | undefined) => {
 export default function OrdersPanel({
   symbol = "BTCUSDT",
   isEco = false,
+  pair,
 }: OrdersPanelProps) {
   const searchParams = useSearchParams();
   const marketType = searchParams.get("type") || "spot";
@@ -742,7 +744,7 @@ export default function OrdersPanel({
                         Type
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Price
+                        Price{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                         Amount
@@ -923,7 +925,7 @@ export default function OrdersPanel({
                           Type
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                          Price
+                          Price{pair ? ` (${pair})` : ''}
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                           Amount
@@ -1166,10 +1168,10 @@ export default function OrdersPanel({
                         Size
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Entry Price
+                        Entry Price{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Liq. Price
+                        Liq. Price{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                         PnL

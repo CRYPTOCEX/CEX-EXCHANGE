@@ -246,7 +246,7 @@ function TradingInterface({
         />
       );
     } else if (panelId === "orderbook") {
-      return <OrderBookPanel symbol={currentSymbol} marketType={isFutures ? "futures" : "spot"} />;
+      return <OrderBookPanel symbol={currentSymbol} marketType={isFutures ? "futures" : "spot"} currency={currentMarket?.currency} pair={currentMarket?.pair} />;
     } else if (panelId === "chart") {
       return <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} />;
     } else if (panelId === "trading") {
@@ -259,7 +259,7 @@ function TradingInterface({
         />
       );
     } else if (panelId === "orders") {
-      return <OrdersPanel />;
+      return <OrdersPanel pair={currentMarket?.pair} isEco={currentMarket?.isEco || false} symbol={currentSymbol} />;
     } else if (panelId === "alerts") {
       return <AlertsPanel />;
     }

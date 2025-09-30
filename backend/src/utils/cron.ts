@@ -40,6 +40,7 @@ async function processPendingEcoWithdrawals() {
   }
 }
 import { broadcastLog, broadcastStatus } from "./crons/broadcast";
+import BTCDepositScanner from "./crons/btc-deposit-scanner";
 
 const redis = RedisSingleton.getInstance();
 
@@ -215,6 +216,24 @@ class CronJobManager {
         description: "Automatically unblocks users whose temporary blocks have expired.",
         function: "processExpiredUserBlocks",
         handler: processExpiredUserBlocks,
+        lastRun: null,
+        lastRunError: null,
+        category: "normal",
+        status: "idle",
+        progress: 0,
+        lastExecutions: [],
+        nextScheduledRun: null,
+      },
+      {
+        name: "btcDepositScanner",
+        title: "Bitcoin Deposit Scanner",
+        period: 60 * 1000, // Run every 60 seconds
+        description: "Scans all BTC wallets for deposits using Bitcoin Core node (only when BTC_NODE=node).",
+        function: "btcDepositScanner",
+        handler: async () => {
+          const scanner = BTCDepositScanner.getInstance();
+          await scanner.start();
+        },
         lastRun: null,
         lastRunError: null,
         category: "normal",

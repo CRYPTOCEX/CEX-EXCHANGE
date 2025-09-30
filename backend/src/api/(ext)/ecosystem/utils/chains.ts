@@ -16,6 +16,7 @@ interface ChainConfig {
   currency: string;
   smartContract?: SmartContract;
   explorerApi?: boolean;
+  confirmations?: number;
 }
 
 interface Network {
@@ -315,6 +316,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
       },
     },
     currency: "BTC",
+    confirmations: 3,
   },
   LTC: {
     name: "Litecoin",
@@ -327,6 +329,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
       },
     },
     currency: "LTC",
+    confirmations: 6,
   },
   DOGE: {
     name: "Dogecoin",
@@ -339,6 +342,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
       },
     },
     currency: "DOGE",
+    confirmations: 6,
   },
   DASH: {
     name: "Dash",
@@ -351,6 +355,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
       },
     },
     currency: "DASH",
+    confirmations: 6,
   },
   SOL: {
     name: "Solana",

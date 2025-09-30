@@ -14,6 +14,7 @@ import { models } from "@b/db";
 import { decrypt } from "../../../../utils/encrypt";
 import { getMasterWalletByChain } from "./wallet";
 import { logError } from "@b/utils/logger";
+import { getUTXOProvider } from "./utxo/providers/UTXOProviderFactory";
 
 class TransactionBroadcastedError extends Error {
   txid: string;
@@ -291,89 +292,31 @@ export const createUTXOWallet = (chain) => {
 };
 
 export const fetchUTXOTransactions = async (chain, address) => {
-  const url = constructApiUrl(chain, "fetchTransactions", address, "");
-  const data: any = await fetchFromApi(url, { timeout: HTTP_TIMEOUT });
-
-  const provider = getUtxoProvider(chain);
-  switch (provider) {
-    case "haskoin":
-      return data.map((tx) => ({
-        hash: tx.txid,
-        blockHeight: tx.block?.height,
-        value: tx.outputs.reduce((sum, output) => sum + output.value, 0),
-        confirmedTime: new Date(tx.time * 1000).toISOString(),
-        spent: tx.outputs.some((output) => output.spent),
-        confirmations: tx.block ? -tx.block.height : 0,
-        inputs: tx.inputs,
-        outputs: tx.outputs.map((output) => ({
-          address: output.addresses,
-          value: output.value,
-          spent: output.spent,
-          spender: output.spender ? output.spender.txid : null,
-        })),
-      }));
-
-    case "blockcypher":
-    default:
-      if (!Array.isArray(data.txrefs)) {
-        return [];
-      }
-      return data.txrefs.map((tx) => ({
-        hash: tx.tx_hash,
-        blockHeight: tx.block_height,
-        value: tx.value,
-        confirmedTime: tx.confirmed,
-        spent: tx.spent,
-        confirmations: tx.confirmations,
-      }));
+  try {
+    const provider = await getUTXOProvider(chain);
+    console.log(`[UTXO] Using ${provider.getName()} for fetching transactions`);
+    return await provider.fetchTransactions(address);
+  } catch (error) {
+    logError('fetch_utxo_transactions', error, __filename);
+    return [];
   }
 };
 
 export const fetchUTXOWalletBalance = async (chain, address) => {
-  const url = constructApiUrl(chain, "fetchBalance", address, "");
-  const data: any = await fetchFromApi(url);
-  if (data.error) {
-    logError("fetch_utxo_wallet_balance", new Error(data.error), __filename);
+  try {
+    const provider = await getUTXOProvider(chain);
+    const balanceSatoshis = await provider.getBalance(address);
+    return satoshiToStandardUnit(balanceSatoshis, chain);
+  } catch (error) {
+    logError("fetch_utxo_wallet_balance", error, __filename);
     return 0;
-  }
-
-  const provider = getUtxoProvider(chain);
-  let balance;
-  switch (provider) {
-    case "haskoin":
-      balance = Number(data.confirmed) + Number(data.unconfirmed);
-      return parseFloat(balance) > 0
-        ? satoshiToStandardUnit(balance, chain)
-        : 0;
-    case "blockcypher":
-    default:
-      balance = Number(data.final_balance);
-      return parseFloat(balance) > 0
-        ? satoshiToStandardUnit(balance, chain)
-        : 0;
   }
 };
 
 export const fetchRawUtxoTransaction = async (txHash, chain) => {
-  const provider = getUtxoProvider(chain);
-  const apiURL = constructApiUrl(chain, "fetchRawTransaction", "", txHash);
-
   try {
-    const data: any = await fetchFromApi(apiURL, { timeout: HTTP_TIMEOUT });
-    switch (provider) {
-      case "haskoin":
-        if (!data.result) {
-          throw new Error("Missing hex data in response");
-        }
-        return data.result;
-
-      case "blockcypher":
-      default:
-        if (!data.hex) {
-          throw new Error("Missing hex data in response");
-        }
-        return data.hex;
-    }
+    const provider = await getUTXOProvider(chain);
+    return await provider.fetchRawTransaction(txHash);
   } catch (error) {
     logError("fetch_raw_utxo_transaction", error, __filename);
     throw error;
@@ -381,34 +324,12 @@ export const fetchRawUtxoTransaction = async (txHash, chain) => {
 };
 
 export const fetchUtxoTransaction = async (txHash, chain) => {
-  const provider = getUtxoProvider(chain);
-  const apiURL = constructApiUrl(chain, "fetchTransaction", "", txHash);
-
-  const maxRetries = 10; // Maximum number of retries
-  const retryDelay = 30000; // 30 seconds delay between retries
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const data: any = await fetchFromApi(apiURL, { timeout: HTTP_TIMEOUT });
-
-      if (data.error && provider === "haskoin") {
-        if (data.error === "not-found-or-invalid-arg" && attempt < maxRetries) {
-          console.log(
-            `Attempt ${attempt}: Transaction not found, retrying in ${
-              retryDelay / 1000
-            } seconds...`
-          );
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          continue; // Retry
-        }
-        throw new Error(data.message); // Throw error for other cases
-      }
-
-      return formatTransactionData(data, provider);
-    } catch (error) {
-      logError("fetch_utxo_transaction", error, __filename);
-      if (attempt === maxRetries) throw error; // Throw error after final attempt
-    }
+  try {
+    const provider = await getUTXOProvider(chain);
+    return await provider.fetchTransaction(txHash);
+  } catch (error) {
+    logError("fetch_utxo_transaction", error, __filename);
+    return null;
   }
 };
 
@@ -495,33 +416,9 @@ export const broadcastRawUtxoTransaction = async (rawTxHex, chain) => {
   }
 
   try {
-    const apiUrl = constructApiUrl(
-      chain,
-      "broadcastTransaction",
-      "",
-      "",
-      "blockcypher"
-    );
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tx: rawTxHex }),
-    });
-
-    const data: any = await response.json();
-
-    if (!response.ok || !data || !data.tx) {
-      throw new Error(data?.error || "Transaction broadcast failed");
-    }
-
-    if (!data.tx.hash) {
-      throw new Error(
-        "Transaction broadcast failed: No transaction ID returned"
-      );
-    }
-
-    return { success: true, txid: data.tx.hash };
+    const provider = await getUTXOProvider(chain);
+    console.log(`[UTXO] Broadcasting transaction using ${provider.getName()}`);
+    return await provider.broadcastTransaction(rawTxHex);
   } catch (error) {
     logError("broadcast_raw_utxo_transaction", error, __filename);
     return { success: false, error: error.message, txid: null };
@@ -561,55 +458,12 @@ export const calculateUTXOFee = async (toAddress, amount, chain) => {
 };
 
 export async function getCurrentUtxoFeeRatePerByte(chain) {
-  let url;
-  switch (chain) {
-    case "BTC":
-      url = "https://api.blockchain.info/mempool/fees";
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(
-            `Error fetching fee rate for ${chain}: ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-        // You can choose between 'regular' and 'priority' based on your needs
-        const btcFeeRatePrioriy =
-          process.env.BTC_FEE_RATE_PRIORITY || "regular";
-        const feeRatePerByte = data[btcFeeRatePrioriy];
-
-        return feeRatePerByte;
-      } catch (error) {
-        logError("get_current_utxo_fee_rate_per_byte", error, __filename);
-        return null;
-      }
-    case "LTC":
-      url = `${BLOCKCYPHER_API_URL}/ltc/main`;
-      break;
-    case "DOGE":
-      url = `${BLOCKCYPHER_API_URL}/doge/main`;
-      break;
-    default:
-      throw new Error(`Unsupported UTXO chain: ${chain}`);
-  }
-
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(
-        `Error fetching fee rate for ${chain}: ${response.statusText}`
-      );
-    }
-
-    const data = await response.json();
-    const mediumFeePerKb = data.medium_fee_per_kb || data.medium_fee_per_kbyte;
-    const feeRatePerByte = mediumFeePerKb / 1024;
-
-    return feeRatePerByte;
+    const provider = await getUTXOProvider(chain);
+    return await provider.getFeeRate();
   } catch (error) {
     logError("get_current_utxo_fee_rate_per_byte", error, __filename);
-    return null;
+    return 1; // Default 1 sat/byte
   }
 }
 

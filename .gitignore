@@ -28,6 +28,9 @@
 
 # misc
 .DS_Store
+
+# BTC Node credentials (DO NOT COMMIT)
+scripts/btc-node-credentials.txt
 *.pem
 
 # debug

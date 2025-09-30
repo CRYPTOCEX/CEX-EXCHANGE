@@ -138,14 +138,43 @@ export async function getWalletByUserIdAndCurrency(userId, currency) {
   // Step 4: Retrieve active tokens for the currency.
   const tokens = await getActiveTokensByCurrency(currency);
   // Step 5: Check if the wallet's address is empty or if it has incomplete addresses.
-  let addresses = wallet.address
-    ? typeof wallet.address === "string"
-      ? JSON.parse(wallet.address)
-      : wallet.address
-    : {};
+  let addresses = {};
 
-  if (typeof addresses === "string") {
-    addresses = JSON.parse(addresses);
+  try {
+    if (wallet.address) {
+      if (typeof wallet.address === "string") {
+        addresses = JSON.parse(wallet.address);
+      } else {
+        addresses = wallet.address;
+      }
+
+      if (typeof addresses === "string") {
+        addresses = JSON.parse(addresses);
+      }
+    }
+  } catch (error) {
+    console.error(`[ERROR] Failed to parse wallet address for wallet ${wallet.id}:`, error.message);
+    console.error(`[ERROR] Raw address value:`, wallet.address);
+
+    // Try to repair common JSON errors
+    if (typeof wallet.address === "string") {
+      try {
+        // Fix missing colons (e.g., "balance"0.123 -> "balance":0.123)
+        const repairedAddress = wallet.address.replace(/"(\w+)"(\d+\.?\d*)/g, '"$1":$2');
+        addresses = JSON.parse(repairedAddress);
+        console.log(`[SUCCESS] Repaired corrupted wallet address JSON for wallet ${wallet.id}`);
+
+        // Save the repaired address back to database
+        await models.wallet.update(
+          { address: JSON.stringify(addresses) },
+          { where: { id: wallet.id } }
+        );
+      } catch (repairError) {
+        console.error(`[ERROR] Failed to repair wallet address:`, repairError.message);
+        // Reset to empty addresses object
+        addresses = {};
+      }
+    }
   }
 
   if (
@@ -1263,16 +1292,6 @@ export async function getEcosystemPendingTransactions() {
 
 export const handleEcosystemDeposit = async (trx) => {
   try {
-    const transaction = await models.transaction.findOne({
-      where: {
-        referenceId: trx.hash,
-      },
-    });
-
-    if (transaction) {
-      throw new Error("Transaction already processed");
-    }
-
     const wallet = await models.wallet.findOne({
       where: { id: trx.id },
     });
@@ -1281,27 +1300,60 @@ export const handleEcosystemDeposit = async (trx) => {
       throw new Error("Wallet not found");
     }
 
+    // For XMR and other pay-to-many chains, check transaction by both trxId AND walletId
+    // This allows multiple recipients to receive from the same transaction
+    // Note: Ecosystem uses trxId, referenceId is for spot trading
+    const transaction = await models.transaction.findOne({
+      where: {
+        trxId: trx.hash,
+        walletId: wallet.id, // Check per wallet, not globally
+      },
+    });
+
+    if (transaction) {
+      throw new Error("Transaction already processed for this wallet");
+    }
+
     const addresses = JSON.parse(wallet.address as any);
     const chainAddress = addresses[trx.chain];
     if (!chainAddress) {
       throw new Error("Address not found for the given chain");
     }
 
-    chainAddress.balance = (chainAddress.balance || 0) + parseFloat(trx.amount);
+    const depositAmount = parseFloat(trx.amount);
+    console.log(`[DEPOSIT_DEBUG] Processing deposit for wallet ${wallet.id}`);
+    console.log(`[DEPOSIT_DEBUG] Current wallet balance: ${wallet.balance} ${wallet.currency}`);
+    console.log(`[DEPOSIT_DEBUG] Current chain balance: ${chainAddress.balance || 0} ${wallet.currency}`);
+    console.log(`[DEPOSIT_DEBUG] Deposit amount (trx.amount): ${trx.amount} ${wallet.currency}`);
+    console.log(`[DEPOSIT_DEBUG] Parsed deposit amount: ${depositAmount} ${wallet.currency}`);
 
-    const walletBalance = wallet.balance + parseFloat(trx.amount);
+    chainAddress.balance = (chainAddress.balance || 0) + depositAmount;
+    const walletBalance = wallet.balance + depositAmount;
+
+    console.log(`[DEPOSIT_DEBUG] New chain balance: ${chainAddress.balance} ${wallet.currency}`);
+    console.log(`[DEPOSIT_DEBUG] New wallet balance: ${walletBalance} ${wallet.currency}`);
+
+    // Ensure the addresses object is properly formatted
+    addresses[trx.chain] = {
+      address: chainAddress.address,
+      network: chainAddress.network,
+      balance: chainAddress.balance,
+    };
 
     // **Calculate the fee appropriately**
     let fee = 0;
     const utxoChains = ["BTC", "DOGE", "LTC", "DASH"];
     if (utxoChains.includes(trx.chain)) {
       // For UTXO-based chains
+      // Note: inputs and outputs are already converted from satoshis to standard units
       const totalInputValue = trx.inputs.reduce((sum, input) => {
-        return sum + satoshiToBTC(parseFloat(input.value));
+        const inputValue = input.output_value || input.value || 0;
+        return sum + parseFloat(inputValue);
       }, 0);
 
       const totalOutputValue = trx.outputs.reduce((sum, output) => {
-        return sum + satoshiToBTC(parseFloat(output.value));
+        const outputValue = output.value || 0;
+        return sum + parseFloat(outputValue);
       }, 0);
 
       // Calculate the fee
@@ -1325,14 +1377,19 @@ export const handleEcosystemDeposit = async (trx) => {
       }
     );
 
+    // Format 'from' field for description (handle array or string)
+    const fromAddress = Array.isArray(trx.from)
+      ? trx.from[0] || 'Unknown'
+      : trx.from || 'Unknown';
+
     const createdTransaction = await models.transaction.create({
       userId: wallet.userId,
       walletId: wallet.id,
       type: "DEPOSIT",
       status: trx.status === "CONFIRMED" ? "COMPLETED" : trx.status,
       amount: parseFloat(trx.amount),
-      description: `Deposit of ${trx.amount} ${wallet.currency} from ${trx.from}`,
-      referenceId: trx.hash,
+      description: `Deposit of ${trx.amount} ${wallet.currency} from ${fromAddress}`,
+      trxId: trx.hash,
       fee: fee,
       metadata: JSON.stringify({
         chain: trx.chain,
@@ -1340,6 +1397,10 @@ export const handleEcosystemDeposit = async (trx) => {
         gasLimit: trx.gasLimit,
         gasPrice: trx.gasPrice,
         gasUsed: trx.gasUsed,
+        from: trx.from, // Store full array in metadata
+        to: trx.to,
+        inputs: trx.inputs,
+        outputs: trx.outputs,
       }),
     });
 

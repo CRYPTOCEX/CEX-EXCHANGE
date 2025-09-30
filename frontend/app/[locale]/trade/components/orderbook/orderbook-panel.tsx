@@ -25,6 +25,8 @@ import { useTranslations } from "next-intl";
 interface OrderBookPanelProps {
   symbol?: Symbol;
   marketType?: MarketType;
+  currency?: string;
+  pair?: string;
 }
 
 type AggregationLevel = "0.01" | "0.1" | "1" | "10";
@@ -45,6 +47,8 @@ const TRADES_UPDATE_THROTTLE = 500; // Throttle trades updates
 export default function OrderBookPanel({
   symbol = "BTCUSDT",
   marketType = "spot",
+  currency,
+  pair,
 }: OrderBookPanelProps) {
   const t = useTranslations("trade/components/orderbook/orderbook-panel");
   const { theme } = useNextTheme();
@@ -134,6 +138,9 @@ export default function OrderBookPanel({
   const handlePriceLeave = useCallback(() => {
     setHoveredPrice(null);
   }, []);
+
+  // Get the quote currency from pair prop
+  const quoteCurrency = pair || '';
 
   // Optimized price formatting with memoization
   const formatPrice = useCallback((price: number): string => {
@@ -716,7 +723,7 @@ export default function OrderBookPanel({
         {/* Header */}
         <div className="grid grid-cols-3 p-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-xs flex-shrink-0">
           <div className="text-zinc-600 dark:text-zinc-400 text-left font-medium">
-            Price
+            Price ({quoteCurrency})
           </div>
           <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
             Amount
@@ -963,7 +970,7 @@ export default function OrderBookPanel({
               <div className="border-r border-zinc-200 dark:border-zinc-800 flex flex-col h-full overflow-hidden">
                 <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-[10px] flex-shrink-0">
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Price")}
+                    {t("Price")} ({quoteCurrency})
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
                     {t("Amount")}
@@ -1015,7 +1022,7 @@ export default function OrderBookPanel({
               <div className="flex flex-col h-full overflow-hidden">
                 <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-[10px] flex-shrink-0">
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
-                    {t("Price")}
+                    {t("Price")} ({quoteCurrency})
                   </div>
                   <div className="text-zinc-600 dark:text-zinc-400 text-center font-medium">
                     {t("Amount")}
@@ -1072,7 +1079,7 @@ export default function OrderBookPanel({
         >
           <div className="grid grid-cols-3 p-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex-shrink-0">
             <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center font-medium">
-              {t("Price")}
+              {t("Price")} ({quoteCurrency})
             </div>
             <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center font-medium">
               {t("Amount")}

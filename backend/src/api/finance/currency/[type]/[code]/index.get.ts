@@ -196,8 +196,28 @@ async function handleDeposit(type: string, code: string) {
           const tokenData = token.get({ plain: true }) as any;
 
           // Parse fee and limits if they are strings
-          const fee = typeof tokenData.fee === "string" ? JSON.parse(tokenData.fee) : tokenData.fee;
-          const limits = typeof tokenData.limits === "string" ? JSON.parse(tokenData.limits) : tokenData.limits;
+          let fee = { min: 0, percentage: 0 };
+          let limits = { deposit: { min: 1, max: 1000000 } };
+
+          try {
+            if (tokenData.fee) {
+              fee = typeof tokenData.fee === "string" ? JSON.parse(tokenData.fee) : tokenData.fee;
+              fee = fee || { min: 0, percentage: 0 };
+            }
+          } catch (err) {
+            console.warn(`[WARN] Failed to parse fee for token ${tokenData.name} (${tokenData.chain}):`, err.message);
+            console.warn(`[WARN] Raw fee value: ${JSON.stringify(tokenData.fee)}`);
+          }
+
+          try {
+            if (tokenData.limits) {
+              limits = typeof tokenData.limits === "string" ? JSON.parse(tokenData.limits) : tokenData.limits;
+              limits = limits || { deposit: { min: 1, max: 1000000 } };
+            }
+          } catch (err) {
+            console.warn(`[WARN] Failed to parse limits for token ${tokenData.name} (${tokenData.chain}):`, err.message);
+            console.warn(`[WARN] Raw limits value: ${JSON.stringify(tokenData.limits)}`);
+          }
 
           return {
             id: `${tokenData.chain}_${tokenData.type}`,
@@ -207,8 +227,8 @@ async function handleDeposit(type: string, code: string) {
             icon: tokenData.icon,
             type: tokenData.type,
             contractType: tokenData.contractType,
-            fee: fee || { min: 0, percentage: 0 },
-            limits: limits || { deposit: { min: 1, max: 1000000 } },
+            fee: fee,
+            limits: limits,
             precision: 8 // Default precision
           };
         });

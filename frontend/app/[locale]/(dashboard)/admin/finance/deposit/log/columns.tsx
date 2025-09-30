@@ -189,6 +189,15 @@ export const columns: ColumnDefinition[] = [
     filterable: true,
     description: "Transaction amount",
     priority: 1,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        if (value === null || value === undefined) return "N/A";
+        const num = typeof value === "number" ? value : parseFloat(value);
+        if (isNaN(num)) return "N/A";
+        return num.toFixed(8);
+      },
+    },
   },
   {
     key: "fee",
@@ -201,6 +210,15 @@ export const columns: ColumnDefinition[] = [
     description: "Transaction fee",
     priority: 2,
     expandedOnly: true,
+    render: {
+      type: "custom",
+      render: (value: any) => {
+        if (value === null || value === undefined) return "N/A";
+        const num = typeof value === "number" ? value : parseFloat(value);
+        if (isNaN(num)) return "N/A";
+        return num.toFixed(8);
+      },
+    },
   },
   {
     key: "description",
@@ -222,7 +240,19 @@ export const columns: ColumnDefinition[] = [
     sortable: true,
     searchable: true,
     filterable: true,
-    description: "Reference identifier",
+    description: "Reference identifier (for spot trading)",
+    priority: 2,
+    expandedOnly: true,
+  },
+  {
+    key: "trxId",
+    title: "Transaction Hash",
+    type: "text",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Blockchain transaction hash (for ecosystem)",
     priority: 2,
     expandedOnly: true,
   },

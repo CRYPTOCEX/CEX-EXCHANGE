@@ -2,7 +2,7 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.5.1",
+  "version": "5.5.2",
   "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
@@ -28,6 +28,7 @@
     "extract:permission": "node tools/extract-permission.js",
     "i18n": "cd tools/translation-manager && npm start",
     "i18n:install": "cd tools/translation-manager && npm install",
+    "btc-node:setup": "node scripts/btc-node-setup.mjs",
     "update-cache-version": "node docs/update-cache-version.js",
     "format": "prettier --write \"frontend/**/*.{ts,tsx,md,mdx,css,scss}\" --ignore-path .prettierignore",
     "lint": "eslint frontend --fix --ext .ts,.tsx"
@@ -71,13 +72,13 @@
     "@reown/appkit-adapter-wagmi": "^1.8.7",
     "@tanstack/react-query": "^5.90.2",
     "@vitalets/google-translate-api": "^9.2.1",
-    "ccxt": "^4.5.5",
+    "ccxt": "^4.5.6",
     "dotenv": "^16.6.1",
     "jose": "^5.10.0",
     "mysql2": "^3.15.1",
     "tonweb": "^0.0.66",
     "viem": "^2.37.8",
-    "wagmi": "^2.17.4"
+    "wagmi": "^2.17.5"
   },
   "pnpm": {
     "overrides": {
@@ -116,6 +117,6 @@
       "esbuild"
     ]
   },
-  "lastCommit": "973d932fa0229db0217025cc8c5580291f2c1610",
-  "lastCommitDate": "2025-09-24T13:54:20.825Z"
+  "lastCommit": "2d89fce37a68868e8fd808d951715b89907e3582",
+  "lastCommitDate": "2025-09-27T12:14:19.320Z"
 }

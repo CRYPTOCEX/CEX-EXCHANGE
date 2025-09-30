@@ -1,8 +1,13 @@
 import { logError } from "@b/utils/logger";
 import { models } from "@b/db";
-import { storeAndBroadcastTransaction } from "@b/api/(ext)/ecosystem/utils/redis/deposit";
-import { RedisSingleton } from "@b/utils/redis";
-const redis = RedisSingleton.getInstance();
+// Extension module - using safe import
+let storeAndBroadcastTransaction: any;
+try {
+  const depositModule = require("@b/api/(ext)/ecosystem/utils/redis/deposit");
+  storeAndBroadcastTransaction = depositModule.storeAndBroadcastTransaction;
+} catch (e) {
+  // Extension not available
+}
 
 type ParsedTransaction = {
   timestamp: string;
@@ -31,23 +36,30 @@ class MoneroService {
   private walletPassword: string | undefined;
   private chainActive: boolean = false;
   private static monitoredWallets = new Map<string, walletAttributes>();
+  private static walletRetryCount = new Map<string, number>();
+  private static walletMonitoringActive = new Map<string, boolean>();
+  private static globalMonitoringQueue: string[] = [];
+  private static isProcessingGlobalQueue = false;
 
   private static walletQueues: Map<string, (() => Promise<void>)[]> = new Map();
   private static walletProcessing: Map<string, boolean> = new Map();
   private static queue: (() => Promise<void>)[] = [];
   private static processingQueue = false;
   private static processedTransactions: Map<string, number> = new Map();
+  private static lastCheckTime = new Map<string, number>();
 
   private static instance: MoneroService;
 
-  private static readonly MIN_CONFIRMATIONS = 6;
-  private static readonly MAX_RETRIES = 60;
-  private static readonly RETRY_INTERVAL = 60000;
+  private static readonly MIN_CONFIRMATIONS = 6; // XMR requires 6 confirmations
+  private static readonly MAX_RETRIES = 120; // Increased to handle 60 minutes at 30s intervals
+  private static readonly RETRY_INTERVAL = 30000; // 30 seconds for more frequent updates
   private static readonly PROCESSING_EXPIRY_MS = 30 * 60 * 1000;
+  private static readonly WALLET_CHECK_INTERVAL = 5000; // Check wallets every 5 seconds
+  private static readonly BATCH_SIZE = 3; // Process max 3 wallets in parallel
 
   private constructor(
-    daemonRpcUrl: string = "http://127.0.0.1:18081/json_rpc",
-    walletRpcUrl: string = "http://127.0.0.1:18083/json_rpc",
+    daemonRpcUrl: string = process.env.XMR_DAEMON_RPC_URL || "http://127.0.0.1:18081/json_rpc",
+    walletRpcUrl: string = process.env.XMR_WALLET_RPC_URL || "http://127.0.0.1:18083/json_rpc",
     rpcUser: string | undefined = process.env.XMR_RPC_USER,
     rpcPassword: string | undefined = process.env.XMR_RPC_PASSWORD
   ) {
@@ -55,6 +67,11 @@ class MoneroService {
     this.walletRpcUrl = walletRpcUrl;
     this.rpcUser = rpcUser;
     this.rpcPassword = rpcPassword;
+
+    // Log the configuration for debugging
+    console.log(`[XMR] Daemon RPC URL: ${this.daemonRpcUrl}`);
+    console.log(`[XMR] Wallet RPC URL: ${this.walletRpcUrl}`);
+    console.log(`[XMR] RPC User: ${this.rpcUser ? 'configured' : 'not configured'}`);
   }
 
   public static async getInstance(): Promise<MoneroService> {
@@ -226,12 +243,24 @@ class MoneroService {
     try {
       if (!MoneroService.monitoredWallets.has(wallet.id)) {
         MoneroService.monitoredWallets.set(wallet.id, wallet);
+        MoneroService.walletRetryCount.set(wallet.id, 0);
+        MoneroService.walletMonitoringActive.set(wallet.id, true);
         console.log(`[INFO] Added wallet ${wallet.id} to monitored wallets.`);
-        await MoneroService.addToWalletQueue(wallet.id, async () =>
-          this.processMonitoredWallet(wallet.id)
-        );
+
+        // Add to global queue instead of individual processing
+        if (!MoneroService.globalMonitoringQueue.includes(wallet.id)) {
+          MoneroService.globalMonitoringQueue.push(wallet.id);
+        }
+
+        // Start global processor if not running
+        if (!MoneroService.isProcessingGlobalQueue) {
+          this.startGlobalMonitoringProcessor();
+        }
       } else {
         console.log(`[INFO] Wallet ${wallet.id} is already being monitored.`);
+        // Reset retry count if re-monitoring
+        MoneroService.walletRetryCount.set(wallet.id, 0);
+        MoneroService.walletMonitoringActive.set(wallet.id, true);
       }
     } catch (error) {
       console.error(
@@ -243,31 +272,106 @@ class MoneroService {
   public async unmonitorMoneroDeposits(walletId: string) {
     if (MoneroService.monitoredWallets.has(walletId)) {
       MoneroService.monitoredWallets.delete(walletId);
+      MoneroService.walletRetryCount.delete(walletId);
+      MoneroService.walletMonitoringActive.delete(walletId);
+      MoneroService.lastCheckTime.delete(walletId);
+      // Remove from global queue
+      const index = MoneroService.globalMonitoringQueue.indexOf(walletId);
+      if (index > -1) {
+        MoneroService.globalMonitoringQueue.splice(index, 1);
+      }
       console.log(`[INFO] Removed wallet ${walletId} from monitored wallets.`);
     }
   }
 
-  private async processMonitoredWallet(walletId: string): Promise<void> {
-    const wallet = MoneroService.monitoredWallets.get(walletId);
-    if (!wallet) return;
+  // Method to re-initiate monitoring for a wallet (useful for stuck deposits)
+  public async reinitiateMonitoring(wallet: walletAttributes) {
+    console.log(`[INFO] Re-initiating monitoring for wallet ${wallet.id}`);
 
-    let retryCount = 0;
-    const checkWalletForDeposits = async () => {
+    // First, clean up any existing monitoring
+    await this.unmonitorMoneroDeposits(wallet.id);
+
+    // Clear any processed transactions for this wallet to allow reprocessing
+    const txKeys = Array.from(MoneroService.processedTransactions.keys());
+
+    // Wait a bit to ensure cleanup
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Re-add the wallet with fresh retry count
+    await this.monitorMoneroDeposits(wallet);
+  }
+
+  private async startGlobalMonitoringProcessor(): Promise<void> {
+    if (MoneroService.isProcessingGlobalQueue) return;
+
+    MoneroService.isProcessingGlobalQueue = true;
+    console.log("[INFO] Started global Monero wallet monitoring processor");
+
+    while (MoneroService.globalMonitoringQueue.length > 0 || MoneroService.monitoredWallets.size > 0) {
+      try {
+        // Get all wallets that need checking
+        const walletsToCheck = Array.from(MoneroService.monitoredWallets.keys()).filter(walletId => {
+          const lastCheck = MoneroService.lastCheckTime.get(walletId) || 0;
+          const timeSinceLastCheck = Date.now() - lastCheck;
+          return MoneroService.walletMonitoringActive.get(walletId) && timeSinceLastCheck >= MoneroService.WALLET_CHECK_INTERVAL;
+        });
+
+        if (walletsToCheck.length > 0) {
+          // Process wallets in batches
+          for (let i = 0; i < walletsToCheck.length; i += MoneroService.BATCH_SIZE) {
+            const batch = walletsToCheck.slice(i, i + MoneroService.BATCH_SIZE);
+
+            // Process batch sequentially to avoid wallet RPC conflicts
+            for (const walletId of batch) {
+              await this.checkWalletForDeposits(walletId);
+            }
+          }
+        }
+
+        // Wait before next iteration
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error(`[ERROR] Global monitoring processor error: ${error.message}`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+
+    MoneroService.isProcessingGlobalQueue = false;
+    console.log("[INFO] Stopped global Monero wallet monitoring processor");
+  }
+
+  private async checkWalletForDeposits(walletId: string): Promise<void> {
+    const wallet = MoneroService.monitoredWallets.get(walletId);
+    if (!wallet || !MoneroService.walletMonitoringActive.get(walletId)) return;
+
+    MoneroService.lastCheckTime.set(walletId, Date.now());
+    let retryCount = MoneroService.walletRetryCount.get(walletId) || 0;
+
+    const processWallet = async () => {
+      let transfers: any;
+      let hasUnprocessedTransactions = false;
+
       try {
         await MoneroService.addToQueue(async () => {
           await this.openWallet(wallet.id);
-          console.log(`[INFO] Checking deposits for wallet ${wallet.id}`);
-          const transfers = await this.makeWalletRpcCall("get_transfers", {
+          console.log(`[INFO] Checking deposits for wallet ${wallet.id} (retry ${retryCount}/${MoneroService.MAX_RETRIES})`);
+          transfers = await this.makeWalletRpcCall("get_transfers", {
             in: true,
             pending: true,
             account_index: 0,
           });
 
+          // Process incoming transactions
+          hasUnprocessedTransactions = false;
           if (transfers.result?.in && transfers.result.in.length > 0) {
+            let hasConfirmedDeposit = false;
             for (const tx of transfers.result.in) {
+              // Check wallet-specific transaction key for pay-to-many support
+              const walletTxKey = `${wallet.id}-${tx.txid}`;
+
               if (
                 tx.confirmations >= MoneroService.MIN_CONFIRMATIONS &&
-                !MoneroService.processedTransactions.has(tx.txid)
+                !MoneroService.processedTransactions.has(walletTxKey)
               ) {
                 console.log(
                   `[INFO] Found confirmed deposit for wallet ${wallet.id} with transaction ${tx.txid}`
@@ -278,42 +382,139 @@ class MoneroService {
                 );
                 if (depositProcessed) {
                   console.log(
-                    `[INFO] Deposit processed for transaction ${tx.txid}. Continuing monitoring for wallet ${wallet.id}.`
+                    `[INFO] Deposit processed for transaction ${tx.txid}. Resetting retry count for wallet ${wallet.id}.`
                   );
-                  retryCount = 0;
+                  hasConfirmedDeposit = true;
+                  // Reset retry count after successful deposit
+                  MoneroService.walletRetryCount.set(wallet.id, 0);
                 }
               } else if (tx.confirmations < MoneroService.MIN_CONFIRMATIONS) {
+                // Transaction is still pending confirmations
+                hasUnprocessedTransactions = true;
                 console.log(
                   `[INFO] Transaction ${tx.txid} for wallet ${wallet.id} has ${tx.confirmations} confirmations.`
                 );
+
+                // Check if we need to broadcast an update (either first time or confirmation count changed)
+                // Use wallet-specific key for pay-to-many support
+                const lastConfirmationKey = `confirmations-${wallet.id}-${tx.txid}`;
+                const lastBroadcastedConfirmations = MoneroService.processedTransactions.get(lastConfirmationKey);
+
+                if (storeAndBroadcastTransaction &&
+                    (!lastBroadcastedConfirmations || lastBroadcastedConfirmations !== tx.confirmations)) {
+                  try {
+                    const pendingTxData = {
+                      walletId: wallet.id,
+                      chain: "XMR",
+                      hash: tx.txid,
+                      transactionHash: tx.txid,
+                      type: "pending_confirmation",
+                      from: "N/A",
+                      address: wallet.address ? JSON.parse(wallet.address as any)?.XMR?.address : "N/A",
+                      amount: tx.amount / 1e12, // Convert from piconero to XMR
+                      fee: tx.fee ? tx.fee / 1e12 : 0,
+                      confirmations: tx.confirmations,
+                      requiredConfirmations: MoneroService.MIN_CONFIRMATIONS,
+                      status: "PENDING",
+                    };
+
+                    // Broadcast the pending transaction status
+                    await storeAndBroadcastTransaction(pendingTxData, tx.txid, true); // true indicates pending
+
+                    // Store the confirmation count we just broadcasted
+                    MoneroService.processedTransactions.set(lastConfirmationKey, tx.confirmations);
+
+                    console.log(`[INFO] Broadcasted pending transaction ${tx.txid} with ${tx.confirmations}/${MoneroService.MIN_CONFIRMATIONS} confirmations`);
+                  } catch (error) {
+                    console.error(`[ERROR] Failed to broadcast pending transaction ${tx.txid}:`, error);
+                  }
+                }
               }
             }
-          } else {
+          }
+
+          // Also check pending transactions (they might have 0 confirmations initially)
+          if (transfers.result?.pending && transfers.result.pending.length > 0) {
+            hasUnprocessedTransactions = true; // Pending transactions exist
+            for (const tx of transfers.result.pending) {
+              console.log(
+                `[INFO] Pending transaction ${tx.txid} for wallet ${wallet.id} detected (0 confirmations).`
+              );
+
+              // Broadcast pending transaction with 0 confirmations
+              // Use wallet-specific key for pay-to-many support
+              const lastConfirmationKey = `confirmations-${wallet.id}-${tx.txid}`;
+              const lastBroadcastedConfirmations = MoneroService.processedTransactions.get(lastConfirmationKey);
+
+              if (storeAndBroadcastTransaction &&
+                  (!lastBroadcastedConfirmations || lastBroadcastedConfirmations !== 0)) {
+                try {
+                  const pendingTxData = {
+                    walletId: wallet.id,
+                    chain: "XMR",
+                    hash: tx.txid,
+                    transactionHash: tx.txid,
+                    type: "pending_confirmation",
+                    from: "N/A",
+                    address: wallet.address ? JSON.parse(wallet.address as any)?.XMR?.address : "N/A",
+                    amount: tx.amount / 1e12,
+                    fee: tx.fee ? tx.fee / 1e12 : 0,
+                    confirmations: 0,
+                    requiredConfirmations: MoneroService.MIN_CONFIRMATIONS,
+                    status: "PENDING",
+                  };
+
+                  await storeAndBroadcastTransaction(pendingTxData, tx.txid, true);
+                  MoneroService.processedTransactions.set(lastConfirmationKey, 0);
+
+                  console.log(`[INFO] Broadcasted pending transaction ${tx.txid} with 0/${MoneroService.MIN_CONFIRMATIONS} confirmations`);
+                } catch (error) {
+                  console.error(`[ERROR] Failed to broadcast pending transaction ${tx.txid}:`, error);
+                }
+              }
+            }
+          } else if (!transfers.result?.in || transfers.result.in.length === 0) {
             console.log(`[INFO] No deposits found for wallet ${wallet.id}`);
           }
+
           await this.closeWallet();
         });
 
-        retryCount++;
-        if (
-          retryCount < MoneroService.MAX_RETRIES &&
-          MoneroService.monitoredWallets.has(wallet.id)
-        ) {
-          setTimeout(checkWalletForDeposits, MoneroService.RETRY_INTERVAL);
-        } else if (retryCount >= MoneroService.MAX_RETRIES) {
+        // If no unprocessed transactions remain, stop monitoring this wallet
+        if (!hasUnprocessedTransactions &&
+            (!transfers.result?.in || transfers.result.in.length === 0) &&
+            (!transfers.result?.pending || transfers.result.pending.length === 0)) {
           console.log(
-            `[INFO] Max retries reached for wallet ${wallet.id}. Removing from monitored wallets.`
+            `[INFO] All deposits processed for wallet ${wallet.id}. Stopping monitoring.`
           );
           await this.unmonitorMoneroDeposits(wallet.id);
+          return; // Exit early, no need to continue
+        }
+
+        // Increment retry count
+        retryCount++;
+        MoneroService.walletRetryCount.set(wallet.id, retryCount);
+
+        // Check if we should continue monitoring
+        if (retryCount >= MoneroService.MAX_RETRIES) {
+          console.log(
+            `[INFO] Max retries (${MoneroService.MAX_RETRIES}) reached for wallet ${wallet.id}. Removing from monitored wallets.`
+          );
+          await this.unmonitorMoneroDeposits(wallet.id);
+        } else {
+          console.log(`[INFO] Wallet ${wallet.id} will be checked again (retry ${retryCount}/${MoneroService.MAX_RETRIES})`);
         }
       } catch (error) {
         console.error(
           `[ERROR] Error processing wallet ${wallet.id}: ${error.message}`
         );
+        // Increment retry count on error too
+        retryCount++;
+        MoneroService.walletRetryCount.set(wallet.id, retryCount);
       }
     };
 
-    checkWalletForDeposits();
+    await processWallet();
   }
 
   private async processMoneroTransaction(
@@ -329,9 +530,16 @@ class MoneroService {
       await MoneroService.addToQueue(async () => {
         await this.openWallet(wallet.id);
 
-        if (!MoneroService.processedTransactions.has(transactionHash)) {
+        // Check if this specific wallet+transaction combination was processed
+        // XMR supports pay-to-many, so same txid can have multiple recipients
+        const walletTxKey = `${wallet.id}-${transactionHash}`;
+        if (!MoneroService.processedTransactions.has(walletTxKey)) {
           const existingTransaction = await models.transaction.findOne({
-            where: { trxId: transactionHash, status: "COMPLETED" },
+            where: {
+              trxId: transactionHash,
+              walletId: wallet.id,  // Check per wallet for pay-to-many support
+              status: "COMPLETED"
+            },
           });
           if (!existingTransaction) {
             const transactionInfo = await this.makeWalletRpcCall(
@@ -374,8 +582,9 @@ class MoneroService {
               };
 
               await storeAndBroadcastTransaction(txData, transactionHash);
+              // Store wallet-specific transaction key for pay-to-many support
               MoneroService.processedTransactions.set(
-                transactionHash,
+                walletTxKey,
                 Date.now()
               );
               transactionProcessed = true;
@@ -385,8 +594,9 @@ class MoneroService {
               );
             }
           } else {
+            // Already exists in DB, mark as processed for this wallet
             MoneroService.processedTransactions.set(
-              transactionHash,
+              walletTxKey,
               Date.now()
             );
           }
@@ -704,21 +914,63 @@ class MoneroService {
             const unlockedBalance =
               balanceResponse.result?.unlocked_balance / 1e12;
 
-            if (totalBalance < amount) {
+            // Get transaction details to extract fee information
+            const transaction = await models.transaction.findOne({
+              where: { id: transactionId },
+              include: [{
+                model: models.wallet,
+                as: "wallet",
+                where: { type: "ECO" }
+              }]
+            });
+
+            if (!transaction) {
+              throw new Error("Transaction not found");
+            }
+
+            // Get fee from transaction (already calculated and deducted in index.post.ts)
+            const withdrawalFee = transaction.fee || 0;
+
+            // IMPORTANT: The fees have already been deducted from the wallet balance in index.post.ts
+            // The transaction.amount is the net amount to send to user
+            // The transaction.fee includes both withdrawal fee and network fee
+            // We need to split the fee between admin profit and network cost
+
+            // Estimate network fee to know how much goes to admin
+            const estimatedNetworkFee = await this.estimateMoneroFee();
+            const adminProfit = Math.max(0, withdrawalFee - estimatedNetworkFee);
+
+            // The total we'll spend in this transaction (amount to user + admin profit)
+            // Network fee is automatically deducted by Monero
+            const totalToSend = amount + adminProfit;
+            const totalWithNetworkFee = totalToSend + estimatedNetworkFee;
+
+            console.log(`[XMR_WITHDRAW] Withdrawal details:`, {
+              userAmount: amount,
+              totalFeeCharged: withdrawalFee,
+              estimatedNetworkFee,
+              adminProfit,
+              totalToSend,
+              totalWithNetworkFee,
+              walletBalance: totalBalance
+            });
+
+            // Check if we have enough balance (should already be checked, but verify)
+            if (totalBalance < totalWithNetworkFee) {
               console.error(
-                `[ERROR] Insufficient funds in wallet ${walletId}.`
+                `[ERROR] Insufficient funds in wallet ${walletId}. Need ${totalWithNetworkFee} XMR, have ${totalBalance} XMR`
               );
               await models.transaction.update(
                 {
                   status: "FAILED",
-                  description: "Insufficient funds.",
+                  description: `Insufficient funds. Need ${totalWithNetworkFee} XMR`,
                 },
                 { where: { id: transactionId } }
               );
               throw new Error("Insufficient funds.");
             }
 
-            if (unlockedBalance < amount) {
+            if (unlockedBalance < totalWithNetworkFee) {
               console.log(
                 `[INFO] Funds locked for wallet ${walletId}. Requeuing transaction ${transactionId}.`
               );
@@ -742,10 +994,41 @@ class MoneroService {
               return;
             }
 
+            // Prepare batch transfer destinations
+            const destinations = [
+              { amount: Math.round(amount * 1e12), address: toAddress }
+            ];
+
+            // If there's admin profit (withdrawal fee minus network fee), send to admin
+            if (adminProfit > 0) {
+              const adminMasterWallet = await models.ecosystemMasterWallet.findOne({
+                where: {
+                  chain: "XMR",
+                  currency: transaction.wallet.currency,
+                  status: true
+                }
+              });
+
+              if (adminMasterWallet) {
+                console.log(`[XMR_WITHDRAW] Adding admin profit to batch transfer:`, {
+                  adminAddress: adminMasterWallet.address.substring(0, 10) + '...',
+                  adminProfit,
+                  originalFee: withdrawalFee,
+                  networkFee: estimatedNetworkFee
+                });
+                destinations.push({
+                  amount: Math.round(adminProfit * 1e12),
+                  address: adminMasterWallet.address
+                });
+              } else {
+                console.warn(`[XMR_WITHDRAW] No admin master wallet found for XMR/${transaction.wallet.currency}, admin profit of ${adminProfit} XMR will be kept in user wallet`);
+              }
+            }
+
+            // Execute batch transfer
+            console.log(`[XMR_WITHDRAW] Executing batch transfer with ${destinations.length} destinations`);
             const transferResponse = await this.makeWalletRpcCall("transfer", {
-              destinations: [
-                { amount: Math.round(amount * 1e12), address: toAddress },
-              ],
+              destinations,
               priority: priority,
             });
 
@@ -753,16 +1036,41 @@ class MoneroService {
               throw new Error("Failed to execute Monero transaction.");
             }
 
-                      await models.transaction.update(
-            {
-              status: "COMPLETED",
-              trxId: transferResponse.result.tx_hash,
-            },
-            { where: { id: transactionId } }
-          );
+            // Update transaction status
+            await models.transaction.update(
+              {
+                status: "COMPLETED",
+                trxId: transferResponse.result.tx_hash,
+                description: `Withdrawal of ${amount} XMR to ${toAddress} completed. Tx: ${transferResponse.result.tx_hash}`,
+              },
+              { where: { id: transactionId } }
+            );
+
+            // Record admin profit if collected (profit = total fee - network fee)
+            if (adminProfit > 0) {
+              const adminMasterWallet = await models.ecosystemMasterWallet.findOne({
+                where: {
+                  chain: "XMR",
+                  currency: transaction.wallet.currency,
+                  status: true
+                }
+              });
+
+              if (adminMasterWallet) {
+                await models.adminProfit.create({
+                  amount: adminProfit,
+                  currency: transaction.wallet.currency,
+                  chain: "XMR",
+                  type: "WITHDRAW",
+                  transactionId: transaction.id,
+                  description: `Admin profit from XMR withdrawal: ${adminProfit} ${transaction.wallet.currency} (total fee: ${withdrawalFee}, network fee: ${estimatedNetworkFee}) for transaction (${transaction.id})`,
+                });
+                console.log(`[XMR_WITHDRAW] Admin profit recorded: ${adminProfit} ${transaction.wallet.currency}`);
+              }
+            }
 
             console.log(
-              `[SUCCESS] Withdrawal for transaction ${transactionId} completed.`
+              `[SUCCESS] Withdrawal for transaction ${transactionId} completed with tx hash: ${transferResponse.result.tx_hash}`
             );
           });
 
