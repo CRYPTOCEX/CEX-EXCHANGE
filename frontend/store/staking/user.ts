@@ -196,6 +196,12 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
 
   // Helper function to enrich position data with pool information
   enrichPositionData: (positions) => {
+    // Safety check: ensure positions is an array
+    if (!Array.isArray(positions)) {
+      console.error("enrichPositionData received non-array:", positions);
+      return [];
+    }
+
     return positions.map((position) => {
       // Use actual pool data from the position if it's already included
       if (position.pool) {
@@ -210,7 +216,7 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
           icon: position.pool.icon || `/img/crypto/${position.pool.symbol.toLowerCase()}.svg`,
         };
       }
-      
+
       // Fallback if pool data is not included (shouldn't happen with proper includes)
       return {
         ...position,
@@ -241,7 +247,9 @@ export const userStakingStore = create<UserStakingState>((set, get) => ({
       set({ error, isLoading: false });
       return;
     }
-    const enrichedPositions = get().enrichPositionData(data || []);
+    // Ensure data is always an array before passing to enrichPositionData
+    const positionsArray = Array.isArray(data) ? data : [];
+    const enrichedPositions = get().enrichPositionData(positionsArray);
     set({ positions: enrichedPositions, isLoading: false });
   },
 

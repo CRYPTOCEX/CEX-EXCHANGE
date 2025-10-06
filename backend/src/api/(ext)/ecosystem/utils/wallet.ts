@@ -256,6 +256,7 @@ export const storeWallet = async (user, currency) => {
         balance: 0,
         inOrder: 0,
         status: true,
+        address: JSON.stringify({}), // Initialize with empty addresses object
       },
       { transaction }
     );
@@ -1403,6 +1404,45 @@ export const handleEcosystemDeposit = async (trx) => {
         outputs: trx.outputs,
       }),
     });
+
+    // Save UTXOs for UTXO-based chains (BTC, LTC, DOGE, DASH)
+    if (utxoChains.includes(trx.chain) && trx.outputs && Array.isArray(trx.outputs)) {
+      console.log(`[UTXO_SAVE] Saving UTXOs for ${trx.chain} transaction ${trx.hash}`);
+
+      // Filter outputs that belong to this wallet's address
+      const walletAddress = chainAddress.address;
+      const walletOutputs = trx.outputs.filter(output =>
+        output.addresses && output.addresses.includes(walletAddress)
+      );
+
+      console.log(`[UTXO_SAVE] Found ${walletOutputs.length} outputs for wallet address ${walletAddress}`);
+
+      // Save each UTXO to the database
+      for (let i = 0; i < trx.outputs.length; i++) {
+        const output = trx.outputs[i];
+
+        // Only save outputs that belong to this wallet
+        if (output.addresses && output.addresses.includes(walletAddress)) {
+          try {
+            await models.ecosystemUtxo.create({
+              walletId: wallet.id,
+              transactionId: trx.hash,
+              index: i,
+              amount: parseFloat(output.value),
+              script: output.script || '',
+              status: false, // false = unspent
+            });
+
+            console.log(`[UTXO_SAVE] Saved UTXO: ${trx.hash}:${i} amount=${output.value} ${wallet.currency}`);
+          } catch (utxoError) {
+            console.error(`[UTXO_SAVE] Failed to save UTXO ${trx.hash}:${i}: ${utxoError.message}`);
+            // Don't throw - continue processing other UTXOs
+          }
+        }
+      }
+
+      console.log(`[UTXO_SAVE] Completed UTXO save for transaction ${trx.hash}`);
+    }
 
     const updatedWallet = await models.wallet.findOne({
       where: { id: wallet.id },

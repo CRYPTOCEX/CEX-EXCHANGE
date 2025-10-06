@@ -1,5 +1,4 @@
 import { models } from "@b/db";
-import { RedisSingleton } from "@b/utils/redis";
 
 export const metadata = {
   summary: "Get default page content",
@@ -250,13 +249,10 @@ export default async (data) => {
   const { params, query } = data;
   const { pageId } = params;
   const { pageSource = 'default' } = query;
-  
-  // Create cache key
-  const cacheKey = `content:${pageId}:${pageSource}`;
 
   const validPageIds = ['home', 'about', 'privacy', 'terms', 'contact'];
   const validPageSources = ['default', 'builder'];
-  
+
   if (!validPageIds.includes(pageId)) {
     return {
       error: "Invalid page ID",
@@ -272,19 +268,7 @@ export default async (data) => {
   }
 
   try {
-    // Try to get from cache first
-    const redis = RedisSingleton.getInstance();
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch (cacheError) {
-      // Continue without cache
-      console.log("Cache miss or error:", cacheError);
-    }
-    
-    // Try to get existing page from database
+    // Always fetch fresh data from database
     const page = await models.defaultPage.findOne({
       where: { pageId, pageSource }
     });
@@ -361,15 +345,8 @@ export default async (data) => {
       status: page.status,
       lastModified: page.updatedAt.toISOString()
     };
-    
-    // Cache the result for 5 minutes
-    try {
-      await redis.setex(cacheKey, 300, JSON.stringify(result));
-    } catch (cacheError) {
-      // Continue without caching
-      console.log("Failed to cache:", cacheError);
-    }
-    
+
+    // No caching - always return fresh data
     return result;
 
   } catch (error) {

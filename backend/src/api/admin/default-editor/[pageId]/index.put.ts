@@ -1,5 +1,4 @@
 import { models } from "@b/db";
-import { RedisSingleton } from "@b/utils/redis";
 
 export const metadata = {
   summary: "Update default page content",
@@ -153,19 +152,8 @@ export default async (data) => {
         meta: meta || {},
         status: status || 'active'
       });
-      
-      // Clear cache for this new page
-      try {
-        const redis = RedisSingleton.getInstance();
-        await redis.del(`page:${pageId}:default`);
-        await redis.del(`page:${pageId}:builder`);
-        await redis.del(`page:${pageId}`);
-        await redis.del(`content:${pageId}:default`);
-        await redis.del(`content:${pageId}:builder`);
-      } catch (cacheError) {
-        console.error("Failed to clear cache:", cacheError);
-      }
 
+      // No caching - data is always fresh
       return {
         success: true,
         lastModified: newPage.updatedAt.toISOString(),
@@ -211,22 +199,8 @@ export default async (data) => {
     updateData.updatedAt = new Date();
 
     await existingPage.update(updateData);
-    
-    // Clear cache for this page
-    try {
-      const redis = RedisSingleton.getInstance();
-      // Clear cache for both sources to ensure fresh content
-      await redis.del(`page:${pageId}:default`);
-      await redis.del(`page:${pageId}:builder`);
-      // Also clear any generic page cache keys
-      await redis.del(`page:${pageId}`);
-      await redis.del(`content:${pageId}:default`);
-      await redis.del(`content:${pageId}:builder`);
-    } catch (cacheError) {
-      console.error("Failed to clear cache:", cacheError);
-      // Don't fail the request if cache clearing fails
-    }
 
+    // No caching - data is always fresh
     return {
       success: true,
       lastModified: existingPage.updatedAt.toISOString(),

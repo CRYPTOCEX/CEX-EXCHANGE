@@ -5,15 +5,21 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 import { createError } from "@b/utils/error";
+import { getEcosystemWalletUtils, isServiceAvailable } from "@b/utils/safe-imports";
+
 // Safe import for wallet utils (only available if extension is installed)
 async function getWalletByUserIdAndCurrency(userId: string | number, currency: string) {
-  try {
-    // @ts-ignore - Dynamic import for optional extension
-    const module = await import("@b/api/(ext)/ecosystem/utils/wallet");
-    return module.getWalletByUserIdAndCurrency(userId, currency);
-  } catch (error) {
+  const walletUtils = await getEcosystemWalletUtils();
+
+  if (!isServiceAvailable(walletUtils)) {
     throw new Error("Ecosystem wallet extension is not installed or available");
   }
+
+  if (typeof walletUtils.getWalletByUserIdAndCurrency !== 'function') {
+    throw new Error("getWalletByUserIdAndCurrency function not found");
+  }
+
+  return walletUtils.getWalletByUserIdAndCurrency(userId, currency);
 }
 import {
   calculateNewBalance,

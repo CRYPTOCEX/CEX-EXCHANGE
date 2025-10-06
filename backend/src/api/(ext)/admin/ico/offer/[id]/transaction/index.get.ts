@@ -61,7 +61,7 @@ export default async (data: Handler) => {
         literal(`(
           SELECT COALESCE(SUM(t.price * t.amount), 0)
           FROM ico_transaction t
-          WHERE t.offeringId = icoTokenOffering.id
+          WHERE t.offeringId = icoTransaction.offeringId
             AND t.status IN ('PENDING', 'RELEASED')
         )`),
         "currentRaised",

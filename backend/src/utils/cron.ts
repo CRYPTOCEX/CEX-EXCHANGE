@@ -484,59 +484,82 @@ export const createWorker = async (
   concurrency: number = 1 // default concurrency set to 1; adjust as needed
 ) => {
   const cronJobManager = await CronJobManager.getInstance();
-  const queue = new Queue(name, {
-    connection: {
-      host: "127.0.0.1",
-      port: 6379,
-    },
-  });
 
-  // Worker with added concurrency option
-  new Worker(
-    name,
-    async (job) => {
-      const startTime = Date.now();
-      try {
-        // Set job status to running when it starts
-        cronJobManager.updateJobRunningStatus(name, "running", 0);
-        
-        await handler();
-        
-        const executionTime = Date.now() - startTime;
-        const nextScheduledRun = new Date(Date.now() + period);
-        cronJobManager.updateJobStatus(
-          name,
-          new Date(startTime),
-          null,
-          executionTime,
-          nextScheduledRun
-        );
-      } catch (error: any) {
-        const executionTime = Date.now() - startTime;
-        const nextScheduledRun = new Date(Date.now() + period);
-        cronJobManager.updateJobStatus(
-          name,
-          new Date(startTime),
-          error.message,
-          executionTime,
-          nextScheduledRun
-        );
-        logError("worker", error, __filename);
-        throw error;
-      }
-    },
-    {
+  try {
+    const queue = new Queue(name, {
       connection: {
         host: "127.0.0.1",
         port: 6379,
       },
-      concurrency, // worker concurrency
-    }
-  );
+    });
 
-  // Use a deterministic jobId to prevent duplicate scheduling and add a backoff strategy for retries.
-  queue
-    .add(
+    // Test Redis connection before creating worker
+    await queue.waitUntilReady();
+
+    // Worker with added concurrency option
+    const worker = new Worker(
+      name,
+      async (job) => {
+        const startTime = Date.now();
+        try {
+          // Set job status to running when it starts
+          cronJobManager.updateJobRunningStatus(name, "running", 0);
+
+          // Broadcast status change to WebSocket clients
+          broadcastStatus(name, "running");
+
+          await handler();
+
+          const executionTime = Date.now() - startTime;
+          const nextScheduledRun = new Date(Date.now() + period);
+          cronJobManager.updateJobStatus(
+            name,
+            new Date(startTime),
+            null,
+            executionTime,
+            nextScheduledRun
+          );
+
+          // Broadcast completion status
+          broadcastStatus(name, "completed", { duration: executionTime });
+        } catch (error: any) {
+          const executionTime = Date.now() - startTime;
+          const nextScheduledRun = new Date(Date.now() + period);
+          cronJobManager.updateJobStatus(
+            name,
+            new Date(startTime),
+            error.message,
+            executionTime,
+            nextScheduledRun
+          );
+
+          // Broadcast failure status
+          broadcastStatus(name, "failed");
+          logError("worker", error, __filename);
+          throw error;
+        }
+      },
+      {
+        connection: {
+          host: "127.0.0.1",
+          port: 6379,
+        },
+        concurrency, // worker concurrency
+      }
+    );
+
+    // Listen for worker errors
+    worker.on('error', (error) => {
+      console.error(`\x1b[31mWorker ${name} error: ${error.message}\x1b[0m`);
+      logError(`worker-${name}`, error, __filename);
+    });
+
+    worker.on('failed', (job, error) => {
+      console.error(`\x1b[31mJob ${name} failed: ${error.message}\x1b[0m`);
+    });
+
+    // Use a deterministic jobId to prevent duplicate scheduling and add a backoff strategy for retries.
+    await queue.add(
       name,
       {},
       {
@@ -544,10 +567,15 @@ export const createWorker = async (
         repeat: { every: period, startDate: new Date(Date.now() - period) },
         backoff: { type: "exponential", delay: Math.floor(period / 2) },
       }
-    )
-    .catch((error) => {
-      logError("queue", error, __filename);
-    });
+    );
+
+    console.log(`\x1b[32mCron worker ${name} successfully scheduled\x1b[0m`);
+  } catch (error: any) {
+    console.error(`\x1b[31mFailed to create cron worker ${name}: ${error.message}\x1b[0m`);
+    console.error(`\x1b[33mMake sure Redis is running on 127.0.0.1:6379\x1b[0m`);
+    logError(`createWorker-${name}`, error, __filename);
+    throw error;
+  }
 };
 export async function fetchFiatCurrencyPrices() {
   const cronName = "fetchFiatCurrencyPrices";
@@ -602,7 +630,7 @@ async function fetchOpenExchangeRates(baseCurrency: string) {
   const frankfurterApiUrl = `https://api.frankfurter.app/latest?from=${baseCurrency}`;
 
   try {
-    const data = await fetchWithTimeout(openExchangeRatesUrl);
+    const data = await fetchWithTimeout(openExchangeRatesUrl, 30000); // Increase timeout to 30 seconds
     broadcastLog(cronName, "Data fetched from OpenExchangeRates API");
     if (data && data.rates) {
       await updateRatesFromData(data.rates);
@@ -625,7 +653,7 @@ async function fetchOpenExchangeRates(baseCurrency: string) {
     );
     broadcastLog(cronName, "Attempting fallback with Frankfurter API");
     try {
-      const data = await fetchWithTimeout(frankfurterApiUrl);
+      const data = await fetchWithTimeout(frankfurterApiUrl, 30000); // Increase timeout to 30 seconds
       broadcastLog(cronName, "Data fetched from Frankfurter API");
       if (data && data.rates) {
         await updateRatesFromData(data.rates);
@@ -662,10 +690,15 @@ async function fetchExchangeRateApi(baseCurrency: string) {
     `Starting ExchangeRate API call with baseCurrency: ${baseCurrency}`
   );
   const exchangeRateApiKey = process.env.APP_EXCHANGERATE_API_KEY;
+
+  if (!exchangeRateApiKey) {
+    throw new Error("APP_EXCHANGERATE_API_KEY is not configured in environment variables");
+  }
+
   const exchangeRateApiUrl = `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/latest/${baseCurrency}`;
 
   try {
-    const data = await fetchWithTimeout(exchangeRateApiUrl);
+    const data = await fetchWithTimeout(exchangeRateApiUrl, 30000); // Increase timeout to 30 seconds
     broadcastLog(cronName, "Data fetched from ExchangeRate API");
     if (data && data.conversion_rates) {
       await updateRatesFromData(data.conversion_rates);

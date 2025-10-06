@@ -68,13 +68,16 @@ export async function getBitcoinNodeService(): Promise<any> {
   return bitcoinNodeService;
 }
 
+// Cached ecosystem wallet utils
+let ecosystemWalletUtils: any = null;
+let ecosystemWalletUtilsChecked = false;
+
 export async function getEcosystemWalletUtils(): Promise<any> {
-  try {
-    const module = await import('@b/api/(ext)/ecosystem/utils/wallet');
-    return module;
-  } catch (error) {
-    return null;
+  if (!ecosystemWalletUtilsChecked) {
+    ecosystemWalletUtils = await safeImport('@b/api/(ext)/ecosystem/utils/wallet');
+    ecosystemWalletUtilsChecked = true;
   }
+  return ecosystemWalletUtils;
 }
 
 // Helper function to check if a service is available

@@ -245,7 +245,7 @@ class BTCDepositScanner {
         }
 
         // Get full transaction details
-        const txDetails = await this.nodeService!.getTransaction(tx.txid);
+        const txDetails = await this.nodeService!.getRawTransaction(tx.txid);
 
         if (txDetails.confirmations >= REQUIRED_CONFIRMATIONS) {
           // Process confirmed deposit

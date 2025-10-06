@@ -76,7 +76,8 @@ export const fetchTokenHolders = async (
       return cachedData;
     }
 
-    const apiUrl = `https://${networkConfig.explorer}/api?module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc&apikey=${apiKey}`;
+    const chainIdParam = networkConfig.chainId ? `&chainid=${networkConfig.chainId}` : "";
+    const apiUrl = `https://${networkConfig.explorer}/v2/api?module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc${chainIdParam}&apikey=${apiKey}`;
 
     let data;
     try {
@@ -87,6 +88,12 @@ export const fetchTokenHolders = async (
       throw new Error(
         "Failed to fetch token holders. Please check the API connection."
       );
+    }
+
+    // Handle API errors gracefully
+    if (data.status === "0" && data.message === "NOTOK") {
+      console.error(`[ETHERSCAN_API_ERROR] Token holders for ${contract}: ${data.result}`);
+      return {}; // Return empty holders object
     }
 
     if (data.status !== "1") {

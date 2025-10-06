@@ -36,9 +36,24 @@ import { useTranslations } from "next-intl";
 import { MobileAppSection } from "./components/mobile-app-section";
 import { getCryptoImageUrl } from "@/utils/image-fallback";
 import { useConfigStore } from "@/store/config";
+import { $fetch } from "@/lib/api";
+
+// Type definition for page content
+interface PageContent {
+  id: string;
+  pageId: string;
+  pageSource: string;
+  type: string;
+  title: string;
+  variables: Record<string, any>;
+  content: string;
+  meta: string;
+  status: string;
+  lastModified: string;
+}
 
 // Helper function to get text from database variables only (no translation fallback)
-const getContent = (pageContent: any, path: string, defaultValue: string = "") => {
+const getContent = (pageContent: PageContent | null, path: string, defaultValue: string = "") => {
   if (!pageContent?.variables) return defaultValue;
   
   const pathParts = path.split('.');
@@ -63,7 +78,7 @@ export default function DefaultHomePage() {
   const [tickers, setTickers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pageContent, setPageContent] = useState<any>(null);
+  const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const { user } = useUserStore();
@@ -74,59 +89,49 @@ export default function DefaultHomePage() {
 
   // Load page content from database
   useEffect(() => {
+    let isMounted = true;
+    let hasRun = false; // Prevent duplicate runs
+
     const fetchPageContent = async () => {
+      // Prevent duplicate execution
+      if (hasRun || !isMounted) return;
+      hasRun = true;
+
       try {
-        // Try both page sources to get the most recent content
-        const timestamp = new Date().getTime();
-        
-        // First try default source
-        const defaultRes = await fetch(`/api/content/default-page/home?pageSource=default&_t=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+        // Fetch only the default source (most common case)
+        // Only fetch builder if explicitly needed
+        const response = await $fetch<PageContent>({
+          url: `/api/content/default-page/home`,
+          method: "GET",
+          params: {
+            pageSource: 'default'
+          },
+          silent: true
         });
-        
-        // Then try builder source
-        const builderRes = await fetch(`/api/content/default-page/home?pageSource=builder&_t=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        
-        let defaultData = null;
-        let builderData = null;
-        
-        if (defaultRes.ok) {
-          defaultData = await defaultRes.json();
-        }
-        
-        if (builderRes.ok) {
-          builderData = await builderRes.json();
-        }
-        
-        // Use the most recently modified content
-        if (defaultData && builderData) {
-          const defaultTime = new Date(defaultData.lastModified || 0).getTime();
-          const builderTime = new Date(builderData.lastModified || 0).getTime();
-          setPageContent(builderTime > defaultTime ? builderData : defaultData);
-        } else if (defaultData) {
-          setPageContent(defaultData);
-        } else if (builderData) {
-          setPageContent(builderData);
+
+        if (!isMounted) return;
+
+        if (response.data) {
+          setPageContent(response.data);
         }
       } catch (error) {
-        console.error("Error loading page content:", error);
-        // Use default content if API fails
+        if (isMounted) {
+          console.error("Error loading page content:", error);
+        }
       }
     };
 
-    fetchPageContent();
+    // Use a small delay to debounce StrictMode double calls
+    const timeoutId = setTimeout(() => {
+      fetchPageContent();
+    }, 0);
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      hasRun = true;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -730,17 +735,17 @@ export default function DefaultHomePage() {
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200 dark:border-blue-800/50 rounded-full px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 mb-8"
               >
                 <Globe className="w-4 h-4" />
-                {getContent(pageContent, "global.global_platform", "Global Platform")}
+                {getContent(pageContent, "globalSection.badge", "Global Platform")}
               </motion.div>
 
               <AnimatedText
                 type="heading"
                 className="text-4xl md:text-5xl font-bold mb-6"
               >
-                {getContent(pageContent, "global.reliable", "Reliable")}
+                {getContent(pageContent, "globalSection.title", "Reliable")}
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                   {" "}
-                  {getContent(pageContent, "global.trading_platform", "Trading Platform")}
+                  {getContent(pageContent, "globalSection.subtitle", "Trading Platform")}
                 </span>
               </AnimatedText>
 
@@ -752,32 +757,39 @@ export default function DefaultHomePage() {
                   isDark ? "text-zinc-300" : "text-gray-600"
                 )}
               >
-                {getContent(pageContent, "global.experience_secure_cryptocurrency_security_measures", "Experience secure cryptocurrency trading with advanced security measures")}
+                {getContent(pageContent, "globalSection.description", "Experience secure cryptocurrency trading with advanced security measures and professional tools.")}
               </AnimatedText>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                {[
+                {(pageContent?.variables?.globalSection?.stats || [
                   {
-                    icon: Users,
+                    icon: "Users",
                     label: "User-Friendly",
                     value: "Easy Interface",
                   },
                   {
-                    icon: Globe,
+                    icon: "Globe",
                     label: "Global Access",
                     value: "Trade Anywhere",
                   },
                   {
-                    icon: Shield,
+                    icon: "Shield",
                     label: "Secure Trading",
                     value: "Protected Assets",
                   },
                   {
-                    icon: Award,
+                    icon: "Award",
                     label: "Quality Service",
                     value: "24/7 Support",
                   },
-                ].map((stat, index) => (
+                ]).map((stat, index) => {
+                  // Map icon strings to components
+                  const iconMap: Record<string, any> = {
+                    Users, Globe, Shield, Award, Zap, BarChart3, Target, DollarSign, LineChart
+                  };
+                  const IconComponent = iconMap[stat.icon] || Users;
+
+                  return (
                   <motion.div
                     key={stat.label}
                     initial={{ opacity: 0, y: 20 }}
@@ -791,7 +803,7 @@ export default function DefaultHomePage() {
                     )}
                   >
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                      <stat.icon className="w-6 h-6 text-white" />
+                      <IconComponent className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <div className="font-semibold">{stat.label}</div>
@@ -805,7 +817,8 @@ export default function DefaultHomePage() {
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </AnimatedSection>
 
@@ -822,18 +835,18 @@ export default function DefaultHomePage() {
 
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold mb-6">
-                    {getContent(pageContent, "global.platform_features", t("platform_features"))}
+                    {getContent(pageContent, "globalSection.platformFeatures.title", "Platform Features")}
                   </h3>
 
                   <div className="space-y-4">
-                    {[
+                    {(pageContent?.variables?.globalSection?.platformFeatures?.items || [
                       "Real-time market data and price feeds",
                       "Multiple order types for trading flexibility",
                       "Responsive web interface for all devices",
                       "Customer support and help resources",
                       "Secure wallet and account management",
                       "Professional charting and analysis tools",
-                    ].map((feature, index) => (
+                    ]).map((feature, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: -20 }}
@@ -870,28 +883,28 @@ export default function DefaultHomePage() {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200 dark:border-blue-800/50 rounded-full px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 mb-8"
             >
               <Target className="w-4 h-4" />
-              {getContent(pageContent, "testimonials.get_started", "Get Started")}
+              {getContent(pageContent, "gettingStarted.badge", "Get Started")}
             </motion.div>
 
             <AnimatedText
               type="heading"
               className="text-4xl md:text-5xl font-bold mb-6"
             >
-              {getContent(pageContent, "testimonials.start_your", "Start Your")}
+              {getContent(pageContent, "gettingStarted.title", "Start Your")}
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 {" "}
-                {getContent(pageContent, "testimonials.trading_journey", "Trading Journey")}
+                {getContent(pageContent, "gettingStarted.subtitle", "Trading Journey")}
               </span>
             </AnimatedText>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
+            {(pageContent?.variables?.gettingStarted?.steps || [
               {
                 title: "Create Account",
                 description:
                   "Sign up for your free trading account with email verification and secure password setup.",
-                icon: Users,
+                icon: "Users",
                 step: "01",
                 gradient: "from-blue-500 to-cyan-500",
               },
@@ -899,7 +912,7 @@ export default function DefaultHomePage() {
                 title: "Secure Your Wallet",
                 description:
                   "Set up your secure wallet with proper authentication and backup recovery methods.",
-                icon: Shield,
+                icon: "Shield",
                 step: "02",
                 gradient: "from-purple-500 to-pink-500",
               },
@@ -907,11 +920,18 @@ export default function DefaultHomePage() {
                 title: "Start Trading",
                 description:
                   "Explore markets, analyze charts, and execute your first trades with our intuitive platform.",
-                icon: BarChart3,
+                icon: "BarChart3",
                 step: "03",
                 gradient: "from-orange-500 to-red-500",
               },
-            ].map((step, index) => (
+            ]).map((step, index) => {
+              // Map icon strings to components
+              const iconMap: Record<string, any> = {
+                Users, Shield, BarChart3, Zap, Target, DollarSign, Award, Globe, LineChart
+              };
+              const IconComponent = iconMap[step.icon] || Users;
+
+              return (
               <AnimatedCard
                 key={step.title}
                 index={index}
@@ -934,7 +954,7 @@ export default function DefaultHomePage() {
                         step.gradient
                       )}
                     >
-                      <step.icon className="w-8 h-8" />
+                      <IconComponent className="w-8 h-8" />
                     </div>
                     <div className="text-4xl font-bold text-zinc-200 dark:text-zinc-700 transition-all duration-300 group-hover:text-zinc-300 dark:group-hover:text-zinc-600">
                       {step.step}
@@ -955,7 +975,8 @@ export default function DefaultHomePage() {
                   </p>
                 </div>
               </AnimatedCard>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -977,7 +998,7 @@ export default function DefaultHomePage() {
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm font-medium mb-8"
             >
               <Sparkles className="w-4 h-4" />
-              {getContent(pageContent, "cta.start_your_journey", "Start Your Journey")}
+              {getContent(pageContent, "cta.badge", "Start Your Journey")}
             </motion.div>
 
             <AnimatedText

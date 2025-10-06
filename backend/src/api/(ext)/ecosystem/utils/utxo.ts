@@ -632,7 +632,9 @@ async function createAndBroadcastTransaction(
       index: utxo.index,
       nonWitnessUtxo: Buffer.from(rawTxHex, "hex"),
     });
-    totalInputValue += utxo.amount;
+    // Convert UTXO amount from standard units to satoshis
+    const utxoAmountInSatoshis = standardUnitToSatoshi(utxo.amount, chain);
+    totalInputValue += utxoAmountInSatoshis;
 
     const keyPair = ECPair.fromWIF(decryptedData.privateKey, network);
     keyPairs.push({ index: psbt.inputCount - 1, keyPair });
@@ -799,11 +801,14 @@ async function recordChangeUtxo(txid, changeAmount, wallet, chain) {
     const changeOutputIndex = changeTxData.outputs.indexOf(changeOutput);
     const changeScript = changeOutput.script;
 
+    // changeAmount is in satoshis from the calculation, convert to standard units for database storage
+    const changeAmountInStandardUnits = satoshiToStandardUnit(changeAmount, chain);
+
     await models.ecosystemUtxo.create({
       walletId: wallet.id,
       transactionId: txid,
       index: changeOutputIndex,
-      amount: changeAmount,
+      amount: changeAmountInStandardUnits,
       script: changeScript,
       status: false,
     });

@@ -106,7 +106,15 @@ const getCachedData = async (cacheKey: string) => {
 
 const parseRawTransactions = (rawTransactions: any): ParsedTransaction[] => {
   if (!Array.isArray(rawTransactions?.result)) {
-    throw new Error(`Invalid raw transactions format`);
+    console.error('[TX_PARSE_ERROR] Invalid raw transactions format received:', {
+      type: typeof rawTransactions,
+      isArray: Array.isArray(rawTransactions),
+      hasResult: rawTransactions?.hasOwnProperty('result'),
+      resultType: typeof rawTransactions?.result,
+      keys: rawTransactions ? Object.keys(rawTransactions) : 'null',
+      sample: JSON.stringify(rawTransactions).substring(0, 500)
+    });
+    throw new Error(`Invalid raw transactions format: expected {result: array}, got ${typeof rawTransactions}`);
   }
 
   return rawTransactions.result.map((rawTx: any) => {
@@ -161,14 +169,24 @@ export const fetchGeneralEcosystemTransactions = async (
       `Unsupported or misconfigured network: ${networkName} for chain: ${chain}`
     );
   }
-  const url = `https://${
-    network.explorer
-  }/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${
+  // Use Etherscan V2 API endpoint with chainid parameter
+  const chainIdParam = network.chainId ? `&chainid=${network.chainId}` : "";
+  const url = `https://${network.explorer}/v2/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${chainIdParam}${
     hasExplorerApi ? `&apikey=${apiKey}` : ""
   }`;
+
   try {
     const response = await fetch(url);
-    return await response.json();
+    const data = await response.json();
+
+    // Handle API errors
+    if (data.status === "0" && data.message === "NOTOK") {
+      console.error(`[ETHERSCAN_API_ERROR] ${chain}: ${data.result}`);
+      // Return empty result set for addresses with no transactions
+      return { status: "1", message: "OK", result: [] };
+    }
+
+    return data;
   } catch (error) {
     logError("fetch_general_ecosystem_transactions", error, __filename);
     throw new Error(`API call failed: ${error.message}`);

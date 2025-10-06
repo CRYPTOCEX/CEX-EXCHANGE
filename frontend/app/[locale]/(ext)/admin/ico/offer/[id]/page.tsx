@@ -25,6 +25,7 @@ import {
   Shield,
   Star,
   Calendar,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -148,13 +149,12 @@ export default function OfferingDetailPage() {
     return <OfferingLoading />;
   }
   const progressPercentage =
-    ((offerMetrics?.currentRaised ?? 0) / offering.targetAmount) * 100;
+    ((offerMetrics?.currentRaised ?? 0) / (offering.targetAmount || 1)) * 100;
   return (
     <>
       <div className="min-h-screen pb-24">
         {/* Hero section with gradient background */}
-        <div className="relative overflow-hidden mb-12 min-h-[80vh] flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/70 to-primary-foreground/5 z-0"></div>
+        <div className="relative overflow-hidden mb-12 bg-gradient-to-br from-primary via-primary/90 to-primary/70 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -163,7 +163,7 @@ export default function OfferingDetailPage() {
           >
             <Link
               href="/admin/ico/offer"
-              className="text-sm text-background/70 hover:text-background mb-4 flex items-center w-fit"
+              className="text-sm text-white/80 hover:text-white mb-4 flex items-center w-fit"
             >
               <ArrowLeft className="mr-1 h-4 w-4" />
               {t("back_to_offerings")}
@@ -200,13 +200,13 @@ export default function OfferingDetailPage() {
               <div className="flex-grow">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                    <h1 className="text-3xl md:text-4xl font-bold text-background">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white">
                       {offering.name}
                     </h1>
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="outline"
-                        className="bg-background/20 backdrop-blur-sm text-background border-background/20 px-2.5 py-1"
+                        className="bg-white/20 backdrop-blur-sm text-white border-white/20 px-2.5 py-1"
                       >
                         {offering.symbol}
                       </Badge>
@@ -217,7 +217,7 @@ export default function OfferingDetailPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-8 w-8 bg-background/20 backdrop-blur-sm border-background/20 text-background hover:bg-background/30"
+                                className="h-8 w-8 bg-white/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/30"
                                 onClick={() =>
                                   window.open(offering.website, "_blank")
                                 }
@@ -234,96 +234,96 @@ export default function OfferingDetailPage() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 text-background/80 max-w-2xl">
+                <div className="mt-2 text-white/90 max-w-2xl">
                   {offering.tokenDetail?.description ||
                     "No description available."}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                    <div className="text-background/70 text-sm flex items-center gap-1.5">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div className="text-white/80 text-sm flex items-center gap-1.5">
                       <Layers className="h-3.5 w-3.5" />
                       <span>{t("token_price")}</span>
                     </div>
-                    <div className="text-background font-semibold mt-1 text-lg">
-                      / $
-                      {offering.tokenPrice.toFixed(4)}{" "}
+                    <div className="text-white font-semibold mt-1 text-lg">
+                      $
+                      {offering.tokenPrice?.toFixed(4) ?? "0.0000"}{" "}
                       <span className="text-sm font-normal">
-                        {offering.purchaseWalletCurrency}
+                        {offering.purchaseWalletCurrency ?? "N/A"}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                    <div className="text-background/70 text-sm flex items-center gap-1.5">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div className="text-white/80 text-sm flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" />
                       <span>{t("Participants")}</span>
                     </div>
-                    <div className="text-background font-semibold mt-1 text-lg">
-                      {offering.participants}
+                    <div className="text-white font-semibold mt-1 text-lg">
+                      {offering.participants ?? 0}
                     </div>
                   </div>
-                  <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                    <div className="text-background/70 text-sm flex items-center gap-1.5">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div className="text-white/80 text-sm flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{t("start_date")}</span>
                     </div>
-                    <div className="text-background font-semibold mt-1 text-lg">
-                      {formatDate(offering.startDate)}
+                    <div className="text-white font-semibold mt-1 text-lg">
+                      {offering.startDate ? formatDate(offering.startDate) : "N/A"}
                     </div>
                   </div>
-                  <div className="bg-background/10 backdrop-blur-sm rounded-lg p-3 border border-background/10">
-                    <div className="text-background/70 text-sm flex items-center gap-1.5">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                    <div className="text-white/80 text-sm flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />
                       <span>{t("end_date")}</span>
                     </div>
-                    <div className="text-background font-semibold mt-1 text-lg">
-                      {formatDate(offering.endDate)}
+                    <div className="text-white font-semibold mt-1 text-lg">
+                      {offering.endDate ? formatDate(offering.endDate) : "N/A"}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             {/* Progress Bar */}
-            <div className="mt-8 bg-background/20 backdrop-blur-sm rounded-lg p-4 border border-background/10">
+            <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-background">
+                  <h3 className="font-semibold text-white">
                     {t("fundraising_progress")}
                   </h3>
                   <Badge
                     variant="outline"
-                    className="bg-background/20 text-background border-background/20"
+                    className="bg-white/20 text-white border-white/20"
                   >
                     {progressPercentage.toFixed(1)}%
                   </Badge>
                 </div>
-                <div className="text-background flex items-center gap-1.5">
+                <div className="text-white flex items-center gap-1.5">
                   <span className="font-semibold">
-                    / $
+                    $
                     {(offerMetrics?.currentRaised ?? 0).toLocaleString()}
                   </span>
-                  <span className="text-background/70">
+                  <span className="text-white/80">
                     {t("of_$")}
-                    {offering.targetAmount.toLocaleString()}
+                    {(offering.targetAmount ?? 0).toLocaleString()}
                   </span>
                 </div>
               </div>
               <Progress
                 value={progressPercentage}
-                className="h-2.5 bg-background/20"
+                className="h-2.5 bg-white/20"
               />
               <div className="flex flex-wrap gap-4 mt-4 justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 text-background/80">
+                  <div className="flex items-center gap-1.5 text-white/80">
                     <Shield className="h-4 w-4" />
                     <span>{t("blockchain")}</span>
-                    <span className="font-medium text-background">
+                    <span className="font-medium text-white">
                       {offering.tokenDetail?.blockchain || "Not specified"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-background/80">
+                  <div className="flex items-center gap-1.5 text-white/80">
                     <Star className="h-4 w-4" />
                     <span>{t("token_type")}</span>
-                    <span className="font-medium text-background capitalize">
+                    <span className="font-medium text-white capitalize">
                       {offering.tokenDetail?.tokenType || "Not specified"}
                     </span>
                   </div>
@@ -332,7 +332,7 @@ export default function OfferingDetailPage() {
             </div>
           </motion.div>
         </div>
-        <div className="container mx-auto flex flex-col gap-6">
+        <div className="container mx-auto flex flex-col gap-6 relative z-20">
           {/* Alert for review notes */}
           {offering.reviewNotes && (
             <Alert
@@ -348,6 +348,76 @@ export default function OfferingDetailPage() {
               </AlertDescription>
             </Alert>
           )}
+
+          {/* Admin Action Buttons */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Actions</CardTitle>
+              <CardDescription>
+                Manage this ICO offering
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                {offering.status === "PENDING" && (
+                  <>
+                    <Button
+                      onClick={handleApprove}
+                      disabled={processingAction === "approve"}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      {processingAction === "approve" ? "Approving..." : "Approve Offering"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setRejectDialogOpen(true)}
+                      disabled={processingAction === "reject"}
+                    >
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      Reject Offering
+                    </Button>
+                  </>
+                )}
+
+                {["APPROVED", "ACTIVE"].includes(offering.status) && (
+                  <Button
+                    variant={offering.isPaused ? "default" : "outline"}
+                    onClick={handlePauseResume}
+                    disabled={processingAction === "pause" || processingAction === "resume"}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    {processingAction === "pause" || processingAction === "resume"
+                      ? "Processing..."
+                      : offering.isPaused
+                      ? "Resume Offering"
+                      : "Pause Offering"}
+                  </Button>
+                )}
+
+                {!offering.isFlagged ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setFlagDialogOpen(true)}
+                    disabled={processingAction === "flag"}
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Flag for Review
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handleFlagUnflag}
+                    disabled={processingAction === "unflag"}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    {processingAction === "unflag" ? "Unflagging..." : "Unflag"}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Funding progress chart */}
           {["ACTIVE", "SUCCESS", "FAILED"].includes(offering.status) && (
             <Card>

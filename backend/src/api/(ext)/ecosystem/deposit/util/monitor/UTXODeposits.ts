@@ -59,19 +59,26 @@ export class UTXODeposits implements IDepositMonitor {
         // Fetch all transactions for this address
         const transactions = await fetchUTXOTransactions(this.chain, this.address);
 
-        console.log(
-          `[UTXO_MONITOR] ${this.chain} Found ${transactions?.length || 0} transactions for address ${this.address}`
-        );
-
         if (!transactions || transactions.length === 0) {
           console.log(
             `[UTXO_MONITOR] ${this.chain} No transactions found, waiting for next poll`
           );
           this.consecutiveErrors = 0;
         } else {
-          console.log(
-            `[UTXO_MONITOR] ${this.chain} Processing ${transactions.length} transactions. Already processed: ${this.processedTxHashes.size}`
-          );
+          // Count new (unprocessed) transactions
+          let newTransactionsCount = 0;
+          for (const tx of transactions) {
+            if (!this.processedTxHashes.has(tx.hash)) {
+              newTransactionsCount++;
+            }
+          }
+
+          // Only log if there are new transactions to process
+          if (newTransactionsCount > 0) {
+            console.log(
+              `[UTXO_MONITOR] ${this.chain} Found ${newTransactionsCount} new transactions out of ${transactions.length} total. Already processed: ${this.processedTxHashes.size}`
+            );
+          }
 
           // Process each transaction
           for (const tx of transactions) {
@@ -217,9 +224,12 @@ export class UTXODeposits implements IDepositMonitor {
             }
           }
 
-          console.log(
-            `[UTXO_MONITOR] ${this.chain} Finished processing all transactions. Total processed in session: ${this.processedTxHashes.size}`
-          );
+          // Only log completion if we processed new transactions
+          if (newTransactionsCount > 0) {
+            console.log(
+              `[UTXO_MONITOR] ${this.chain} Finished processing ${newTransactionsCount} new transactions. Total processed in session: ${this.processedTxHashes.size}`
+            );
+          }
           this.consecutiveErrors = 0;
         }
       } catch (error) {

@@ -149,7 +149,7 @@ export default function TokenConfigurationStep({
               </SelectTrigger>
               <SelectContent>
                 {tokenTypes.map((tokenType) => (
-                  <SelectItem key={tokenType.value} value={tokenType.value}>
+                  <SelectItem key={tokenType.id} value={tokenType.id}>
                     {tokenType.name}
                   </SelectItem>
                 ))}

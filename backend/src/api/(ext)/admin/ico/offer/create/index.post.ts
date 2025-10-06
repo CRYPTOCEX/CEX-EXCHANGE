@@ -93,36 +93,34 @@ export default async (data: Handler) => {
     });
   }
 
-  // 4. Find token type by name
-  let tokenTypeRecord = await models.icoTokenType.findOne({
-    where: { name: tokenType },
-  });
-  
-  // If token type doesn't exist, try to find by name case-insensitive or create a default one
-  if (!tokenTypeRecord) {
-    tokenTypeRecord = await models.icoTokenType.findOne({
-      where: sequelize.where(
-        sequelize.fn('LOWER', sequelize.col('name')),
-        sequelize.fn('LOWER', tokenType)
-      ),
+  // 4. Find token type by ID
+  if (!tokenType) {
+    throw createError({
+      statusCode: 400,
+      message: "Token type is required.",
     });
   }
-  
-  // If still not found, create a default token type
+
+  // Validate that tokenType is a UUID
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tokenType);
+
+  if (!isUUID) {
+    throw createError({
+      statusCode: 400,
+      message: "Invalid token type ID format. Please provide a valid UUID.",
+    });
+  }
+
+  // Find token type by ID
+  const tokenTypeRecord = await models.icoTokenType.findOne({
+    where: { id: tokenType },
+  });
+
   if (!tokenTypeRecord) {
-    try {
-      tokenTypeRecord = await models.icoTokenType.create({
-        name: tokenType,
-        description: `Auto-created token type: ${tokenType}`,
-        status: true,
-      });
-    } catch (error) {
-      // If creation fails, throw error
-      throw createError({
-        statusCode: 400,
-        message: `Invalid token type: ${tokenType}. Please ensure token types are properly configured.`,
-      });
-    }
+    throw createError({
+      statusCode: 400,
+      message: `Token type with ID ${tokenType} not found.`,
+    });
   }
 
   let planFeatures;

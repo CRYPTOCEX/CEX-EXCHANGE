@@ -66,7 +66,23 @@ export default async (data: Handler) => {
   const { currency } = params;
   const { contractType, chain } = query;
 
-  const wallet = await getWalletByUserIdAndCurrency(user.id, currency);
+  let wallet;
+  try {
+    wallet = await getWalletByUserIdAndCurrency(user.id, currency);
+  } catch (error) {
+    console.error(`[WALLET_ERROR] Failed to get/create wallet for user ${user.id}, currency ${currency}:`, error);
+    console.error(`[WALLET_ERROR] Error details:`, {
+      message: error.message,
+      stack: error.stack,
+      original: error.original?.message,
+      sql: error.sql
+    });
+
+    throw createError({
+      statusCode: 500,
+      message: `Failed to get wallet: ${error.message}`,
+    });
+  }
 
   if (contractType === "NO_PERMIT") {
     await unlockExpiredAddresses();

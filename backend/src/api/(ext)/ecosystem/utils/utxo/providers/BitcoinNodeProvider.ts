@@ -6,10 +6,12 @@
 
 import { IUTXOProvider, UTXOTransaction, UTXOTransactionDetails, UTXO, UTXOInput, UTXOOutput } from './IUTXOProvider';
 import { BitcoinNodeService } from '../btc-node';
+import { BitcoinZMQService } from '../btc-zmq';
 import { logError } from '@b/utils/logger';
 
 export class BitcoinNodeProvider implements IUTXOProvider {
   private nodeService: BitcoinNodeService;
+  private zmqService: BitcoinZMQService | null = null;
   private chain: string;
 
   constructor(chain: string) {
@@ -21,6 +23,25 @@ export class BitcoinNodeProvider implements IUTXOProvider {
 
   async initialize(): Promise<void> {
     this.nodeService = await BitcoinNodeService.getInstance();
+
+    // Initialize ZMQ service if ZMQ endpoints are configured
+    if (process.env.BTC_ZMQ_RAWTX) {
+      try {
+        this.zmqService = await BitcoinZMQService.getInstance();
+        console.log('[BTC_NODE_PROVIDER] ZMQ service initialized');
+      } catch (error) {
+        console.warn('[BTC_NODE_PROVIDER] ZMQ service failed to initialize, falling back to polling:', error.message);
+      }
+    }
+  }
+
+  /**
+   * Watch address for deposits via ZMQ
+   */
+  async watchAddress(address: string, walletId: string): Promise<void> {
+    if (this.zmqService) {
+      await this.zmqService.watchAddress(address, walletId);
+    }
   }
 
   getName(): string {

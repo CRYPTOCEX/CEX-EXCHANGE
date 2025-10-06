@@ -21,6 +21,7 @@ interface ChainConfig {
 
 interface Network {
   explorer: string;
+  chainId?: number; // Required for Etherscan V2 API
 }
 
 interface SmartContract {
@@ -59,9 +60,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.etherscan.io",
+        chainId: 1,
       },
       sepolia: {
         explorer: "api-sepolia.etherscan.io",
+        chainId: 11155111,
       },
     },
     currency: "ETH",
@@ -79,9 +82,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.bscscan.com",
+        chainId: 56,
       },
       testnet: {
         explorer: "api-testnet.bscscan.com",
+        chainId: 97,
       },
     },
     currency: "BNB",
@@ -99,9 +104,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       matic: {
         explorer: "api.polygonscan.com",
+        chainId: 137,
       },
       "matic-mumbai": {
         explorer: "api-testnet.polygonscan.com",
+        chainId: 80001,
       },
     },
     currency: "MATIC",
@@ -119,9 +126,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.ftmscan.com",
+        chainId: 250,
       },
       testnet: {
         explorer: "api-testnet.ftmscan.com",
+        chainId: 4002,
       },
     },
     currency: "FTM",
@@ -139,9 +148,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api-optimistic.etherscan.io",
+        chainId: 10,
       },
       goerli: {
         explorer: "api-goerli-optimistic.etherscan.io",
+        chainId: 420,
       },
     },
     currency: "ETH",
@@ -159,9 +170,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.arbiscan.io",
+        chainId: 42161,
       },
       goerli: {
         explorer: "api-goerli.arbiscan.io",
+        chainId: 421613,
       },
     },
     currency: "ETH",
@@ -179,9 +192,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.basescan.org",
+        chainId: 8453,
       },
       goerli: {
         explorer: "api-goerli.basescan.org",
+        chainId: 84531,
       },
     },
     currency: "ETH",
@@ -199,9 +214,11 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.celoscan.io",
+        chainId: 42220,
       },
       alfajores: {
         explorer: "api-alfajores.celoscan.io",
+        chainId: 44787,
       },
     },
     currency: "CELO",
@@ -274,7 +291,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
     decimals: 18,
     fetchFunction: (address: string) =>
       fetchPublicEcosystemTransactions(
-        `https://api.hecoinfo.com/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc`
+        `https://api.hecoinfo.com/v2/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc`
       ),
     cache: false,
     networks: {
@@ -297,6 +314,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "api.cronoscan.com",
+        chainId: 25,
       },
     },
     currency: "CRON",

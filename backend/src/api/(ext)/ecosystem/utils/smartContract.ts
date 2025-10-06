@@ -43,11 +43,18 @@ export const getContractAbi = async (
     throw new Error(`Unsupported network: ${network} for chain: ${chain}`);
   }
 
-  const apiUrl = `https://${networkConfig.explorer}/api?module=contract&action=getabi&address=${contractAddress}&apikey=${apiKey}`;
+  const chainIdParam = networkConfig.chainId ? `&chainid=${networkConfig.chainId}` : "";
+  const apiUrl = `https://${networkConfig.explorer}/v2/api?module=contract&action=getabi&address=${contractAddress}${chainIdParam}&apikey=${apiKey}`;
 
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
+
+    // Handle API errors gracefully
+    if (data.status === "0" && data.message === "NOTOK") {
+      console.error(`[ETHERSCAN_API_ERROR] Contract ABI for ${contractAddress}: ${data.result}`);
+      throw new Error(`Contract ABI not available: ${data.result}`);
+    }
 
     if (data.status !== "1") {
       throw new Error(`API Error: ${data.message}`);

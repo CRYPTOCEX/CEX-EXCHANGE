@@ -25,6 +25,7 @@ export default function OfferingsList() {
         canEdit={false}
         canDelete={true}
         canView={true}
+        viewLink="/admin/ico/offer/[id]"
         isParanoid={true}
         title={`${capitalizedStatus} Token Offers`}
         itemTitle="ICO Token Offering"
