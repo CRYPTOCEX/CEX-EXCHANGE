@@ -83,7 +83,11 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
       });
       if (error) throw new Error(error);
       if (data) {
-        set({ extensions: data, filteredExtensions: data });
+        // Sort extensions alphabetically by title
+        const sortedData = [...data].sort((a, b) =>
+          a.title.localeCompare(b.title)
+        );
+        set({ extensions: sortedData, filteredExtensions: sortedData });
       }
     } catch (error) {
       const errorMessage =
@@ -221,11 +225,13 @@ export const useExtensionStore = create<ExtensionStore>((set, get) => ({
   setFilter: (filter: string) => {
     const { extensions } = get();
     const lowercasedFilter = filter.toLowerCase();
-    const filtered = extensions.filter(
-      (extension) =>
-        extension.title.toLowerCase().includes(lowercasedFilter) ||
-        extension.description.toLowerCase().includes(lowercasedFilter)
-    );
+    const filtered = extensions
+      .filter(
+        (extension) =>
+          extension.title.toLowerCase().includes(lowercasedFilter) ||
+          extension.description.toLowerCase().includes(lowercasedFilter)
+      )
+      .sort((a, b) => a.title.localeCompare(b.title));
     set({ filter, filteredExtensions: filtered });
   },
 

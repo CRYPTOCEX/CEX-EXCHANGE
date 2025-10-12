@@ -227,7 +227,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
       name: "ERC20",
     },
   },
-  // MO (EVM)
+  // MO (EVM) - Custom chain, not supported by Etherscan V2 API
   MO: {
     name: "MOCHAIN",
     decimals: 18,
@@ -237,12 +237,14 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "mainnet.mochain.app",
+        chainId: 7860, // MOCHAIN mainnet
       },
       testnet: {
         explorer: "testnet.mochain.app",
+        chainId: 7862, // MOCHAIN testnet
       },
     },
-    explorerApi: false,
+    explorerApi: false, // Uses custom explorer, not Etherscan API
     currency: "MO",
     smartContract: {
       file: "ERC20",
@@ -271,6 +273,7 @@ export const chainConfigs: Record<string, ChainConfig> = {
     },
     currency: "TRX",
   },
+  // RSK uses Blockscout API, not Etherscan V2
   RSK: {
     name: "RSK",
     decimals: 18,
@@ -282,21 +285,30 @@ export const chainConfigs: Record<string, ChainConfig> = {
     networks: {
       mainnet: {
         explorer: "rootstock.blockscout.com/api/v2",
+        chainId: 30, // RSK mainnet
+      },
+      testnet: {
+        explorer: "explorer.testnet.rootstock.io/api/v2",
+        chainId: 31, // RSK testnet
       },
     },
     currency: "RBTC",
+    explorerApi: false, // Uses Blockscout API, not Etherscan
   },
   HECO: {
     name: "Huobi ECO Chain",
     decimals: 18,
     fetchFunction: (address: string) =>
-      fetchPublicEcosystemTransactions(
-        `https://api.hecoinfo.com/v2/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc`
-      ),
-    cache: false,
+      fetchGeneralEcosystemTransactions("HECO", address),
+    cache: true,
     networks: {
       mainnet: {
         explorer: "api.hecoinfo.com",
+        chainId: 128, // HECO mainnet
+      },
+      testnet: {
+        explorer: "api-testnet.hecoinfo.com",
+        chainId: 256, // HECO testnet
       },
     },
     currency: "HT",

@@ -33,32 +33,44 @@ async function fetchRolesAndPermissions() {
       },
       cache: "no-store", // Prevent caching issues
     });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        rolesCache = data.reduce((acc: RolesCache, role: any) => {
-          if (role && role.id && role.name && Array.isArray(role.permissions)) {
-            acc[role.id] = {
-              name: role.name,
-              permissions: role.permissions.map((p: any) => p.name),
-            };
-          }
-          return acc;
-        }, {});
-      } else {
-        console.error("Invalid roles data format received");
-        rolesCache = {};
-      }
-    } else {
+
+    if (!response.ok) {
       console.error(
         `Failed to fetch roles and permissions: ${response.status} ${response.statusText}`
       );
-      rolesCache = {}; // Use empty object instead of null to prevent repeated fetches
+      rolesCache = {};
+      return;
+    }
+
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error(
+        `Invalid response format: expected JSON, got ${contentType || "unknown"}. Response: ${text}`
+      );
+      rolesCache = {};
+      return;
+    }
+
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      rolesCache = data.reduce((acc: RolesCache, role: any) => {
+        if (role && role.id && role.name && Array.isArray(role.permissions)) {
+          acc[role.id] = {
+            name: role.name,
+            permissions: role.permissions.map((p: any) => p.name),
+          };
+        }
+        return acc;
+      }, {});
+    } else {
+      console.error("Invalid roles data format received");
+      rolesCache = {};
     }
   } catch (error) {
     console.error("Error fetching roles and permissions:", error);
-    rolesCache = {}; // Use empty object instead of null to prevent repeated fetches
+    rolesCache = {};
   }
 }
 

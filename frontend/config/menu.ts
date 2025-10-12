@@ -266,6 +266,7 @@ export const adminMenu: MenuItem[] = [
         key: "admin-investment-management",
         title: "Investment Management",
         icon: "solar:course-up-bold-duotone",
+        settings: ["investment"],
         description:
           "Investment product management with plan creation, performance tracking, and portfolio oversight tools.",
         permission: ["access.investment.plan", "access.investment.duration", "access.investment"],
@@ -275,6 +276,7 @@ export const adminMenu: MenuItem[] = [
             title: "Investment Plans",
             href: "/admin/finance/investment/plan",
             permission: "access.investment.plan",
+            settings: ["investment"],
             icon: "solar:planet-2-bold-duotone",
             description:
               "Create and manage investment products with risk profiles, return calculations, and term configurations.",
@@ -284,6 +286,7 @@ export const adminMenu: MenuItem[] = [
             title: "Investment Durations",
             href: "/admin/finance/investment/duration",
             permission: "access.investment.duration",
+            settings: ["investment"],
             icon: "ph:hourglass-duotone",
             description:
               "Configure investment durations, maturity periods, and compound interest calculations for various products.",
@@ -293,6 +296,7 @@ export const adminMenu: MenuItem[] = [
             title: "Investment Analytics",
             href: "/admin/finance/investment/history",
             permission: "access.investment",
+            settings: ["investment"],
             icon: "ph:chart-line-duotone",
             description:
               "Comprehensive investment performance analytics with ROI tracking and portfolio management insights.",
@@ -998,6 +1002,7 @@ export const userMenu: MenuItem[] = [
         href: "/investment",
         icon: "solar:course-up-line-duotone",
         auth: true,
+        settings: ["investment"],
         description:
           "Curated investment strategies with detailed risk profiles, historical performance data, and flexible terms to match your financial goals.",
       },

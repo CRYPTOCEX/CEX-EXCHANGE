@@ -1,4 +1,5 @@
-import { models } from "@b/db";
+import { models, sequelize } from "@b/db";
+import { Transaction } from "sequelize";
 import {
   createPendingTransaction,
   decrementWalletBalance,
@@ -92,6 +93,55 @@ export const metadata: OperationObject = {
   },
 };
 
+// Input sanitization helper
+function sanitizeInput(input: string, maxLength: number = 255): string {
+  if (!input || typeof input !== 'string') return '';
+
+  // Remove null bytes, control characters, and excessive whitespace
+  let sanitized = input
+    .replace(/\0/g, '') // null bytes
+    .replace(/[\x00-\x1F\x7F]/g, '') // control characters
+    .trim();
+
+  // Limit length to prevent buffer overflow attacks
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength);
+  }
+
+  return sanitized;
+}
+
+// Validate address format (basic alphanumeric check before chain-specific validation)
+function validateAddressFormat(address: string): boolean {
+  if (!address || typeof address !== 'string') return false;
+
+  // Check for suspicious patterns
+  const suspiciousPatterns = [
+    /[<>'"]/,           // HTML/XSS characters
+    /\$\{.*\}/,         // Template injection
+    /\.\.\//,           // Path traversal
+    /__proto__|constructor|prototype/i, // Prototype pollution
+    /javascript:/i,     // XSS
+    /data:/i,           // Data URI XSS
+    /on\w+\s*=/i,      // Event handler XSS
+    /script|iframe|object|embed/i, // HTML injection
+    /union.*select/i,   // SQL injection
+    /exec\(|eval\(|system\(/i, // Command injection
+  ];
+
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(address)) {
+      console.error(`[SECURITY] Suspicious pattern detected in address: ${pattern}`);
+      return false;
+    }
+  }
+
+  // Must contain only valid blockchain address characters
+  // Most blockchain addresses use base58, hex, or bech32 (alphanumeric)
+  const validAddressPattern = /^[a-zA-Z0-9]+$/;
+  return validAddressPattern.test(address);
+}
+
 export default async (data: Handler) => {
   const { body, user } = data;
   if (!user?.id) {
@@ -99,7 +149,28 @@ export default async (data: Handler) => {
   }
 
   try {
-    const { currency, chain, amount, toAddress } = body;
+    let { currency, chain, amount, toAddress } = body;
+
+    // Sanitize all string inputs
+    currency = sanitizeInput(currency, 10);
+    chain = sanitizeInput(chain, 20);
+    toAddress = sanitizeInput(toAddress, 200);
+
+    // Validate inputs
+    if (!currency || !chain || !toAddress) {
+      throw createError({
+        statusCode: 400,
+        message: "Missing required parameters",
+      });
+    }
+
+    // Basic address format validation before chain-specific validation
+    if (!validateAddressFormat(toAddress)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid address format. Address contains invalid characters or suspicious patterns.",
+      });
+    }
 
     console.log(`[ECO_WITHDRAW] Starting withdrawal process:`, {
       userId: user.id,
@@ -116,7 +187,17 @@ export default async (data: Handler) => {
         message: "Chain parameter is required",
       });
     }
-    const parsedAmount = Math.abs(parseFloat(amount));
+
+    // Validate amount is a valid positive number
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || !isFinite(parsedAmount)) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid amount. Must be a positive number.",
+      });
+    }
+
+    const finalAmount = Math.abs(parsedAmount);
 
     // Check if the toAddress belongs to an internal user
     console.log(`[ECO_WITHDRAW] Checking if address is internal...`);
@@ -130,7 +211,7 @@ export default async (data: Handler) => {
         recipientWallet.userId,
         currency,
         chain,
-        parsedAmount
+        finalAmount
       );
     } else {
       // Proceed with the regular withdrawal process
@@ -139,7 +220,7 @@ export default async (data: Handler) => {
         user.id,
         currency,
         chain,
-        parsedAmount,
+        finalAmount,
         toAddress
       );
     }
@@ -301,24 +382,53 @@ const storeWithdrawal = async (
     totalToDeduct: totalAmount
   });
 
-  if (userWallet.balance < totalAmount) {
-    console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: balance ${userWallet.balance} < required ${totalAmount}`);
-    throw new Error("Insufficient funds");
-  }
+  // Use database transaction with row-level locking to prevent race conditions
+  // This ensures that when multiple withdrawals happen simultaneously for the same wallet,
+  // each one gets exclusive access to the wallet balance
+  let transaction;
+  await sequelize.transaction(
+    {
+      isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+    },
+    async (dbTransaction) => {
+      // Lock the wallet row using FOR UPDATE
+      // This prevents other concurrent withdrawals from reading the balance until we're done
+      const lockedWallet = await models.wallet.findOne({
+        where: { id: userWallet.id },
+        lock: Transaction.LOCK.UPDATE,
+        transaction: dbTransaction,
+      });
 
-  // Deduct the total amount from the user's wallet balance
-  await decrementWalletBalance(userWallet, chain, totalAmount);
+      if (!lockedWallet) {
+        throw new Error("Wallet not found");
+      }
 
-  // Create the pending transaction
-  const transaction = await createPendingTransaction(
-    userId,
-    userWallet.id,
-    currency,
-    chain,
-    amount,
-    toAddress,
-    totalFee,
-    token
+      // Check balance with the locked wallet
+      if (lockedWallet.balance < totalAmount) {
+        console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: balance ${lockedWallet.balance} < required ${totalAmount}`);
+        throw new Error("Insufficient funds");
+      }
+
+      // Deduct the total amount from the user's wallet balance
+      // Pass dbTransaction to ensure atomic operation within the same transaction
+      await decrementWalletBalance(lockedWallet, chain, totalAmount, dbTransaction);
+
+      // Create the pending transaction within the same database transaction
+      transaction = await createPendingTransaction(
+        userId,
+        lockedWallet.id,
+        currency,
+        chain,
+        amount,
+        toAddress,
+        totalFee,
+        token,
+        dbTransaction
+      );
+
+      // Refresh userWallet.balance for response
+      userWallet.balance = lockedWallet.balance - totalAmount;
+    }
   );
 
   // Add the transaction to the withdrawal queue
@@ -328,13 +438,13 @@ const storeWithdrawal = async (
   // Return updated wallet balance for immediate UI update
   return {
     transaction: transaction.get({ plain: true }),
-    balance: userWallet.balance - totalAmount,
+    balance: userWallet.balance,
     method: chain,
     currency,
     message: "Withdrawal request submitted successfully",
     walletUpdate: {
       currency,
-      balance: userWallet.balance - totalAmount,
+      balance: userWallet.balance,
       type: "ECO"
     }
   };

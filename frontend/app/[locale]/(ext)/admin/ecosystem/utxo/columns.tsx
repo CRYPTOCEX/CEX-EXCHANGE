@@ -52,6 +52,10 @@ export const columns: ColumnDefinition[] = [
     filterable: true,
     description: "UTXO amount",
     priority: 1,
+    render: {
+      type: "custom",
+      render: (value) => typeof value === 'number' ? value.toFixed(8) : value,
+    },
   },
   {
     key: "script",

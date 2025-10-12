@@ -91,7 +91,7 @@ export function WithdrawForm() {
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
   const { hasKyc, canAccessFeature, user } = useUserStore();
-  const { settings } = useConfigStore();
+  const { settings, extensions } = useConfigStore();
   const router = useRouter();
   
   // Add precision validation state
@@ -143,7 +143,14 @@ export function WithdrawForm() {
   const checkAvailableWalletTypes = useCallback(async () => {
     // Exclude FUTURES from withdrawal options (futures can only transfer to ECO)
     const isSpotEnabled = settings?.spotWallets === true || settings?.spotWallets === "true";
-    const walletTypes = isSpotEnabled ? ["FIAT", "SPOT", "ECO"] : ["FIAT", "ECO"];
+    const isFiatEnabled = settings?.fiatWallets === true || settings?.fiatWallets === "true";
+    const isEcosystemEnabled = extensions?.includes("ecosystem");
+
+    const walletTypes = [];
+    if (isFiatEnabled) walletTypes.push("FIAT");
+    if (isSpotEnabled) walletTypes.push("SPOT");
+    if (isEcosystemEnabled) walletTypes.push("ECO");
+
     const availableTypes = new Set<string>();
 
     for (const type of walletTypes) {
@@ -161,7 +168,7 @@ export function WithdrawForm() {
     }
     
     setWalletTypesWithBalance(availableTypes);
-  }, [settings]);
+  }, [settings, extensions]);
 
   // Initialize store
   useEffect(() => {
@@ -469,7 +476,7 @@ export function WithdrawForm() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => router.push("/en/finance/history")}
+                  onClick={() => router.push("/finance/history")}
                   className="flex-1"
                 >
                   {t("view_history")}

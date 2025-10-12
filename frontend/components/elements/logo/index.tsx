@@ -75,22 +75,33 @@ export default function Logo({
     );
   }
 
+  // Determine dimensions and styles based on type - must be consistent on server and client
+  const defaultWidth = type === "icon" ? 32 : 180;
+  const defaultHeight = type === "icon" ? 32 : 48;
+  const imageWidth = width || defaultWidth;
+  const imageHeight = height || defaultHeight;
+
+  // Define styles that won't change between server and client
+  const containerClass = type === "icon"
+    ? "relative h-9 w-9 lg:h-10 lg:w-10 object-contain flex-shrink-0"
+    : "relative h-9 lg:h-12 w-auto max-w-[220px] lg:max-w-[280px] object-contain flex-shrink-0";
+
+  const imageClass = type === "icon"
+    ? "h-9 w-9 lg:h-10 lg:w-10 object-contain flex-shrink-0"
+    : "h-9 lg:h-12 w-auto max-w-[220px] lg:max-w-[280px] object-contain flex-shrink-0";
+
   return (
-    <div className={`relative ${className}`}>
+    <div className={cn(containerClass, className)}>
       <Image
-        key={`logo-${type}-${logoVersion}`} // Force re-render when version changes
+        key={`logo-${type}-${logoVersion}`}
         src={url}
         alt="Logo"
-        width={width || (type === "icon" ? 32 : 180)}
-        height={height || (type === "icon" ? 32 : 48)}
-        className={cn(
-          "object-contain",
-          type === "icon" ? "h-full w-full" : "h-full w-auto",
-          className
-        )}
-        unoptimized // Allow cache busting to work properly
+        width={imageWidth}
+        height={imageHeight}
+        className={imageClass}
+        unoptimized
         onError={handleError}
-        priority={type === "icon"} // Prioritize icon logos
+        priority={type === "icon"}
       />
     </div>
   );

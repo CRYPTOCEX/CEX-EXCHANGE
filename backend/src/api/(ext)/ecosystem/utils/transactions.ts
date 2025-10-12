@@ -155,37 +155,67 @@ export const fetchGeneralEcosystemTransactions = async (
   }
 
   const hasExplorerApi = chainConfig.explorerApi ?? true;
-  const apiEnvVar = `${chain}_EXPLORER_API_KEY`;
-  const apiKey = process.env[apiEnvVar];
+
+  // V2 API uses a single Etherscan API key for all chains
+  // Fallback to chain-specific key for backward compatibility
+  const apiKey = process.env.ETHERSCAN_API_KEY || process.env[`${chain}_EXPLORER_API_KEY`];
 
   if (hasExplorerApi && !apiKey) {
-    throw new Error(`Environment variable ${apiEnvVar} is not set`);
+    throw new Error(`Environment variable ETHERSCAN_API_KEY or ${chain}_EXPLORER_API_KEY is not set`);
   }
 
   const network = chainConfig.networks[networkName];
 
-  if (!network || !network.explorer) {
+  if (!network || !network.chainId) {
     throw new Error(
-      `Unsupported or misconfigured network: ${networkName} for chain: ${chain}`
+      `Unsupported or misconfigured network: ${networkName} for chain: ${chain}. ChainId is required for V2 API.`
     );
   }
-  // Use Etherscan V2 API endpoint with chainid parameter
-  const chainIdParam = network.chainId ? `&chainid=${network.chainId}` : "";
-  const url = `https://${network.explorer}/v2/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${chainIdParam}${
+
+  // Use unified Etherscan V2 API endpoint for all chains
+  // According to migration guide: https://api.etherscan.io/v2/api?chainid={chainId}
+  const url = `https://api.etherscan.io/v2/api?chainid=${network.chainId}&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${
     hasExplorerApi ? `&apikey=${apiKey}` : ""
   }`;
 
   try {
+    console.log(`[ETHERSCAN_V2] ${chain} Fetching transactions for address ${address.substring(0, 10)}... using chainId ${network.chainId}`);
+
     const response = await fetch(url);
+
+    // Check HTTP status code
+    if (!response.ok) {
+      const statusText = response.statusText || 'Unknown error';
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status} ${statusText}: ${text.substring(0, 200)}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+
+    // Check if response is HTML (error page)
+    if (contentType && contentType.includes("text/html")) {
+      const text = await response.text();
+      throw new Error(`Received HTML instead of JSON. API might be down or rate limited. Response: ${text.substring(0, 200)}`);
+    }
+
     const data = await response.json();
 
     // Handle API errors
-    if (data.status === "0" && data.message === "NOTOK") {
-      console.error(`[ETHERSCAN_API_ERROR] ${chain}: ${data.result}`);
-      // Return empty result set for addresses with no transactions
+    if (data.status === "0") {
+      if (data.message === "NOTOK") {
+        console.error(`[ETHERSCAN_API_ERROR] ${chain}: ${data.result}`);
+        // Return empty result set for addresses with no transactions or errors
+        return { status: "1", message: "OK", result: [] };
+      }
+    }
+
+    // Validate we got proper data structure
+    if (!data.result || !Array.isArray(data.result)) {
+      console.warn(`[ETHERSCAN_API_WARNING] ${chain}: Unexpected response format, returning empty results`);
       return { status: "1", message: "OK", result: [] };
     }
 
+    console.log(`[ETHERSCAN_V2] ${chain} Successfully fetched ${data.result.length} transactions`);
     return data;
   } catch (error) {
     logError("fetch_general_ecosystem_transactions", error, __filename);

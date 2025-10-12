@@ -21,13 +21,33 @@ export class UTXODeposits implements IDepositMonitor {
   private consecutiveErrors: number = 0;
   private readonly MAX_CONSECUTIVE_ERRORS = 5;
   private readonly POLLING_INTERVAL = 30000; // 30 seconds for UTXO chains
-  private processedTxHashes: Set<string> = new Set();
-  private lastBroadcastedConfirmations: Map<string, number> = new Map();
+  private static processedTxHashes: Map<string, number> = new Map(); // Static shared across all instances
+  private static lastBroadcastedConfirmations: Map<string, number> = new Map(); // Static shared across all instances
+  private static readonly PROCESSING_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+  private static cleanupInterval?: NodeJS.Timeout;
+  private depositFound: boolean = false;
 
   constructor(options: UTXOOptions) {
     this.wallet = options.wallet;
     this.chain = options.chain;
     this.address = options.address;
+
+    // Initialize cleanup on first instance
+    if (!UTXODeposits.cleanupInterval) {
+      UTXODeposits.cleanupInterval = setInterval(
+        () => UTXODeposits.cleanupProcessedTransactions(),
+        60 * 1000 // Run every minute
+      );
+    }
+  }
+
+  private static cleanupProcessedTransactions() {
+    const now = Date.now();
+    for (const [key, timestamp] of UTXODeposits.processedTxHashes.entries()) {
+      if (now - timestamp > UTXODeposits.PROCESSING_EXPIRY_MS) {
+        UTXODeposits.processedTxHashes.delete(key);
+      }
+    }
   }
 
   public async watchDeposits(): Promise<void> {
@@ -46,8 +66,13 @@ export class UTXODeposits implements IDepositMonitor {
 
   private async startPolling(): Promise<void> {
     const pollDeposits = async () => {
-      if (!this.active) {
-        console.log(`[UTXO_MONITOR] ${this.chain} Monitor inactive, skipping poll`);
+      // Check both at the start and after processing
+      if (!this.active || this.depositFound) {
+        if (this.depositFound) {
+          console.log(`[UTXO_MONITOR] ${this.chain} Deposit found and confirmed, stopping monitor`);
+        } else {
+          console.log(`[UTXO_MONITOR] ${this.chain} Monitor inactive, skipping poll`);
+        }
         return;
       }
 
@@ -68,7 +93,9 @@ export class UTXODeposits implements IDepositMonitor {
           // Count new (unprocessed) transactions
           let newTransactionsCount = 0;
           for (const tx of transactions) {
-            if (!this.processedTxHashes.has(tx.hash)) {
+            // Use wallet-specific key for pay-to-many support
+            const walletTxKey = `${this.wallet.id}-${tx.hash}`;
+            if (!UTXODeposits.processedTxHashes.has(walletTxKey)) {
               newTransactionsCount++;
             }
           }
@@ -76,14 +103,17 @@ export class UTXODeposits implements IDepositMonitor {
           // Only log if there are new transactions to process
           if (newTransactionsCount > 0) {
             console.log(
-              `[UTXO_MONITOR] ${this.chain} Found ${newTransactionsCount} new transactions out of ${transactions.length} total. Already processed: ${this.processedTxHashes.size}`
+              `[UTXO_MONITOR] ${this.chain} Found ${newTransactionsCount} new transactions out of ${transactions.length} total for wallet ${this.wallet.id}. Already processed: ${UTXODeposits.processedTxHashes.size}`
             );
           }
 
           // Process each transaction
           for (const tx of transactions) {
-            // Skip if already processed
-            if (this.processedTxHashes.has(tx.hash)) {
+            // Use wallet-specific key for pay-to-many support
+            const walletTxKey = `${this.wallet.id}-${tx.hash}`;
+
+            // Skip if already processed for this wallet
+            if (UTXODeposits.processedTxHashes.has(walletTxKey)) {
               continue;
             }
 
@@ -96,7 +126,7 @@ export class UTXODeposits implements IDepositMonitor {
             });
 
             if (existingTx) {
-              this.processedTxHashes.add(tx.hash);
+              UTXODeposits.processedTxHashes.set(walletTxKey, Date.now());
               continue;
             }
 
@@ -107,17 +137,24 @@ export class UTXODeposits implements IDepositMonitor {
             const requiredConfirmations = chainConfigs[this.chain]?.confirmations || 3;
             const confirmations = tx.confirmations || 0;
 
-            console.log(
-              `[UTXO_MONITOR] ${this.chain} Transaction ${tx.hash.substring(0, 12)}... has ${confirmations}/${requiredConfirmations} confirmations, value: ${tx.value}`
-            );
+            // Only log transaction details if it's new or confirmation count changed
+            const confirmationKey = `confirmations-${walletTxKey}`;
+            const lastConfirmations = UTXODeposits.lastBroadcastedConfirmations.get(confirmationKey);
+            const isNew = lastConfirmations === undefined;
+            const confirmationChanged = lastConfirmations !== confirmations;
+
+            if (isNew || confirmationChanged) {
+              console.log(
+                `[UTXO_MONITOR] ${this.chain} Transaction ${tx.hash.substring(0, 12)}... has ${confirmations}/${requiredConfirmations} confirmations, value: ${tx.value} for wallet ${this.wallet.id}`
+              );
+            }
 
             // Broadcast pending transactions only when confirmation count changes
             if (confirmations < requiredConfirmations) {
-              const lastConfirmations = this.lastBroadcastedConfirmations.get(tx.hash);
-
-              if (lastConfirmations === undefined || lastConfirmations !== confirmations) {
+              // Broadcast if this is a new transaction or if confirmations changed
+              if (isNew || confirmationChanged) {
                 console.log(
-                  `[UTXO_MONITOR] ${this.chain} Broadcasting pending status for ${tx.hash.substring(0, 12)}... (${confirmations}/${requiredConfirmations} confirmations)`
+                  `[UTXO_MONITOR] ${this.chain} Broadcasting pending status for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id} (${confirmations}/${requiredConfirmations} confirmations)`
                 );
 
                 const pendingTxData = {
@@ -136,16 +173,13 @@ export class UTXODeposits implements IDepositMonitor {
                 };
 
                 await storeAndBroadcastTransaction(pendingTxData, tx.hash, true);
-                this.lastBroadcastedConfirmations.set(tx.hash, confirmations);
+                UTXODeposits.lastBroadcastedConfirmations.set(confirmationKey, confirmations);
 
                 console.log(
-                  `[UTXO_MONITOR] ${this.chain} Pending broadcast sent for ${tx.hash.substring(0, 12)}...`
-                );
-              } else {
-                console.log(
-                  `[UTXO_MONITOR] ${this.chain} Transaction ${tx.hash.substring(0, 12)}... still at ${confirmations}/${requiredConfirmations} confirmations, skipping broadcast`
+                  `[UTXO_MONITOR] ${this.chain} Pending broadcast sent for ${tx.hash.substring(0, 12)}... to wallet ${this.wallet.id}`
                 );
               }
+              // Note: If confirmations haven't changed, we silently skip broadcasting (already tracked in map)
             } else {
               // Transaction is confirmed, fetch full transaction details
               console.log(
@@ -204,14 +238,19 @@ export class UTXODeposits implements IDepositMonitor {
                 );
 
                 await storeAndBroadcastTransaction(txDetails, tx.hash);
-                this.processedTxHashes.add(tx.hash);
+                UTXODeposits.processedTxHashes.set(walletTxKey, Date.now());
 
                 console.log(
-                  `[UTXO_MONITOR] ${this.chain} Successfully processed and stored deposit ${tx.hash.substring(0, 12)}...`
+                  `[UTXO_MONITOR] ${this.chain} Successfully processed and stored deposit ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id} - stopping monitor`
                 );
+
+                // Set flag and stop polling immediately
+                this.depositFound = true;
+                this.stopPolling();
+                return; // Exit immediately
               } catch (error) {
                 console.error(
-                  `[UTXO_MONITOR] ${this.chain} Failed to process confirmed transaction ${tx.hash.substring(0, 12)}...`
+                  `[UTXO_MONITOR] ${this.chain} Failed to process confirmed transaction ${tx.hash.substring(0, 12)}... for wallet ${this.wallet.id}`
                 );
                 console.error(
                   `[UTXO_MONITOR] ${this.chain} Error details: ${error.message}`
@@ -220,16 +259,27 @@ export class UTXODeposits implements IDepositMonitor {
                   `[UTXO_MONITOR] ${this.chain} Error stack: ${error.stack}`
                 );
                 // Don't add to processed hashes so it can be retried
+                // Continue checking other transactions in the list
+                continue;
               }
             }
           }
 
-          // Only log completion if we processed new transactions
-          if (newTransactionsCount > 0) {
+          // Only log completion if we processed new transactions and haven't found a deposit yet
+          if (newTransactionsCount > 0 && !this.depositFound) {
             console.log(
-              `[UTXO_MONITOR] ${this.chain} Finished processing ${newTransactionsCount} new transactions. Total processed in session: ${this.processedTxHashes.size}`
+              `[UTXO_MONITOR] ${this.chain} Finished processing ${newTransactionsCount} new transactions. Total processed in session: ${UTXODeposits.processedTxHashes.size}`
             );
           }
+
+          // If deposit was found during processing, stop immediately
+          if (this.depositFound) {
+            console.log(
+              `[UTXO_MONITOR] ${this.chain} Confirmed deposit found during this poll, stopping monitor`
+            );
+            return;
+          }
+
           this.consecutiveErrors = 0;
         }
       } catch (error) {
@@ -254,7 +304,8 @@ export class UTXODeposits implements IDepositMonitor {
       }
 
       // Schedule next poll with exponential backoff on errors
-      if (this.active) {
+      // Only schedule if monitor is still active and no deposit was found
+      if (this.active && !this.depositFound) {
         const nextInterval =
           this.consecutiveErrors > 0
             ? Math.min(

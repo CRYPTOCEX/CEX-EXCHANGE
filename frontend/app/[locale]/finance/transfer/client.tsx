@@ -507,36 +507,48 @@ export function TransferForm() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {availableWalletTypes.map((wallet) => (
-                    <motion.button
-                      key={wallet.id}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleFromWalletSelect(wallet.id)}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        fromWalletType === wallet.id
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                          : "border-zinc-200 dark:border-zinc-700 hover:border-blue-400/50"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center space-y-2">
-                        <div
-                          className={`p-3 rounded-full ${
-                            fromWalletType === wallet.id
-                              ? "bg-blue-500 text-white"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                          }`}
-                        >
-                          {getWalletIcon(wallet.id)}
+                {availableWalletTypes.length === 0 ? (
+                  <Alert className="border-amber-200 dark:border-amber-800">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <AlertTitle className="text-amber-900 dark:text-amber-100">
+                      {t("no_wallets_available")}
+                    </AlertTitle>
+                    <AlertDescription className="text-amber-800 dark:text-amber-200">
+                      {t("no_wallets_available_description")}
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {availableWalletTypes.map((wallet) => (
+                      <motion.button
+                        key={wallet.id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleFromWalletSelect(wallet.id)}
+                        className={`p-4 rounded-xl border-2 transition-all ${
+                          fromWalletType === wallet.id
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                            : "border-zinc-200 dark:border-zinc-700 hover:border-blue-400/50"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center space-y-2">
+                          <div
+                            className={`p-3 rounded-full ${
+                              fromWalletType === wallet.id
+                                ? "bg-blue-500 text-white"
+                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                            }`}
+                          >
+                            {getWalletIcon(wallet.id)}
+                          </div>
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {wallet.name}
+                          </span>
                         </div>
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {wallet.name}
-                        </span>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -558,9 +570,9 @@ export function TransferForm() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {fromCurrencies.map((currency) => (
+                  {fromCurrencies.map((currency, index) => (
                     <motion.button
-                      key={currency.value}
+                      key={`${currency.value}-${index}`}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => handleFromCurrencySelect(currency.value)}
@@ -727,9 +739,9 @@ export function TransferForm() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {toCurrencies.map((currency) => (
+                    {toCurrencies.map((currency, index) => (
                       <motion.button
-                        key={currency.value}
+                        key={`${currency.value}-${index}`}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => setToCurrency(currency.value)}

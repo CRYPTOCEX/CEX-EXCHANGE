@@ -1,4 +1,5 @@
 import { models, sequelize } from "@b/db";
+import { Transaction } from "sequelize";
 import { createError } from "@b/utils/error";
 import { decrypt, encrypt } from "@b/utils/encrypt";
 import { 
@@ -1538,7 +1539,7 @@ const updateBalancePrecision = (balance, chain) => {
   return balance;
 };
 
-export const decrementWalletBalance = async (userWallet, chain, amount) => {
+export const decrementWalletBalance = async (userWallet, chain, amount, dbTransaction?: Transaction) => {
   try {
     let newBalance = userWallet.balance - amount;
     newBalance = updateBalancePrecision(newBalance, chain);
@@ -1555,14 +1556,41 @@ export const decrementWalletBalance = async (userWallet, chain, amount) => {
       );
     }
 
+    const updateOptions: any = {
+      where: { id: userWallet.id },
+    };
+
+    // If we have a database transaction, use it for atomic updates
+    if (dbTransaction) {
+      updateOptions.transaction = dbTransaction;
+    }
+
     await models.wallet.update(
       {
         balance: newBalance,
         address: JSON.stringify(addresses) as any,
       },
+      updateOptions
+    );
+
+    // Also update walletData balance for the specific chain
+    // This keeps walletData in sync with wallet.address[chain].balance
+    const walletDataUpdateOptions: any = {
+      where: {
+        walletId: userWallet.id,
+        chain: chain,
+      },
+    };
+
+    if (dbTransaction) {
+      walletDataUpdateOptions.transaction = dbTransaction;
+    }
+
+    await models.walletData.update(
       {
-        where: { id: userWallet.id },
-      }
+        balance: sequelize.literal(`balance - ${amount}`),
+      },
+      walletDataUpdateOptions
     );
   } catch (error) {
     logError("wallet", error, __filename);
@@ -1578,10 +1606,11 @@ export async function createPendingTransaction(
   amount,
   toAddress,
   withdrawalFee,
-  token
+  token,
+  dbTransaction?: Transaction
 ) {
   try {
-    return await models.transaction.create({
+    const createOptions: any = {
       userId: userId,
       walletId: walletId,
       type: "WITHDRAW",
@@ -1596,7 +1625,14 @@ export async function createPendingTransaction(
         contract: token.contract,
         decimals: token.decimals,
       }),
-    });
+    };
+
+    // If we have a database transaction, pass it as an option
+    if (dbTransaction) {
+      return await models.transaction.create(createOptions, { transaction: dbTransaction });
+    }
+
+    return await models.transaction.create(createOptions);
   } catch (error) {
     logError("transaction", error, __filename);
     throw error;

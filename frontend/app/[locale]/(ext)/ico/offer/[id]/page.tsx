@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -29,6 +29,9 @@ import {
   Shield,
   Zap,
   Target,
+  Clock,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOfferStore } from "@/store/ico/offer/offer-store";
@@ -84,20 +87,54 @@ export default function OfferingPage() {
   }
 
   // Calculate progress, days left, and daily raise using offering data
-  const currentRaised = offering.currentRaised ?? 0;
-  const targetAmount = offering.targetAmount ?? 1; // Avoid division by zero
+  const currentRaised = offering?.currentRaised ?? 0;
+  const targetAmount = offering?.targetAmount ?? 1; // Avoid division by zero
   const progress = (currentRaised / targetAmount) * 100;
   const daysLeft = Math.ceil(
-    (new Date(offering.endDate).getTime() - new Date().getTime()) /
+    (new Date(offering?.endDate ?? new Date()).getTime() - new Date().getTime()) /
       (1000 * 60 * 60 * 24)
   );
   const raisedPerDay =
     currentRaised /
     Math.max(
       1,
-      (new Date().getTime() - new Date(offering.startDate).getTime()) /
+      (new Date().getTime() - new Date(offering?.startDate ?? new Date()).getTime()) /
         (1000 * 60 * 60 * 24)
     );
+
+  // Check offering timing and phase status
+  const now = new Date();
+  const startDate = new Date(offering?.startDate ?? new Date());
+  const endDate = new Date(offering?.endDate ?? new Date());
+  const hasStarted = now >= startDate;
+  const hasEnded = now > endDate;
+  const currentPhase = offering?.currentPhase ?? null;
+  const hasActivePhase = currentPhase !== null && (currentPhase?.remaining ?? 0) > 0;
+
+  // Determine offering status message
+  let statusMessage = "";
+  let statusVariant: "default" | "secondary" | "outline" | "destructive" = "default";
+  let statusIcon: React.ReactNode = null;
+
+  if (!hasStarted) {
+    statusMessage = `Starts ${formatDate(offering?.startDate ?? new Date())}`;
+    statusVariant = "secondary";
+    statusIcon = <Clock className="h-3 w-3 mr-1" />;
+  } else if (hasEnded) {
+    statusMessage = "Offering Ended";
+    statusVariant = "outline";
+    statusIcon = <AlertCircle className="h-3 w-3 mr-1" />;
+  } else if (!hasActivePhase) {
+    statusMessage = "No tokens available";
+    statusVariant = "destructive";
+    statusIcon = <AlertCircle className="h-3 w-3 mr-1" />;
+  } else if (offering?.status === "ACTIVE") {
+    statusMessage = "Live Now";
+    statusVariant = "default";
+    statusIcon = <CheckCircle className="h-3 w-3 mr-1" />;
+  }
+
+  const canInvest = hasStarted && !hasEnded && hasActivePhase && offering?.status === "ACTIVE";
 
   return (
     <>
@@ -118,36 +155,37 @@ export default function OfferingPage() {
                 <div className="flex items-center gap-5 mb-4">
                   <div className="bg-primary/10 p-1 rounded-full h-24 w-24">
                     <img
-                      src={offering.icon || "/img/placeholder.svg"}
-                      alt={offering.name}
+                      src={offering?.icon || "/img/placeholder.svg"}
+                      alt={offering?.name ?? "Token"}
                       className="object-cover rounded-full w-full h-full"
                     />
                   </div>
                   <div>
                     <h1 className="text-3xl md:text-4xl font-bold">
-                      {offering.name}
+                      {offering?.name}
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xl text-muted-foreground">
-                        {offering.symbol}
+                        {offering?.symbol}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mb-3 mt-4">
                   <Badge
-                    variant={
-                      offering.status === "ACTIVE" ? "default" : "outline"
-                    }
+                    variant={statusVariant}
                     className={
-                      offering.status === "ACTIVE"
-                        ? "bg-primary/10 text-primary hover:bg-primary/20"
+                      statusVariant === "default"
+                        ? "bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20"
+                        : statusVariant === "destructive"
+                        ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20"
                         : ""
                     }
                   >
-                    {offering.status === "ACTIVE" ? "Active" : offering.status}
+                    {statusIcon}
+                    {statusMessage}
                   </Badge>
-                  {offering.featured && (
+                  {offering?.featured && (
                     <Badge
                       variant="secondary"
                       className="bg-amber-500/10 text-amber-500 border-amber-500/20"
@@ -156,17 +194,25 @@ export default function OfferingPage() {
                       {t("Featured")}
                     </Badge>
                   )}
+                  {currentPhase !== null && (
+                    <Badge
+                      variant="outline"
+                      className="bg-primary/5 border-primary/20"
+                    >
+                      Phase: {currentPhase?.name}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
               <p className="text-muted-foreground max-w-3xl text-base md:text-lg">
-                {offering.tokenDetail?.description}
+                {offering?.tokenDetail?.description}
               </p>
 
               <div className="flex flex-wrap gap-4 mt-6">
-                {offering.website && (
+                {offering?.website && (
                   <Link
-                    href={offering.website}
+                    href={offering?.website}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -195,7 +241,7 @@ export default function OfferingPage() {
                           {t("%_complete")}
                         </span>
                         <span className="text-sm font-medium">
-                          {daysLeft}
+                          {daysLeft}{" "}
                           {t("days_left")}
                         </span>
                       </div>
@@ -205,12 +251,12 @@ export default function OfferingPage() {
                       />
                       <div className="flex justify-between mt-2">
                         <span className="text-sm text-muted-foreground">
-                          {t("raised")}
-                          {formatCurrency(offering.currentRaised ?? 0)}
+                          {t("raised")}{" "}
+                          {formatCurrency(offering?.currentRaised ?? 0)}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {t("goal")}
-                          {formatCurrency(offering.targetAmount)}
+                          {t("goal")}{" "}
+                          {formatCurrency(offering?.targetAmount ?? 0)}
                         </span>
                       </div>
                     </div>
@@ -222,7 +268,7 @@ export default function OfferingPage() {
                           {t("Participants")}
                         </p>
                         <p className="font-medium">
-                          {offering.participants.toLocaleString()}
+                          {(offering?.participants ?? 0).toLocaleString()}
                         </p>
                       </div>
                       <div className="bg-background/50 p-3 rounded-lg">
@@ -231,19 +277,48 @@ export default function OfferingPage() {
                           {t("token_price")}
                         </p>
                         <p className="font-medium">
-                          {formatCurrency(offering.tokenPrice)}
+                          {formatCurrency(offering?.tokenPrice ?? 0)}
                         </p>
                       </div>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0">
-                  <Link href="#invest">
-                    <Button className="w-full" size="lg">
-                      {t("invest_now")}
-                      <Zap className="ml-1 h-4 w-4" />
+                  {canInvest ? (
+                    <Link href="#invest" className="w-full">
+                      <Button className="w-full" size="lg">
+                        {t("invest_now")}
+                        <Zap className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button className="w-full" size="lg" disabled>
+                      {!hasStarted && (
+                        <>
+                          <Clock className="mr-1 h-4 w-4" />
+                          {t("not_started")}
+                        </>
+                      )}
+                      {hasStarted && hasEnded && (
+                        <>
+                          <AlertCircle className="mr-1 h-4 w-4" />
+                          {t("ended")}
+                        </>
+                      )}
+                      {hasStarted && !hasEnded && !hasActivePhase && (
+                        <>
+                          <AlertCircle className="mr-1 h-4 w-4" />
+                          {t("sold_out")}
+                        </>
+                      )}
+                      {hasStarted && !hasEnded && hasActivePhase && offering?.status !== "ACTIVE" && (
+                        <>
+                          <AlertCircle className="mr-1 h-4 w-4" />
+                          {offering?.status}
+                        </>
+                      )}
                     </Button>
-                  </Link>
+                  )}
                 </CardFooter>
               </Card>
             </div>
@@ -255,6 +330,37 @@ export default function OfferingPage() {
       <div className="container py-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {/* Phase Status Alert */}
+            {!canInvest && (
+              <Card className="mb-6 border-l-4" style={{
+                borderColor: !hasStarted ? '#f59e0b' : hasEnded ? '#6b7280' : '#ef4444'
+              }}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    {!hasStarted ? (
+                      <Clock className="h-5 w-5 text-amber-500 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                    )}
+                    <div>
+                      <h3 className="font-semibold mb-1">
+                        {!hasStarted && `Offering starts ${formatDate(offering?.startDate ?? new Date())}`}
+                        {hasStarted && hasEnded && "This offering has ended"}
+                        {hasStarted && !hasEnded && !hasActivePhase && "All tokens have been sold"}
+                        {hasStarted && !hasEnded && hasActivePhase && offering?.status !== "ACTIVE" && `Offering is currently ${offering?.status?.toLowerCase() ?? "inactive"}`}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {!hasStarted && "You'll be able to invest once the offering starts."}
+                        {hasStarted && hasEnded && "This offering has reached its end date."}
+                        {hasStarted && !hasEnded && !hasActivePhase && "No more tokens are available for purchase in any phase."}
+                        {hasStarted && !hasEnded && hasActivePhase && offering?.status !== "ACTIVE" && "Investments are not currently being accepted."}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Key Metrics */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <Card className="bg-primary/5 border-0">
@@ -272,30 +378,33 @@ export default function OfferingPage() {
                 <CardContent className="p-4">
                   <Calendar className="h-5 w-5 text-primary mb-2" />
                   <p className="text-xs text-muted-foreground">
-                    {t("end_date")}
+                    {!hasStarted ? t("start_date") : t("end_date")}
                   </p>
                   <p className="font-semibold">
-                    {formatDate(offering.endDate)}
+                    {formatDate(!hasStarted ? (offering?.startDate ?? new Date()) : (offering?.endDate ?? new Date()))}
                   </p>
                 </CardContent>
               </Card>
-              <Card className="bg-primary/5 border-0">
-                <CardContent className="p-4">
-                  <TrendingUp className="h-5 w-5 text-primary mb-2" />
-                  <p className="text-xs text-muted-foreground">
-                    {t("daily_raise")}
-                  </p>
-                  <p className="font-semibold">
-                    {formatCurrency(raisedPerDay)}
-                  </p>
-                </CardContent>
-              </Card>
+              {currentPhase !== null && (
+                <Card className="bg-primary/5 border-0">
+                  <CardContent className="p-4">
+                    <Zap className="h-5 w-5 text-primary mb-2" />
+                    <p className="text-xs text-muted-foreground">
+                      {t("current_phase")}
+                    </p>
+                    <p className="font-semibold">{currentPhase?.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {(currentPhase?.remaining ?? 0).toLocaleString()} tokens left
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
               <Card className="bg-primary/5 border-0">
                 <CardContent className="p-4">
                   <Target className="h-5 w-5 text-primary mb-2" />
                   <p className="text-xs text-muted-foreground">{t("Target")}</p>
                   <p className="font-semibold">
-                    {formatCurrency(offering.targetAmount)}
+                    {formatCurrency(offering?.targetAmount ?? 0)}
                   </p>
                 </CardContent>
               </Card>
@@ -315,13 +424,13 @@ export default function OfferingPage() {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <TabsContent value="details" className="space-y-6">
-                    <TokenDetails details={offering.tokenDetail} />
+                    <TokenDetails details={offering?.tokenDetail ?? null} />
                   </TabsContent>
                   <TabsContent value="team" className="space-y-6">
-                    <TeamMembers members={offering.teamMembers} />
+                    <TeamMembers members={offering?.teamMembers ?? []} />
                   </TabsContent>
                   <TabsContent value="roadmap" className="space-y-6">
-                    <Roadmap items={offering.roadmapItems} />
+                    <Roadmap items={offering?.roadmapItems ?? []} />
                   </TabsContent>
                 </CardContent>
               </Tabs>
@@ -336,10 +445,10 @@ export default function OfferingPage() {
                 <div className="space-y-2">
                   <h3 className="font-medium">
                     {t("what_is")}
-                    {offering.name}?
+                    {offering?.name}?
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {offering.tokenDetail?.description}
+                    {offering?.tokenDetail?.description}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -351,7 +460,7 @@ export default function OfferingPage() {
                     {formatCurrency(settings["icoMinInvestmentAmount"])}
                     {t("using_the_investment_form_on_this_page")}.{" "}
                     {t("the_offering_is_open_until")}{" "}
-                    {formatDate(offering.endDate)}
+                    {formatDate(offering?.endDate ?? new Date())}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -370,7 +479,7 @@ export default function OfferingPage() {
                   <p className="text-sm text-muted-foreground">
                     {t("token_lock-up_periods_vary_by_project")}.{" "}
                     {t("please_refer_to_periods_for")}
-                    {offering.name}
+                    {offering?.name}
                   </p>
                 </div>
               </CardContent>
@@ -380,7 +489,7 @@ export default function OfferingPage() {
           {/* Investment Form Column */}
           <div className="space-y-6" id="invest">
             <div className="sticky top-22">
-              <InvestmentForm offering={offering} />
+              {offering && <InvestmentForm offering={offering} />}
               {/* Trust Indicators */}
               <Card className="mt-6 border-0 bg-muted/30">
                 <CardContent className="p-4">

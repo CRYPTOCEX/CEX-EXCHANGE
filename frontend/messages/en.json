@@ -5186,7 +5186,11 @@
     "verify_account": "Verify Account",
     "success": "Success",
     "warning": "Warning",
-    "info": "Info"
+    "info": "Info",
+    "not_started": "Not Started",
+    "ended": "Ended",
+    "sold_out": "Sold Out",
+    "manage_rewards": "Manage Rewards"
   },
   "market": {
     "cryptocurrency_markets": "Cryptocurrency Markets",
@@ -5686,6 +5690,7 @@
     "Withdraw": "Withdraw",
     "start_over": "Start Over",
     "no_wallets_available": "No wallets available",
+    "no_wallets_available_description": "All wallet types have been disabled by the administrator. Please contact support for assistance or check back later.",
     "no_wallets_with_balance_for_withdrawal": "No wallets with balance for withdrawal",
     "no_currencies_available": "No currencies available",
     "no_currencies_with_balance_in_wallet_type": "No currencies with balance in wallet type",

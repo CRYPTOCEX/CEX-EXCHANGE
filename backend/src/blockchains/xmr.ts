@@ -41,10 +41,9 @@ class MoneroService {
   private static globalMonitoringQueue: string[] = [];
   private static isProcessingGlobalQueue = false;
 
-  private static walletQueues: Map<string, (() => Promise<void>)[]> = new Map();
-  private static walletProcessing: Map<string, boolean> = new Map();
   private static queue: (() => Promise<void>)[] = [];
   private static processingQueue = false;
+  private static currentlyOpenWallet: string | null = null;
   private static processedTransactions: Map<string, number> = new Map();
   private static lastCheckTime = new Map<string, number>();
 
@@ -99,15 +98,29 @@ class MoneroService {
   }
 
   private static async addToQueue(
+    walletId: string | null,
     operation: () => Promise<void>
   ): Promise<void> {
-    MoneroService.queue.push(operation);
-    if (!MoneroService.processingQueue) {
-      await MoneroService.processQueue();
-    }
+    return new Promise((resolve, reject) => {
+      MoneroService.queue.push(async () => {
+        try {
+          MoneroService.currentlyOpenWallet = walletId;
+          await operation();
+          MoneroService.currentlyOpenWallet = null;
+          resolve();
+        } catch (error) {
+          MoneroService.currentlyOpenWallet = null;
+          reject(error);
+        }
+      });
+      if (!MoneroService.processingQueue) {
+        MoneroService.processQueue();
+      }
+    });
   }
 
   private static async processQueue(): Promise<void> {
+    if (MoneroService.processingQueue) return;
     MoneroService.processingQueue = true;
     while (MoneroService.queue.length > 0) {
       const operation = MoneroService.queue.shift();
@@ -116,7 +129,7 @@ class MoneroService {
           await operation();
         } catch (error) {
           console.error(
-            `Error processing global wallet operation: ${error.message}`
+            `[ERROR] Error processing global wallet operation: ${error.message}`
           );
         }
       }
@@ -124,37 +137,12 @@ class MoneroService {
     MoneroService.processingQueue = false;
   }
 
-  private static async addToWalletQueue(
-    walletId: string,
-    operation: () => Promise<void>
-  ): Promise<void> {
-    if (!MoneroService.walletQueues.has(walletId)) {
-      MoneroService.walletQueues.set(walletId, []);
+  private static validateWalletContext(expectedWalletId: string): void {
+    if (MoneroService.currentlyOpenWallet !== expectedWalletId) {
+      throw new Error(
+        `[CRITICAL] Wrong wallet context! Expected ${expectedWalletId}, but ${MoneroService.currentlyOpenWallet || 'no wallet'} is currently open`
+      );
     }
-    MoneroService.walletQueues.get(walletId)!.push(operation);
-    if (!MoneroService.walletProcessing.get(walletId)) {
-      await MoneroService.processWalletQueue(walletId);
-    }
-  }
-
-  private static async processWalletQueue(walletId: string): Promise<void> {
-    MoneroService.walletProcessing.set(walletId, true);
-    const queue = MoneroService.walletQueues.get(walletId);
-
-    while (queue && queue.length > 0) {
-      const operation = queue.shift();
-      if (operation) {
-        try {
-          await operation();
-        } catch (error) {
-          console.error(
-            `[ERROR] Error processing wallet ${walletId} operation: ${error.message}`
-          );
-        }
-      }
-    }
-
-    MoneroService.walletProcessing.set(walletId, false);
   }
 
   private async checkChainStatus(): Promise<void> {
@@ -352,8 +340,9 @@ class MoneroService {
       let hasUnprocessedTransactions = false;
 
       try {
-        await MoneroService.addToQueue(async () => {
+        await MoneroService.addToQueue(wallet.id, async () => {
           await this.openWallet(wallet.id);
+          MoneroService.validateWalletContext(wallet.id);
           console.log(`[INFO] Checking deposits for wallet ${wallet.id} (retry ${retryCount}/${MoneroService.MAX_RETRIES})`);
           transfers = await this.makeWalletRpcCall("get_transfers", {
             in: true,
@@ -527,8 +516,9 @@ class MoneroService {
       );
       let transactionProcessed = false;
 
-      await MoneroService.addToQueue(async () => {
+      await MoneroService.addToQueue(wallet.id, async () => {
         await this.openWallet(wallet.id);
+        MoneroService.validateWalletContext(wallet.id);
 
         // Check if this specific wallet+transaction combination was processed
         // XMR supports pay-to-many, so same txid can have multiple recipients
@@ -657,7 +647,7 @@ class MoneroService {
 
   public async createWallet(walletName: string): Promise<WalletCreationResult> {
     return new Promise((resolve, reject) => {
-      MoneroService.addToQueue(async () => {
+      MoneroService.addToQueue(walletName, async () => {
         this.ensureChainActive();
         console.log(`Creating Monero wallet: ${walletName}`);
 
@@ -694,7 +684,7 @@ class MoneroService {
 
   public async getBalance(walletName: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      MoneroService.addToQueue(async () => {
+      MoneroService.addToQueue(walletName, async () => {
         this.ensureChainActive();
         console.log(`Opening wallet: ${walletName}`);
 
@@ -900,8 +890,9 @@ class MoneroService {
     return new Promise((resolve, reject) => {
       const executeWithdrawal = async () => {
         try {
-          await MoneroService.addToWalletQueue(walletId, async () => {
+          await MoneroService.addToQueue(walletId, async () => {
             await this.openWallet(walletId);
+            MoneroService.validateWalletContext(walletId);
 
             const balanceResponse = await this.makeWalletRpcCall(
               "get_balance",
@@ -931,31 +922,71 @@ class MoneroService {
             // Get fee from transaction (already calculated and deducted in index.post.ts)
             const withdrawalFee = transaction.fee || 0;
 
-            // IMPORTANT: The fees have already been deducted from the wallet balance in index.post.ts
-            // The transaction.amount is the net amount to send to user
-            // The transaction.fee includes both withdrawal fee and network fee
-            // We need to split the fee between admin profit and network cost
-
-            // Estimate network fee to know how much goes to admin
-            const estimatedNetworkFee = await this.estimateMoneroFee();
-            const adminProfit = Math.max(0, withdrawalFee - estimatedNetworkFee);
-
-            // The total we'll spend in this transaction (amount to user + admin profit)
-            // Network fee is automatically deducted by Monero
-            const totalToSend = amount + adminProfit;
-            const totalWithNetworkFee = totalToSend + estimatedNetworkFee;
-
-            console.log(`[XMR_WITHDRAW] Withdrawal details:`, {
-              userAmount: amount,
-              totalFeeCharged: withdrawalFee,
-              estimatedNetworkFee,
-              adminProfit,
-              totalToSend,
-              totalWithNetworkFee,
-              walletBalance: totalBalance
+            // Get admin master wallet for profit destination
+            const adminMasterWallet = await models.ecosystemMasterWallet.findOne({
+              where: {
+                chain: "XMR",
+                currency: transaction.wallet.currency,
+                status: true
+              }
             });
 
-            // Check if we have enough balance (should already be checked, but verify)
+            if (!adminMasterWallet) {
+              console.warn(`[XMR_WITHDRAW] No admin master wallet found for XMR/${transaction.wallet.currency}`);
+            }
+
+            // Step 1: Create a test transaction with do_not_relay to get EXACT fee
+            // This is the only accurate way to get Monero transaction fees
+            const testDestinations = [
+              { amount: Math.round(amount * 1e12), address: toAddress }
+            ];
+
+            // Add admin destination to test transaction if we have admin wallet
+            // We'll calculate admin profit after we know the real network fee
+            if (adminMasterWallet && withdrawalFee > 0) {
+              // Initially use estimated fee to calculate profit for test
+              const estimatedNetworkFee = await this.estimateMoneroFee();
+              const estimatedAdminProfit = Math.max(0, withdrawalFee - estimatedNetworkFee);
+
+              if (estimatedAdminProfit > 0) {
+                testDestinations.push({
+                  amount: Math.round(estimatedAdminProfit * 1e12),
+                  address: adminMasterWallet.address
+                });
+              }
+            }
+
+            console.log(`[XMR_WITHDRAW] Creating test transaction to calculate exact fee...`);
+            const testTransferResponse = await this.makeWalletRpcCall("transfer", {
+              destinations: testDestinations,
+              priority: priority,
+              do_not_relay: true, // Don't broadcast, just calculate fee
+            });
+
+            if (!testTransferResponse.result?.fee) {
+              throw new Error("Failed to calculate exact transaction fee");
+            }
+
+            // Get the ACTUAL network fee from the test transaction
+            const actualNetworkFee = testTransferResponse.result.fee / 1e12;
+            const actualAdminProfit = Math.max(0, withdrawalFee - actualNetworkFee);
+
+            // The total we'll actually spend (amount to user + admin profit + network fee)
+            const totalToSend = amount + actualAdminProfit;
+            const totalWithNetworkFee = totalToSend + actualNetworkFee;
+
+            console.log(`[XMR_WITHDRAW] Withdrawal details (with exact fee):`, {
+              userAmount: amount,
+              totalFeeCharged: withdrawalFee,
+              actualNetworkFee,
+              actualAdminProfit,
+              totalToSend,
+              totalWithNetworkFee,
+              walletBalance: totalBalance,
+              testTxFee: actualNetworkFee
+            });
+
+            // Check if we have enough balance
             if (totalBalance < totalWithNetworkFee) {
               console.error(
                 `[ERROR] Insufficient funds in wallet ${walletId}. Need ${totalWithNetworkFee} XMR, have ${totalBalance} XMR`
@@ -982,59 +1013,53 @@ class MoneroService {
                 { where: { id: transactionId } }
               );
 
-              await MoneroService.addToWalletQueue(walletId, () =>
+              setTimeout(() => {
                 this.handleMoneroWithdrawal(
                   transactionId,
                   walletId,
                   amount,
                   toAddress,
                   priority
-                )
-              );
+                ).catch(err => {
+                  console.error(`[ERROR] Failed to requeue withdrawal ${transactionId}: ${err.message}`);
+                });
+              }, 5000);
               return;
             }
 
-            // Prepare batch transfer destinations
-            const destinations = [
+            // Step 2: Prepare final batch transfer with EXACT admin profit
+            const finalDestinations = [
               { amount: Math.round(amount * 1e12), address: toAddress }
             ];
 
-            // If there's admin profit (withdrawal fee minus network fee), send to admin
-            if (adminProfit > 0) {
-              const adminMasterWallet = await models.ecosystemMasterWallet.findOne({
-                where: {
-                  chain: "XMR",
-                  currency: transaction.wallet.currency,
-                  status: true
-                }
+            // Add admin profit destination with exact calculation
+            if (adminMasterWallet && actualAdminProfit > 0) {
+              console.log(`[XMR_WITHDRAW] Adding admin profit to batch transfer:`, {
+                adminAddress: adminMasterWallet.address.substring(0, 10) + '...',
+                adminProfit: actualAdminProfit,
+                originalFee: withdrawalFee,
+                actualNetworkFee
               });
-
-              if (adminMasterWallet) {
-                console.log(`[XMR_WITHDRAW] Adding admin profit to batch transfer:`, {
-                  adminAddress: adminMasterWallet.address.substring(0, 10) + '...',
-                  adminProfit,
-                  originalFee: withdrawalFee,
-                  networkFee: estimatedNetworkFee
-                });
-                destinations.push({
-                  amount: Math.round(adminProfit * 1e12),
-                  address: adminMasterWallet.address
-                });
-              } else {
-                console.warn(`[XMR_WITHDRAW] No admin master wallet found for XMR/${transaction.wallet.currency}, admin profit of ${adminProfit} XMR will be kept in user wallet`);
-              }
+              finalDestinations.push({
+                amount: Math.round(actualAdminProfit * 1e12),
+                address: adminMasterWallet.address
+              });
             }
 
-            // Execute batch transfer
-            console.log(`[XMR_WITHDRAW] Executing batch transfer with ${destinations.length} destinations`);
+            // CRITICAL: Validate wallet context before executing transfer
+            MoneroService.validateWalletContext(walletId);
+            console.log(`[XMR_WITHDRAW] Executing final batch transfer with ${finalDestinations.length} destinations`);
             const transferResponse = await this.makeWalletRpcCall("transfer", {
-              destinations,
+              destinations: finalDestinations,
               priority: priority,
             });
 
             if (!transferResponse.result?.tx_hash) {
               throw new Error("Failed to execute Monero transaction.");
             }
+
+            const finalActualFee = transferResponse.result.fee / 1e12;
+            console.log(`[XMR_WITHDRAW] Final transaction fee: ${finalActualFee} XMR`);
 
             // Update transaction status
             await models.transaction.update(
@@ -1046,27 +1071,17 @@ class MoneroService {
               { where: { id: transactionId } }
             );
 
-            // Record admin profit if collected (profit = total fee - network fee)
-            if (adminProfit > 0) {
-              const adminMasterWallet = await models.ecosystemMasterWallet.findOne({
-                where: {
-                  chain: "XMR",
-                  currency: transaction.wallet.currency,
-                  status: true
-                }
+            // Record admin profit if collected (using actual network fee)
+            if (adminMasterWallet && actualAdminProfit > 0) {
+              await models.adminProfit.create({
+                amount: actualAdminProfit,
+                currency: transaction.wallet.currency,
+                chain: "XMR",
+                type: "WITHDRAW",
+                transactionId: transaction.id,
+                description: `Admin profit from XMR withdrawal: ${actualAdminProfit} ${transaction.wallet.currency} (total fee charged: ${withdrawalFee}, actual network fee: ${finalActualFee}) for transaction (${transaction.id})`,
               });
-
-              if (adminMasterWallet) {
-                await models.adminProfit.create({
-                  amount: adminProfit,
-                  currency: transaction.wallet.currency,
-                  chain: "XMR",
-                  type: "WITHDRAW",
-                  transactionId: transaction.id,
-                  description: `Admin profit from XMR withdrawal: ${adminProfit} ${transaction.wallet.currency} (total fee: ${withdrawalFee}, network fee: ${estimatedNetworkFee}) for transaction (${transaction.id})`,
-                });
-                console.log(`[XMR_WITHDRAW] Admin profit recorded: ${adminProfit} ${transaction.wallet.currency}`);
-              }
+              console.log(`[XMR_WITHDRAW] Admin profit recorded: ${actualAdminProfit} ${transaction.wallet.currency}`);
             }
 
             console.log(
@@ -1102,7 +1117,7 @@ class MoneroService {
     amountXMR: number
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      MoneroService.addToQueue(async () => {
+      MoneroService.addToQueue(walletName, async () => {
         this.ensureChainActive();
         console.log(`Opening wallet: ${walletName} to send transaction.`);
 

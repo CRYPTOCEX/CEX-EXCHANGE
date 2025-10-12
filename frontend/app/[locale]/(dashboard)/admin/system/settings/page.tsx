@@ -10,27 +10,20 @@ import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { SettingsTab } from "./components/tab";
 import { useTranslations } from "next-intl";
-import { useSettings } from "@/hooks/use-settings";
 import { imageUploader } from "@/utils/upload";
 
 export default function SettingsPage() {
   const t = useTranslations("dashboard");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { settings: configSettings, setSettings, setIsLoading } = useConfigStore();
-  const {
-    isLoading,
-    settingsFetched,
-    settingsError,
-    retryFetch,
-    fetchSettings,
-  } = useSettings();
-  
+  const { settings: configSettings, setSettings, setIsLoading, settingsFetched, settingsError } = useConfigStore();
+
   // Get tab from URL query parameter, fallback to first tab
   const tabFromUrl = searchParams.get('tab');
   const validTab = TABS.find(tab => tab.id === tabFromUrl)?.id || TABS[0].id;
   const [activeTab, setActiveTab] = useState(validTab);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   // Local "draft" copy of settings for editing
   // Initialize with empty object, will be populated via useEffect
   const [draftSettings, setDraftSettings] = useState<Record<string, any>>({});
@@ -47,13 +40,12 @@ export default function SettingsPage() {
   
   // Initialize draftSettings when config settings are available or changed
   useEffect(() => {
-    if (settingsFetched) {
+    if (Object.keys(configSettings).length > 0) {
       // Always update draft settings when config settings change
       // This ensures the form reflects the latest saved values
-      // Even if configSettings is empty, we should set it
       setDraftSettings({ ...configSettings });
     }
-  }, [settingsFetched, configSettings]);
+  }, [configSettings]);
   
 
   
@@ -71,7 +63,7 @@ export default function SettingsPage() {
   
   // When saving, update the API and then refetch the actual settings from server.
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSaving(true);
     
     try {
       // Step 1: Handle file uploads first
@@ -148,8 +140,6 @@ export default function SettingsPage() {
       if (!error) {
         // Update the config store directly with the saved values to avoid timing issues
         setSettings(cleanPayload);
-        // Also refetch from server to ensure consistency
-        await fetchSettings();
         setHasChanges(false);
       } else {
         throw new Error(error);
@@ -158,7 +148,7 @@ export default function SettingsPage() {
       console.error('Error saving settings:', error);
       // You can add toast notification here if needed
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
   
@@ -167,34 +157,12 @@ export default function SettingsPage() {
     setDraftSettings({ ...configSettings });
     setHasChanges(false);
   };
-  
-  // Add retry function
-  const handleRetry = () => {
-    retryFetch();
-  };
 
   // Show loading state while settings are being fetched
-  if (!settingsFetched) {
+  if (!settingsFetched || Object.keys(configSettings).length === 0) {
     return (
       <div className="flex items-center justify-center h-screen">
         {t("loading_settings")}...
-      </div>
-    );
-  }
-
-  // Show error state with retry option
-  if (settingsError && !settingsFetched) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600">
-            {t("failed_to_load_settings")}
-          </h2>
-          <p className="text-muted-foreground mt-2">{settingsError}</p>
-        </div>
-        <Button onClick={handleRetry} variant="outline">
-          {t("Retry")}
-        </Button>
       </div>
     );
   }
@@ -208,12 +176,12 @@ export default function SettingsPage() {
             <Button
               variant="outline"
               onClick={handleCancel}
-              disabled={isLoading}
+              disabled={isSaving}
             >
               <X className="mr-2 h-4 w-4" />
               {t("Cancel")}
             </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
+            <Button onClick={handleSave} disabled={isSaving}>
               <Save className="mr-2 h-4 w-4" />
               {t("save_changes")}
             </Button>

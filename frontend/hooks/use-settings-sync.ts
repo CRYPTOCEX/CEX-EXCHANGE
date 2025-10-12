@@ -40,9 +40,37 @@ export const useSettingsSync = () => {
         const data = await response.json();
 
         // Update the store with fresh data
-        if (data && typeof data === 'object') {
-          setSettings(data);
-          setExtensions([]); // Extensions might be handled separately
+        if (data && data.settings) {
+          // Convert settings array to object and parse values
+          const settingsArray = data.settings.filter(
+            (s: any) => s.key !== "settings" && s.key !== "extensions" &&
+            !(typeof s.value === 'string' && s.value.includes('[object Object]'))
+          );
+
+          const settingsObj = settingsArray.reduce(
+            (acc: Record<string, any>, cur: { key: string; value: any }) => {
+              let parsedValue = cur.value;
+
+              if (cur.value === 'true' || cur.value === '1') parsedValue = true;
+              else if (cur.value === 'false' || cur.value === '0' || cur.value === '') parsedValue = false;
+              else if (cur.value && !isNaN(Number(cur.value)) && cur.value !== '') {
+                if (cur.key.includes('Time') || cur.key.includes('Amount') ||
+                    cur.key.includes('Fee') || cur.key.includes('Percent') ||
+                    cur.key.includes('Window') || cur.key.includes('Max') ||
+                    cur.key.includes('Min') || cur.key.includes('Trades') ||
+                    cur.key.includes('Offers')) {
+                  parsedValue = Number(cur.value);
+                }
+              }
+
+              acc[cur.key] = parsedValue;
+              return acc;
+            },
+            {}
+          );
+
+          setSettings(settingsObj);
+          setExtensions(data.extensions || []);
           setSettingsFetched(true);
           setSettingsError(null);
         } else {
@@ -80,7 +108,8 @@ export const useSettingsSync = () => {
       // Immediate fetch if no settings available
       fetchFreshSettings();
     }
-  }, [settings, settingsFetched, setSettings, setExtensions, setSettingsFetched, setSettingsError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     settings,

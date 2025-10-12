@@ -83,7 +83,7 @@ export class EVMDeposits implements IDepositMonitor {
     let depositFound = false;
     let startTime = Math.floor(Date.now() / 1000);
     let consecutiveErrors = 0;
-    const MAX_CONSECUTIVE_ERRORS = 5;
+    const MAX_CONSECUTIVE_ERRORS = 10; // Increased from 5 to 10 for better resilience
 
     console.log(
       `[INFO] Starting native deposit monitoring for ${this.chain} address ${this.address}`
@@ -107,7 +107,6 @@ export class EVMDeposits implements IDepositMonitor {
             Number(tx.timestamp) > startTime &&
             Number(tx.status) === 1
           ) {
-            depositFound = true;
             consecutiveErrors = 0; // Reset error counter on success
 
             try {
@@ -128,14 +127,18 @@ export class EVMDeposits implements IDepositMonitor {
               await storeAndBroadcastTransaction(txDetails, tx.hash);
 
               console.log(
-                `[SUCCESS] Native deposit ${tx.hash} processed successfully`
+                `[SUCCESS] Native deposit ${tx.hash} processed successfully - stopping monitor`
               );
+
+              // Mark deposit as found and stop monitoring
+              depositFound = true;
+              this.stopPolling();
+              return; // Exit immediately
             } catch (error) {
               console.error(
                 `[ERROR] Error processing native transaction ${tx.hash}: ${error.message}`
               );
-              // Don't mark as depositFound if processing failed
-              depositFound = false;
+              // Don't mark as depositFound if processing failed - will retry on next poll
             }
 
             startTime = Math.floor(Date.now() / 1000);
@@ -146,13 +149,25 @@ export class EVMDeposits implements IDepositMonitor {
         consecutiveErrors = 0; // Reset on successful API call
       } catch (error) {
         consecutiveErrors++;
+
+        // Log error details for debugging
         console.error(
-          `[ERROR] Error fetching transactions for ${this.chain} (attempt ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}): ${error.message}`
+          `[EVM_MONITOR_ERROR] ${this.chain} Error fetching transactions (attempt ${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`
         );
+        console.error(
+          `[EVM_MONITOR_ERROR] ${this.chain} Error message: ${error.message}`
+        );
+
+        // Log full error for first few attempts
+        if (consecutiveErrors <= 3) {
+          console.error(
+            `[EVM_MONITOR_ERROR] ${this.chain} Full error:`, error
+          );
+        }
 
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(
-            `[ERROR] Max consecutive errors reached for ${this.chain}, stopping monitor`
+            `[EVM_MONITOR_ERROR] ${this.chain} Max consecutive errors (${MAX_CONSECUTIVE_ERRORS}) reached, stopping monitor`
           );
           this.stopPolling();
           return;
@@ -164,10 +179,17 @@ export class EVMDeposits implements IDepositMonitor {
     await verifyDeposits();
 
     // Set up periodic checking with exponential backoff on errors
-    const getInterval = () =>
-      consecutiveErrors > 0
-        ? Math.min(10000 * Math.pow(2, consecutiveErrors - 1), 60000) // Exponential backoff, max 1 minute
-        : 10000; // Normal interval
+    const getInterval = () => {
+      if (consecutiveErrors === 0) {
+        return 10000; // 10 seconds when no errors
+      }
+      // Exponential backoff: 10s, 20s, 40s, 60s (max)
+      const backoffMs = Math.min(10000 * Math.pow(2, consecutiveErrors - 1), 60000);
+      console.log(
+        `[EVM_MONITOR] ${this.chain} Next poll in ${backoffMs / 1000}s (${consecutiveErrors} consecutive errors)`
+      );
+      return backoffMs;
+    };
 
     const scheduleNext = () => {
       if (this.active && !depositFound) {

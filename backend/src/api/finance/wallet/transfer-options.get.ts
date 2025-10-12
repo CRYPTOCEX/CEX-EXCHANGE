@@ -32,13 +32,20 @@ export const metadata = {
 };
 
 export default async () => {
-  const types = [{ id: "FIAT", name: "Fiat" }];
+  const types: { id: string; name: string }[] = [];
 
   try {
-    // Check if spot wallets are enabled in settings
+    // Check wallet settings
     const cacheManager = CacheManager.getInstance();
+    const fiatWalletsEnabled = await cacheManager.getSetting("fiatWallets");
     const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+    const isFiatEnabled = fiatWalletsEnabled === true || fiatWalletsEnabled === "true";
     const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
+
+    // Add FIAT only if enabled
+    if (isFiatEnabled) {
+      types.push({ id: "FIAT", name: "Fiat" });
+    }
 
     // Check if exchange is enabled with error handling
     const exchangeEnabled = await models.exchange.findOne({
@@ -53,8 +60,8 @@ export default async () => {
       types.push({ id: "FUTURES", name: "Futures" });
     }
   } catch (error) {
-    console.warn("Error checking exchange status:", error.message);
-    // Continue without SPOT/FUTURES if exchange check fails
+    console.warn("Error checking wallet settings:", error.message);
+    // Continue with what we have
   }
 
   try {
@@ -67,11 +74,6 @@ export default async () => {
   } catch (error) {
     console.warn("Error checking ecosystem extension:", error.message);
     // Continue without ECO if extension check fails
-  }
-
-  // Ensure at least FIAT is always available
-  if (types.length === 0) {
-    return { types: [{ id: "FIAT", name: "Fiat" }] };
   }
 
   return { types };

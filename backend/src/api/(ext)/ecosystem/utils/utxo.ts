@@ -10,7 +10,8 @@ import {
   satoshiToStandardUnit,
   standardUnitToSatoshi,
 } from "./blockchain";
-import { models } from "@b/db";
+import { models, sequelize } from "@b/db";
+import { Transaction } from "sequelize";
 import { decrypt } from "../../../../utils/encrypt";
 import { getMasterWalletByChain } from "./wallet";
 import { logError } from "@b/utils/logger";
@@ -25,8 +26,6 @@ class TransactionBroadcastedError extends Error {
   }
 }
 
-const HTTP_TIMEOUT = 30000;
-const BLOCKCYPHER_API_URL = "https://api.blockcypher.com/v1";
 const BTC_NETWORK = process.env.BTC_NETWORK || "mainnet";
 const BLOCKCYPHER_TOKEN = process.env.BLOCKCYPHER_TOKEN;
 const BTC_NODE = process.env.BTC_NODE || "blockcypher";
@@ -480,6 +479,65 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
   const wallet = await models.wallet.findByPk(transaction.walletId);
   if (!wallet) throw new Error("Wallet not found");
 
+  // Pre-flight check: validate withdrawal is economical before proceeding
+  const validationResult = await calculateMinimumWithdrawal(
+    wallet.id,
+    chain,
+    transaction.amount
+  );
+
+  if (!validationResult.isEconomical) {
+    console.log(`[UTXO_WITHDRAWAL] Withdrawal validation failed:`, validationResult);
+
+    // Check if we should auto-consolidate
+    const shouldConsolidate = await shouldAutoConsolidateUTXOs(wallet.id, chain);
+
+    if (shouldConsolidate.shouldConsolidate) {
+      console.log(`[UTXO_AUTO_CONSOLIDATION] Triggered for wallet ${wallet.id}, chain ${chain}:`, shouldConsolidate.reason);
+
+      // Attempt automatic consolidation
+      const consolidationResult = await consolidateUTXOs(
+        wallet.id,
+        chain,
+        10 // Higher max fee rate for urgent consolidation (10 sat/byte)
+      );
+
+      if (consolidationResult.success) {
+        console.log(`[UTXO_AUTO_CONSOLIDATION] Success: ${consolidationResult.message}`);
+        console.log(`[UTXO_AUTO_CONSOLIDATION] Waiting for consolidation transaction to confirm...`);
+
+        // Wait for consolidation transaction to confirm before proceeding
+        const confirmationResult = await verifyUTXOTransaction(chain, consolidationResult.txid!);
+
+        if (!confirmationResult.confirmed) {
+          throw new Error(`Consolidation transaction ${consolidationResult.txid} failed to confirm within 30 minutes. Please try withdrawal again later.`);
+        }
+
+        console.log(`[UTXO_AUTO_CONSOLIDATION] Transaction confirmed. Fee: ${confirmationResult.fee} ${chain}`);
+
+        // Re-validate after consolidation
+        const revalidationResult = await calculateMinimumWithdrawal(
+          wallet.id,
+          chain,
+          transaction.amount
+        );
+
+        if (!revalidationResult.isEconomical) {
+          throw new Error(`Even after consolidation: ${revalidationResult.reason}`);
+        }
+
+        console.log(`[UTXO_WITHDRAWAL] After consolidation: withdrawal now requires ${revalidationResult.utxoCount} UTXOs`);
+      } else {
+        console.log(`[UTXO_AUTO_CONSOLIDATION] Failed: ${consolidationResult.message}`);
+        throw new Error(`${validationResult.reason}. Consolidation attempt failed: ${consolidationResult.message}`);
+      }
+    } else {
+      throw new Error(validationResult.reason);
+    }
+  } else {
+    console.log(`[UTXO_WITHDRAWAL] Validation passed: withdrawal requires ${validationResult.utxoCount} UTXOs`);
+  }
+
   const masterWallet = (await getMasterWalletByChain(
     chain
   )) as unknown as EcosystemMasterWallet;
@@ -492,22 +550,6 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
 
   if (!currentFeeRatePerByte) {
     throw new Error("Failed to fetch current fee rate");
-  }
-
-  // Define the dust threshold for the chain
-  function getDustThreshold(chain: string): number {
-    switch (chain) {
-      case "BTC":
-        return 546; // Satoshis for P2PKH
-      case "LTC":
-        return 1000; // Adjust according to LTC standards
-      case "DOGE":
-        return 100000000; // DOGE has different units
-      case "DASH":
-        return 546; // Similar to BTC
-      default:
-        throw new Error(`Unsupported UTXO chain: ${chain}`);
-    }
   }
 
   const dustThreshold = getDustThreshold(chain);
@@ -523,79 +565,110 @@ export async function handleUTXOWithdrawal(transaction: transactionAttributes) {
   const maxRetries = 3;
 
   while (retryCount < maxRetries) {
-    const utxos = await models.ecosystemUtxo.findAll({
-      where: { status: false, walletId: wallet.id },
-      order: [["amount", "DESC"]],
+    // Use database transaction with row-level locking to prevent race conditions
+    // This ensures that when multiple withdrawals happen simultaneously,
+    // each one gets exclusive access to UTXOs
+    const dbTransaction = await sequelize.transaction({
+      isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
     });
-    if (utxos.length === 0)
-      throw new Error("No UTXOs available for withdrawal");
 
     try {
-      const { success, txid } = await createAndBroadcastTransaction(
-        utxos,
-        wallet,
-        transaction,
-        amountToSend,
-        flatFee,
-        currentFeeRatePerByte,
-        dustThreshold,
-        chain,
-        network,
-        toAddress
-      );
+      // Lock UTXOs for this transaction using FOR UPDATE
+      // This prevents other concurrent withdrawals from using the same UTXOs
+      const utxos = await models.ecosystemUtxo.findAll({
+        where: { status: false, walletId: wallet.id },
+        order: [["amount", "DESC"]],
+        lock: Transaction.LOCK.UPDATE, // Row-level lock
+        transaction: dbTransaction,
+      });
 
-      if (success) {
-        // Transaction broadcasted successfully
-        await models.transaction.update(
-          {
-            status: "COMPLETED",
-            description: `Withdrawal of ${transaction.amount} ${wallet.currency} to ${toAddress}`,
-            trxId: txid,
-          },
-          {
-            where: { id: transaction.id },
-          }
-        );
-        return { success: true, txid };
-      } else {
-        throw new Error("Transaction failed without specific error");
+      if (utxos.length === 0) {
+        await dbTransaction.rollback();
+        throw new Error("No UTXOs available for withdrawal");
       }
-    } catch (error) {
-      if (error instanceof TransactionBroadcastedError) {
-        // Transaction was broadcasted; update status and exit
-        await models.transaction.update(
-          {
-            status: "COMPLETED",
-            description: `Withdrawal of ${transaction.amount} ${wallet.currency} to ${toAddress}`,
-            trxId: error.txid,
-          },
-          {
-            where: { id: transaction.id },
-          }
-        );
-        // Optionally log the error
-        logError("post_broadcast_error", error, __filename);
-        return { success: true, txid: error.txid };
-      } else if (
-        error.message.includes("already been spent") ||
-        error.message.includes("Missing inputs") ||
-        error.message.includes("bad-txns-inputs-spent")
-      ) {
-        // Identify and mark the spent UTXOs
-        await markSpentUtxosFromError(error, chain, wallet.id);
 
-        retryCount++;
-        if (retryCount >= maxRetries) {
-          throw new Error(
-            `Failed to broadcast transaction after ${maxRetries} attempts due to spent UTXOs.`
+      try {
+        const { success, txid } = await createAndBroadcastTransaction(
+          utxos,
+          wallet,
+          transaction,
+          amountToSend,
+          flatFee,
+          currentFeeRatePerByte,
+          dustThreshold,
+          chain,
+          network,
+          toAddress,
+          dbTransaction // Pass transaction to mark UTXOs within same transaction
+        );
+
+        if (success) {
+          // Commit the database transaction (UTXOs are now marked as spent)
+          await dbTransaction.commit();
+
+          // Update transaction status
+          await models.transaction.update(
+            {
+              status: "COMPLETED",
+              description: `Withdrawal of ${transaction.amount} ${wallet.currency} to ${toAddress}`,
+              trxId: txid,
+            },
+            {
+              where: { id: transaction.id },
+            }
           );
+          return { success: true, txid };
+        } else {
+          await dbTransaction.rollback();
+          throw new Error("Transaction failed without specific error");
         }
-        // Retry after marking spent UTXOs
-        continue;
-      } else {
-        // For other errors, throw immediately
-        throw new Error(`Failed to broadcast transaction: ${error.message}`);
+      } catch (error) {
+        // Always rollback on error
+        await dbTransaction.rollback();
+
+        if (error instanceof TransactionBroadcastedError) {
+          // Transaction was broadcasted; update status and exit
+          await models.transaction.update(
+            {
+              status: "COMPLETED",
+              description: `Withdrawal of ${transaction.amount} ${wallet.currency} to ${toAddress}`,
+              trxId: error.txid,
+            },
+            {
+              where: { id: transaction.id },
+            }
+          );
+          // Optionally log the error
+          logError("post_broadcast_error", error, __filename);
+          return { success: true, txid: error.txid };
+        } else if (
+          error.message.includes("already been spent") ||
+          error.message.includes("Missing inputs") ||
+          error.message.includes("bad-txns-inputs-spent")
+        ) {
+          // Identify and mark the spent UTXOs
+          await markSpentUtxosFromError(error, chain, wallet.id);
+
+          retryCount++;
+          if (retryCount >= maxRetries) {
+            throw new Error(
+              `Failed to broadcast transaction after ${maxRetries} attempts due to spent UTXOs.`
+            );
+          }
+          // Retry after marking spent UTXOs
+          continue;
+        } else {
+          // For other errors, throw immediately
+          throw new Error(`Failed to broadcast transaction: ${error.message}`);
+        }
       }
+    } catch (outerError) {
+      // Handle errors from UTXO fetching
+      if (outerError.message === "No UTXOs available for withdrawal") {
+        throw outerError;
+      }
+      // For unexpected errors, rollback and rethrow
+      throw outerError;
     }
   }
 }
@@ -610,7 +683,8 @@ async function createAndBroadcastTransaction(
   dustThreshold,
   chain,
   network,
-  toAddress
+  toAddress,
+  dbTransaction?: Transaction // Optional database transaction for UTXO locking
 ) {
   const psbt = new bitcoin.Psbt({ network });
   let totalInputValue = 0;
@@ -648,21 +722,41 @@ async function createAndBroadcastTransaction(
     let transactionFee = Math.ceil(estimatedTxSize * currentFeeRatePerByte);
 
     // Calculate required amount
-    let requiredAmount = amountToSend + flatFee + transactionFee;
+    // Note: flatFee is already deducted from user balance in index.post.ts
+    // We only need amountToSend (what user wants to send) + network fee
+    let requiredAmount = amountToSend + transactionFee;
     let change = totalInputValue - requiredAmount;
+
+    console.log(`[UTXO_DEBUG] Input #${psbt.inputCount}:`, {
+      utxoAmount: utxoAmountInSatoshis,
+      totalInputValue,
+      amountToSend,
+      flatFee, // For reference only, NOT added to requiredAmount
+      transactionFee,
+      requiredAmount,
+      change,
+      dustThreshold
+    });
 
     // Check if change is dust
     const isChangeDust = change > 0 && change < dustThreshold;
 
     if (isChangeDust) {
+      console.log(`[UTXO_DEBUG] Change is dust (${change} < ${dustThreshold}), adding to fee`);
       transactionFee += change;
       requiredAmount += change;
       change = 0;
     }
 
     // Recalculate after adjustments
-    requiredAmount = amountToSend + flatFee + transactionFee;
+    requiredAmount = amountToSend + transactionFee;
     change = totalInputValue - requiredAmount;
+
+    console.log(`[UTXO_DEBUG] After dust adjustment:`, {
+      requiredAmount,
+      change,
+      hasEnoughFunds: totalInputValue >= requiredAmount
+    });
 
     if (totalInputValue >= requiredAmount) {
       // We have enough inputs
@@ -710,9 +804,9 @@ async function createAndBroadcastTransaction(
         try {
           // Handle change output and mark used UTXOs
           if (change > 0) {
-            await recordChangeUtxo(txid, change, wallet, chain);
+            await recordChangeUtxo(txid, change, wallet, chain, dbTransaction);
           }
-          await markUsedUtxos(psbt, utxos);
+          await markUsedUtxos(psbt, utxos, dbTransaction);
 
           return { success: true, txid };
         } catch (postBroadcastError) {
@@ -744,7 +838,7 @@ function getChangeAddress(wallet, chain): string {
   return walletAddresses[chain].address;
 }
 
-async function markUsedUtxos(psbt, utxos) {
+async function markUsedUtxos(psbt, utxos, dbTransaction?: Transaction) {
   if (!psbt || !utxos) {
     console.error("Cannot mark used UTXOs: psbt or utxos is undefined");
     return;
@@ -766,11 +860,18 @@ async function markUsedUtxos(psbt, utxos) {
     );
 
     if (utxo) {
+      const updateOptions: any = {
+        where: { id: utxo.id },
+      };
+
+      // If we have a database transaction, use it for atomic updates
+      if (dbTransaction) {
+        updateOptions.transaction = dbTransaction;
+      }
+
       await models.ecosystemUtxo.update(
         { status: true },
-        {
-          where: { id: utxo.id },
-        }
+        updateOptions
       );
     } else {
       console.error(`UTXO not found for transaction ${txid} index ${index}`);
@@ -778,7 +879,7 @@ async function markUsedUtxos(psbt, utxos) {
   }
 }
 
-async function recordChangeUtxo(txid, changeAmount, wallet, chain) {
+async function recordChangeUtxo(txid, changeAmount, wallet, chain, dbTransaction?: Transaction) {
   if (!txid) {
     console.error("Cannot record change UTXO: txid is undefined");
     return;
@@ -804,14 +905,21 @@ async function recordChangeUtxo(txid, changeAmount, wallet, chain) {
     // changeAmount is in satoshis from the calculation, convert to standard units for database storage
     const changeAmountInStandardUnits = satoshiToStandardUnit(changeAmount, chain);
 
-    await models.ecosystemUtxo.create({
+    const createOptions: any = {
       walletId: wallet.id,
       transactionId: txid,
       index: changeOutputIndex,
       amount: changeAmountInStandardUnits,
       script: changeScript,
       status: false,
-    });
+    };
+
+    // If we have a database transaction, use it
+    if (dbTransaction) {
+      await models.ecosystemUtxo.create(createOptions, { transaction: dbTransaction });
+    } else {
+      await models.ecosystemUtxo.create(createOptions);
+    }
   } else {
     console.error("Change output not found in transaction data");
   }
@@ -893,5 +1001,363 @@ async function markSpentUtxos(chain, walletId) {
       // If unable to fetch transaction data, log the error
       logError("mark_spent_utxos", error, __filename);
     }
+  }
+}
+
+/**
+ * Determine if automatic UTXO consolidation should be triggered
+ * Consolidation is needed when:
+ * 1. There are many small UTXOs (>= 5)
+ * 2. Average UTXO size is small relative to typical transaction fees
+ */
+async function shouldAutoConsolidateUTXOs(
+  walletId: string,
+  chain: string
+): Promise<{ shouldConsolidate: boolean; reason: string }> {
+  const utxos = await models.ecosystemUtxo.findAll({
+    where: { status: false, walletId: walletId },
+    order: [["amount", "ASC"]],
+  });
+
+  if (utxos.length < 5) {
+    return {
+      shouldConsolidate: false,
+      reason: "Not enough UTXOs to warrant consolidation"
+    };
+  }
+
+  const currentFeeRate = await getCurrentUtxoFeeRatePerByte(chain);
+  if (!currentFeeRate) {
+    return {
+      shouldConsolidate: false,
+      reason: "Cannot fetch fee rate"
+    };
+  }
+
+  // Calculate average UTXO size in satoshis
+  const totalValue = utxos.reduce((sum, utxo) => {
+    return sum + standardUnitToSatoshi(utxo.amount, chain);
+  }, 0);
+  const avgUtxoSize = totalValue / utxos.length;
+
+  // Cost to spend one UTXO (input size × fee rate)
+  const costPerInput = 180 * currentFeeRate;
+
+  // If average UTXO is less than 3x the cost to spend it, consolidation is beneficial
+  if (avgUtxoSize < costPerInput * 3) {
+    return {
+      shouldConsolidate: true,
+      reason: `${utxos.length} UTXOs with avg size ${satoshiToStandardUnit(avgUtxoSize, chain)} ${chain} (cost to spend: ${satoshiToStandardUnit(costPerInput, chain)} ${chain}). Consolidation will reduce future fees.`
+    };
+  }
+
+  // If we have many UTXOs (>= 10), consolidate even if they're not super tiny
+  if (utxos.length >= 10) {
+    return {
+      shouldConsolidate: true,
+      reason: `${utxos.length} UTXOs detected. Consolidation will improve wallet efficiency.`
+    };
+  }
+
+  return {
+    shouldConsolidate: false,
+    reason: "UTXOs are large enough, no consolidation needed"
+  };
+}
+
+/**
+ * Calculate minimum economical withdrawal amount based on available UTXOs and fees
+ * Returns { isEconomical: boolean, minAmount: number, reason: string }
+ */
+export async function calculateMinimumWithdrawal(
+  walletId: string,
+  chain: string,
+  requestedAmount: number
+): Promise<{ isEconomical: boolean; minAmount: number; reason: string; utxoCount: number }> {
+  const requestedAmountSats = standardUnitToSatoshi(requestedAmount, chain);
+  const currentFeeRate = await getCurrentUtxoFeeRatePerByte(chain);
+
+  if (!currentFeeRate) {
+    return {
+      isEconomical: false,
+      minAmount: 0,
+      reason: "Failed to fetch current fee rate",
+      utxoCount: 0
+    };
+  }
+
+  // Get available UTXOs sorted by amount (largest first)
+  const utxos = await models.ecosystemUtxo.findAll({
+    where: { status: false, walletId: walletId },
+    order: [["amount", "DESC"]],
+  });
+
+  if (utxos.length === 0) {
+    return {
+      isEconomical: false,
+      minAmount: 0,
+      reason: "No UTXOs available",
+      utxoCount: 0
+    };
+  }
+
+  const dustThreshold = getDustThreshold(chain);
+
+  // Calculate how many UTXOs we'd need for this withdrawal
+  let totalInputValue = 0;
+  let inputCount = 0;
+
+  for (const utxo of utxos) {
+    inputCount++;
+    const utxoAmountSats = standardUnitToSatoshi(utxo.amount, chain);
+    totalInputValue += utxoAmountSats;
+
+    // Calculate fee for current input count (2 outputs: recipient + change)
+    const estimatedTxSize = inputCount * 180 + 2 * 34 + 10;
+    const transactionFee = Math.ceil(estimatedTxSize * currentFeeRate);
+    const requiredAmount = requestedAmountSats + transactionFee;
+
+    // If we have enough
+    if (totalInputValue >= requiredAmount) {
+      const change = totalInputValue - requiredAmount;
+
+      // Check if change would be dust (if so, add to fee)
+      if (change > 0 && change < dustThreshold) {
+        const adjustedRequired = requestedAmountSats + transactionFee + change;
+        if (totalInputValue >= adjustedRequired) {
+          return {
+            isEconomical: true,
+            minAmount: requestedAmount,
+            reason: "Withdrawal is economical",
+            utxoCount: inputCount
+          };
+        }
+      } else {
+        return {
+          isEconomical: true,
+          minAmount: requestedAmount,
+          reason: "Withdrawal is economical",
+          utxoCount: inputCount
+        };
+      }
+    }
+  }
+
+  // If we exhausted all UTXOs and still don't have enough
+  const finalTxSize = utxos.length * 180 + 2 * 34 + 10;
+  const finalFee = Math.ceil(finalTxSize * currentFeeRate);
+  const maxPossibleWithdrawal = totalInputValue - finalFee;
+
+  if (maxPossibleWithdrawal <= 0) {
+    return {
+      isEconomical: false,
+      minAmount: 0,
+      reason: `UTXOs too small for any withdrawal. Total value: ${satoshiToStandardUnit(totalInputValue, chain)} ${chain}, estimated fee: ${satoshiToStandardUnit(finalFee, chain)} ${chain}. Consider consolidating UTXOs when fees are lower.`,
+      utxoCount: utxos.length
+    };
+  }
+
+  return {
+    isEconomical: false,
+    minAmount: satoshiToStandardUnit(maxPossibleWithdrawal, chain),
+    reason: `Insufficient funds. Maximum possible withdrawal: ${satoshiToStandardUnit(maxPossibleWithdrawal, chain)} ${chain}. Consider consolidating UTXOs to reduce fees.`,
+    utxoCount: utxos.length
+  };
+}
+
+/**
+ * Consolidate small UTXOs into larger ones when fee rates are low
+ * This helps reduce future transaction costs
+ */
+export async function consolidateUTXOs(
+  walletId: string,
+  chain: string,
+  maxFeeRate: number = 2 // Only consolidate when fees are <= 2 sat/byte
+): Promise<{ success: boolean; txid?: string; message: string }> {
+  const currentFeeRate = await getCurrentUtxoFeeRatePerByte(chain);
+
+  if (!currentFeeRate) {
+    return {
+      success: false,
+      message: "Failed to fetch current fee rate"
+    };
+  }
+
+  if (currentFeeRate > maxFeeRate) {
+    return {
+      success: false,
+      message: `Current fee rate (${currentFeeRate} sat/byte) is too high for consolidation. Waiting for fees <= ${maxFeeRate} sat/byte.`
+    };
+  }
+
+  const wallet = await models.wallet.findByPk(walletId);
+  if (!wallet) {
+    return {
+      success: false,
+      message: "Wallet not found"
+    };
+  }
+
+  const masterWallet = (await getMasterWalletByChain(chain)) as unknown as EcosystemMasterWallet;
+  if (!masterWallet) {
+    return {
+      success: false,
+      message: `Master wallet not found for ${chain}`
+    };
+  }
+
+  const network = getUtxoNetwork(chain);
+  if (!network) {
+    return {
+      success: false,
+      message: `Unsupported UTXO chain: ${chain}`
+    };
+  }
+
+  // Get all available UTXOs
+  const dbTransaction = await sequelize.transaction({
+    isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+  });
+
+  try {
+    const utxos = await models.ecosystemUtxo.findAll({
+      where: { status: false, walletId: walletId },
+      order: [["amount", "ASC"]], // Smallest first for consolidation
+      lock: Transaction.LOCK.UPDATE,
+      transaction: dbTransaction,
+    });
+
+    console.log(`[UTXO_CONSOLIDATION] Found ${utxos.length} available UTXOs for wallet ${walletId}`);
+
+    if (utxos.length < 3) {
+      await dbTransaction.rollback();
+      return {
+        success: false,
+        message: `Not enough UTXOs to consolidate (need at least 3, found ${utxos.length})`
+      };
+    }
+
+    // Consolidate ALL available UTXOs to maximize efficiency
+    const utxosToConsolidate = utxos;
+    console.log(`[UTXO_CONSOLIDATION] Will consolidate all ${utxosToConsolidate.length} UTXOs`);
+
+    const psbt = new bitcoin.Psbt({ network });
+    let totalInputValue = 0;
+    const keyPairs: { index: number; keyPair: any }[] = [];
+
+    // Add all inputs
+    for (const utxo of utxosToConsolidate) {
+      const walletData = (await models.walletData.findOne({
+        where: { walletId: utxo.walletId },
+      })) as unknown as WalletData;
+
+      if (!walletData) continue;
+
+      const decryptedData = JSON.parse(decrypt(walletData.data));
+      if (!decryptedData.privateKey) continue;
+
+      const rawTxHex = await fetchRawUtxoTransaction(utxo.transactionId, chain);
+      psbt.addInput({
+        hash: utxo.transactionId,
+        index: utxo.index,
+        nonWitnessUtxo: Buffer.from(rawTxHex, "hex"),
+      });
+
+      const utxoAmountSats = standardUnitToSatoshi(utxo.amount, chain);
+      totalInputValue += utxoAmountSats;
+
+      const keyPair = ECPair.fromWIF(decryptedData.privateKey, network);
+      keyPairs.push({ index: psbt.inputCount - 1, keyPair });
+    }
+
+    // Calculate fee for consolidation (1 output only - back to ourselves)
+    const numInputs = psbt.inputCount;
+    const numOutputs = 1;
+    const estimatedTxSize = numInputs * 180 + numOutputs * 34 + 10;
+    const transactionFee = Math.ceil(estimatedTxSize * currentFeeRate);
+
+    const outputAmount = totalInputValue - transactionFee;
+    const dustThreshold = getDustThreshold(chain);
+
+    if (outputAmount < dustThreshold) {
+      await dbTransaction.rollback();
+      return {
+        success: false,
+        message: `Consolidation would result in dust output (${outputAmount} < ${dustThreshold} satoshis)`
+      };
+    }
+
+    // Add single output back to our own address
+    const changeAddress = getChangeAddress(wallet, chain);
+    psbt.addOutput({
+      address: changeAddress,
+      value: outputAmount,
+    });
+
+    // Sign all inputs
+    keyPairs.forEach(({ index, keyPair }) => {
+      psbt.signInput(index, keyPair);
+    });
+
+    psbt.finalizeAllInputs();
+
+    const rawTx = psbt.extractTransaction().toHex();
+    const broadcastResult = await broadcastRawUtxoTransaction(rawTx, chain);
+
+    if (!broadcastResult.success) {
+      await dbTransaction.rollback();
+      return {
+        success: false,
+        message: `Failed to broadcast consolidation: ${broadcastResult.error}`
+      };
+    }
+
+    const txid = broadcastResult.txid;
+
+    if (!txid) {
+      await dbTransaction.rollback();
+      return {
+        success: false,
+        message: "Failed to get transaction ID from broadcast result"
+      };
+    }
+
+    // Mark all used UTXOs as spent
+    await markUsedUtxos(psbt, utxosToConsolidate, dbTransaction);
+
+    // Record the new consolidated UTXO
+    await recordChangeUtxo(txid, outputAmount, wallet, chain, dbTransaction);
+
+    await dbTransaction.commit();
+
+    console.log(`[UTXO_CONSOLIDATION] Successfully consolidated ${numInputs} UTXOs into 1. TxID: ${txid}`);
+
+    return {
+      success: true,
+      txid,
+      message: `Successfully consolidated ${numInputs} UTXOs (${satoshiToStandardUnit(totalInputValue, chain)} ${chain}) into 1 UTXO (${satoshiToStandardUnit(outputAmount, chain)} ${chain}). Fee: ${satoshiToStandardUnit(transactionFee, chain)} ${chain}`
+    };
+  } catch (error) {
+    await dbTransaction.rollback();
+    logError("consolidate_utxos", error, __filename);
+    return {
+      success: false,
+      message: `Consolidation failed: ${error.message}`
+    };
+  }
+}
+
+function getDustThreshold(chain: string): number {
+  switch (chain) {
+    case "BTC":
+      return 546; // Satoshis for P2PKH
+    case "LTC":
+      return 1000; // Adjust according to LTC standards
+    case "DOGE":
+      return 100000000; // DOGE has different units
+    case "DASH":
+      return 546; // Similar to BTC
+    default:
+      throw new Error(`Unsupported UTXO chain: ${chain}`);
   }
 }

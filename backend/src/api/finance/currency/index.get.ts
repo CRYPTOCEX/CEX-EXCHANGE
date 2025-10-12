@@ -89,14 +89,28 @@ export default async (data: Handler) => {
   if (!user?.id) throw createError(401, "Unauthorized");
 
   const { action, walletType, targetWalletType } = query;
-  
-  // Check if spot wallets are disabled
+
+  // Check if wallets are disabled
   const cacheManager = CacheManager.getInstance();
   const spotWalletsEnabled = await cacheManager.getSetting("spotWallets");
+  const fiatWalletsEnabled = await cacheManager.getSetting("fiatWallets");
+  const extensions = await cacheManager.getExtensions();
   const isSpotEnabled = spotWalletsEnabled === true || spotWalletsEnabled === "true";
-  
-  // If SPOT is involved and disabled, return empty array or error
+  const isFiatEnabled = fiatWalletsEnabled === true || fiatWalletsEnabled === "true";
+  const isEcosystemEnabled = extensions.has("ecosystem");
+
+  // If SPOT is involved and disabled, return empty array
   if (!isSpotEnabled && (walletType === "SPOT" || targetWalletType === "SPOT")) {
+    return [];
+  }
+
+  // If FIAT is involved and disabled, return empty array
+  if (!isFiatEnabled && (walletType === "FIAT" || targetWalletType === "FIAT")) {
+    return [];
+  }
+
+  // If ECO is involved and ecosystem extension is not enabled, return empty array
+  if (!isEcosystemEnabled && (walletType === "ECO" || targetWalletType === "ECO")) {
     return [];
   }
   
