@@ -1227,6 +1227,12 @@ function filterMenuItem(
     return null;
   }
 
+  // For user menu: Hide parent items that have children but no visible children after filtering
+  // This ensures menu items like "Marketplace" are hidden when all child extensions are disabled
+  if (!isAdminMenu && item.child && !filteredChild) {
+    return null;
+  }
+
   return updatedItem;
 }
 

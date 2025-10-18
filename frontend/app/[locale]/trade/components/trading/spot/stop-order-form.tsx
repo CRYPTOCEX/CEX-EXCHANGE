@@ -252,16 +252,18 @@ export default function StopOrderForm({
           {t("stop_price")}
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-            <DollarSign className="h-3 w-3 text-muted-foreground/70 dark:text-zinc-500" />
-          </div>
           <input
             type="text"
-            className="w-full pl-6 pr-3 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-emerald-500"
+            className="w-full pl-3 pr-12 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-emerald-500"
             placeholder="0.00"
             value={stopPrice}
             onChange={handleStopPriceChange}
           />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <span className="text-xs text-muted-foreground dark:text-zinc-500">
+              {pair}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -271,16 +273,18 @@ export default function StopOrderForm({
             {t("limit_price")}
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-              <DollarSign className="h-3 w-3 text-muted-foreground/70 dark:text-zinc-500" />
-            </div>
             <input
               type="text"
-              className="w-full pl-6 pr-3 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-emerald-500"
+              className="w-full pl-3 pr-12 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-emerald-500"
               placeholder="0.00"
               value={limitPrice}
               onChange={handleLimitPriceChange}
             />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              <span className="text-xs text-muted-foreground dark:text-zinc-500">
+                {pair}
+              </span>
+            </div>
           </div>
         </div>
       )}

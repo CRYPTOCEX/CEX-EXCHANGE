@@ -12,9 +12,10 @@ interface ChartPanelProps {
   symbol: Symbol;
   onPriceUpdate?: (price: number) => void;
   metadata?: MarketMetadata;
+  marketType?: "spot" | "eco" | "futures";
 }
 
-export default function ChartPanel({ symbol, onPriceUpdate, metadata }: ChartPanelProps) {
+export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType: propMarketType }: ChartPanelProps) {
   const t = useTranslations("trade/components/chart/chart-panel");
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [selectedTimeframe, setSelectedTimeframe] = useState<TimeFrame>("1h");
@@ -22,7 +23,12 @@ export default function ChartPanel({ symbol, onPriceUpdate, metadata }: ChartPan
   const [chartKey, setChartKey] = useState<string>(`chart-${symbol}`);
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "spot";
-  const marketType = type === "futures" ? "futures" : "spot";
+  // Use prop marketType if provided, otherwise derive from URL params
+  const marketType = propMarketType || (
+    type === "futures" ? "futures" :
+    type === "spot-eco" ? "eco" :
+    "spot"
+  );
 
   // Handle price updates from the chart
   useEffect(() => {

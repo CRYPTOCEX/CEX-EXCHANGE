@@ -9,6 +9,7 @@ export interface icoTokenOfferingPhaseAttributes {
   allocation: number;
   remaining: number;
   duration: number;
+  sequence: number;
 }
 
 export interface icoTokenOfferingPhaseCreationAttributes
@@ -28,6 +29,7 @@ export default class icoTokenOfferingPhase
   allocation!: number;
   remaining!: number;
   duration!: number;
+  sequence!: number;
 
   public static initModel(
     sequelize: Sequelize.Sequelize
@@ -88,6 +90,15 @@ export default class icoTokenOfferingPhase
           validate: {
             isInt: { msg: "duration: Must be an integer" },
             min: { args: [0], msg: "duration: Cannot be negative" },
+          },
+        },
+        sequence: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0,
+          validate: {
+            isInt: { msg: "sequence: Must be an integer" },
+            min: { args: [0], msg: "sequence: Cannot be negative" },
           },
         },
       },

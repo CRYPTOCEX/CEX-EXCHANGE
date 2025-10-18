@@ -6,6 +6,7 @@ interface icoTokenOfferingPhaseAttributes {
   allocation: number;
   remaining: number;
   duration: number;
+  sequence: number;
 }
 
 interface icoTokenOfferingPhaseCreationAttributes

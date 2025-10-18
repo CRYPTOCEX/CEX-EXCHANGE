@@ -2,8 +2,8 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.5.4",
-    "scripts": {
+  "version": "5.5.5",
+  "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
@@ -39,10 +39,10 @@
     "@babel/traverse": "^7.28.4",
     "@babel/types": "^7.28.4",
     "@eslint/js": "^9.37.0",
-    "@next/eslint-plugin-next": "^15.5.4",
+    "@next/eslint-plugin-next": "^15.5.5",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.20",
-    "@types/node": "^22.18.8",
+    "@types/node": "^22.18.10",
     "@typescript-eslint/eslint-plugin": "8.0.0-alpha.26",
     "@typescript-eslint/parser": "8.0.0-alpha.26",
     "concurrently": "^7.6.0",
@@ -57,9 +57,9 @@
     "globals": "^15.15.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "ts-jest": "^29.4.4",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.0"
+    "typescript-eslint": "^8.46.1"
   },
   "_moduleAliases": {
     "@": "frontend",
@@ -67,18 +67,18 @@
     "@db": "backend/models"
   },
   "dependencies": {
-    "@google-cloud/translate": "^9.2.0",
-    "@reown/appkit": "^1.8.9",
-    "@reown/appkit-adapter-wagmi": "^1.8.9",
-    "@tanstack/react-query": "^5.90.2",
+    "@google-cloud/translate": "^9.2.1",
+    "@reown/appkit": "^1.8.10",
+    "@reown/appkit-adapter-wagmi": "^1.8.10",
+    "@tanstack/react-query": "^5.90.4",
     "@vitalets/google-translate-api": "^9.2.1",
-    "ccxt": "^4.5.8",
+    "ccxt": "^4.5.11",
     "dotenv": "^16.6.1",
     "jose": "^5.10.0",
     "mysql2": "^3.15.2",
     "tonweb": "^0.0.66",
-    "viem": "^2.38.0",
-    "wagmi": "^2.17.5"
+    "viem": "^2.38.2",
+    "wagmi": "^2.18.1"
   },
   "pnpm": {
     "overrides": {
@@ -117,6 +117,6 @@
       "esbuild"
     ]
   },
-  "lastCommit": "931b680efdd0ea5e271831bb12c3ec3474c41185",
-  "lastCommitDate": "2025-10-07T18:24:21.762Z"
+  "lastCommit": "b3dbe79e6750efedb583add5219026de2b835076",
+  "lastCommitDate": "2025-10-16T12:00:28.235Z"
 }

@@ -318,7 +318,34 @@ const storeWithdrawal = async (
   let activationFee = 0;
   let estimatedFee = 0;
 
-  if (chain === "TRON") {
+  // Validate UTXO-based withdrawals BEFORE deducting balance
+  // Note: We cannot accurately estimate UTXO network fees until transaction building
+  // because fees depend on number of UTXOs, current fee rate, and change output
+  if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
+    console.log(`[ECO_WITHDRAW_STORE] Pre-validating UTXO withdrawal for ${chain}`);
+    const { calculateMinimumWithdrawal } = require("@b/api/(ext)/ecosystem/utils/utxo");
+
+    try {
+      const validationResult = await calculateMinimumWithdrawal(
+        userWallet.id,
+        chain,
+        amount
+      );
+
+      if (!validationResult.isEconomical) {
+        console.error(`[ECO_WITHDRAW_STORE] Withdrawal not economical:`, validationResult);
+        throw new Error(validationResult.reason);
+      }
+
+      console.log(`[ECO_WITHDRAW_STORE] UTXO validation passed: withdrawal requires ${validationResult.utxoCount} UTXOs`);
+
+      // Note: estimatedFee remains 0 for UTXO chains
+      // Actual network fee will be calculated and deducted during transaction processing
+    } catch (error) {
+      console.error(`[ECO_WITHDRAW_STORE] UTXO validation error:`, error.message);
+      throw error;
+    }
+  } else if (chain === "TRON") {
     // Handle Tron-specific logic
     const TronService = await getTronService();
     if (!TronService) {
@@ -371,7 +398,9 @@ const storeWithdrawal = async (
   const totalFee = withdrawalFee + activationFee + estimatedFee;
 
   // Calculate the total amount to deduct from the wallet (including fees)
-  const totalAmount = amount + totalFee;
+  // Use parseFloat with toFixed to prevent floating-point precision errors
+  const precision = token.precision ?? token.decimals ?? 8;
+  const totalAmount = parseFloat((amount + totalFee).toFixed(precision));
 
   console.log(`[ECO_WITHDRAW_STORE] Fee calculation:`, {
     withdrawAmount: amount,

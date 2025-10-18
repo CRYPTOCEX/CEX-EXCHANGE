@@ -113,9 +113,11 @@ export default function MarketsPanel({
     // Otherwise use parameters from URL if available
     else {
       // Set market type if present in URL
-      if (typeParam === "spot" || typeParam === "futures") {
-        setMarketType(typeParam);
-        setActiveTab(typeParam === "spot" ? "markets" : "futures");
+      // Note: "spot-eco" should be treated as "spot" for tab purposes
+      if (typeParam === "spot" || typeParam === "spot-eco" || typeParam === "futures") {
+        const normalizedType = (typeParam === "spot-eco" ? "spot" : typeParam) as "spot" | "futures";
+        setMarketType(normalizedType);
+        setActiveTab(normalizedType === "spot" ? "markets" : "futures");
       } else {
         // If no type parameter, default to spot
         setMarketType("spot");
@@ -130,7 +132,8 @@ export default function MarketsPanel({
           const fullSymbol = `${currency}/${pair}` as Symbol;
 
           // Update the appropriate selected market based on the market type
-          if (typeParam === "spot" || !typeParam) {
+          // Note: "spot-eco" should be treated as "spot"
+          if (typeParam === "spot" || typeParam === "spot-eco" || !typeParam) {
             setSpotSelectedMarket(fullSymbol);
           } else if (typeParam === "futures") {
             setFuturesSelectedMarket(fullSymbol);
@@ -331,7 +334,7 @@ export default function MarketsPanel({
   // Subscribe to market data for active market (exactly like trading header)
   useEffect(() => {
     const currentActiveSymbol = marketType === "spot" ? spotSelectedMarket : futuresSelectedMarket;
-    
+
     if (!currentActiveSymbol) return;
 
     // Clean up previous subscription
@@ -341,23 +344,29 @@ export default function MarketsPanel({
     }
 
     // Determine the correct market type based on the current context
-    // Only subscribe to futures data when we're actually on the futures tab AND have a futures market selected
-    const subscriptionMarketType = (marketType === "futures" && currentActiveSymbol === futuresSelectedMarket) ? "futures" : "spot";
+    let subscriptionMarketType: "spot" | "eco" | "futures";
 
-    // Additional validation: Check if the symbol exists in the appropriate market list
-    let isValidSubscription = false;
-    if (subscriptionMarketType === "futures") {
-      // For futures, check if the symbol exists in futures markets
-      isValidSubscription = futuresMarkets.some(m => `${m.currency}/${m.pair}` === currentActiveSymbol);
+    if (marketType === "futures" && currentActiveSymbol === futuresSelectedMarket) {
+      subscriptionMarketType = "futures";
     } else {
-      // For spot, check if the symbol exists in spot markets
-      isValidSubscription = markets.some(m => m.symbol === currentActiveSymbol);
+      // For spot markets, check if it's an eco market
+      const market = markets.find(m => m.symbol === currentActiveSymbol);
+
+      // If market data shows it's eco, use eco
+      if (market?.isEco) {
+        subscriptionMarketType = "eco";
+      } else {
+        // Fallback: Check URL parameter as it's set immediately
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlType = urlParams.get("type");
+        subscriptionMarketType = (urlType === "spot-eco") ? "eco" : "spot";
+      }
+
+      // console.log(`[Markets Panel] Subscribing to ${currentActiveSymbol} with marketType: ${subscriptionMarketType}`);
     }
 
-    if (!isValidSubscription) {
-      console.warn(`[Markets Panel] Skipping subscription for ${currentActiveSymbol} on ${subscriptionMarketType} - symbol not found in ${subscriptionMarketType} markets`);
-      return;
-    }
+    // Skip validation - let the backend handle invalid symbols
+    // The validation was causing issues on initial load before markets were populated
 
     // Subscribe to ticker data for active market
     const unsubscribe = marketDataWs.subscribe<MarketTickerData>(
@@ -415,12 +424,14 @@ export default function MarketsPanel({
       // Find the current market to get currency and pair
       let currency = "";
       let pair = "";
+      let isEco = false;
 
       if (marketType === "spot") {
         const market = markets.find((m) => m.symbol === symbol);
         if (market) {
           currency = market.currency;
           pair = market.pair || "USDT";
+          isEco = market.isEco || false;
         }
       } else {
         const market = futuresMarkets.find((m) => `${m.currency}/${m.pair}` === symbol);
@@ -431,8 +442,13 @@ export default function MarketsPanel({
       }
 
       if (currency && pair) {
+        // Determine URL type parameter based on market type and isEco flag
+        let urlType = marketType;
+        if (marketType === "spot" && isEco) {
+          urlType = "spot-eco";
+        }
         // Update URL with currency-pair format and market type, preserving locale
-        const url = `${pathname}?symbol=${currency}-${pair}&type=${marketType}`;
+        const url = `${pathname}?symbol=${currency}-${pair}&type=${urlType}`;
         window.history.pushState({ path: url }, "", url);
       }
     },

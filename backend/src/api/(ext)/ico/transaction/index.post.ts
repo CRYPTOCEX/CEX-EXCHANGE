@@ -219,7 +219,7 @@ export default async (data: Handler) => {
         offeringId: offering.id,
         remaining: { [Op.gt]: 0 }
       },
-      order: [['createdAt', 'ASC']],
+      order: [['sequence', 'ASC']],
       transaction,
       lock: transaction.LOCK.UPDATE,
     });

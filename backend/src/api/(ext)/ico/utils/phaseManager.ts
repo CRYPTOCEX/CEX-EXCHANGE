@@ -21,7 +21,7 @@ export async function getCurrentPhase(offeringId: string, transaction?: any): Pr
 
   const phases = await models.icoTokenOfferingPhase.findAll({
     where: { offeringId },
-    order: [['createdAt', 'ASC']],
+    order: [['sequence', 'ASC']],
     transaction,
   });
 
@@ -62,7 +62,7 @@ export async function getNextPhase(offeringId: string, currentPhaseIndex: number
 
   const phases = await models.icoTokenOfferingPhase.findAll({
     where: { offeringId },
-    order: [['createdAt', 'ASC']],
+    order: [['sequence', 'ASC']],
     transaction,
   });
 

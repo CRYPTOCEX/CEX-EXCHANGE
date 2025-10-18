@@ -72,6 +72,30 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Populate custom fields with default values (like QR codes)
+  useEffect(() => {
+    if (method.customFields) {
+      try {
+        const fields = typeof method.customFields === 'string'
+          ? JSON.parse(method.customFields)
+          : method.customFields;
+
+        const initialValues: Record<string, any> = {};
+        fields.forEach((field: any) => {
+          if (field.value) {
+            initialValues[field.name] = field.value;
+          }
+        });
+
+        if (Object.keys(initialValues).length > 0) {
+          setCustomFields(initialValues);
+        }
+      } catch (error) {
+        console.error("Error parsing custom fields:", error);
+      }
+    }
+  }, [method.customFields]);
+
   const handleSubmit = async () => {
     // Validate required fields
     const newErrors: Record<string, string> = {};
@@ -148,6 +172,35 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
               } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               rows={3}
             />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+          </div>
+        );
+      case "qr":
+        return (
+          <div key={field.name} className="space-y-3">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {field.title || field.label || field.name}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            {value ? (
+              <div className="flex flex-col items-center space-y-3 p-4 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg">
+                <img
+                  src={value}
+                  alt={field.title || "QR Code"}
+                  className="w-64 h-64 object-contain"
+                />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+                  Scan this QR code to complete your payment
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center p-8 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+                <div className="text-center">
+                  <QrCode className="h-12 w-12 text-zinc-400 dark:text-zinc-600 mx-auto mb-2" />
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">No QR code available</p>
+                </div>
+              </div>
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
         );

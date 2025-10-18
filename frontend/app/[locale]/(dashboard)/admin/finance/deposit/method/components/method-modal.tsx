@@ -50,8 +50,9 @@ interface DepositMethod {
 interface CustomField {
   name: string;
   title: string;
-  type: "input" | "textarea" | "file" | "image";
+  type: "input" | "textarea" | "file" | "image" | "qr";
   required: boolean;
+  value?: string;
 }
 
 interface MethodModalProps {
@@ -138,7 +139,7 @@ export const MethodModal: React.FC<MethodModalProps> = ({
 
       // Handle image upload if there's a new image file
       let imageUrl = formData.image;
-      
+
       if (formData.imageFile instanceof File) {
         const uploadResult = await imageUploader({
           file: formData.imageFile,
@@ -159,6 +160,34 @@ export const MethodModal: React.FC<MethodModalProps> = ({
         }
       }
 
+      // Handle QR code uploads for custom fields
+      const processedCustomFields = await Promise.all(
+        (formData.customFields || []).map(async (field: any) => {
+          if (field.type === 'qr' && field.valueFile instanceof File) {
+            const uploadResult = await imageUploader({
+              file: field.valueFile,
+              dir: "depositMethods/qr",
+              size: {
+                width: 500,
+                height: 500,
+                maxWidth: 1000,
+                maxHeight: 1000
+              },
+              oldPath: typeof field.value === 'string' ? field.value : ""
+            });
+
+            if (uploadResult.success && uploadResult.url) {
+              return { ...field, value: uploadResult.url, valueFile: undefined };
+            } else {
+              throw new Error(`Failed to upload QR code for ${field.title}: ${uploadResult.error}`);
+            }
+          }
+          // Remove valueFile property for non-qr fields or if no file
+          const { valueFile, ...fieldWithoutFile } = field;
+          return fieldWithoutFile;
+        })
+      );
+
       // Prepare payload
       const payload = {
         title: formData.title,
@@ -168,7 +197,7 @@ export const MethodModal: React.FC<MethodModalProps> = ({
         percentageFee: formData.percentageFee,
         minAmount: formData.minAmount,
         maxAmount: formData.maxAmount,
-        customFields: formData.customFields || [],
+        customFields: processedCustomFields,
       };
 
       const { error } = await $fetch({
@@ -577,6 +606,7 @@ export const MethodModal: React.FC<MethodModalProps> = ({
                                       <th className="px-4 py-2 text-left">Name</th>
                                       <th className="px-4 py-2 text-left">Title</th>
                                       <th className="px-4 py-2 text-left">Type</th>
+                                      <th className="px-4 py-2 text-left">Value</th>
                                       <th className="px-4 py-2 text-center">Required</th>
                                       <th className="px-4 py-2 text-right">Actions</th>
                                     </tr>
@@ -630,8 +660,46 @@ export const MethodModal: React.FC<MethodModalProps> = ({
                                               <SelectItem value="textarea">Textarea</SelectItem>
                                               <SelectItem value="file">File Upload</SelectItem>
                                               <SelectItem value="image">Image Upload</SelectItem>
+                                              <SelectItem value="qr">QR Code</SelectItem>
                                             </SelectContent>
                                           </Select>
+                                        </td>
+                                        {/* Value - Show image upload for QR type */}
+                                        <td className="px-4 py-2">
+                                          {field.type === 'qr' ? (
+                                            <div className="space-y-2">
+                                              <ImageUpload
+                                                onChange={(fileOrNull) => {
+                                                  const updatedFields = [...formData.customFields];
+                                                  if (fileOrNull) {
+                                                    updatedFields[index] = { ...updatedFields[index], valueFile: fileOrNull };
+                                                  } else {
+                                                    updatedFields[index] = { ...updatedFields[index], value: null, valueFile: null };
+                                                  }
+                                                  handleFieldChange('customFields', updatedFields);
+                                                }}
+                                                value={field.valueFile || field.value || null}
+                                                title="Upload QR Code"
+                                                size="sm"
+                                                aspectRatio="square"
+                                                maxSize={5}
+                                                acceptedFormats={["image/jpeg", "image/png", "image/gif", "image/webp"]}
+                                              />
+                                              <p className="text-xs text-muted-foreground">Upload QR code image</p>
+                                            </div>
+                                          ) : (
+                                            <Input
+                                              type="text"
+                                              placeholder="Default value (optional)"
+                                              value={field.value || ''}
+                                              onChange={(e) => {
+                                                const updatedFields = [...formData.customFields];
+                                                updatedFields[index] = { ...updatedFields[index], value: e.target.value };
+                                                handleFieldChange('customFields', updatedFields);
+                                              }}
+                                              className="w-full"
+                                            />
+                                          )}
                                         </td>
                                         {/* Required */}
                                         <td className="px-4 py-2 text-center">

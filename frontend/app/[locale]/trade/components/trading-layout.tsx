@@ -70,6 +70,7 @@ function TradingInterface({
   currentMarket?: any;
 }) {
   const t = useTranslations("trade/components/trading-layout");
+  const searchParams = useSearchParams();
   const {
     layoutConfig,
     getPanelConfig,
@@ -97,6 +98,17 @@ function TradingInterface({
       .filter(([_, panel]) => panel.container === container && panel.visible)
       .sort((a, b) => a[1].position - b[1].position)
       .map(([id]) => id);
+  };
+
+  // Helper function to determine market type based on flags
+  const getMarketType = () => {
+    if (isFutures) return "futures";
+    // Check URL parameter first for immediate determination
+    const urlType = searchParams.get("type");
+    if (urlType === "spot-eco") return "eco";
+    // Then check current market data
+    if (currentMarket?.isEco) return "eco";
+    return "spot";
   };
 
   // Get panels for each container
@@ -246,9 +258,9 @@ function TradingInterface({
         />
       );
     } else if (panelId === "orderbook") {
-      return <OrderBookPanel symbol={currentSymbol} marketType={isFutures ? "futures" : "spot"} currency={currentMarket?.currency} pair={currentMarket?.pair} />;
+      return <OrderBookPanel symbol={currentSymbol} marketType={getMarketType()} currency={currentMarket?.currency} pair={currentMarket?.pair} />;
     } else if (panelId === "chart") {
-      return <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} />;
+      return <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} marketType={getMarketType()} />;
     } else if (panelId === "trading") {
       return (
         <TradingFormPanel 
@@ -446,7 +458,7 @@ function TradingInterface({
                     {centerPanels.length > 0 ? (
                       renderPanel(centerPanels[0])
                     ) : (
-                      <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} />
+                      <ChartPanel symbol={currentSymbol} metadata={currentMarket?.metadata} marketType={getMarketType()} />
                     )}
                   </Panel>
 
@@ -611,6 +623,8 @@ function TradingInterface({
                           <TradingFormPanel
                             symbol={currentSymbol}
                             isFutures={isFutures}
+                            isEco={currentMarket?.isEco || false}
+                            onOrderSubmit={isFutures ? handleFuturesOrderSubmit : undefined}
                           />
                         </div>
                       )}
@@ -709,6 +723,9 @@ export default function TradingLayout() {
 
   // Check if this is a futures market
   const isFutures = type === "futures";
+
+  // Check if this is an eco market from URL
+  const isEcoFromUrl = type === "spot-eco";
 
   // State for market data
   const [spotMarkets, setSpotMarkets] = useState<any[]>([]);
@@ -885,11 +902,12 @@ export default function TradingLayout() {
 
     // STEP 1: Cleanup old market data and subscriptions
     if (currentSymbolValue && currentSymbolValue !== symbol) {
-      
+
       // Cleanup market data WebSocket subscriptions for old symbol
       try {
         // Unsubscribe from all data types for the old symbol
-        const oldMarketType = isFutures ? "futures" : "spot";
+        // Determine the old market type based on current market data
+        const oldMarketType = isFutures ? "futures" : (currentMarket?.isEco ? "eco" : "spot");
         
         // Unsubscribe from ticker data
         marketDataWs.unsubscribe({
@@ -925,10 +943,10 @@ export default function TradingLayout() {
     try {
       // Trigger chart data cleanup via custom event
       window.dispatchEvent(new CustomEvent('market-switching-cleanup', {
-        detail: { 
-          oldSymbol: currentSymbolValue, 
+        detail: {
+          oldSymbol: currentSymbolValue,
           newSymbol: symbol,
-          oldMarketType: isFutures ? "futures" : "spot",
+          oldMarketType: isFutures ? "futures" : (currentMarket?.isEco ? "eco" : "spot"),
           newMarketType: targetMarketType
         }
       }));
@@ -962,7 +980,16 @@ export default function TradingLayout() {
     // Only update URL if we have valid market data
     if (market) {
       const formattedSymbol = `${market.currency}-${market.pair}`;
-      const url = `${pathname}?symbol=${formattedSymbol}&type=${targetMarketType}`;
+      // Determine URL type parameter based on market type
+      let urlType = targetMarketType;
+      if (targetMarketType === "spot" && market.isEco) {
+        urlType = "spot-eco";
+      } else if (targetMarketType === "futures") {
+        urlType = "futures";
+      } else {
+        urlType = "spot";
+      }
+      const url = `${pathname}?symbol=${formattedSymbol}&type=${urlType}`;
       window.history.pushState({ path: url }, "", url);
     } else {
       console.warn(`[Trading Layout] Market data not found for symbol: ${symbol}`);
@@ -991,6 +1018,16 @@ export default function TradingLayout() {
     setCurrentPrice(price);
   };
 
+  // Helper to get market type for header and other components
+  const getHeaderMarketType = (): "spot" | "eco" | "futures" => {
+    if (isFutures) return "futures";
+    // Check URL first for immediate determination on page load
+    if (isEcoFromUrl) return "eco";
+    // Then check current market data
+    if (currentMarket?.isEco) return "eco";
+    return "spot";
+  };
+
   if (!mounted) return null;
 
   if (isMobile) {
@@ -1000,7 +1037,7 @@ export default function TradingLayout() {
           <TradingHeader
             currentSymbol={currentSymbol}
             onSymbolChange={handleSymbolChange}
-            marketType={isFutures ? "futures" : "spot"}
+            marketType={getHeaderMarketType()}
           />
           <div className="flex-1 min-h-0 overflow-hidden">
             <MobileLayout
@@ -1020,7 +1057,7 @@ export default function TradingLayout() {
         <TradingHeader
           currentSymbol={currentSymbol}
           onSymbolChange={handleSymbolChange}
-          marketType={isFutures ? "futures" : "spot"}
+          marketType={getHeaderMarketType()}
         />
         <div className="flex-1 overflow-hidden">
           <TradingInterface

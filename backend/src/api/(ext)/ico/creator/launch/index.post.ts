@@ -392,7 +392,8 @@ export default async (data: Handler) => {
     );
 
     // Create offering phases (set remaining equal to allocation).
-    for (const phase of phases) {
+    for (let i = 0; i < phases.length; i++) {
+      const phase = phases[i];
       await models.icoTokenOfferingPhase.create(
         {
           offeringId: offering.id,
@@ -401,6 +402,7 @@ export default async (data: Handler) => {
           allocation: phase.allocation,
           duration: phase.durationDays,
           remaining: phase.allocation,
+          sequence: i,
         },
         { transaction }
       );

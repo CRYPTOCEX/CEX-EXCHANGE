@@ -44,7 +44,7 @@ export default function MobileLayout({
   const [viewportHeight, setViewportHeight] = useState(0);
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "spot";
-  const marketType = type === "futures" ? "futures" : "spot";
+  const marketType = type === "futures" ? "futures" : type === "spot-eco" ? "eco" : "spot";
   const isFutures = marketType === "futures";
   const t = useTranslations("trade/components/layout/mobile-layout");
 

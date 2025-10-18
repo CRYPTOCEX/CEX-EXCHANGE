@@ -224,17 +224,6 @@ export class MarketDataWebSocketService {
 
   // Ensure connection for a specific market type
   private ensureConnection(marketType: MarketType): void {
-    // Check if the extension is available for this market type
-    if (marketType === "eco" && !isExtensionAvailable("ecosystem")) {
-      console.warn("Ecosystem extension not available, skipping eco market connection");
-      return;
-    }
-    
-    if (marketType === "futures" && !isExtensionAvailable("futures")) {
-      console.warn("Futures extension not available, skipping futures market connection");
-      return;
-    }
-
     // If already connected to this market type, do nothing
     if (this.connectedMarketTypes.has(marketType)) return;
 
@@ -626,6 +615,7 @@ export class MarketDataWebSocketService {
 
           // Handle data structure - check if data is wrapped in a data property
           let actualData = data;
+          let dataSymbol = data.symbol; // Keep track of symbol from wrapper
           if (data.data && typeof data.data === 'object') {
             actualData = data.data;
           }
@@ -635,16 +625,11 @@ export class MarketDataWebSocketService {
           // For orderbook and ticker data, we don't need to validate symbol since it's already filtered by subscription
           // For trades data, check if the data is for this symbol
           if (type === "trades") {
-            if (
-              actualData.symbol !== formattedSymbol &&
-              !(
-                Array.isArray(actualData) &&
-                actualData.length > 0 &&
-                actualData[0].symbol === formattedSymbol
-              )
-            ) {
+            // Check symbol from wrapper first, then from data
+            const checkSymbol = dataSymbol || actualData.symbol || (Array.isArray(actualData) && actualData.length > 0 && actualData[0].symbol);
+            if (checkSymbol && checkSymbol !== formattedSymbol) {
               if (this.debug) {
-                console.log(`[Market Data WS] Skipping trades data - symbol mismatch. Expected: ${formattedSymbol}, Got: ${actualData.symbol}`);
+                console.log(`[Market Data WS] Skipping trades data - symbol mismatch. Expected: ${formattedSymbol}, Got: ${checkSymbol}`);
               }
               return; // Skip if the symbol doesn't match
             }

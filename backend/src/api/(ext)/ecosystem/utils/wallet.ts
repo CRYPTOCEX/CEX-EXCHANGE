@@ -1662,10 +1662,16 @@ export const refundUser = async (transaction) => {
     const metadata = JSON.parse(transaction.metadata);
     const addresses = JSON.parse(wallet.address as any);
     const amount = transaction.amount + transaction.fee;
-    if (metadata?.chain && addresses[metadata?.chain]) {
-      addresses[metadata?.chain].balance += amount;
+
+    // Apply precision fix to prevent floating-point errors
+    const chain = metadata?.chain;
+    const precisionFixedAmount = updateBalancePrecision(amount, chain);
+
+    if (chain && addresses[chain]) {
+      const newChainBalance = addresses[chain].balance + precisionFixedAmount;
+      addresses[chain].balance = updateBalancePrecision(newChainBalance, chain);
     }
-    const walletBalance = wallet.balance + amount;
+    const walletBalance = updateBalancePrecision(wallet.balance + precisionFixedAmount, chain);
 
     await models.wallet.update(
       {
@@ -1676,6 +1682,22 @@ export const refundUser = async (transaction) => {
         where: { id: wallet.id },
       }
     );
+
+    // Also refund walletData balance for the specific chain
+    // This keeps walletData in sync with wallet.address[chain].balance
+    if (chain) {
+      await models.walletData.update(
+        {
+          balance: sequelize.literal(`balance + ${precisionFixedAmount}`),
+        },
+        {
+          where: {
+            walletId: wallet.id,
+            chain: chain,
+          },
+        }
+      );
+    }
   } catch (error) {
     logError("wallet", error, __filename);
     throw error;

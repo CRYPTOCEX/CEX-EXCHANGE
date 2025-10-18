@@ -138,6 +138,8 @@ export function WithdrawForm() {
   const [availableCurrencies, setAvailableCurrencies] = useState<any[]>([]);
   const [isFetchingCurrencies, setIsFetchingCurrencies] = useState(false);
   const [walletTypesWithBalance, setWalletTypesWithBalance] = useState<Set<string>>(new Set());
+  const [maxWithdrawable, setMaxWithdrawable] = useState<any>(null);
+  const [isFetchingMax, setIsFetchingMax] = useState(false);
 
   // Check which wallet types have available currencies for withdrawal
   const checkAvailableWalletTypes = useCallback(async () => {
@@ -240,12 +242,53 @@ export function WithdrawForm() {
     setCurrency,
     fetchCurrencies,
   ]);
+  // Fetch max withdrawable amount for UTXO chains
+  const fetchMaxWithdrawable = useCallback(async () => {
+    if (!walletType || !currency || !withdrawMethod) return;
+
+    const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
+    if (!method) return;
+
+    const chain = method.network || method.id;
+
+    // Only fetch for ECO wallet and UTXO chains
+    if (walletType !== "ECO" || !["BTC", "LTC", "DOGE", "DASH"].includes(currency)) {
+      setMaxWithdrawable(null);
+      return;
+    }
+
+    setIsFetchingMax(true);
+    try {
+      const { data, error } = await $fetch({
+        url: `/api/ecosystem/withdraw/max?currency=${currency}&chain=${chain}`,
+        silent: true,
+      });
+
+      if (!error && data) {
+        setMaxWithdrawable(data);
+      } else {
+        setMaxWithdrawable(null);
+      }
+    } catch (err) {
+      console.error("Error fetching max withdrawable:", err);
+      setMaxWithdrawable(null);
+    } finally {
+      setIsFetchingMax(false);
+    }
+  }, [walletType, currency, withdrawMethod, withdrawalMethods]);
+
   useEffect(() => {
     if (walletType && currency) {
       fetchWallet(walletType, currency);
       fetchWithdrawalMethods();
     }
   }, [walletType, currency, fetchWallet, fetchWithdrawalMethods]);
+
+  useEffect(() => {
+    if (walletType && currency && withdrawMethod) {
+      fetchMaxWithdrawable();
+    }
+  }, [walletType, currency, withdrawMethod, fetchMaxWithdrawable]);
   const getWalletIcon = (walletType: string) => {
     switch (walletType) {
       case "FIAT":
@@ -273,9 +316,32 @@ export function WithdrawForm() {
     }
   };
   const handleMaxAmount = () => {
+    // For UTXO chains, use the fetched max amount
+    if (maxWithdrawable && maxWithdrawable.maxAmount > 0) {
+      const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
+      const selectedNetwork = method?.network || network;
+      const maxPrecision = getCurrencyPrecision(currency, selectedNetwork);
+
+      const formattedAmount = maxWithdrawable.maxAmount.toFixed(maxPrecision);
+      setAmount(formattedAmount);
+      setPrecisionError(null);
+      return;
+    }
+
+    // Fallback for non-UTXO chains
     if (wallet && wallet.balance) {
-      const maxAmount = Math.max(0, wallet.balance * 0.999);
-      setAmount(maxAmount.toString());
+      const method = withdrawalMethods.find((m) => m.id === withdrawMethod);
+      const fixedFee = method?.fixedFee || 0;
+
+      const maxAmount = Math.max(0, wallet.balance - fixedFee);
+
+      const selectedNetwork = method?.network || network;
+      const maxPrecision = getCurrencyPrecision(currency, selectedNetwork);
+
+      const formattedAmount = maxAmount.toFixed(maxPrecision);
+
+      setAmount(formattedAmount);
+      setPrecisionError(null);
     }
   };
   const getNetworkFee = () => {
@@ -888,14 +954,15 @@ export function WithdrawForm() {
                         
                         // Validate decimal precision
                         const validation = validateDecimalPrecision(value, maxPrecision);
-                        
+
                         if (!validation.isValid) {
                           setPrecisionError(
                             `${currency} on ${selectedNetwork || 'this network'} supports maximum ${validation.maxDecimals} decimal places. You entered ${validation.actualDecimals} decimal places.`
                           );
-                          // Still update the value but show error
-                          setAmount(value);
+                          // Don't update the value - prevent invalid entry
+                          return;
                         } else {
+                          setPrecisionError(null);
                           setAmount(value);
                         }
                       }}
@@ -954,6 +1021,33 @@ export function WithdrawForm() {
                         ` | Max: ${getMaxAmount()} ${currency}`}
                     </span>
                   </div>
+                  {/* Show max withdrawable for UTXO chains */}
+                  {maxWithdrawable && maxWithdrawable.isUtxoChain && (
+                    <Alert className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 mt-2">
+                      <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
+                        {isFetchingMax ? (
+                          <span className="flex items-center gap-2">
+                            <Loader size="sm" />
+                            Calculating maximum withdrawable amount...
+                          </span>
+                        ) : maxWithdrawable.maxAmount > 0 ? (
+                          <>
+                            <strong>Maximum you can withdraw:</strong> {maxWithdrawable.maxAmount.toFixed(8)} {currency}
+                            <br />
+                            <span className="text-xs opacity-75">
+                              (After platform fee: {maxWithdrawable.platformFee.toFixed(8)} {currency}
+                              {maxWithdrawable.estimatedNetworkFee > 0 && ` + estimated network fee: ${maxWithdrawable.estimatedNetworkFee.toFixed(8)} ${currency}`})
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-red-600 dark:text-red-400">
+                            <strong>Cannot withdraw:</strong> {maxWithdrawable.utxoInfo?.reason || "Insufficient funds"}
+                          </span>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Method Instructions */}
@@ -1041,11 +1135,22 @@ export function WithdrawForm() {
                                   }
                                   placeholder={`Enter ${field.title.toLowerCase()}`}
                                   value={customFields[field.name] || ""}
-                                  onChange={(e) =>
-                                    setCustomFields({
-                                      [field.name]: e.target.value,
-                                    })
-                                  }
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+
+                                    // Validate address fields - allow only alphanumeric characters
+                                    if (field.name.toLowerCase().includes("address")) {
+                                      // Remove any non-alphanumeric characters (including spaces, special chars)
+                                      const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '');
+                                      setCustomFields({
+                                        [field.name]: sanitizedValue,
+                                      });
+                                    } else {
+                                      setCustomFields({
+                                        [field.name]: value,
+                                      });
+                                    }
+                                  }}
                                   className={
                                     field.type === "number"
                                       ? ""
@@ -1080,7 +1185,19 @@ export function WithdrawForm() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">
-                      {t("network_fee")}
+                      {t("Platform Fee")}
+                      {walletType === "ECO" && ["BTC", "LTC", "DOGE", "DASH"].includes(currency) && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="inline h-3 w-3 ml-1 text-zinc-400" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Network fees will be calculated and deducted during processing</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </span>
                     <span className="font-medium">
                       {getNetworkFee()} {currency}
@@ -1089,7 +1206,9 @@ export function WithdrawForm() {
                   <div className="border-t border-zinc-200 dark:border-zinc-700 pt-2 mt-2">
                     <div className="flex justify-between text-sm font-semibold">
                       <span className="text-zinc-900 dark:text-zinc-100">
-                        {t("youll_receive")}
+                        {walletType === "ECO" && ["BTC", "LTC", "DOGE", "DASH"].includes(currency)
+                          ? t("Amount to Send (before network fees)")
+                          : t("youll_receive")}
                       </span>
                       <span className="text-zinc-900 dark:text-zinc-100">
                         {amount && !isNaN(Number(amount))
@@ -1101,6 +1220,14 @@ export function WithdrawForm() {
                       </span>
                     </div>
                   </div>
+                  {walletType === "ECO" && ["BTC", "LTC", "DOGE", "DASH"].includes(currency) && (
+                    <Alert className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20 mt-2">
+                      <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                      <AlertDescription className="text-yellow-700 dark:text-yellow-300 text-xs">
+                        Network transaction fees will be calculated based on current network conditions and deducted from the amount shown above.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Processing Time Info */}

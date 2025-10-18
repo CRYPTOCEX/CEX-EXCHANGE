@@ -256,11 +256,26 @@ export default function TradingFormPanel({
 
     // Subscribe to ticker updates with a small delay to ensure proper cleanup
     const subscriptionTimeout = setTimeout(() => {
+      // Determine market type: check isMarketEco state, then isEco prop, then URL
+      let marketType: "spot" | "eco" = "spot";
+      if (isMarketEco) {
+        marketType = "eco";
+      } else if (isEco) {
+        marketType = "eco";
+      } else if (typeof window !== "undefined") {
+        // Fallback: check URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlType = urlParams.get("type");
+        if (urlType === "spot-eco") {
+          marketType = "eco";
+        }
+      }
+
       unsubscribeRef.current = marketDataWs.subscribe(
         {
           type: "ticker",
           symbol,
-          marketType: isEco ? "eco" : "spot",
+          marketType,
         },
         handleTickerUpdate
       );

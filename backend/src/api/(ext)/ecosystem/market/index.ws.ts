@@ -9,6 +9,7 @@ class UnifiedEcosystemMarketDataHandler {
   private static instance: UnifiedEcosystemMarketDataHandler;
   private activeSubscriptions: Map<string, Set<string>> = new Map(); // symbol -> Set<dataTypes>
   private intervalMap: Map<string, NodeJS.Timeout> = new Map(); // symbol -> interval
+  private lastTickerData: Map<string, any> = new Map(); // symbol -> last ticker data
   private engine: any = null;
 
   private constructor() {}
@@ -42,19 +43,29 @@ class UnifiedEcosystemMarketDataHandler {
               );
               break;
             case "trades":
-              messageBroker.broadcastToSubscribedClients(
-                `/api/ecosystem/market`,
-                { type: "trades", symbol },
-                { stream: "trades", data: [] }
-              );
+              // TODO: Implement trades fetching from database
+              // For now, don't broadcast empty trades data to reduce noise
+              // Only broadcast when there are actual trades to send
               break;
             case "ticker":
               const ticker = await this.engine.getTicker(symbol);
-              messageBroker.broadcastToSubscribedClients(
-                `/api/ecosystem/market`,
-                { type: "ticker", symbol },
-                { stream: "ticker", data: ticker }
-              );
+
+              // Only broadcast if ticker data has changed
+              const lastTicker = this.lastTickerData.get(symbol);
+              const tickerChanged = !lastTicker ||
+                lastTicker.last !== ticker.last ||
+                lastTicker.baseVolume !== ticker.baseVolume ||
+                lastTicker.quoteVolume !== ticker.quoteVolume ||
+                lastTicker.change !== ticker.change;
+
+              if (tickerChanged) {
+                this.lastTickerData.set(symbol, ticker);
+                messageBroker.broadcastToSubscribedClients(
+                  `/api/ecosystem/market`,
+                  { type: "ticker", symbol },
+                  { stream: "ticker", data: ticker }
+                );
+              }
               break;
           }
         } catch (error) {
@@ -80,7 +91,7 @@ class UnifiedEcosystemMarketDataHandler {
       if (dataTypes && dataTypes.size > 0) {
         await this.fetchAndBroadcastData(symbol, dataTypes);
       }
-    }, 500); // Fetch every 500ms
+    }, 2000); // Fetch every 2 seconds instead of 500ms
 
     this.intervalMap.set(symbol, interval);
   }

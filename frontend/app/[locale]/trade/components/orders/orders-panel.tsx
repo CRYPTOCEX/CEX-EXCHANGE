@@ -218,7 +218,13 @@ export default function OrdersPanel({
           : `/api/exchange/order?status=OPEN`;
       const response = await fetch(url);
       const data = await response.json();
-      if (data.success) {
+
+      // Handle both wrapped response {success: true, data: [...]} and direct array response [...]
+      if (Array.isArray(data)) {
+        // Direct array response from ecosystem endpoint
+        setOpenOrders(data);
+      } else if (data.success) {
+        // Wrapped response from other endpoints
         setOpenOrders(data.data || []);
       } else {
         // Only set error if the API call actually failed, not if it just returned empty data
@@ -252,7 +258,20 @@ export default function OrdersPanel({
           : `/api/exchange/order`;
       const response = await fetch(url);
       const data = await response.json();
-      if (data.success) {
+
+      // Handle both wrapped response {success: true, data: [...]} and direct array response [...]
+      if (Array.isArray(data)) {
+        // Direct array response from ecosystem endpoint
+        if (isEco) {
+          // For eco, the API already returns history orders
+          setOrderHistory(data);
+        } else {
+          // For other types, filter out OPEN orders
+          const history = data.filter((order: any) => order.status !== "OPEN");
+          setOrderHistory(history);
+        }
+      } else if (data.success) {
+        // Wrapped response - existing logic
         if (isEco) {
           // For eco, the API already returns history orders
           setOrderHistory(data.data || []);

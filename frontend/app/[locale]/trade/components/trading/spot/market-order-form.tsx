@@ -245,15 +245,17 @@ export default function MarketOrderForm({
           </div>
         </div>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-            <DollarSign className="h-3 w-3 text-muted-foreground/70 dark:text-zinc-500" />
-          </div>
           <input
             type="text"
-            className="w-full pl-6 pr-3 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-muted/50 dark:bg-zinc-800/50 focus:outline-none"
+            className="w-full pl-3 pr-12 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-muted/50 dark:bg-zinc-800/50 focus:outline-none"
             value={marketPrice}
             readOnly
           />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <span className="text-xs text-muted-foreground dark:text-zinc-500">
+              {pair}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -287,12 +289,9 @@ export default function MarketOrderForm({
           {t("estimated_total")}
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-            <DollarSign className="h-3 w-3 text-muted-foreground/70 dark:text-zinc-500" />
-          </div>
           <input
             type="text"
-            className="w-full pl-6 pr-12 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none"
+            className="w-full pl-3 pr-12 py-1.5 text-xs border border-border dark:border-zinc-700 rounded-sm bg-background dark:bg-zinc-900 focus:outline-none"
             placeholder="0.00"
             value={total}
             readOnly

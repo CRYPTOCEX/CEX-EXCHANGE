@@ -1019,10 +1019,10 @@ async function shouldAutoConsolidateUTXOs(
     order: [["amount", "ASC"]],
   });
 
-  if (utxos.length < 5) {
+  if (utxos.length < 2) {
     return {
       shouldConsolidate: false,
-      reason: "Not enough UTXOs to warrant consolidation"
+      reason: "Not enough UTXOs to warrant consolidation (need at least 2)"
     };
   }
 
@@ -1229,17 +1229,40 @@ export async function consolidateUTXOs(
 
     console.log(`[UTXO_CONSOLIDATION] Found ${utxos.length} available UTXOs for wallet ${walletId}`);
 
-    if (utxos.length < 3) {
+    if (utxos.length < 2) {
       await dbTransaction.rollback();
       return {
         success: false,
-        message: `Not enough UTXOs to consolidate (need at least 3, found ${utxos.length})`
+        message: `Not enough UTXOs to consolidate (need at least 2, found ${utxos.length})`
       };
     }
 
-    // Consolidate ALL available UTXOs to maximize efficiency
-    const utxosToConsolidate = utxos;
-    console.log(`[UTXO_CONSOLIDATION] Will consolidate all ${utxosToConsolidate.length} UTXOs`);
+    // Only consolidate SMALL UTXOs (inefficient to spend)
+    // Calculate the cost to spend one UTXO
+    const costPerInput = 180 * currentFeeRate; // 180 bytes per input × fee rate
+    const utxoDustThreshold = getDustThreshold(chain);
+
+    // Filter UTXOs that are small (less than 5x the cost to spend them)
+    // Keep larger UTXOs separate for efficiency
+    const smallUtxos = utxos.filter(utxo => {
+      const utxoValueSats = standardUnitToSatoshi(utxo.amount, chain);
+      const isSmall = utxoValueSats < (costPerInput * 5);
+      const isDust = utxoValueSats < utxoDustThreshold * 2;
+      return isSmall || isDust;
+    });
+
+    if (smallUtxos.length < 2) {
+      await dbTransaction.rollback();
+      return {
+        success: false,
+        message: `No small UTXOs to consolidate. All ${utxos.length} UTXOs are already efficiently sized.`
+      };
+    }
+
+    // Limit to 50 UTXOs per consolidation to avoid huge transactions
+    const utxosToConsolidate = smallUtxos.slice(0, Math.min(50, smallUtxos.length));
+
+    console.log(`[UTXO_CONSOLIDATION] Will consolidate ${utxosToConsolidate.length} small UTXOs (out of ${utxos.length} total). Keeping ${utxos.length - utxosToConsolidate.length} larger UTXOs separate.`);
 
     const psbt = new bitcoin.Psbt({ network });
     let totalInputValue = 0;
