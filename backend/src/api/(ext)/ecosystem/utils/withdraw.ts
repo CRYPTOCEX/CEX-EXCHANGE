@@ -152,6 +152,8 @@ export const handleEvmWithdrawal = async (
           transaction.hash
         );
         if (txReceipt && txReceipt.status === 1) {
+          console.log(`[EVM_WITHDRAW] Transaction confirmed: ${transaction.hash}`);
+
           if (contractType === "PERMIT") {
             if (alternativeWalletUsed) {
               await updateAlternativeWallet(currency, chain, amount);
@@ -174,6 +176,68 @@ export const handleEvmWithdrawal = async (
               chain,
               -amount
             );
+          } else if (contractType === "NATIVE") {
+            // For NATIVE tokens, reconcile the gas fee difference
+            // The database was debited with: amount + estimatedGasFee
+            // On-chain was debited with: amount + actualGasFee
+            // We need to refund/deduct the difference
+            try {
+              // Get the full transaction details to access gas price
+              const tx = await provider.getTransaction(transaction.hash);
+              const gasPrice = tx?.gasPrice || ethers.parseUnits("0", "gwei");
+              const actualGasUsed = txReceipt.gasUsed * gasPrice;
+              const actualGasFee = parseFloat(ethers.formatUnits(actualGasUsed, tokenDecimals));
+
+              console.log(`[EVM_WITHDRAW] NATIVE gas reconciliation:`, {
+                gasUsed: txReceipt.gasUsed.toString(),
+                gasPrice: gasPrice.toString(),
+                actualGasFee,
+                txHash: transaction.hash
+              });
+
+              // Get the transaction record to find the estimated fee
+              const txRecord = await models.transaction.findByPk(id);
+              if (txRecord && txRecord.fee) {
+                const estimatedGasFee = parseFloat(txRecord.fee);
+                const gasDifference = estimatedGasFee - actualGasFee;
+
+                console.log(`[EVM_WITHDRAW] Gas fee comparison:`, {
+                  estimated: estimatedGasFee,
+                  actual: actualGasFee,
+                  difference: gasDifference
+                });
+
+                // If there's a significant difference, adjust the wallet balance
+                if (Math.abs(gasDifference) > 0.00000001) {
+                  const wallet = await models.wallet.findByPk(walletId);
+                  if (wallet) {
+                    const addresses = JSON.parse(wallet.address as any);
+                    const chainBalance = addresses[chain]?.balance || 0;
+
+                    // Refund if we overestimated, deduct if we underestimated
+                    const newChainBalance = parseFloat((chainBalance + gasDifference).toFixed(tokenDecimals));
+                    const newWalletBalance = parseFloat((wallet.balance + gasDifference).toFixed(tokenDecimals));
+
+                    addresses[chain].balance = newChainBalance;
+
+                    await models.wallet.update(
+                      {
+                        balance: newWalletBalance,
+                        address: JSON.stringify(addresses)
+                      },
+                      {
+                        where: { id: walletId }
+                      }
+                    );
+
+                    console.log(`[EVM_WITHDRAW] Adjusted wallet balance by ${gasDifference} ${currency}`);
+                  }
+                }
+              }
+            } catch (gasError) {
+              console.error(`[EVM_WITHDRAW] Failed to reconcile gas fee:`, gasError);
+              // Don't fail the withdrawal if reconciliation fails
+            }
           }
 
           await models.transaction.update(
@@ -186,6 +250,7 @@ export const handleEvmWithdrawal = async (
               where: { id },
             }
           );
+          console.log(`[EVM_WITHDRAW] Transaction marked as COMPLETED`);
           return true;
         } else {
           attempts += 1;

@@ -1329,8 +1329,16 @@ export const handleEcosystemDeposit = async (trx) => {
     console.log(`[DEPOSIT_DEBUG] Deposit amount (trx.amount): ${trx.amount} ${wallet.currency}`);
     console.log(`[DEPOSIT_DEBUG] Parsed deposit amount: ${depositAmount} ${wallet.currency}`);
 
-    chainAddress.balance = (chainAddress.balance || 0) + depositAmount;
-    const walletBalance = wallet.balance + depositAmount;
+    // Apply precision to prevent floating-point errors
+    const newChainBalance = updateBalancePrecision(
+      (chainAddress.balance || 0) + depositAmount,
+      trx.chain
+    );
+    const walletBalance = updateBalancePrecision(
+      wallet.balance + depositAmount,
+      trx.chain
+    );
+    chainAddress.balance = newChainBalance;
 
     console.log(`[DEPOSIT_DEBUG] New chain balance: ${chainAddress.balance} ${wallet.currency}`);
     console.log(`[DEPOSIT_DEBUG] New wallet balance: ${walletBalance} ${wallet.currency}`);
@@ -1449,17 +1457,49 @@ export const handleEcosystemDeposit = async (trx) => {
       where: { id: wallet.id },
     });
 
-    await models.walletData.update(
-      {
-        balance: sequelize.literal(`balance + ${trx.amount}`),
+    // Update wallet_data balance with precision handling
+    console.log(`[DEPOSIT_WALLET_DATA] Updating wallet_data for walletId: ${wallet.id}, chain: ${trx.chain}`);
+    const walletData = await models.walletData.findOne({
+      where: {
+        walletId: wallet.id,
+        chain: trx.chain,
       },
-      {
-        where: {
-          walletId: wallet.id,
-          chain: trx.chain,
+    });
+
+    if (walletData) {
+      console.log(`[DEPOSIT_WALLET_DATA] Current wallet_data balance: ${walletData.balance}`);
+      console.log(`[DEPOSIT_WALLET_DATA] Deposit amount: ${trx.amount}`);
+
+      // Parse both values to ensure numeric addition (not string concatenation)
+      const currentBalance = parseFloat(walletData.balance) || 0;
+      const depositAmount = parseFloat(trx.amount);
+
+      console.log(`[DEPOSIT_WALLET_DATA] Parsed current balance: ${currentBalance}`);
+      console.log(`[DEPOSIT_WALLET_DATA] Parsed deposit amount: ${depositAmount}`);
+
+      const newBalance = updateBalancePrecision(
+        currentBalance + depositAmount,
+        trx.chain
+      );
+
+      console.log(`[DEPOSIT_WALLET_DATA] New wallet_data balance: ${newBalance}`);
+
+      await models.walletData.update(
+        {
+          balance: newBalance,
         },
-      }
-    );
+        {
+          where: {
+            walletId: wallet.id,
+            chain: trx.chain,
+          },
+        }
+      );
+
+      console.log(`[DEPOSIT_WALLET_DATA] Successfully updated wallet_data balance`);
+    } else {
+      console.error(`[DEPOSIT_WALLET_DATA] No wallet_data found for walletId: ${wallet.id}, chain: ${trx.chain}`);
+    }
 
     return {
       transaction: createdTransaction,
@@ -1496,11 +1536,13 @@ export async function updatePrivateLedger(
     });
 
     if (existingLedger) {
+      // Parse current value and add difference to prevent string concatenation
+      const currentDifference = parseFloat(existingLedger.offchainDifference) || 0;
+      const newDifference = currentDifference + parseFloat(difference);
+
       await models.ecosystemPrivateLedger.update(
         {
-          offchainDifference: sequelize.literal(
-            `offchain_difference + ${difference}`
-          ),
+          offchainDifference: newDifference,
         },
         {
           where: uniqueIdentifier,
@@ -1513,7 +1555,7 @@ export async function updatePrivateLedger(
         index: index,
         currency: currency,
         chain: chain,
-        offchainDifference: difference,
+        offchainDifference: parseFloat(difference),
         network: networkValue,
       });
     }
@@ -1531,6 +1573,18 @@ const updateBalancePrecision = (balance, chain) => {
     DASH: 8,
     SOL: 8,
     TRON: 6,
+    XMR: 12,
+    // EVM chains - use 8 decimals for balance precision
+    BSC: 8,
+    ETH: 8,
+    POLYGON: 8,
+    ARBITRUM: 8,
+    OPTIMISM: 8,
+    BASE: 8,
+    AVAX: 8,
+    FTM: 8,
+    CELO: 8,
+    RSK: 8,
   };
 
   if (fixedPrecisionChains[chain] !== undefined) {
@@ -1547,7 +1601,7 @@ export const decrementWalletBalance = async (userWallet, chain, amount, dbTransa
     const addresses = JSON.parse(userWallet.address);
     if (addresses[chain]) {
       addresses[chain].balance = updateBalancePrecision(
-        addresses[chain].balance - amount,
+        parseFloat(addresses[chain].balance) - amount,
         chain
       );
     } else {
@@ -1575,23 +1629,39 @@ export const decrementWalletBalance = async (userWallet, chain, amount, dbTransa
 
     // Also update walletData balance for the specific chain
     // This keeps walletData in sync with wallet.address[chain].balance
-    const walletDataUpdateOptions: any = {
+    // Get current wallet_data balance first to apply precision
+    const walletData = await models.walletData.findOne({
       where: {
         walletId: userWallet.id,
         chain: chain,
       },
-    };
+      transaction: dbTransaction,
+    });
 
-    if (dbTransaction) {
-      walletDataUpdateOptions.transaction = dbTransaction;
+    if (walletData) {
+      const newWalletDataBalance = updateBalancePrecision(
+        parseFloat(walletData.balance) - amount,
+        chain
+      );
+
+      const walletDataUpdateOptions: any = {
+        where: {
+          walletId: userWallet.id,
+          chain: chain,
+        },
+      };
+
+      if (dbTransaction) {
+        walletDataUpdateOptions.transaction = dbTransaction;
+      }
+
+      await models.walletData.update(
+        {
+          balance: newWalletDataBalance,
+        },
+        walletDataUpdateOptions
+      );
     }
-
-    await models.walletData.update(
-      {
-        balance: sequelize.literal(`balance - ${amount}`),
-      },
-      walletDataUpdateOptions
-    );
   } catch (error) {
     logError("wallet", error, __filename);
     throw error;
@@ -1686,17 +1756,31 @@ export const refundUser = async (transaction) => {
     // Also refund walletData balance for the specific chain
     // This keeps walletData in sync with wallet.address[chain].balance
     if (chain) {
-      await models.walletData.update(
-        {
-          balance: sequelize.literal(`balance + ${precisionFixedAmount}`),
+      const walletData = await models.walletData.findOne({
+        where: {
+          walletId: wallet.id,
+          chain: chain,
         },
-        {
-          where: {
-            walletId: wallet.id,
-            chain: chain,
+      });
+
+      if (walletData) {
+        const newWalletDataBalance = updateBalancePrecision(
+          parseFloat(walletData.balance) + precisionFixedAmount,
+          chain
+        );
+
+        await models.walletData.update(
+          {
+            balance: newWalletDataBalance,
           },
-        }
-      );
+          {
+            where: {
+              walletId: wallet.id,
+              chain: chain,
+            },
+          }
+        );
+      }
     }
   } catch (error) {
     logError("wallet", error, __filename);
@@ -1717,9 +1801,14 @@ export const updateAlternativeWallet = async (currency, chain, amount) => {
       throw new Error("Alternative wallet not found");
     }
 
+    const newBalance = updateBalancePrecision(
+      parseFloat(alternativeWalletData.balance) - amount,
+      chain
+    );
+
     await models.walletData.update(
       {
-        balance: sequelize.literal(`balance - ${amount}`),
+        balance: newBalance,
       },
       {
         where: { id: alternativeWalletData.id },

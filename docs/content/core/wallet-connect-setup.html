@@ -1,0 +1,383 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔗</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Wallet Connect Setup</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure Reown (WalletConnect) integration for web3 wallet connections</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Bicrypto uses Reown (formerly WalletConnect) to enable users to connect their web3 wallets to the platform. This integration allows users to interact with blockchain features using popular wallets like MetaMask, Coinbase Wallet, Trust Wallet, and more.
+        </p>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">What You'll Need</span>
+            </div>
+            <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-1">
+                <li>• A Reown (WalletConnect) account</li>
+                <li>• Access to your application's .env file</li>
+                <li>• Your domain information for production setup</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Create Reown Account -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Create a Reown Account</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Visit Reown Cloud</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Go to <a href="https://cloud.reown.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">https://cloud.reown.com</a> and sign up for a free account.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Create New Project</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        After logging in, click on "Create New Project" or "New Project" button.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Project Settings</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Fill in your project details:
+                    </p>
+                    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 mb-3">
+                        <li>• <strong>Project Name:</strong> Your application name (e.g., "Bicrypto")</li>
+                        <li>• <strong>Project Type:</strong> Select "App"</li>
+                        <li>• <strong>Homepage URL:</strong> Your domain (e.g., "https://yourdomain.com")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: Get Project ID -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Get Your Project ID</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🔑</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Copy Project ID</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    After creating your project, you'll see a <strong>Project ID</strong> on your project dashboard. This is a unique identifier that looks like:
+                </p>
+                <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                    <code class="text-green-400 text-sm">b56e18d47c72ab683b10814fe9495694</code>
+                </div>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    Copy this Project ID - you'll need it for the next step.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Configure Environment Variable -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Add Project ID to Environment Variables</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Open .env File</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Navigate to your project's root directory and open the <code>.env</code> file.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Add Environment Variable</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Add the following line to your <code>.env</code> file, replacing the value with your actual Project ID:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID="your_project_id_here"</code>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Example:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4">
+                        <code class="text-green-400 text-sm">NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID="b56e18d47c72ab683b10814fe9495694"</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Save the File</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Save the <code>.env</code> file and close it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 4: Restart Application -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Restart Your Application</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🔄</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Apply Changes</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    For the changes to take effect, restart your frontend application:
+                </p>
+                <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                    <code class="text-green-400 text-sm block whitespace-pre-wrap">pnpm updator:frontend</code>
+                </div>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    This will rebuild and restart the frontend with the new WalletConnect configuration.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Networks -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🌐 Supported Networks</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            By default, Bicrypto supports the following networks for wallet connections:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔷 Ethereum Mainnet</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">Main Ethereum network</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🟣 Polygon</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">Layer 2 scaling solution</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔵 Arbitrum</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">Optimistic rollup network</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔴 Optimism</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">Layer 2 optimistic rollup</p>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <p class="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Note:</strong> Network configurations are defined in <code>frontend/config/wallet.ts</code>. You can customize the supported networks by modifying this file.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Verification -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Verification</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Test Wallet Connection</h3>
+
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mr-3 mt-1">1</div>
+                <div class="flex-1">
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Navigate to any page with wallet connection functionality (e.g., ICO investment page)
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mr-3 mt-1">2</div>
+                <div class="flex-1">
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click on "Connect Wallet" button
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mr-3 mt-1">3</div>
+                <div class="flex-1">
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        The Reown modal should appear showing available wallet options
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mr-3 mt-1">4</div>
+                <div class="flex-1">
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Connect your wallet and verify the connection is successful
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Troubleshooting</h2>
+
+    <div class="space-y-4">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Wallet Connection Not Working</h3>
+            <div class="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                <p><strong>Check the following:</strong></p>
+                <ul class="space-y-2 ml-4">
+                    <li>• Ensure <code>NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID</code> is correctly set in <code>.env</code></li>
+                    <li>• Verify the Project ID is valid and active in your Reown dashboard</li>
+                    <li>• Confirm the frontend has been restarted after adding the environment variable</li>
+                    <li>• Check browser console for any error messages</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Modal Displays Fallback Project ID Warning</h3>
+            <div class="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                <p>If you see a fallback Project ID being used:</p>
+                <ul class="space-y-2 ml-4">
+                    <li>• The environment variable is not properly configured</li>
+                    <li>• Double-check the variable name is exactly <code>NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID</code></li>
+                    <li>• Ensure the <code>.env</code> file is in the root directory of the project</li>
+                    <li>• Restart the application after making changes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Network Issues</h3>
+            <div class="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                <p>If users can't connect to specific networks:</p>
+                <ul class="space-y-2 ml-4">
+                    <li>• Verify the network is configured in <code>frontend/config/wallet.ts</code></li>
+                    <li>• Check if the user's wallet supports the selected network</li>
+                    <li>• Ensure the network configuration includes correct chain IDs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Considerations</h2>
+
+    <div class="space-y-4">
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <span class="font-medium text-yellow-900 dark:text-yellow-100">Best Practices</span>
+            </div>
+            <ul class="text-yellow-800 dark:text-yellow-200 text-sm space-y-1">
+                <li>• <strong>Keep Project ID Secure:</strong> While the Project ID is public-facing, it's tied to your domain. Configure domain restrictions in Reown dashboard for added security.</li>
+                <li>• <strong>Use Environment Variables:</strong> Never hardcode the Project ID directly in your source code.</li>
+                <li>• <strong>Monitor Usage:</strong> Regularly check your Reown dashboard for unusual activity or usage patterns.</li>
+                <li>• <strong>Domain Whitelisting:</strong> In production, configure allowed domains in your Reown project settings to prevent unauthorized use.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Resources -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📚 Additional Resources</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="space-y-3">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                <a href="https://docs.reown.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Reown Official Documentation</a>
+            </div>
+
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                <a href="https://cloud.reown.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Reown Cloud Dashboard</a>
+            </div>
+
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                <a href="https://support.mashdiv.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Bicrypto Support Center</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conclusion -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Conclusion</h2>
+
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium text-green-900 dark:text-green-100">Setup Complete!</span>
+        </div>
+        <p class="text-green-800 dark:text-green-200">
+            You've successfully configured Reown (WalletConnect) for your Bicrypto platform. Users can now connect their web3 wallets to interact with blockchain features. Make sure to test the connection thoroughly and monitor your Reown dashboard for usage statistics and potential issues.
+        </p>
+    </div>
+</div>

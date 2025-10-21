@@ -615,7 +615,8 @@ export async function fetchFiatCurrencyPrices() {
       `Fetch fiat currency prices failed: ${error.message}`,
       "error"
     );
-    throw error;
+    // Don't throw - allow other operations to continue
+    console.error(`[CRON_ERROR] Fiat currency prices update failed, but continuing normal operations`);
   }
 }
 
@@ -676,9 +677,9 @@ async function fetchOpenExchangeRates(baseCurrency: string) {
         `Fallback Frankfurter API failed: ${fallbackError.message}`,
         "error"
       );
-      throw new Error(
-        `Both API calls failed: ${error.message}, ${fallbackError.message}`
-      );
+      // Log error but don't throw - allow operations to continue with cached rates
+      console.error(`[CRON_ERROR] Both fiat API calls failed: ${error.message}, ${fallbackError.message}`);
+      return; // Exit gracefully
     }
   }
 }
@@ -717,7 +718,9 @@ async function fetchExchangeRateApi(baseCurrency: string) {
       `ExchangeRate API call failed: ${error.message}`,
       "error"
     );
-    throw error;
+    // Don't throw - allow operations to continue with cached rates
+    console.error(`[CRON_ERROR] ExchangeRate API failed: ${error.message}`);
+    return; // Exit gracefully
   }
 }
 
@@ -758,17 +761,45 @@ async function updateRatesFromData(exchangeRates: any) {
   broadcastLog(cronName, "Starting update of currency rates from fetched data");
   const ratesToUpdate: Record<string, any> = {};
   const currenciesRaw = await redis.get("currencies");
-  if (!currenciesRaw) {
-    throw new Error("No currencies data available in Redis");
-  }
   let currencies;
-  try {
-    currencies = JSON.parse(currenciesRaw);
-  } catch (parseError: any) {
-    throw new Error(`Error parsing currencies data: ${parseError.message}`);
-  }
-  if (!Array.isArray(currencies)) {
-    throw new Error("Currencies data is not an array");
+
+  if (!currenciesRaw) {
+    broadcastLog(cronName, "No currencies in Redis, fetching from database");
+    try {
+      // Fetch currencies from database if not in Redis
+      const currenciesFromDb = await models.currency.findAll({
+        where: { status: true },
+        attributes: ["id", "code"]
+      });
+
+      if (!currenciesFromDb || currenciesFromDb.length === 0) {
+        broadcastLog(cronName, "No currencies found in database, skipping rate update", "warning");
+        return; // Exit gracefully instead of throwing
+      }
+
+      currencies = currenciesFromDb.map(c => ({
+        id: c.code,
+        code: c.code
+      }));
+
+      // Cache them for future use
+      await redis.set("currencies", JSON.stringify(currencies), "EX", 86400); // 24 hours
+      broadcastLog(cronName, `Cached ${currencies.length} currencies from database`);
+    } catch (dbError: any) {
+      broadcastLog(cronName, `Database fetch failed: ${dbError.message}`, "error");
+      return; // Exit gracefully
+    }
+  } else {
+    try {
+      currencies = JSON.parse(currenciesRaw);
+    } catch (parseError: any) {
+      broadcastLog(cronName, `Error parsing currencies data: ${parseError.message}`, "error");
+      return; // Exit gracefully instead of throwing
+    }
+    if (!Array.isArray(currencies)) {
+      broadcastLog(cronName, "Currencies data is not an array", "error");
+      return; // Exit gracefully
+    }
   }
   for (const currency of currencies) {
     if (Object.prototype.hasOwnProperty.call(exchangeRates, currency.id)) {

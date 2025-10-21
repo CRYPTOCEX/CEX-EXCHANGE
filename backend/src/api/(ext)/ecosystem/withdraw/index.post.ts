@@ -318,6 +318,47 @@ const storeWithdrawal = async (
   let activationFee = 0;
   let estimatedFee = 0;
 
+  // For NATIVE EVM tokens, estimate gas fee before withdrawal
+  const evmChains = ["ETH", "BSC", "POLYGON", "FTM", "OPTIMISM", "ARBITRUM", "BASE", "CELO", "RSK", "AVAX"];
+  const isNativeEVM = evmChains.includes(chain) && token.contractType === "NATIVE";
+
+  if (isNativeEVM) {
+    console.log(`[ECO_WITHDRAW_STORE] Estimating gas for NATIVE ${currency} on ${chain}`);
+    try {
+      const { initializeProvider } = require("@b/api/(ext)/ecosystem/utils/provider");
+      const provider = await initializeProvider(chain);
+
+      // Estimate gas for a simple native transfer
+      const gasPrice = await provider.getFeeData();
+      const gasLimit = 21000; // Standard gas limit for ETH/EVM native transfers
+
+      // Calculate estimated fee: gasLimit * gasPrice
+      const { ethers } = require("ethers");
+      const gasCost = BigInt(gasLimit) * (gasPrice.gasPrice || gasPrice.maxFeePerGas || BigInt(0));
+      estimatedFee = parseFloat(ethers.formatUnits(gasCost, token.decimals));
+
+      console.log(`[ECO_WITHDRAW_STORE] Estimated gas fee: ${estimatedFee} ${currency}`, {
+        gasLimit,
+        gasPrice: gasPrice.gasPrice?.toString(),
+        maxFeePerGas: gasPrice.maxFeePerGas?.toString()
+      });
+    } catch (error) {
+      console.error(`[ECO_WITHDRAW_STORE] Failed to estimate gas:`, error.message);
+      // Use a fallback estimate based on chain
+      const fallbackGasFees = {
+        ETH: 0.001,
+        BSC: 0.0003,
+        POLYGON: 0.01,
+        ARBITRUM: 0.0001,
+        OPTIMISM: 0.0001,
+        BASE: 0.0001,
+        AVAX: 0.001,
+      };
+      estimatedFee = fallbackGasFees[chain] || 0.001;
+      console.log(`[ECO_WITHDRAW_STORE] Using fallback gas estimate: ${estimatedFee} ${currency}`);
+    }
+  }
+
   // Validate UTXO-based withdrawals BEFORE deducting balance
   // Note: We cannot accurately estimate UTXO network fees until transaction building
   // because fees depend on number of UTXOs, current fee rate, and change output
@@ -395,7 +436,11 @@ const storeWithdrawal = async (
   }
 
   // Calculate the total fee for the transaction
-  const totalFee = withdrawalFee + activationFee + estimatedFee;
+  // For NATIVE EVM tokens, gas is paid FROM the withdrawal amount (not added on top)
+  // For other chains, gas/network fees are added on top of the withdrawal amount
+  const totalFee = isNativeEVM
+    ? withdrawalFee + activationFee  // Gas is paid from withdrawal, don't add it
+    : withdrawalFee + activationFee + estimatedFee;  // Other chains: add network fee
 
   // Calculate the total amount to deduct from the wallet (including fees)
   // Use parseFloat with toFixed to prevent floating-point precision errors
@@ -432,9 +477,58 @@ const storeWithdrawal = async (
         throw new Error("Wallet not found");
       }
 
-      // Check balance with the locked wallet
-      if (lockedWallet.balance < totalAmount) {
-        console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: balance ${lockedWallet.balance} < required ${totalAmount}`);
+      // For chain-specific withdrawals, check wallet_data balance (what's available on this chain)
+      // instead of wallet.balance (which is total across all chains)
+      const lockedWalletData = await models.walletData.findOne({
+        where: {
+          walletId: userWallet.id,
+          chain: chain,
+        },
+        lock: Transaction.LOCK.UPDATE,
+        transaction: dbTransaction,
+      });
+
+      let availableBalance = lockedWalletData
+        ? parseFloat(lockedWalletData.balance)
+        : lockedWallet.balance;
+
+      // For PERMIT tokens, check private ledger and subtract admin fees
+      if (token.contractType === "PERMIT" && lockedWalletData) {
+        const privateLedger = await models.ecosystemPrivateLedger.findOne({
+          where: {
+            walletId: userWallet.id,
+            index: lockedWalletData.index,
+            currency: currency,
+            chain: chain,
+          },
+          transaction: dbTransaction,
+        });
+
+        if (privateLedger && privateLedger.offchainDifference) {
+          const offchainDiff = parseFloat(privateLedger.offchainDifference) || 0;
+          // If offchainDifference is positive, it means admin fees were collected
+          // Subtract from available balance
+          availableBalance = availableBalance - offchainDiff;
+
+          console.log(`[ECO_WITHDRAW_STORE] PERMIT token - adjusted for private ledger:`, {
+            walletDataBalance: lockedWalletData.balance,
+            offchainDifference: offchainDiff,
+            adjustedAvailableBalance: availableBalance
+          });
+        }
+      }
+
+      console.log(`[ECO_WITHDRAW_STORE] Balance check:`, {
+        walletBalance: lockedWallet.balance,
+        walletDataBalance: lockedWalletData?.balance,
+        contractType: token.contractType,
+        availableBalance,
+        totalRequired: totalAmount
+      });
+
+      // Check balance with the chain-specific available balance
+      if (availableBalance < totalAmount) {
+        console.error(`[ECO_WITHDRAW_STORE] Insufficient funds: available ${availableBalance} < required ${totalAmount}`);
         throw new Error("Insufficient funds");
       }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useConfigStore } from '@/store/config';
+import { DEFAULT_SETTINGS } from '@/config/settings';
 
 /**
  * Hook to ensure settings are synchronized with fresh data
@@ -69,7 +70,12 @@ export const useSettingsSync = () => {
             {}
           );
 
-          setSettings(settingsObj);
+          // If settings are empty, use default settings
+          const finalSettings = Object.keys(settingsObj).length === 0
+            ? DEFAULT_SETTINGS
+            : settingsObj;
+
+          setSettings(finalSettings);
           setExtensions(data.extensions || []);
           setSettingsFetched(true);
           setSettingsError(null);
@@ -108,7 +114,6 @@ export const useSettingsSync = () => {
       // Immediate fetch if no settings available
       fetchFreshSettings();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

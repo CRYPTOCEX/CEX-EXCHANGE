@@ -825,7 +825,7 @@ export function WithdrawForm() {
                       >
                         <div className="flex items-start space-x-4">
                           <div
-                            className={`w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center ${withdrawMethod === method.id ? "ring-2 ring-blue-500" : "bg-zinc-100 dark:bg-zinc-800"}`}
+                            className={`w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center ${withdrawMethod === method.id ? "ring-2 ring-blue-500" : "bg-zinc-100 dark:bg-zinc-800"}`}
                           >
                             {method.image ? (
                               <img
@@ -841,18 +841,18 @@ export function WithdrawForm() {
                               </div>
                             )}
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base mb-2">
                               {method.title}
                             </h3>
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               {method.processingTime && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs whitespace-nowrap">
                                   {method.processingTime} {t("days")}
                                 </Badge>
                               )}
                               {(method.fixedFee > 0 || method.percentageFee > 0) && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs whitespace-nowrap">
                                   {method.fixedFee > 0 &&
                                     `${method.fixedFee} ${currency}`}
                                   {method.percentageFee > 0 &&
@@ -860,16 +860,16 @@ export function WithdrawForm() {
                                 </Badge>
                               )}
                               {method.fixedFee === 0 && method.percentageFee === 0 && (
-                                <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400">
+                                <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
                                   {t("Free")}
                                 </Badge>
                               )}
                             </div>
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                              {method.minAmount &&
-                                method.maxAmount &&
-                                `${method.minAmount} - ${method.maxAmount} ${currency}`}
-                            </div>
+                            {method.minAmount && method.maxAmount && (
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                {method.minAmount} - {method.maxAmount} {currency}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.button>

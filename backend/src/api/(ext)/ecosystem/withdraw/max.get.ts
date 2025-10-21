@@ -113,6 +113,39 @@ export default async (data: Handler) => {
       });
     }
 
+    // For withdrawals, use wallet_data balance (what's available on this specific chain)
+    // instead of wallet.balance (total across all chains)
+    let availableBalance = userWallet.balance;
+
+    const walletData = await models.walletData.findOne({
+      where: {
+        walletId: userWallet.id,
+        chain: chain as string,
+      },
+    });
+
+    if (walletData) {
+      availableBalance = parseFloat(walletData.balance) || 0;
+
+      // For PERMIT tokens, subtract admin fees from private ledger
+      if (token.contractType === "PERMIT") {
+        const privateLedger = await models.ecosystemPrivateLedger.findOne({
+          where: {
+            walletId: userWallet.id,
+            index: walletData.index,
+            currency: currency as string,
+            chain: chain as string,
+          },
+        });
+
+        if (privateLedger && privateLedger.offchainDifference) {
+          const offchainDiff = parseFloat(privateLedger.offchainDifference) || 0;
+          // If offchainDifference is positive, admin fees were collected - subtract from available
+          availableBalance = availableBalance - offchainDiff;
+        }
+      }
+    }
+
     // Calculate platform fee
     let platformFee = 0;
     if (token.fee) {
@@ -125,9 +158,44 @@ export default async (data: Handler) => {
     }
 
     const isUtxoChain = ["BTC", "LTC", "DOGE", "DASH"].includes(chain as string);
-    let maxAmount = userWallet.balance - platformFee;
+    let maxAmount = availableBalance - platformFee;
     let estimatedNetworkFee = 0;
     let utxoInfo: any = null;
+
+    // For NATIVE EVM tokens, estimate gas fee and subtract it from max amount
+    const evmChains = ["ETH", "BSC", "POLYGON", "FTM", "OPTIMISM", "ARBITRUM", "BASE", "CELO", "RSK", "AVAX"];
+    const isNativeEVM = evmChains.includes(chain as string) && token.contractType === "NATIVE";
+
+    if (isNativeEVM) {
+      try {
+        const ethers = require("ethers");
+        const { initializeProvider } = require("@b/blockchains/evm");
+
+        const provider = await initializeProvider(chain as string);
+        const gasPrice = await provider.getFeeData();
+        const gasLimit = 21000; // Standard transfer gas limit
+        const gasCost = BigInt(gasLimit) * (gasPrice.gasPrice || gasPrice.maxFeePerGas || BigInt(0));
+        estimatedNetworkFee = parseFloat(ethers.formatUnits(gasCost, token.decimals));
+
+        // Subtract gas fee from max amount
+        maxAmount = maxAmount - estimatedNetworkFee;
+
+        console.log(`[MAX_WITHDRAW] NATIVE EVM gas estimation:`, {
+          chain,
+          gasLimit,
+          gasPrice: gasPrice.gasPrice?.toString() || gasPrice.maxFeePerGas?.toString(),
+          estimatedNetworkFee,
+          availableBalance,
+          platformFee,
+          maxAmountAfterFees: maxAmount
+        });
+      } catch (error) {
+        console.error(`[MAX_WITHDRAW] Error estimating EVM gas:`, error.message);
+        // Fall back to a conservative estimate (0.0001 for most EVM chains)
+        estimatedNetworkFee = 0.0001;
+        maxAmount = maxAmount - estimatedNetworkFee;
+      }
+    }
 
     // For UTXO chains, calculate the actual maximum withdrawable amount
     if (isUtxoChain && maxAmount > 0) {
@@ -180,7 +248,7 @@ export default async (data: Handler) => {
           };
 
           // Estimate network fee based on the difference
-          estimatedNetworkFee = userWallet.balance - platformFee - maxAmount;
+          estimatedNetworkFee = availableBalance - platformFee - maxAmount;
         } else {
           // No amount works
           maxAmount = 0;
@@ -197,7 +265,7 @@ export default async (data: Handler) => {
       } catch (error) {
         console.error(`[MAX_WITHDRAW] Error calculating UTXO max:`, error.message);
         // Fall back to simple calculation
-        maxAmount = Math.max(0, userWallet.balance - platformFee);
+        maxAmount = Math.max(0, availableBalance - platformFee);
       }
     }
 

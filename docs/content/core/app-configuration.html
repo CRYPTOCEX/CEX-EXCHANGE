@@ -229,17 +229,17 @@ NEXT_PUBLIC_BINARY_PRACTICE_STATUS="true"</code>
     </div>
 </div>
 
-<!-- Restart Development Server -->
+<!-- Apply Configuration Changes -->
 <div class="mb-12">
-    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Restart Development Server</h2>
-    
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h2>
+
     <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
         <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h3>
         <div class="space-y-4">
             <p class="text-zinc-600 dark:text-zinc-400">
-                After making changes to your environment variables, restart the development server to apply the changes:
+                After making changes to your environment variables, apply the changes to your production environment:
             </p>
-            
+
             <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                 <div class="flex items-center mb-2">
                     <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,18 +248,15 @@ NEXT_PUBLIC_BINARY_PRACTICE_STATUS="true"</code>
                     <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
                 </div>
                 <p class="text-amber-800 dark:text-amber-200 text-sm">
-                    Environment variable changes require a server restart to take effect.
+                    Environment variable changes require running the updator to take effect.
                 </p>
             </div>
 
             <div>
-                <h4 class="font-medium mb-2">1. Stop the current server</h4>
-                <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-2">Press <kbd class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-xs">Ctrl + C</kbd> in your terminal</p>
-                
-                <h4 class="font-medium mb-2 mt-4">2. Start the development server</h4>
-                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm dev</code>
+                <h4 class="font-medium mb-2">Run the updator command</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm updator</code>
                 <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
-                    This will restart both frontend and backend with your new configuration.
+                    This will apply your new configuration to the production environment.
                 </p>
             </div>
         </div>
