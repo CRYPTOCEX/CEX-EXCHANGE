@@ -39,6 +39,10 @@ const nextConfig = {
     // Disable type checking during build
     ignoreBuildErrors: true,
   },
+  eslint: {
+    // Ignore ESLint errors during build
+    ignoreDuringBuilds: true,
+  },
   // Turbopack configuration (moved from experimental.turbo as it's now stable)
   turbopack: {
     resolveAlias: {

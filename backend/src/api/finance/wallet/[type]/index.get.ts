@@ -95,5 +95,14 @@ export default async (data: Handler) => {
     });
   }
 
-  return items;
+  // Add availableBalance to all wallets (balance - inOrder)
+  const walletsWithAvailableBalance = items.map((wallet) => {
+    const walletData = wallet.toJSON();
+    return {
+      ...walletData,
+      availableBalance: parseFloat(wallet.balance || 0) - parseFloat(wallet.inOrder || 0),
+    };
+  });
+
+  return walletsWithAvailableBalance;
 };

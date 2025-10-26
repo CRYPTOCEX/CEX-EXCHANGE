@@ -158,8 +158,10 @@ export default function TradingHeader({
   // Handle ticker data updates from the market data WebSocket service
   const handleTickerUpdate = useCallback(
     (data: TickerData) => {
-      if (!currentSymbol || !data) return;
-      
+      if (!currentSymbol || !data) {
+        return;
+      }
+
       // Get price and apply precision
       if (data.last !== undefined) {
         const formattedPrice = formatPrice(data.last, precision);
@@ -181,11 +183,19 @@ export default function TradingHeader({
 
       // Handle volume (use quoteVolume if available)
       if (data.quoteVolume !== undefined) {
-        const formattedVolume = data.quoteVolume > 1000000 
+        const formattedVolume = data.quoteVolume > 1000000
           ? `${(data.quoteVolume / 1000000).toFixed(1)}M`
-          : data.quoteVolume > 1000 
+          : data.quoteVolume > 1000
           ? `${(data.quoteVolume / 1000).toFixed(1)}K`
           : data.quoteVolume.toFixed(0);
+        setVolume(formattedVolume);
+      } else if (data.baseVolume !== undefined) {
+        // Fallback to baseVolume if quoteVolume is not available
+        const formattedVolume = data.baseVolume > 1000000
+          ? `${(data.baseVolume / 1000000).toFixed(1)}M`
+          : data.baseVolume > 1000
+          ? `${(data.baseVolume / 1000).toFixed(1)}K`
+          : data.baseVolume.toFixed(0);
         setVolume(formattedVolume);
       }
 
@@ -205,9 +215,10 @@ export default function TradingHeader({
       unsubscribeRef.current = null;
     }
 
-    // Reset price display while loading new data
+    // Reset price display when subscribing to new symbol
+    // This will be updated immediately when ticker data arrives
     setPrice("Loading...");
-    setPriceChange("0.00%");
+    setPriceChange("+0.00%");
     setVolume("--");
 
     // Subscribe to ticker data using marketType directly
@@ -228,6 +239,7 @@ export default function TradingHeader({
         unsubscribeRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSymbol, marketType, mounted]);
 
   // Check if the current symbol is in the wishlist

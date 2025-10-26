@@ -62,147 +62,144 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
     <div className="space-y-6">
       {trades.map((trade, index) => {
         return (
-          <motion.div
-            key={trade.id}
-            initial={{
-              y: 20,
-              opacity: 0,
-            }}
-            animate={{
-              y: 0,
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: index * 0.1,
-            }}
-            className="group"
-          >
-            <div className="p-6 bg-background rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
-              <div
-                className={cn(
-                  "absolute top-0 left-0 w-1.5 h-full",
-                  trade.type === TRADE_TYPE.BUY ? "bg-green-500" : "bg-blue-500"
-                )}
-              />
-
-              <div className="flex items-center gap-5">
+          <Link key={trade.id} href={`/p2p/trade/${trade.id}`} className="block">
+            <motion.div
+              initial={{
+                y: 20,
+                opacity: 0,
+              }}
+              animate={{
+                y: 0,
+                opacity: 1,
+              }}
+              transition={{
+                duration: 0.3,
+                delay: index * 0.1,
+              }}
+              className="group cursor-pointer"
+            >
+              <div className="p-6 bg-background rounded-2xl border border-border/40 shadow-sm hover:shadow-md hover:border-border transition-all duration-300 relative overflow-hidden">
                 <div
                   className={cn(
-                    "flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center",
-                    trade.type === TRADE_TYPE.BUY
-                      ? "bg-gradient-to-br from-green-400 to-emerald-600 text-white"
-                      : "bg-gradient-to-br from-blue-400 to-indigo-600 text-white"
+                    "absolute top-0 left-0 w-1.5 h-full",
+                    trade.type === TRADE_TYPE.BUY ? "bg-green-500" : "bg-blue-500"
                   )}
-                >
-                  {trade.type === TRADE_TYPE.BUY ? (
-                    <ArrowUpDown className="h-7 w-7" />
-                  ) : (
-                    <Repeat className="h-7 w-7" />
-                  )}
-                </div>
+                />
 
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="font-semibold text-xl">
-                      {trade.type === TRADE_TYPE.BUY ? "Bought" : "Sold"}{" "}
-                      {trade.amount}
-                    </div>
-                    <Badge
-                      variant={
-                        trade.status === STATUS.COMPLETED
-                          ? "default"
-                          : trade.status === STATUS.IN_PROGRESS
-                            ? "secondary"
-                            : "outline"
-                      }
-                      className={cn(
-                        "px-3 py-1 rounded-full text-sm",
-                        trade.status === STATUS.COMPLETED
-                          ? "bg-green-500/10 text-green-500 border-green-200 dark:border-green-900"
-                          : trade.status === STATUS.IN_PROGRESS
-                            ? "bg-blue-500/10 text-blue-500 border-blue-200 dark:border-blue-900"
-                            : "bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900"
-                      )}
-                    >
-                      <div className="flex items-center gap-1">
-                        {trade.status === STATUS.COMPLETED ? (
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                        ) : trade.status === STATUS.IN_PROGRESS ? (
-                          <Clock className="h-3.5 w-3.5" />
-                        ) : (
-                          <AlertCircle className="h-3.5 w-3.5" />
-                        )}
-                        {trade.status === STATUS.COMPLETED
-                          ? "Completed"
-                          : trade.status === STATUS.IN_PROGRESS
-                            ? "In Progress"
-                            : trade.status === STATUS.PENDING
-                              ? "Pending"
-                              : trade.status === STATUS.CANCELLED
-                                ? "Cancelled"
-                                : "Disputed"}
+                <div className="flex items-center gap-5">
+                  <div
+                    className={cn(
+                      "flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center",
+                      trade.type === TRADE_TYPE.BUY
+                        ? "bg-gradient-to-br from-green-400 to-emerald-600 text-white"
+                        : "bg-gradient-to-br from-blue-400 to-indigo-600 text-white"
+                    )}
+                  >
+                    {trade.type === TRADE_TYPE.BUY ? (
+                      <ArrowUpDown className="h-7 w-7" />
+                    ) : (
+                      <Repeat className="h-7 w-7" />
+                    )}
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold text-xl">
+                        {trade.type === TRADE_TYPE.BUY ? "Bought" : "Sold"}{" "}
+                        {trade.amount}
                       </div>
-                    </Badge>
-                  </div>
-
-                  <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                    <div className="flex items-center mr-4">
-                      <Avatar className="h-6 w-6 mr-2">
-                        <AvatarImage
-                          src={trade.avatar || "/placeholder.svg"}
-                          alt={trade.user}
-                        />
-                        <AvatarFallback>
-                          {trade.user.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      {trade.user}
+                      <Badge
+                        variant={
+                          trade.status === STATUS.COMPLETED
+                            ? "default"
+                            : trade.status === STATUS.IN_PROGRESS
+                              ? "secondary"
+                              : "outline"
+                        }
+                        className={cn(
+                          "px-3 py-1 rounded-full text-sm",
+                          trade.status === STATUS.COMPLETED
+                            ? "bg-green-500/10 text-green-500 border-green-200 dark:border-green-900"
+                            : trade.status === STATUS.IN_PROGRESS
+                              ? "bg-blue-500/10 text-blue-500 border-blue-200 dark:border-blue-900"
+                              : "bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-1">
+                          {trade.status === STATUS.COMPLETED ? (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          ) : trade.status === STATUS.IN_PROGRESS ? (
+                            <Clock className="h-3.5 w-3.5" />
+                          ) : (
+                            <AlertCircle className="h-3.5 w-3.5" />
+                          )}
+                          {trade.status === STATUS.COMPLETED
+                            ? "Completed"
+                            : trade.status === STATUS.IN_PROGRESS
+                              ? "In Progress"
+                              : trade.status === STATUS.PENDING
+                                ? "Pending"
+                                : trade.status === STATUS.CANCELLED
+                                  ? "Cancelled"
+                                  : "Disputed"}
+                        </div>
+                      </Badge>
                     </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-                      {trade.userRating}
-                    </div>
-                  </div>
 
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center text-sm">
+                    <div className="mt-2 flex items-center text-sm text-muted-foreground">
                       <div className="flex items-center mr-4">
-                        {trade.paymentMethod === "Bank Transfer" ? (
-                          <CreditCard className="h-4 w-4 mr-1.5 text-blue-500" />
-                        ) : trade.paymentMethod === "PayPal" ? (
-                          <DollarSign className="h-4 w-4 mr-1.5 text-indigo-500" />
-                        ) : (
-                          <Banknote className="h-4 w-4 mr-1.5 text-green-500" />
-                        )}
-                        {trade.paymentMethod}
+                        <Avatar className="h-6 w-6 mr-2">
+                          <AvatarImage
+                            src={trade.avatar || "/placeholder.svg"}
+                            alt={trade.user || "User"}
+                          />
+                          <AvatarFallback>
+                            {trade.user ? trade.user.substring(0, 2).toUpperCase() : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        {trade.user || "Unknown User"}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {trade.time || trade.timestamp}
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+                        {trade.userRating}
                       </div>
                     </div>
-                    <div className="font-medium text-lg">{trade.value}</div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center text-sm">
+                        <div className="flex items-center mr-4">
+                          {trade.paymentMethod === "Bank Transfer" ? (
+                            <CreditCard className="h-4 w-4 mr-1.5 text-blue-500" />
+                          ) : trade.paymentMethod === "PayPal" ? (
+                            <DollarSign className="h-4 w-4 mr-1.5 text-indigo-500" />
+                          ) : (
+                            <Banknote className="h-4 w-4 mr-1.5 text-green-500" />
+                          )}
+                          {trade.paymentMethod}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {trade.time || trade.timestamp}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-lg">{trade.value}</div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="mt-4 pt-4 border-t flex justify-end">
-                <Link href={`/p2p/trade/${trade.id}`} className="gap-1.5">
-                  View Details <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </Link>
         );
       })}
 
-      <Link
-        href="/p2p/trade"
-        className="w-full justify-between group relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-        <span className="relative z-10">View all activity</span>
-        <ChevronRight className="h-4 w-4 relative z-10" />
+      <Link href="/p2p/trade">
+        <Button variant="outline" className="w-full justify-between group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <span className="relative z-10">View all activity</span>
+          <ChevronRight className="h-4 w-4 relative z-10" />
+        </Button>
       </Link>
     </div>
   );

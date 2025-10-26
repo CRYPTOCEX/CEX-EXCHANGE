@@ -19,8 +19,8 @@ export default function TradePage() {
     <div className="flex min-h-screen w-full flex-col">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/p2p/trade" className="h-8 w-8">
+          <div className="flex items-center gap-4">
+            <Link href="/p2p/trade">
               <Button variant="outline" size="icon">
                 <ArrowLeft className="h-4 w-4" />
               </Button>

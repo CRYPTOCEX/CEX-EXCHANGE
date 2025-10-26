@@ -54,7 +54,7 @@ export default function BalanceDisplay({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 py-2 bg-muted/50 dark:bg-zinc-900/50 border-b border-border dark:border-zinc-800 gap-1">
       <div className="flex items-center text-xs text-muted-foreground dark:text-zinc-400">
         <Wallet className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70 dark:text-zinc-500" />
-        <span>{t("available")}:</span>
+        <span>{t("available")}</span>
       </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         {isLoadingWallet ? (

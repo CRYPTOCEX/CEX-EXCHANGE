@@ -119,6 +119,17 @@ export function PanelGroup({
         panel.classList.remove("panel-resizing");
       }
     });
+
+    // Disable pointer events on all iframes (like TradingView charts) during resize
+    // This prevents the chart from capturing mouse events and breaking the resize
+    const iframes = groupRef.current.querySelectorAll("iframe");
+    iframes.forEach((iframe) => {
+      if (isResizing) {
+        (iframe as HTMLElement).style.pointerEvents = "none";
+      } else {
+        (iframe as HTMLElement).style.pointerEvents = "auto";
+      }
+    });
   }, []);
 
   // Handle mouse enter/leave for the group
@@ -271,7 +282,6 @@ export function PanelGroup({
   // Start resize operation
   const startResize = useCallback(
     (id1: string, id2: string, initialPosition: number) => {
-      console.log("Starting resize between panels:", id1, id2);
       setResizing(true);
       setResizingPanels({ id1, id2, initialPosition });
 

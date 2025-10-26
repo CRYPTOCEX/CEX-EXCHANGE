@@ -25,6 +25,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useWebSocketStore } from "@/store/websocket-store";
 import { useUserStore } from "@/store/user";
+import { useWalletStore } from "@/store/finance/wallet-store";
 interface ExchangeOrder {
   id: string;
   referenceId?: string;
@@ -105,6 +106,27 @@ const formatDate = (date: Date | string | undefined) => {
   if (diffDays < 7) return `${diffDays}d ago`;
   return dateObj.toLocaleDateString();
 };
+
+// Smart decimal formatter - shows appropriate precision based on value size
+const formatDecimal = (value: number | string | undefined, type: 'price' | 'amount' | 'total' = 'price'): string => {
+  if (value === undefined || value === null || value === '') return '0.00';
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0.00';
+
+  // For amounts, always use 8 decimals
+  if (type === 'amount') {
+    return num.toFixed(8);
+  }
+
+  // For prices and totals, use smart precision
+  if (num === 0) return '0.00';
+  if (num >= 1000) return num.toFixed(2);
+  if (num >= 1) return num.toFixed(4);
+  if (num >= 0.01) return num.toFixed(6);
+  if (num >= 0.0001) return num.toFixed(8);
+  // For very small numbers, use scientific notation or show up to 10 decimals
+  return num < 0.00000001 ? num.toExponential(2) : num.toFixed(10);
+};
 export default function OrdersPanel({
   symbol = "BTCUSDT",
   isEco = false,
@@ -114,6 +136,7 @@ export default function OrdersPanel({
   const marketType = searchParams.get("type") || "spot";
   const isFutures = marketType === "futures";
   const { user } = useUserStore();
+  const { fetchWallets } = useWalletStore();
 
   // WebSocket store
   const {
@@ -161,6 +184,8 @@ export default function OrdersPanel({
     if (!message || !message.data || !isMountedRef.current) return;
     const { data } = message;
     if (!data || !Array.isArray(data)) return;
+
+    let shouldRefreshWallet = false;
     setOpenOrders((prevOpenOrders) => {
       const newItems = [...prevOpenOrders];
       for (const orderItem of data) {
@@ -174,6 +199,7 @@ export default function OrdersPanel({
           ) {
             // If the order is no longer open, remove it from open orders
             newItems.splice(index, 1);
+            shouldRefreshWallet = true;
 
             // Also refresh order history to include the updated order
             fetchOrderHistory();
@@ -188,11 +214,17 @@ export default function OrdersPanel({
           // Add only if still open/active
           if (orderItem.status === "OPEN" || orderItem.status === "ACTIVE") {
             newItems.push(orderItem);
+            shouldRefreshWallet = true;
           }
         }
       }
       return newItems;
     });
+
+    // Refresh wallet balances if orders changed
+    if (shouldRefreshWallet) {
+      fetchWallets();
+    }
   };
 
   // Debounced fetch functions
@@ -530,8 +562,11 @@ export default function OrdersPanel({
       });
       const data = await response.json();
       if (data.success) {
-        // Refresh open orders
-        fetchOpenOrders();
+        // Refresh open orders and wallet balances
+        await Promise.all([
+          fetchOpenOrders(),
+          fetchWallets()
+        ]);
       } else {
         setError("Failed to cancel order");
         console.error("Failed to cancel order:", data);
@@ -631,8 +666,11 @@ export default function OrdersPanel({
       });
       const data = await response.json();
       if (data.success) {
-        // Refresh open orders
-        fetchOpenOrders();
+        // Refresh open orders and wallet balances
+        await Promise.all([
+          fetchOpenOrders(),
+          fetchWallets()
+        ]);
       } else {
         setError("Failed to cancel all orders");
         console.error("Failed to cancel all orders:", data);
@@ -668,9 +706,10 @@ export default function OrdersPanel({
   };
 
   // Calculate total value of open orders
-  const totalOpenOrdersValue = openOrders
-    .reduce((acc, order: any) => acc + (order.cost || 0), 0)
-    .toFixed(2);
+  const totalOpenOrdersValue = formatDecimal(
+    openOrders.reduce((acc, order: any) => acc + (order.cost || 0), 0),
+    'total'
+  );
   return (
     <div className="flex flex-col h-full bg-background dark:bg-black text-foreground dark:text-white">
       {/* Sticky tabs header */}
@@ -840,26 +879,24 @@ export default function OrdersPanel({
                             </Badge>
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                            {Number(order.price).toFixed(2)}
+                            {formatDecimal(order.price, 'price')}
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                            {Number(order.amount).toFixed(8)}
+                            {formatDecimal(order.amount, 'amount')}
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                            {Number(
-                              order.cost || order.amount * order.price
-                            ).toFixed(2)}
+                            {formatDecimal(order.cost || order.amount * order.price, 'total')}
                           </td>
                           {isFutures && (
                             <>
                               <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                                 {order.stop_loss_price
-                                  ? Number(order.stop_loss_price).toFixed(2)
+                                  ? formatDecimal(order.stop_loss_price, 'price')
                                   : "-"}
                               </td>
                               <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                                 {order.take_profit_price
-                                  ? Number(order.take_profit_price).toFixed(2)
+                                  ? formatDecimal(order.take_profit_price, 'price')
                                   : "-"}
                               </td>
                             </>
@@ -1022,26 +1059,24 @@ export default function OrdersPanel({
                               </Badge>
                             </td>
                             <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                              {Number(order.price).toFixed(2)}
+                              {formatDecimal(order.price, 'price')}
                             </td>
                             <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                              {Number(order.amount).toFixed(8)}
+                              {formatDecimal(order.amount, 'amount')}
                             </td>
                             <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                              {Number(
-                                order.cost || order.amount * order.price
-                              ).toFixed(2)}
+                              {formatDecimal(order.cost || order.amount * order.price, 'total')}
                             </td>
                             {isFutures && (
                               <>
                                 <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                                   {order.stop_loss_price
-                                    ? Number(order.stop_loss_price).toFixed(2)
+                                    ? formatDecimal(order.stop_loss_price, 'price')
                                     : "-"}
                                 </td>
                                 <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                                   {order.take_profit_price
-                                    ? Number(order.take_profit_price).toFixed(2)
+                                    ? formatDecimal(order.take_profit_price, 'price')
                                     : "-"}
                                 </td>
                               </>
@@ -1163,9 +1198,10 @@ export default function OrdersPanel({
                     variant="outline"
                     className="h-5 text-[10px] px-1.5 border-zinc-200 dark:border-zinc-700 text-foreground dark:text-zinc-300"
                   >
-                    {positions
-                      .reduce((acc, pos) => acc + Number(pos.amount), 0)
-                      .toFixed(2)}
+                    {formatDecimal(
+                      positions.reduce((acc, pos) => acc + Number(pos.amount), 0),
+                      'amount'
+                    )}
                   </Badge>
                 )}
               </div>
@@ -1237,11 +1273,11 @@ export default function OrdersPanel({
                             {Number(position.amount).toFixed(8)}
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                            {Number(position.entryPrice).toFixed(2)}
+                            {formatDecimal(position.entryPrice, 'price')}
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                             {position.liquidationPrice
-                              ? Number(position.liquidationPrice).toFixed(2)
+                              ? formatDecimal(position.liquidationPrice, 'price')
                               : "-"}
                           </td>
                           <td className="p-2 text-right font-mono">
@@ -1255,7 +1291,7 @@ export default function OrdersPanel({
                               }
                             >
                               {Number(position.unrealizedPnl) > 0 ? "+" : ""}
-                              {Number(position.unrealizedPnl).toFixed(2)}
+                              {formatDecimal(position.unrealizedPnl, 'total')}
                             </span>
                           </td>
                           <td className="p-2 text-right text-muted-foreground dark:text-zinc-400">

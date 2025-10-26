@@ -16,6 +16,16 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
   const t = useTranslations("ext");
   const { settings } = useConfigStore();
 
+  // Helper to safely check boolean settings
+  const getBooleanSetting = (value: any) => {
+    if (value === undefined || value === null) return true;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') return value === 'true';
+    return Boolean(value);
+  };
+
+  const p2pEnabled = getBooleanSetting(settings?.p2pEnabled);
+
   if (settings.isMaintenanceMode) {
     return (
       <Alert variant="destructive" className="mb-4">
@@ -30,7 +40,7 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
     );
   }
 
-  if (!settings.isP2PEnabled) {
+  if (!p2pEnabled) {
     return (
       <Alert variant="destructive" className="mb-4">
         <AlertTriangle className="h-4 w-4" />
@@ -51,13 +61,13 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
   return (
     <>
       {hasDisabledFeatures && (
-        <Alert variant="warning" className="mb-4">
-          <Settings className="h-4 w-4" />
-          <AlertTitle>{t("limited_functionality")}</AlertTitle>
-          <AlertDescription>
+        <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+          <Settings className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-900 dark:text-amber-200">{t("limited_functionality")}</AlertTitle>
+          <AlertDescription className="text-amber-800 dark:text-amber-300">
             {t("some_trade_features_are_currently_disabled")}
             {!settings.isTradeDisputeEnabled && (
-              <span className="block">
+              <span className="block mt-2">
                 {t("•_trade_dispute_resolution_is_unavailable")}
               </span>
             )}
@@ -66,8 +76,8 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
                 {t("•_escrow_services_are_unavailable")}
               </span>
             )}
-            <Link href="/p2p/guide" className="mt-2">
-              <Button variant="outline" size="sm">
+            <Link href="/p2p/guide" className="mt-3 inline-block">
+              <Button variant="outline" size="sm" className="border-amber-300 hover:bg-amber-100 dark:border-amber-800 dark:hover:bg-amber-900/30">
                 {t("learn_more_about_trading_options")}
               </Button>
             </Link>

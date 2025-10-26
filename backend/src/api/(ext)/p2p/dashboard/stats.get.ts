@@ -24,7 +24,7 @@ export default async (data: { user?: any }) => {
       message: "Unauthorized",
     };
   }
-  
+
   try {
     // Check if P2P models exist
     if (!models.p2pTrade) {
@@ -37,6 +37,7 @@ export default async (data: { user?: any }) => {
     let totalTrades = 0;
     let activeTrades = 0;
     let completedTrades = 0;
+    let wallets: any[] = [];
 
     try {
       totalTrades = await models.p2pTrade.count({
@@ -70,10 +71,41 @@ export default async (data: { user?: any }) => {
       console.error("Error fetching completed trades:", error);
     }
 
+    // Fetch user wallets for P2P trading
+    try {
+      wallets = await models.wallet.findAll({
+        where: {
+          userId: user.id,
+          type: { [Op.in]: ["FIAT", "SPOT", "ECO"] },
+        },
+        attributes: [
+          "id",
+          "type",
+          "currency",
+          "balance",
+          "inOrder",
+          "status",
+        ],
+        raw: true,
+      });
+    } catch (error) {
+      console.error("Error fetching user wallets:", error);
+      wallets = [];
+    }
+
     return {
       totalTrades,
       activeTrades,
       completedTrades,
+      wallets: wallets.map((wallet: any) => ({
+        id: wallet.id,
+        type: wallet.type,
+        currency: wallet.currency,
+        balance: parseFloat(wallet.balance || 0),
+        inOrder: parseFloat(wallet.inOrder || 0),
+        availableBalance: parseFloat(wallet.balance || 0) - parseFloat(wallet.inOrder || 0),
+        status: wallet.status,
+      })),
     };
   } catch (err: any) {
     console.error("P2P Dashboard Stats API Error:", err);

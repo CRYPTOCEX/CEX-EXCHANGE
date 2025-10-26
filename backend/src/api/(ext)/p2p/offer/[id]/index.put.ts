@@ -1,6 +1,7 @@
 import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
+import { CacheManager } from "@b/utils/cache";
 
 export const metadata = {
   summary: "Updates a P2P offer",
@@ -308,10 +309,15 @@ export default async (data: { user?: any; params: any; body: any }) => {
     });
   }
 
-  // Set offer to PENDING_APPROVAL after editing (except for status-only changes)
+  // Check if auto-approval is enabled
+  const cacheManager = CacheManager.getInstance();
+  const autoApprove = await cacheManager.getSetting("p2pAutoApproveOffers");
+  const shouldAutoApprove = autoApprove === true || autoApprove === "true";
+
+  // Set offer to PENDING_APPROVAL or ACTIVE after editing (except for status-only changes)
   const isStatusOnlyChange = Object.keys(updateData).length === 1 && updateData.status;
   if (!isStatusOnlyChange) {
-    updateData.status = "PENDING_APPROVAL";
+    updateData.status = shouldAutoApprove ? "ACTIVE" : "PENDING_APPROVAL";
   }
 
   try {
@@ -345,8 +351,12 @@ export default async (data: { user?: any; params: any; body: any }) => {
         ],
       });
 
+      const message = shouldAutoApprove
+        ? "Offer updated successfully. Your offer is now active."
+        : "Offer updated successfully. Your offer is now pending approval.";
+
       return {
-        message: "Offer updated successfully. Your offer is now pending approval.",
+        message,
         data: updatedOffer,
       };
     } catch (error) {

@@ -551,10 +551,9 @@ export default function OrderBookPanel({
     };
   }, [cleanupSubscriptions, cleanupTimers]);
 
-  // Setup connection status subscription and initial market data subscription
+  // Setup connection status subscription only
+  // Market data subscription is handled in the symbol/marketType change effect below
   useEffect(() => {
-    if (!currentSymbol) return;
-
     // Subscribe to connection status updates
     const unsubscribeStatus = marketDataWs.subscribeToConnectionStatus(
       (status) => {
@@ -566,54 +565,157 @@ export default function OrderBookPanel({
     );
     connectionStatusUnsubscribeRef.current = unsubscribeStatus;
 
-    // Initial subscription
-    subscribeToMarketData();
-
     return () => {
       if (connectionStatusUnsubscribeRef.current) {
         connectionStatusUnsubscribeRef.current();
         connectionStatusUnsubscribeRef.current = null;
       }
     };
-  }, [currentSymbol, currentMarketType, subscribeToMarketData]);
+  }, [currentMarketType]);
 
-  // Handle symbol or market type changes
+  // Handle symbol or market type changes - this is the ONLY place that subscribes to market data
   useEffect(() => {
-    const symbolChanged = symbol !== currentSymbol;
-    const marketTypeChanged = marketType !== currentMarketType;
+    if (!symbol) return; // Don't subscribe if no symbol provided
 
-    if (symbolChanged || marketTypeChanged) {
-      // Clean up existing subscriptions and timers
+    // Clean up existing subscriptions before anything else
+    cleanupSubscriptions();
+    cleanupTimers();
+
+    // Update internal state to match props
+    setCurrentSymbol(symbol);
+    setCurrentMarketType(marketType);
+
+    // Reset UI state
+    setPriceChangeDirection(null);
+    setLastPrice(null);
+    prevPriceRef.current = null;
+    setHasInitialScrolled(false);
+    setOrderbookData(null);
+    setTradesData([]);
+    setTickerData(null);
+    setIsOrderbookLoading(true);
+    setIsTradesLoading(true);
+    setHoveredPrice(null);
+    setHighlightedTrade(null);
+    setConnectionStatus(marketDataWs.getConnectionStatus(marketType));
+
+    // Subscribe to new market data - use symbol/marketType props directly, not state
+    // Inline subscription instead of using subscribeToMarketData callback
+    // This ensures we use the correct symbol/marketType from props, not stale state
+
+    // Set timeouts for loading states
+    const orderbookTimeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsOrderbookLoading(false);
+        setOrderbookData({ asks: [], bids: [], timestamp: Date.now(), symbol });
+      }
+    }, 5000);
+    orderbookTimeoutRef.current = orderbookTimeout;
+
+    const tradesTimeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsTradesLoading(false);
+        setTradesData([]);
+      }
+    }, 5000);
+    tradesTimeoutRef.current = tradesTimeout;
+
+    // Subscribe to ticker
+    const unsubscribeTicker = marketDataWs.subscribe<TickerData>(
+      {
+        symbol: symbol,
+        type: "ticker",
+        marketType: marketType,
+      },
+      (data) => {
+        if (isMountedRef.current && data && data.last !== undefined) {
+          setTickerData(data);
+          const newPrice = data.last;
+          if (prevPriceRef.current !== null && prevPriceRef.current !== newPrice) {
+            setLastPrice(newPrice);
+            setPriceChangeDirection(newPrice > prevPriceRef.current ? "up" : "down");
+            setTimeout(() => {
+              if (isMountedRef.current) {
+                setPriceChangeDirection(null);
+              }
+            }, 1000);
+          } else if (prevPriceRef.current === null) {
+            setLastPrice(newPrice);
+          }
+          prevPriceRef.current = newPrice;
+        }
+      }
+    );
+    tickerUnsubscribeRef.current = unsubscribeTicker;
+
+    // Subscribe to orderbook
+    const unsubscribeOrderbook = marketDataWs.subscribe<OrderbookData>(
+      {
+        symbol: symbol,
+        type: "orderbook",
+        marketType: marketType,
+        limit: MAX_ORDERBOOK_ITEMS,
+      },
+      (data) => {
+        if (isMountedRef.current) {
+          if (orderbookTimeoutRef.current) {
+            clearTimeout(orderbookTimeoutRef.current);
+            orderbookTimeoutRef.current = null;
+          }
+          setIsOrderbookLoading(false);
+          if (data) {
+            setOrderbookData(data);
+          } else {
+            setOrderbookData({ asks: [], bids: [], timestamp: Date.now(), symbol: symbol });
+          }
+        }
+      }
+    );
+    orderbookUnsubscribeRef.current = unsubscribeOrderbook;
+
+    // Subscribe to trades
+    const unsubscribeTrades = marketDataWs.subscribe<TradeData[]>(
+      {
+        symbol: symbol,
+        type: "trades",
+        marketType: marketType,
+      },
+      (data) => {
+        if (isMountedRef.current) {
+          if (tradesTimeoutRef.current) {
+            clearTimeout(tradesTimeoutRef.current);
+            tradesTimeoutRef.current = null;
+          }
+
+          if (data && Array.isArray(data) && data.length > 0) {
+            setTradesData(data);
+            setIsTradesLoading(false);
+            setHighlightedTrade(0);
+
+            if (highlightTimerRef.current) {
+              clearTimeout(highlightTimerRef.current);
+            }
+
+            highlightTimerRef.current = setTimeout(() => {
+              if (isMountedRef.current) {
+                setHighlightedTrade(null);
+              }
+            }, 800);
+          } else {
+            setIsTradesLoading(false);
+            setTradesData([]);
+          }
+        }
+      }
+    );
+    tradesUnsubscribeRef.current = unsubscribeTrades;
+
+    // Cleanup on unmount or before next effect run
+    return () => {
       cleanupSubscriptions();
       cleanupTimers();
-
-      // Update state
-      if (symbolChanged) {
-        setCurrentSymbol(symbol);
-        setPriceChangeDirection(null);
-        setLastPrice(null);
-        prevPriceRef.current = null;
-        setHasInitialScrolled(false); // Reset scroll flag for new symbol
-      }
-
-      if (marketTypeChanged) {
-        setCurrentMarketType(marketType);
-        setConnectionStatus(marketDataWs.getConnectionStatus(marketType));
-      }
-
-      // Reset data
-      setOrderbookData(null);
-      setTradesData([]);
-      setTickerData(null);
-      setIsOrderbookLoading(true);
-      setIsTradesLoading(true);
-      setHoveredPrice(null);
-      setHighlightedTrade(null);
-
-      // Subscribe to new data
-      subscribeToMarketData();
-    }
-  }, [symbol, marketType, subscribeToMarketData]);
+    };
+  }, [symbol, marketType]);
 
   // Note: Aggregation level changes don't require resubscription since it's client-side processing
 
@@ -945,26 +1047,6 @@ export default function OrderBookPanel({
           ) : (
             // Desktop layout: side by side
             <div className="relative grid grid-cols-2 flex-grow overflow-hidden">
-              {/* Last price indicator */}
-              {lastPrice && (
-                <div
-                  ref={priceIndicatorRef}
-                  className={cn(
-                    "absolute inset-x-0 top-0 z-10 border-y px-2 py-0.5 text-xs font-medium flex justify-center transition-all duration-300 pointer-events-none",
-                    getPriceIndicatorColor()
-                  )}
-                >
-                  <div className="flex items-center">
-                    {priceChangeDirection === "up" && (
-                      <ChevronUp className="h-3 w-3 mr-1" />
-                    )}
-                    {priceChangeDirection === "down" && (
-                      <ChevronDown className="h-3 w-3 mr-1" />
-                    )}
-                    {formatPrice(lastPrice)}
-                  </div>
-                </div>
-              )}
 
               {/* Bids */}
               <div className="border-r border-zinc-200 dark:border-zinc-800 flex flex-col h-full overflow-hidden">

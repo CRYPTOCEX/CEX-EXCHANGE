@@ -52,18 +52,22 @@ export function WalletTypeStep() {
         }
         const data = await response.json();
         if (data.success && data.data) {
-          setUserWallets(data.data);
+          // Filter wallets with positive available balance
+          const walletsWithBalance = data.data.filter(
+            (wallet: UserWallet) => wallet.availableBalance > 0
+          );
+          setUserWallets(walletsWithBalance);
 
           // If we have wallets and none selected yet, select the first one
-          if (data.data.length > 0 && !selectedUserWallet) {
-            setSelectedUserWallet(data.data[0].id);
+          if (walletsWithBalance.length > 0 && !selectedUserWallet) {
+            setSelectedUserWallet(walletsWithBalance[0].id);
             updateTradeData({
-              userWalletId: data.data[0].id,
-              currency: data.data[0].currency,
-              availableBalance: data.data[0].availableBalance,
+              userWalletId: walletsWithBalance[0].id,
+              currency: walletsWithBalance[0].currency,
+              availableBalance: walletsWithBalance[0].availableBalance,
             });
             markStepComplete(2);
-          } else if (data.data.length === 0) {
+          } else if (walletsWithBalance.length === 0) {
             setError(
               `You don't have any ${walletType.toLowerCase()} wallets with balance.`
             );

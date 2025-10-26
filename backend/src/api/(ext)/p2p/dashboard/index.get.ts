@@ -72,9 +72,12 @@ export default async (data: { user?: any }) => {
     }
 
     try {
-      // Trading Activity: recent activity logs
+      // Trading Activity: recent activity logs (only trade-related)
       activity = await models.p2pActivityLog.findAll({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          relatedEntity: "TRADE" // Only fetch trade-related activities, not offer activities
+        },
         order: [["createdAt", "DESC"]],
         limit: 10,
         raw: true,
@@ -99,12 +102,44 @@ export default async (data: { user?: any }) => {
       transactions = [];
     }
 
+    // Fetch user wallets for P2P trading
+    let wallets: any[] = [];
+    try {
+      wallets = await models.wallet.findAll({
+        where: {
+          userId: user.id,
+          type: { [Op.in]: ["FIAT", "SPOT", "ECO"] },
+        },
+        attributes: [
+          "id",
+          "type",
+          "currency",
+          "balance",
+          "inOrder",
+          "status",
+        ],
+        raw: true,
+      });
+    } catch (walletsError) {
+      console.error("Error fetching user wallets:", walletsError);
+      wallets = [];
+    }
+
     return {
       notifications,
       portfolio: portfolioResult || { totalValue: 0 },
       stats: statsResult || { tradeCount: 0 },
       tradingActivity: activity || [],
       transactions: transactions || [],
+      wallets: wallets.map((wallet: any) => ({
+        id: wallet.id,
+        type: wallet.type,
+        currency: wallet.currency,
+        balance: parseFloat(wallet.balance || 0),
+        inOrder: parseFloat(wallet.inOrder || 0),
+        availableBalance: parseFloat(wallet.balance || 0) - parseFloat(wallet.inOrder || 0),
+        status: wallet.status,
+      })),
     };
   } catch (err: any) {
     throw new Error("Internal Server Error: " + err.message);

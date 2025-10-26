@@ -116,7 +116,12 @@ export default async (data: any) => {
     const offerUser = await models.user.findByPk(offer.userId, {
       attributes: ["id", "firstName", "lastName", "email"],
     });
-    
+
+    // Get admin user data for logging
+    const adminUser = await models.user.findByPk(user.id, {
+      attributes: ["id", "firstName", "lastName", "email"],
+    });
+
     // Store original status for comparison
     const originalStatus = offer.status;
 
@@ -207,9 +212,9 @@ export default async (data: any) => {
             emailReplacements = {
               OFFER_TYPE: offer.type,
               CURRENCY: offer.currency,
-              APPROVED_BY: `${user.firstName} ${user.lastName}`,
+              APPROVED_BY: adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin' : 'Admin',
               NOTES: body.adminNotes || "",
-              USER_NAME: `${offerUser.firstName} ${offerUser.lastName}`,
+              USER_NAME: offerUser ? `${offerUser.firstName || ''} ${offerUser.lastName || ''}`.trim() || 'User' : 'User',
             };
           }
           break;
@@ -221,9 +226,9 @@ export default async (data: any) => {
           emailReplacements = {
             OFFER_TYPE: offer.type,
             CURRENCY: offer.currency,
-            REJECTED_BY: `${user.firstName} ${user.lastName}`,
+            REJECTED_BY: adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin' : 'Admin',
             REASON: body.rejectionReason || "Does not meet platform requirements",
-            USER_NAME: `${offerUser.firstName} ${offerUser.lastName}`,
+            USER_NAME: offerUser ? `${offerUser.firstName || ''} ${offerUser.lastName || ''}`.trim() || 'User' : 'User',
           };
           // Store rejection reason in admin notes
           updateData.adminNotes = `Rejected: ${body.rejectionReason || "No reason provided"}\n${body.adminNotes || ""}`;
@@ -236,9 +241,9 @@ export default async (data: any) => {
           emailReplacements = {
             OFFER_TYPE: offer.type,
             CURRENCY: offer.currency,
-            FLAGGED_BY: `${user.firstName} ${user.lastName}`,
+            FLAGGED_BY: adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin' : 'Admin',
             REASON: body.adminNotes || "Flagged for review",
-            USER_NAME: `${offerUser.firstName} ${offerUser.lastName}`,
+            USER_NAME: offerUser ? `${offerUser.firstName || ''} ${offerUser.lastName || ''}`.trim() || 'User' : 'User',
           };
           break;
           
@@ -249,9 +254,9 @@ export default async (data: any) => {
           emailReplacements = {
             OFFER_TYPE: offer.type,
             CURRENCY: offer.currency,
-            DISABLED_BY: `${user.firstName} ${user.lastName}`,
+            DISABLED_BY: adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin' : 'Admin',
             REASON: body.adminNotes || "Disabled by admin",
-            USER_NAME: `${offerUser.firstName} ${offerUser.lastName}`,
+            USER_NAME: offerUser ? `${offerUser.firstName || ''} ${offerUser.lastName || ''}`.trim() || 'User' : 'User',
           };
           break;
       }
@@ -393,6 +398,10 @@ export default async (data: any) => {
     // Log admin action
     try {
       const { logP2PAdminAction } = await import("../../../../p2p/utils/ownership");
+      const adminName = adminUser
+        ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
+        : 'Admin';
+
       await logP2PAdminAction(
         user.id,
         actionType,
@@ -403,7 +412,7 @@ export default async (data: any) => {
           offerType: offer.type,
           currency: offer.currency,
           changes: Object.keys(updateData).filter(key => key !== 'activityLog'),
-          updatedBy: `${user.firstName} ${user.lastName}`,
+          updatedBy: adminName,
           statusChange: body.status && originalStatus !== body.status ? `${originalStatus} -> ${body.status}` : null,
         }
       );

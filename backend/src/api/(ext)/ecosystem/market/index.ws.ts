@@ -7,9 +7,10 @@ export const metadata = {};
 
 class UnifiedEcosystemMarketDataHandler {
   private static instance: UnifiedEcosystemMarketDataHandler;
-  private activeSubscriptions: Map<string, Set<string>> = new Map(); // symbol -> Set<dataTypes>
+  private activeSubscriptions: Map<string, Map<string, any>> = new Map(); // symbol -> Map<type, subscriptionPayload>
   private intervalMap: Map<string, NodeJS.Timeout> = new Map(); // symbol -> interval
   private lastTickerData: Map<string, any> = new Map(); // symbol -> last ticker data
+  private lastOrderbookData: Map<string, string> = new Map(); // symbol -> last orderbook hash
   private engine: any = null;
 
   private constructor() {}
@@ -27,20 +28,36 @@ class UnifiedEcosystemMarketDataHandler {
     }
   }
 
-  private async fetchAndBroadcastData(symbol: string, dataTypes: Set<string>) {
+  private async fetchAndBroadcastData(symbol: string, subscriptionMap: Map<string, any>, isInitialFetch: boolean = false) {
     try {
       await this.initializeEngine();
 
-      const fetchPromises = Array.from(dataTypes).map(async (type) => {
+      const fetchPromises = Array.from(subscriptionMap.entries()).map(async ([type, payload]) => {
         try {
           switch (type) {
             case "orderbook":
               const orderbook = await getOrderBook(symbol);
-              messageBroker.broadcastToSubscribedClients(
-                `/api/ecosystem/market`,
-                { type: "orderbook", symbol },
-                { stream: "orderbook", data: orderbook }
-              );
+
+              // On initial fetch, always broadcast. Otherwise, only if data changed
+              const orderbookHash = JSON.stringify(orderbook);
+              const lastOrderbookHash = this.lastOrderbookData.get(symbol);
+
+              if (isInitialFetch || lastOrderbookHash !== orderbookHash) {
+                this.lastOrderbookData.set(symbol, orderbookHash);
+
+                // Build stream key matching frontend subscription (includes limit if present)
+                const streamKey = payload.limit ? `orderbook:${payload.limit}` : 'orderbook';
+
+                messageBroker.broadcastToSubscribedClients(
+                  `/api/ecosystem/market`,
+                  payload,
+                  { stream: streamKey, data: orderbook }
+                );
+                console.log(`[ORDERBOOK] Broadcasted orderbook for ${symbol} (initial: ${isInitialFetch}) with stream: ${streamKey}:`, {
+                  asksCount: orderbook.asks.length,
+                  bidsCount: orderbook.bids.length
+                });
+              }
               break;
             case "trades":
               // TODO: Implement trades fetching from database
@@ -50,7 +67,7 @@ class UnifiedEcosystemMarketDataHandler {
             case "ticker":
               const ticker = await this.engine.getTicker(symbol);
 
-              // Only broadcast if ticker data has changed
+              // On initial fetch, always broadcast. Otherwise, only if data changed
               const lastTicker = this.lastTickerData.get(symbol);
               const tickerChanged = !lastTicker ||
                 lastTicker.last !== ticker.last ||
@@ -58,14 +75,18 @@ class UnifiedEcosystemMarketDataHandler {
                 lastTicker.quoteVolume !== ticker.quoteVolume ||
                 lastTicker.change !== ticker.change;
 
-              if (tickerChanged) {
+              if (isInitialFetch || tickerChanged) {
                 this.lastTickerData.set(symbol, ticker);
                 messageBroker.broadcastToSubscribedClients(
                   `/api/ecosystem/market`,
-                  { type: "ticker", symbol },
+                  payload,
                   { stream: "ticker", data: ticker }
                 );
+                console.log(`[TICKER] Broadcasted ticker for ${symbol} (initial: ${isInitialFetch})`);
               }
+              break;
+            case "ohlcv":
+              // TODO: Implement OHLCV fetching
               break;
           }
         } catch (error) {
@@ -87,16 +108,16 @@ class UnifiedEcosystemMarketDataHandler {
 
     // Start new interval for this symbol
     const interval = setInterval(async () => {
-      const dataTypes = this.activeSubscriptions.get(symbol);
-      if (dataTypes && dataTypes.size > 0) {
-        await this.fetchAndBroadcastData(symbol, dataTypes);
+      const subscriptionMap = this.activeSubscriptions.get(symbol);
+      if (subscriptionMap && subscriptionMap.size > 0) {
+        await this.fetchAndBroadcastData(symbol, subscriptionMap);
       }
-    }, 2000); // Fetch every 2 seconds instead of 500ms
+    }, 2000); // Fetch every 2 seconds
 
     this.intervalMap.set(symbol, interval);
   }
 
-  public async addSubscription(symbol: string, type: string) {
+  public async addSubscription(symbol: string, payload: any) {
     // Validate that the symbol exists in the database and is enabled
     if (!symbol) {
       console.warn("No symbol provided in ecosystem subscription request");
@@ -110,8 +131,8 @@ class UnifiedEcosystemMarketDataHandler {
     }
 
     const market = await models.ecosystemMarket.findOne({
-      where: { 
-        currency, 
+      where: {
+        currency,
         pair,
         status: true // Only allow enabled markets
       }
@@ -122,39 +143,45 @@ class UnifiedEcosystemMarketDataHandler {
       return;
     }
 
-    // Add this data type to the symbol's subscription set
+    const type = payload.type;
+
+    // Add this subscription to the symbol's subscription map
     if (!this.activeSubscriptions.has(symbol)) {
-      this.activeSubscriptions.set(symbol, new Set([type]));
+      const newMap = new Map();
+      newMap.set(type, payload);
+      this.activeSubscriptions.set(symbol, newMap);
       // Start data fetching for this symbol
       this.startDataFetching(symbol);
     } else {
-      // Add the data type to the existing symbol's subscription set
-      this.activeSubscriptions.get(symbol)!.add(type);
+      // Add/update the subscription with the full payload
+      this.activeSubscriptions.get(symbol)!.set(type, payload);
     }
 
-    console.log(`Added ${type} subscription for ${symbol}. Active types:`, Array.from(this.activeSubscriptions.get(symbol)!));
+    console.log(`Added ${type} subscription for ${symbol}. Active types:`, Array.from(this.activeSubscriptions.get(symbol)!.keys()));
 
-    // Immediately fetch data for the new subscription
-    await this.fetchAndBroadcastData(symbol, new Set([type]));
+    // Immediately fetch and send initial data for the new subscription
+    const singleSubscriptionMap = new Map();
+    singleSubscriptionMap.set(type, payload);
+    await this.fetchAndBroadcastData(symbol, singleSubscriptionMap, true); // true = isInitialFetch
   }
 
   public removeSubscription(symbol: string, type: string) {
     if (this.activeSubscriptions.has(symbol)) {
       this.activeSubscriptions.get(symbol)!.delete(type);
-      
+
       // If no more data types for this symbol, remove the symbol entirely
       if (this.activeSubscriptions.get(symbol)!.size === 0) {
         this.activeSubscriptions.delete(symbol);
-        
+
         // Clear the interval
         if (this.intervalMap.has(symbol)) {
           clearInterval(this.intervalMap.get(symbol)!);
           this.intervalMap.delete(symbol);
         }
-        
+
         console.log(`Removed all subscriptions for ${symbol}`);
       } else {
-        console.log(`Removed ${type} subscription for ${symbol}. Remaining types:`, Array.from(this.activeSubscriptions.get(symbol)!));
+        console.log(`Removed ${type} subscription for ${symbol}. Remaining types:`, Array.from(this.activeSubscriptions.get(symbol)!.keys()));
       }
     }
   }
@@ -173,7 +200,8 @@ export default async (data: Handler, message: any) => {
     message = JSON.parse(message);
   }
 
-  const { type, symbol } = message.payload;
+  const { action, payload } = message;
+  const { type, symbol } = payload || {};
 
   if (!type || !symbol) {
     console.error("Invalid message structure: type or symbol is missing");
@@ -181,5 +209,10 @@ export default async (data: Handler, message: any) => {
   }
 
   const handler = UnifiedEcosystemMarketDataHandler.getInstance();
-  await handler.addSubscription(symbol, type);
+
+  if (action === "SUBSCRIBE") {
+    await handler.addSubscription(symbol, payload);
+  } else if (action === "UNSUBSCRIBE") {
+    handler.removeSubscription(symbol, type);
+  }
 };

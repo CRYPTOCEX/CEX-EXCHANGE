@@ -2,7 +2,7 @@
   "id": "7848B8AC",
   "name": "bicrypto-v5",
   "private": true,
-  "version": "5.5.6",
+  "version": "5.5.8",
   "scripts": {
     "dev": "concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "pnpm --filter backend dev",
@@ -117,6 +117,6 @@
       "esbuild"
     ]
   },
-  "lastCommit": "ead45c8fa918272a25c20911a7aeb9c83c69d203",
-  "lastCommitDate": "2025-10-19T19:58:15.179Z"
+  "lastCommit": "b8e37d6ae496580a4c9ea20e7dade3f39519c4a0",
+  "lastCommitDate": "2025-10-23T19:04:33.285Z"
 }

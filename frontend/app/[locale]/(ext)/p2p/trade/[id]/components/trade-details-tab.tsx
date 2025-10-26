@@ -71,7 +71,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
                 className={
                   trade.type === "buy"
                     ? ""
-                    : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                    : "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300 border-blue-200 dark:border-blue-900/50"
                 }
               >
                 {trade.type === "buy" ? "Buy" : "Sell"} {trade.coin}

@@ -69,7 +69,10 @@ export default async (data: { user?: any }) => {
         raw: true,
       }),
       models.p2pActivityLog.findAll({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          relatedEntity: "TRADE" // Only fetch trade-related activities
+        },
         order: [["createdAt", "DESC"]],
         limit: 5,
         raw: true,
@@ -126,11 +129,40 @@ export default async (data: { user?: any }) => {
 
     // ------ 5. Format activity log ------
     function formatActivity(act) {
+      let message = act.message || act.details;
+
+      // Try to parse JSON message and format it
+      if (typeof message === 'string') {
+        try {
+          const parsed = JSON.parse(message);
+
+          // Format based on the data structure
+          if (parsed.offerType && parsed.currency) {
+            const action = parsed.statusChange ? `Status changed from ${parsed.statusChange}` : 'Offer updated';
+            const updater = parsed.updatedBy || 'System';
+            message = `${action} for ${parsed.offerType} ${parsed.currency} by ${updater}`;
+          } else if (parsed.action) {
+            message = parsed.action;
+          } else if (parsed.description) {
+            message = parsed.description;
+          } else {
+            // If we can't format it nicely, use a generic message
+            message = 'Activity recorded';
+          }
+        } catch (e) {
+          // If it's not JSON or parsing fails, use the original message
+          // But if it starts with { or [, it's likely broken JSON - use generic message
+          if (message.trim().startsWith('{') || message.trim().startsWith('[')) {
+            message = 'Activity recorded';
+          }
+        }
+      }
+
       return {
         id: act.id,
         type: act.type || act.activityType,
         tradeId: act.tradeId,
-        message: act.message || act.details,
+        message: message,
         time: act.createdAt,
       };
     }

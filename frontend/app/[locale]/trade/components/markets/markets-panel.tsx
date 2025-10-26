@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabTrigger, TabContent } from "../ui/custom-tabs";
 import { Star, BarChart2, Zap } from "lucide-react";
 import { ConnectionStatus } from "@/services/ws-manager";
 import type { Symbol } from "@/store/trade/use-binary-store";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { usePathname } from "@/i18n/routing";
 import { marketService } from "@/services/market-service";
 import { tickersWs } from "@/services/tickers-ws";
@@ -38,6 +38,7 @@ export default function MarketsPanel({
   defaultMarketType = "spot",
 }: MarketsPanelProps) {
   const t = useTranslations("trade/components/markets/markets-panel");
+  const locale = useLocale();
   const pathname = usePathname();
   const { isExtensionAvailable, extensions } = useExtensionChecker();
   const [searchQuery, setSearchQuery] = useState("");
@@ -417,10 +418,6 @@ export default function MarketsPanel({
         setFuturesSelectedMarket(symbol);
       }
 
-      if (onMarketSelect) {
-        onMarketSelect(symbol, marketType);
-      }
-
       // Find the current market to get currency and pair
       let currency = "";
       let pair = "";
@@ -441,6 +438,13 @@ export default function MarketsPanel({
         }
       }
 
+      // Determine the actual market type to pass (spot, eco, or futures)
+      const actualMarketType = marketType === "spot" && isEco ? "eco" : marketType;
+
+      if (onMarketSelect) {
+        onMarketSelect(symbol, actualMarketType as "spot" | "eco" | "futures");
+      }
+
       if (currency && pair) {
         // Determine URL type parameter based on market type and isEco flag
         let urlType = marketType;
@@ -448,11 +452,11 @@ export default function MarketsPanel({
           urlType = "spot-eco";
         }
         // Update URL with currency-pair format and market type, preserving locale
-        const url = `${pathname}?symbol=${currency}-${pair}&type=${urlType}`;
+        const url = `/${locale}${pathname}?symbol=${currency}-${pair}&type=${urlType}`;
         window.history.pushState({ path: url }, "", url);
       }
     },
-    [marketType, onMarketSelect, markets, futuresMarkets, spotSelectedMarket, futuresSelectedMarket]
+    [locale, pathname, marketType, onMarketSelect, markets, futuresMarkets, spotSelectedMarket, futuresSelectedMarket]
   );
 
   // Toggle watchlist

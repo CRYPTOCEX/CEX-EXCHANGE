@@ -51,19 +51,12 @@ export function CollapsedPanel({
   return (
     <div
       className={cn(
-        "flex items-center justify-center h-full w-full transition-all duration-300 cursor-pointer select-none",
+        "flex items-center justify-center transition-all duration-300 cursor-pointer select-none flex-1 self-stretch",
         "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400",
         "border-zinc-200 dark:border-zinc-800",
         isHovered &&
           "hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300",
         isVertical ? "flex-col" : "flex-row",
-        direction === "horizontal"
-          ? isVertical
-            ? "w-[30px]"
-            : ""
-          : isVertical
-            ? ""
-            : "h-[30px]",
         title === "Orders" && "border-t border-zinc-200 dark:border-zinc-800"
       )}
       onClick={onClick}
@@ -84,12 +77,14 @@ export function CollapsedPanel({
       ) : (
         // Horizontal layout (top/bottom sides)
         <div className="flex items-center justify-between w-full h-full px-4">
-          <div className="flex-shrink-0">{icon || defaultIcon}</div>
-          {title && (
-            <span className="text-xs font-medium flex-grow text-center">
-              {title}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <div className="flex-shrink-0">{icon || defaultIcon}</div>
+            {title && (
+              <span className="text-xs font-medium">
+                {title}
+              </span>
+            )}
+          </div>
           <div className="flex-shrink-0">{getCollapseIcon()}</div>
         </div>
       )}

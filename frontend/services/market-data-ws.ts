@@ -113,6 +113,12 @@ export class MarketDataWebSocketService {
   // Track active stream subscriptions to prevent duplicates
   private activeStreamSubscriptions: Map<string, Set<string>> = new Map();
 
+  // Debounce unsubscribe to prevent spam when components remount quickly
+  private unsubscribeTimers: Map<string, NodeJS.Timeout> = new Map();
+
+  // Cache last received data for each subscription to provide immediate data to late subscribers
+  private lastDataCache: Map<string, any> = new Map();
+
   // WebSocket connections for different market types
   private wsConnections: Map<MarketType, string> = new Map();
 
@@ -181,10 +187,6 @@ export class MarketDataWebSocketService {
   public initialize(): void {
     if (this.isInitialized) return;
     this.isInitialized = true;
-
-    if (this.debug) {
-      console.log("Market data WebSocket service initialized");
-    }
   }
 
   // Format symbol for WebSocket (ensure it has a / between currency and pair)
@@ -238,16 +240,8 @@ export class MarketDataWebSocketService {
     wsManager.connect(url, marketType);
     this.connectedMarketTypes.add(marketType);
 
-    if (this.debug) {
-      console.log(`Connected to ${marketType} market WebSocket at ${url}`);
-    }
-
     // Add a status listener to monitor connection state
     wsManager.addStatusListener((status) => {
-      if (this.debug) {
-        console.log(`WebSocket status for ${marketType}: ${status}`);
-      }
-
       // Update connection status
       this.connectionStatusMap.set(marketType, status);
 
@@ -518,12 +512,6 @@ export class MarketDataWebSocketService {
     );
     const streamKey = this.getStreamKey(type, limit, interval);
 
-    if (this.debug) {
-      console.log(
-        `Subscribing to ${type} for ${formattedSymbol} on ${marketType} market with limit ${limit || "N/A"}${interval ? ` and interval ${interval}` : ""}`
-      );
-    }
-
     // Ensure we have a connection for this market type
     this.ensureConnection(marketType);
 
@@ -533,12 +521,30 @@ export class MarketDataWebSocketService {
     }
     this.callbacks.get(subscriptionKey)!.add(callback);
 
+    // If we have cached data for this subscription, immediately provide it to the new callback
+    if (this.lastDataCache.has(subscriptionKey)) {
+      const cachedData = this.lastDataCache.get(subscriptionKey);
+      // Call the callback immediately with cached data
+      try {
+        callback(cachedData);
+      } catch (error) {
+        console.error(`Error in immediate callback for ${subscriptionKey}:`, error);
+      }
+    }
+
     // Store the subscription
     this.activeSubscriptions.set(subscriptionKey, formattedSubscription);
 
     // Check if we're connected
     const isConnected =
       this.connectionStatusMap.get(marketType) === ConnectionStatus.CONNECTED;
+
+    // Cancel any pending unsubscribe for THIS EXACT SUBSCRIPTION (same symbol)
+    // Use subscriptionKey instead of streamKey to ensure we only cancel if it's the SAME symbol
+    if (this.unsubscribeTimers.has(subscriptionKey)) {
+      clearTimeout(this.unsubscribeTimers.get(subscriptionKey)!);
+      this.unsubscribeTimers.delete(subscriptionKey);
+    }
 
     // If connected, send subscription immediately (if not already sent)
     // Otherwise, queue it for when connection is established
@@ -559,12 +565,6 @@ export class MarketDataWebSocketService {
         this.pendingSubscriptions.set(marketType, new Set());
       }
       this.pendingSubscriptions.get(marketType)!.add(subscriptionKey);
-
-      if (this.debug) {
-        console.log(
-          `Queued subscription for ${formattedSymbol} on ${marketType} market`
-        );
-      }
     }
 
     // Subscribe to the WebSocket stream for the specific market type
@@ -628,9 +628,6 @@ export class MarketDataWebSocketService {
             // Check symbol from wrapper first, then from data
             const checkSymbol = dataSymbol || actualData.symbol || (Array.isArray(actualData) && actualData.length > 0 && actualData[0].symbol);
             if (checkSymbol && checkSymbol !== formattedSymbol) {
-              if (this.debug) {
-                console.log(`[Market Data WS] Skipping trades data - symbol mismatch. Expected: ${formattedSymbol}, Got: ${checkSymbol}`);
-              }
               return; // Skip if the symbol doesn't match
             }
           }
@@ -643,6 +640,9 @@ export class MarketDataWebSocketService {
 
           const callbacks = this.callbacks.get(subscriptionKey);
           if (callbacks) {
+            // Cache the data for late subscribers
+            this.lastDataCache.set(subscriptionKey, actualData);
+
             callbacks.forEach((cb) => {
               try {
                 cb(actualData);
@@ -653,6 +653,8 @@ export class MarketDataWebSocketService {
                 );
               }
             });
+          } else {
+            console.warn(`[Market Data WS] No callbacks found for ${subscriptionKey}!`);
           }
         } catch (error) {
           console.error(
@@ -709,14 +711,51 @@ export class MarketDataWebSocketService {
         // Clean up the subscription data
         this.callbacks.delete(subscriptionKey);
         this.activeSubscriptions.delete(subscriptionKey);
+        // DON'T clear cache immediately - keep it for late subscribers during component remounts
+        // Cache will be naturally refreshed when new data arrives
+
+        // Remove from activeStreamSubscriptions IMMEDIATELY so new subscriptions can use this stream
+        // This must happen before the debounce timeout to allow immediate re-subscription
+        if (shouldUnsubscribe) {
+          this.activeStreamSubscriptions.get(marketType)?.delete(streamKey);
+        }
 
         // Only send unsubscribe if we previously sent a subscribe and no other subscriptions are using this stream
         if (this.subscriptionSent.has(subscriptionKey) && shouldUnsubscribe) {
-          this.sendUnsubscriptionMessage(subscription);
-          this.subscriptionSent.delete(subscriptionKey);
+          // Cancel any existing unsubscribe timer for this exact subscription
+          if (this.unsubscribeTimers.has(subscriptionKey)) {
+            clearTimeout(this.unsubscribeTimers.get(subscriptionKey)!);
+          }
 
-          // Remove this stream from active subscriptions
-          this.activeStreamSubscriptions.get(marketType)?.delete(streamKey);
+          // Debounce the unsubscribe by 100ms to handle rapid component remounts
+          const timer = setTimeout(() => {
+            // Double-check that no new subscriptions appeared FOR THE SAME SYMBOL during the debounce period
+            let stillShouldUnsubscribe = true;
+            for (const [key, sub] of this.activeSubscriptions.entries()) {
+              if (
+                key === subscriptionKey || // Check if the EXACT subscription (same symbol) still exists
+                (
+                  sub.marketType === marketType &&
+                  sub.type === type &&
+                  sub.symbol === formattedSymbol && // IMPORTANT: Check symbol matches
+                  this.getStreamKey(sub.type, sub.limit, sub.interval) === streamKey
+                )
+              ) {
+                stillShouldUnsubscribe = false;
+                break;
+              }
+            }
+
+            if (stillShouldUnsubscribe) {
+              this.sendUnsubscriptionMessage(subscription);
+              this.subscriptionSent.delete(subscriptionKey);
+              // Note: activeStreamSubscriptions was already deleted immediately when callbacks reached 0
+            }
+
+            this.unsubscribeTimers.delete(subscriptionKey);
+          }, 100);
+
+          this.unsubscribeTimers.set(subscriptionKey, timer);
         }
 
         // Remove from pending subscriptions if it's there
@@ -736,11 +775,6 @@ export class MarketDataWebSocketService {
 
     // Check if this stream is already subscribed
     if (this.isStreamSubscribed(streamKey, marketType)) {
-      if (this.debug) {
-        console.log(
-          `Stream ${streamKey} for ${marketType} is already subscribed, skipping subscription message`
-        );
-      }
       return;
     }
 
@@ -763,13 +797,6 @@ export class MarketDataWebSocketService {
 
     // Mark this subscription as sent so it can be properly unsubscribed later
     this.subscriptionSent.set(subscriptionKey, true);
-
-    if (this.debug) {
-      console.log(
-        `Sent subscription message for ${type} for ${formattedSymbol} on ${marketType} market:`,
-        message
-      );
-    }
   }
 
   // Send an unsubscription message
@@ -845,10 +872,6 @@ export class MarketDataWebSocketService {
         wsManager.close(marketType);
         this.connectedMarketTypes.delete(marketType);
         this.connectionStatusMap.set(marketType, ConnectionStatus.DISCONNECTED);
-
-        if (this.debug) {
-          console.log(`Closed unused connection for ${marketType} market`);
-        }
       }
     }
   }
@@ -889,10 +912,6 @@ export class MarketDataWebSocketService {
 
     // Reset initialization flag
     this.isInitialized = false;
-
-    if (this.debug) {
-      console.log("Market data WebSocket service cleaned up");
-    }
   }
 }
 

@@ -238,7 +238,9 @@ export const Panel = memo(function Panel({
       className={cn(
         "group overflow-hidden relative transition-all duration-300 ease-in-out",
         isTransitioning && "transition-all duration-300 ease-in-out",
-        isCollapsed ? "flex items-center justify-center" : "",
+        isCollapsed ? "flex items-stretch p-0" : "",
+        // Ensure full width in vertical panel groups, full height in horizontal
+        direction === "vertical" ? "w-full" : "h-full",
         // move collapsed panel to the start if it's collapsing from the "start" or "top"
         isCollapsed &&
           (dataCollapseSide === "start" || dataCollapseSide === "top") &&
@@ -247,14 +249,19 @@ export const Panel = memo(function Panel({
         isCollapsed &&
           (dataCollapseSide === "end" || dataCollapseSide === "bottom") &&
           "order-last",
-        className,
-        "bg-background dark:bg-zinc-950"
+        // Only apply custom className when not collapsed
+        !isCollapsed && className,
+        isCollapsed ? "" : "bg-background dark:bg-zinc-950"
       )}
       style={{
         [direction === "horizontal" ? "width" : "height"]: `${size}%`,
+        width: direction === "vertical" ? "100%" : undefined,
+        height: direction === "horizontal" ? "100%" : undefined,
         minWidth:
           direction === "horizontal" && minSize && !isCollapsed
             ? `${minSize}%`
+            : direction === "horizontal" && isCollapsed
+            ? "30px"
             : undefined,
         maxWidth:
           direction === "horizontal" && effectiveMaxSize
@@ -263,6 +270,8 @@ export const Panel = memo(function Panel({
         minHeight:
           direction === "vertical" && minSize && !isCollapsed
             ? `${minSize}%`
+            : direction === "vertical" && isCollapsed
+            ? "30px"
             : undefined,
         maxHeight:
           direction === "vertical" && effectiveMaxSize

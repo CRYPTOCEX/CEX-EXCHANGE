@@ -68,10 +68,15 @@ export default async (data) => {
         }
       ],
     });
-    
+
     if (!offer) {
       throw createError({ statusCode: 404, message: "Offer not found" });
     }
+
+    // Get admin user data for logging
+    const adminUser = await models.user.findByPk(user.id, {
+      attributes: ["id", "firstName", "lastName", "email"],
+    });
 
     // Validate status transition
     if (!validateOfferStatusTransition(offer.status, "ACTIVE")) {
@@ -98,6 +103,9 @@ export default async (data) => {
 
     // Sanitize admin notes if provided
     const sanitizedNotes = notes ? sanitizeInput(notes) : null;
+    const adminName = adminUser
+      ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
+      : 'Admin';
 
     // Update offer with correct uppercase status
     await offer.update({
@@ -111,7 +119,7 @@ export default async (data) => {
           type: "APPROVAL",
           notes: sanitizedNotes,
           adminId: user.id,
-          adminName: `${user.firstName} ${user.lastName}`,
+          adminName: adminName,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -130,14 +138,14 @@ export default async (data) => {
         amount: offer.amountConfig.total,
         previousStatus: offer.status,
         adminNotes: sanitizedNotes,
-        approvedBy: `${user.firstName} ${user.lastName}`,
+        approvedBy: adminName,
       }
     );
 
     // Send notification to offer owner
     notifyOfferEvent(offer.id, "OFFER_APPROVED", {
       adminNotes: sanitizedNotes,
-      approvedBy: `${user.firstName} ${user.lastName}`,
+      approvedBy: adminName,
     }).catch(console.error);
 
     return { 

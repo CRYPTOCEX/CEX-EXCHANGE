@@ -13,6 +13,7 @@ interface P2PPlatformSettingsSectionProps {
     AllowNewOffers?: boolean;
     AllowGuestBrowsing?: boolean;
     AllowCustomPaymentMethods?: boolean;
+    AutoApproveOffers?: boolean;
     MaxActiveOffersPerUser?: number;
     MaxActiveTrades?: number;
   };
@@ -30,6 +31,7 @@ export default function P2PPlatformSettingsSection({
     AllowNewOffers: settings.AllowNewOffers ?? true,
     AllowGuestBrowsing: settings.AllowGuestBrowsing ?? true,
     AllowCustomPaymentMethods: settings.AllowCustomPaymentMethods ?? false,
+    AutoApproveOffers: settings.AutoApproveOffers ?? false,
     MaxActiveOffersPerUser: settings.MaxActiveOffersPerUser ?? 5,
     MaxActiveTrades: settings.MaxActiveTrades ?? 10,
   };
@@ -126,6 +128,25 @@ export default function P2PPlatformSettingsSection({
               checked={safeSettings.AllowCustomPaymentMethods}
               onCheckedChange={(checked) =>
                 onUpdate("AllowCustomPaymentMethods", checked)
+              }
+            />
+          </div>
+
+          <div className="flex items-center justify-between border p-4 rounded-lg">
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium">
+                {t("auto_approve_offers")}
+              </span>
+              <p className="text-xs text-muted-foreground">
+                {t("automatically_approve_new_and_edited_offers")}.{" "}
+                {t("when_disabled_offers_require_admin_moderation")}.
+              </p>
+            </div>
+            <Switch
+              id="autoApproveOffers"
+              checked={safeSettings.AutoApproveOffers}
+              onCheckedChange={(checked) =>
+                onUpdate("AutoApproveOffers", checked)
               }
             />
           </div>

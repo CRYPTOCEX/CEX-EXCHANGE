@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { TradeDetails } from "./trade-details";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
@@ -20,22 +19,17 @@ export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
   const { currentTrade, isLoadingTradeById, tradeByIdError, fetchTradeById } =
     useP2PStore();
   const [activeTab, setActiveTab] = useState("details");
-  const { toast } = useToast();
 
   useEffect(() => {
-    const loadTradeDetails = async () => {
-      try {
-        await fetchTradeById(tradeId);
-      } catch (err: any) {
-        toast({
-          title: "Error",
-          description: err.message || "Failed to load trade details",
-          variant: "destructive",
-        });
-      }
-    };
+    // Load trade details initially
+    fetchTradeById(tradeId);
+  }, [tradeId, fetchTradeById]);
 
-    loadTradeDetails();
+  useEffect(() => {
+    // Only set up polling if we have a successful trade load and no error
+    if (!currentTrade || tradeByIdError) {
+      return;
+    }
 
     // Set up polling for real-time updates
     const interval = setInterval(() => {
@@ -43,7 +37,7 @@ export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
     }, 10000); // Poll every 10 seconds
 
     return () => clearInterval(interval);
-  }, [tradeId, fetchTradeById, toast]);
+  }, [tradeId, fetchTradeById, currentTrade, tradeByIdError]);
 
   if (isLoadingTradeById && !currentTrade) {
     return (

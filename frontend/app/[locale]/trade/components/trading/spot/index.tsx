@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Leaf, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabTrigger, TabContent } from "../../ui/custom-tabs";
@@ -45,14 +45,16 @@ export default function TradingFormPanel({
     "up" | "down" | "neutral"
   >("neutral");
   const [lastPrice, setLastPrice] = useState<number | null>(null);
-  const [currency, setCurrency] = useState("BTC");
-  const [pair, setPair] = useState("USDT");
+  const [currency, setCurrency] = useState<string>("");
+  const [pair, setPair] = useState<string>("");
   const [isMarketEco, setIsMarketEco] = useState(isEco);
 
   // Add refs to prevent duplicate fetching
   const isFetchingRef = useRef(false);
   const lastFetchTimeRef = useRef(0);
+  const lastFetchKeyRef = useRef<string>("");
   const unsubscribeRef = useRef<(() => void) | null>(null);
+
 
   // Reset market price and wallet data immediately when symbol changes
   useEffect(() => {
@@ -71,6 +73,11 @@ export default function TradingFormPanel({
       // Use centralized market service to get market metadata
       const findMarketMetadata = async () => {
         try {
+          // Don't fetch if symbol is empty - wait for it to be set
+          if (!symbol) {
+            return;
+          }
+
           const markets = await marketService.getSpotMarkets();
           // Normalize symbol format (convert BTC-USDT to BTC/USDT)
           const normalizedSymbol = symbol.replace('-', '/');
@@ -80,8 +87,8 @@ export default function TradingFormPanel({
             const metadata = market.metadata;
 
             // Extract currency and pair from market data
-            setCurrency(market.currency || "BTC");
-            setPair(market.pair || "USDT");
+            setCurrency(market.currency || "");
+            setPair(market.pair || "");
 
             // Set the correct market type (eco or spot)
             setIsMarketEco(market.isEco || false);
@@ -118,82 +125,52 @@ export default function TradingFormPanel({
             } else if (symbol.endsWith("USD")) {
               setCurrency(symbol.replace("USD", ""));
               setPair("USD");
-            } else {
-              // Default fallback
-              setCurrency("BTC");
-              setPair("USDT");
             }
+            // If no pattern matches, leave currency/pair empty
+            // They will be set when a valid symbol is provided
           }
         } catch (error) {
-          // Use default values if there's an error
-          setCurrency("BTC");
-          setPair("USDT");
-          setIsMarketEco(isEco);
-          setPricePrecision(2);
-          setAmountPrecision(4);
-          setMinAmount(0.0001);
-          setMaxAmount(1000000);
+          console.error("Error in findMarketMetadata:", error);
+          // Don't set default values - let the component wait for valid symbol
         }
       };
 
       findMarketMetadata();
     } catch (error) {
-      // Use default values if there's an error
-      setCurrency("BTC");
-      setPair("USDT");
-      setPricePrecision(2);
-      setAmountPrecision(4);
-      setMinAmount(0.0001);
-      setMaxAmount(1000000);
+      console.error("Error fetching market metadata:", error);
+      // Don't set default values - let the UI show loading/error state
     }
 
-    // Fetch wallet data
-    fetchWalletData();
+    // Wallet data will be fetched by the useEffect below once currency/pair are set
   }, [symbol]);
-
-  // Refetch wallet data when currency, pair or market type changes
-  useEffect(() => {
-    if (currency && pair) {
-      fetchWalletData();
-    }
-  }, [currency, pair, isMarketEco]);
-
-  // Set up periodic wallet balance refresh (every 30 seconds)
-  useEffect(() => {
-    if (!currency || !pair) return;
-
-    const interval = setInterval(() => {
-      fetchWalletData();
-    }, 30000); // Refresh every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [currency, pair, isMarketEco]);
 
   // Fetch wallet data for both currencies
   const fetchWalletData = async () => {
-    // Clear wallet data immediately when switching markets to prevent showing old data
-    setWalletData(null);
+    // Create a unique key for this market
+    const fetchKey = `${isMarketEco ? 'ECO' : 'SPOT'}-${currency}-${pair}`;
 
-    // Prevent duplicate calls within 1 second for the same market
+    // Prevent duplicate calls for the same market
     const now = Date.now();
-    const cacheKey = `${isMarketEco ? 'ECO' : 'SPOT'}-${currency}-${pair}`;
 
-    // Track the last fetch per market to avoid duplicate calls
-    if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
+    // Skip if already fetching, or if we just fetched this exact market within 2 seconds
+    if (isFetchingRef.current ||
+        (lastFetchKeyRef.current === fetchKey && now - lastFetchTimeRef.current < 2000)) {
       return;
     }
 
     try {
       isFetchingRef.current = true;
       lastFetchTimeRef.current = now;
+      lastFetchKeyRef.current = fetchKey;
       setIsLoadingWallet(true);
 
       // Use the symbol endpoint to fetch both currency and pair balances
       const walletType = isMarketEco ? 'ECO' : 'SPOT';
       const endpoint = `/api/finance/wallet/symbol?type=${walletType}&currency=${currency}&pair=${pair}`;
 
-      const { data, error } = await $fetch({
+      const { data, error} = await $fetch({
         url: endpoint,
+        silent: true, // Don't show loading/success toasts
         silentSuccess: true,
       });
 
@@ -214,6 +191,27 @@ export default function TradingFormPanel({
       isFetchingRef.current = false;
     }
   };
+
+  // Refetch wallet data when currency, pair or market type changes
+  useEffect(() => {
+    const fetchKey = `${isMarketEco ? 'ECO' : 'SPOT'}-${currency}-${pair}`;
+
+    if (currency && pair) {
+      // Only fetch if this is a different market than the last one we fetched
+      if (lastFetchKeyRef.current !== fetchKey) {
+        // Clear wallet data when switching markets
+        setWalletData(null);
+        fetchWalletData();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency, pair, isMarketEco]);
+
+  // Note: We don't auto-refresh wallet data on a timer
+  // Wallet balance is updated when:
+  // 1. Market changes (handled by useEffect above)
+  // 2. After successful order (forms call fetchWalletData after order submission)
+  // This prevents unnecessary API calls and reduces server load
 
   // Subscribe to price updates
   useEffect(() => {

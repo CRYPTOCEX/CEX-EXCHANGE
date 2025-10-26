@@ -43,11 +43,11 @@ export function ActiveTradesTab({
               <Clock className="h-6 w-6 text-muted-foreground" />
             </div>
             <h3 className="font-medium">{t("no_active_trades")}</h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+            <p className="text-sm text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
               {t("you_dont_have_any_active_trades_at_the_moment")}.{" "}
               {t("browse_offers_to_start_trading")}.
             </p>
-            <Link href="/p2p/offer" className="mt-4">
+            <Link href="/p2p/offer">
               <Button>{t("find_offers")}</Button>
             </Link>
           </div>

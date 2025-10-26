@@ -53,6 +53,7 @@ export default function SettingsConfiguration() {
     AllowNewOffers: localSettings.p2pAllowNewOffers !== undefined ? localSettings.p2pAllowNewOffers : true,
     AllowGuestBrowsing: localSettings.p2pAllowGuestBrowsing !== undefined ? localSettings.p2pAllowGuestBrowsing : true,
     AllowCustomPaymentMethods: localSettings.p2pAllowCustomPaymentMethods !== undefined ? localSettings.p2pAllowCustomPaymentMethods : false,
+    AutoApproveOffers: localSettings.p2pAutoApproveOffers !== undefined ? localSettings.p2pAutoApproveOffers : false,
     MaxActiveOffersPerUser: localSettings.p2pMaxActiveOffersPerUser !== undefined ? localSettings.p2pMaxActiveOffersPerUser : 5,
     MaxActiveTrades: localSettings.p2pMaxActiveTrades !== undefined ? localSettings.p2pMaxActiveTrades : 10,
   };
@@ -128,6 +129,7 @@ export default function SettingsConfiguration() {
       p2pAllowNewOffers: platformSettings.AllowNewOffers,
       p2pAllowGuestBrowsing: platformSettings.AllowGuestBrowsing,
       p2pAllowCustomPaymentMethods: platformSettings.AllowCustomPaymentMethods,
+      p2pAutoApproveOffers: platformSettings.AutoApproveOffers,
       p2pMaxActiveOffersPerUser: platformSettings.MaxActiveOffersPerUser,
       p2pMaxActiveTrades: platformSettings.MaxActiveTrades,
 

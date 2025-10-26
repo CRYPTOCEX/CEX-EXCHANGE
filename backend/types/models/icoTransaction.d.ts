@@ -5,7 +5,7 @@ interface icoTransactionAttributes {
   amount: number;
   price: number;
   status: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED";
-  releaseUrl: string;
+  releaseUrl?: string;
   walletAddress?: string;
   notes?: string;
   createdAt?: Date;

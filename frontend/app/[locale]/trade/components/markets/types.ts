@@ -51,7 +51,7 @@ export type SortCriteria = Array<{
 
 // Update the MarketsPanelProps interface to include metadata
 export interface MarketsPanelProps {
-  onMarketSelect?: (symbol: Symbol, marketType?: "spot" | "futures") => void;
+  onMarketSelect?: (symbol: Symbol, marketType?: "spot" | "eco" | "futures") => void;
   currentSymbol?: Symbol;
   defaultMarketType?: "spot" | "futures";
 }

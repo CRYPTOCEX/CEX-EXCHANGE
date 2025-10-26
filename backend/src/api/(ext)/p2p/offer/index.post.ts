@@ -4,6 +4,7 @@ import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
 import { Op } from "sequelize";
+import { CacheManager } from "@b/utils/cache";
 
 export const metadata = {
   summary: "Create a P2P Offer",
@@ -181,6 +182,11 @@ export default async function handler(data: { body: any; user?: any }) {
     }
   }
 
+  // Check if auto-approval is enabled
+  const cacheManager = CacheManager.getInstance();
+  const autoApprove = await cacheManager.getSetting("p2pAutoApproveOffers");
+  const shouldAutoApprove = autoApprove === true || autoApprove === "true";
+
   // start a transaction so creation + associations roll back together
   const t = await sequelize.transaction();
   try {
@@ -196,7 +202,7 @@ export default async function handler(data: { body: any; user?: any }) {
         tradeSettings: body.tradeSettings,
         locationSettings: body.locationSettings ?? null,
         userRequirements: body.userRequirements ?? null,
-        status: "PENDING_APPROVAL",
+        status: shouldAutoApprove ? "ACTIVE" : "PENDING_APPROVAL",
         views: 0,
         systemTags: [],
         adminNotes: null,

@@ -10,10 +10,15 @@ import { RecentTransactions } from "./components/recent-transactions";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { useUserStore } from "@/store/user";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { LogIn } from "lucide-react";
 
 export function DashboardClient() {
   const t = useTranslations("ext");
-  const { user } = useUserStore();
+  const router = useRouter();
+  const { user, isLoading } = useUserStore();
   const {
     dashboardData,
     portfolio,
@@ -30,9 +35,52 @@ export function DashboardClient() {
     fetchDashboardData,
   } = useP2PStore();
 
+  // Redirect to login if user is not authenticated (after initial load)
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [isLoading, user, router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user, fetchDashboardData]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if not authenticated (after loading)
+  if (!user) {
+    return (
+      <div className="container mx-auto py-12">
+        <Alert>
+          <LogIn className="h-4 w-4" />
+          <AlertTitle>{t("authentication_required")}</AlertTitle>
+          <AlertDescription className="mt-2">
+            {t("you_must_be_logged_in_to_access_the_dashboard")}.
+          </AlertDescription>
+          <Button
+            onClick={() => router.push("/login")}
+            className="mt-4"
+          >
+            <LogIn className="mr-2 h-4 w-4" />
+            {t("login")}
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
 
   const formattedTradingActivity =
     dashboardData?.tradingActivity?.map((trade) => ({

@@ -57,6 +57,7 @@
 }
 
 /* Improve panel collapse/expand animations */
+/* Disabled scale animation - it was causing width issues on collapsed panels
 [data-collapsed="true"] {
   animation: panel-collapse 0.3s ease forwards;
 }
@@ -64,6 +65,7 @@
 [data-collapsed="false"] {
   animation: panel-expand 0.3s ease forwards;
 }
+*/
 
 /* Add a subtle shadow effect to panels during hover */
 .panel-hover-effect:hover {

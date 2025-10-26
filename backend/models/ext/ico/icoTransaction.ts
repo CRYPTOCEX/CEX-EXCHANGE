@@ -13,8 +13,8 @@ export default class icoTransaction
   price!: number;
   // Updated status values: now include PENDING, VERIFICATION, RELEASED, REJECTED
   status!: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED";
-  // releaseUrl is now used to store the full URL provided by the user
-  releaseUrl!: string;
+  // releaseUrl is used to store the transaction URL when tokens are released
+  releaseUrl?: string;
   // walletAddress holds the investor wallet address
   walletAddress?: string;
   notes?: string;
@@ -86,12 +86,7 @@ export default class icoTransaction
         },
         releaseUrl: {
           type: DataTypes.STRING(191),
-          allowNull: false,
-          validate: {
-            notEmpty: {
-              msg: "releaseUrl: Transaction URL must not be empty",
-            },
-          },
+          allowNull: true,
         },
         walletAddress: {
           type: DataTypes.STRING(191),
