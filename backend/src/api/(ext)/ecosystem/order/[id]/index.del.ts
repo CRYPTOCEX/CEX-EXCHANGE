@@ -73,7 +73,12 @@ export default async (data: Handler) => {
   }
 
   try {
-    const order = await getOrderByUuid(user.id, id, timestamp);
+    // Convert timestamp to Date object if it's a millisecond timestamp string
+    const timestampValue = !isNaN(Number(timestamp))
+      ? new Date(Number(timestamp)).toISOString()
+      : timestamp;
+
+    const order = await getOrderByUuid(user.id, id, timestampValue);
     if (!order) {
       throw new Error("Order not found");
     }
@@ -122,7 +127,7 @@ export default async (data: Handler) => {
     await cancelOrderByUuid(
       user.id,
       id,
-      timestamp,
+      timestampValue,
       symbol,
       BigInt(order.price),
       side,

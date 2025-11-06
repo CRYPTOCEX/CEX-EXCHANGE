@@ -65,32 +65,32 @@ export default async (data: Handler) => {
 
   // Update balances in parallel with timeout and error handling
   if (result.items && result.items.length > 0) {
-    // Create balance update promises with timeout
+    // Create balance update promises with reasonable timeout (5 seconds per wallet)
     const balanceUpdatePromises = result.items.map(async (walletItem, index) => {
-      // Set a timeout for each wallet balance update (3 seconds max)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Balance fetch timeout')), 3000)
+      // Set a reasonable timeout for each wallet balance update (5 seconds)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Balance fetch timeout')), 5000)
       );
-      
+
       const updatePromise = (async () => {
         try {
           // Handle both plain objects and Sequelize models
-          const wallet = (typeof walletItem.get === 'function' 
-            ? walletItem.get({ plain: true }) 
+          const wallet = (typeof walletItem.get === 'function'
+            ? walletItem.get({ plain: true })
             : walletItem) as ecosystemMasterWalletAttributes;
-          
+
           // Only fetch balance, don't wait for database update
           await getEcosystemMasterWalletBalance(wallet);
-          
+
           // Quick refresh without waiting for all includes
           const updatedWallet = await models.ecosystemMasterWallet.findByPk(
             wallet.id,
-            { 
+            {
               attributes: ['id', 'chain', 'currency', 'address', 'balance', 'status', 'lastIndex'],
-              raw: true 
+              raw: true
             }
           );
-          
+
           if (updatedWallet) {
             // Merge updated balance with existing data
             if (typeof walletItem.get === 'function') {
@@ -101,22 +101,24 @@ export default async (data: Handler) => {
             }
           }
         } catch (error) {
-          // Log error but don't throw - let other wallets continue
-          console.error(
-            `Balance update skipped for wallet ${index}: ${error.message?.substring(0, 50)}`
-          );
+          // Log for debugging
+          console.log(`Balance update failed for wallet ${index}: ${error?.message?.substring(0, 50)}`);
         }
       })();
-      
+
       // Race between update and timeout
-      return Promise.race([updatePromise, timeoutPromise]).catch(err => {
-        console.error(`Wallet ${index} update failed or timed out:`, err.message?.substring(0, 50));
-        // Don't throw, just log and continue
+      return Promise.race([updatePromise, timeoutPromise]).catch((err) => {
+        console.log(`Wallet ${index} update timeout or error: ${err.message}`);
       });
     });
 
-    // Wait for all updates to complete or timeout (but don't fail the request)
-    await Promise.allSettled(balanceUpdatePromises);
+    // Wait for all updates to complete or timeout
+    // Allow up to 10 seconds for all balance fetches
+    const globalTimeout = new Promise((resolve) => setTimeout(resolve, 10000));
+    await Promise.race([
+      Promise.allSettled(balanceUpdatePromises),
+      globalTimeout
+    ]);
   }
 
   return result;

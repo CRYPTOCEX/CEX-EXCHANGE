@@ -342,7 +342,7 @@ export default async (data: Handler) => {
       {
         userId: user.id,
         walletId: wallet.id,
-        type: "ICO_INVESTMENT",
+        type: "ICO_CONTRIBUTION",
         status: "COMPLETED",
         amount: amount,
         fee: 0,

@@ -4,9 +4,15 @@ import { chainConfigs } from "./chains";
 import { logError } from "@b/utils/logger";
 
 export async function getSmartContract(contractPath: string, name: string) {
+  // Check if we're already in the backend directory
+  const cwd = process.cwd();
+  const isInBackend = cwd.endsWith('backend');
+
   const filePath = path.resolve(
-    process.cwd(),
-    `backend/ecosystem/smart-contracts/${contractPath}/${name}.json`
+    cwd,
+    isInBackend
+      ? `ecosystem/smart-contracts/${contractPath}/${name}.json`
+      : `backend/ecosystem/smart-contracts/${contractPath}/${name}.json`
   );
   
   try {

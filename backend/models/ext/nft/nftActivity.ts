@@ -6,7 +6,7 @@ export default class nftActivity
   implements nftActivityAttributes
 {
   id!: string;
-  type!: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN";
+  type!: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED";
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
@@ -31,12 +31,12 @@ export default class nftActivity
           allowNull: false,
         },
         type: {
-          type: DataTypes.ENUM("MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN"),
+          type: DataTypes.ENUM("MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED"),
           allowNull: false,
           validate: {
             isIn: {
-              args: [["MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN"]],
-              msg: "type: Type must be one of 'MINT', 'TRANSFER', 'SALE', 'LIST', 'DELIST', 'BID', 'OFFER', or 'BURN'",
+              args: [["MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED"]],
+              msg: "type: Type must be one of 'MINT', 'TRANSFER', 'SALE', 'LIST', 'DELIST', 'BID', 'OFFER', 'BURN', 'COLLECTION_CREATED', or 'COLLECTION_DEPLOYED'",
             },
           },
         },

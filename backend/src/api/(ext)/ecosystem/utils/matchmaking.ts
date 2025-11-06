@@ -7,7 +7,7 @@ import {
 } from "./blockchain";
 import type { Order, OrderBook } from "./scylla/queries";
 import { updateWalletBalance } from "./wallet";
-import { handleTradesBroadcast } from "./ws";
+import { handleTradesBroadcast, handleOrderBroadcast } from "./ws";
 import { logError } from "@b/utils/logger";
 
 const SCALING_FACTOR = BigInt(10 ** 18);
@@ -195,6 +195,10 @@ export async function processMatchedOrders(
 
   // Broadcast the trades
   handleTradesBroadcast(buyOrder.symbol, [buyTradeDetail, sellTradeDetail]);
+
+  // Broadcast order updates to both users so they see partial fills in real-time
+  handleOrderBroadcast(buyOrder);
+  handleOrderBroadcast(sellOrder);
 
   // Update the orderbook entries
   updateOrderBook(bookUpdates, buyOrder, currentOrderBook, amountToFill);

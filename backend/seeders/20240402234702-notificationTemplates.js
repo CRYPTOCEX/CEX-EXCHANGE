@@ -12,7 +12,7 @@ const notificationTemplates = [
       <p><a href="%URL%/login?token=%TOKEN%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Verify Email Address</a></p>
       <p>This verification link will expire in 5 minutes for security reasons.</p>
       <p>If you did not create an account, please disregard this email.</p>`,
-    shortCodes: ["FIRSTNAME", "CREATED_AT", "TOKEN"],
+    shortCodes: ["FIRSTNAME", "CREATED_AT", "TOKEN", "URL"],
     email: true,
   },
   {

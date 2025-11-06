@@ -96,18 +96,9 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
   `;
   const params = [userId];
 
-  console.log(`[Scylla] Executing query: ${query}, params: ${JSON.stringify(params)}`);
-
   try {
     const result = await client.execute(query, params, { prepare: true });
-    console.log(`[Scylla] Query returned ${result.rows.length} rows`);
-
-    if (result.rows.length > 0) {
-      console.log(`[Scylla] Sample row:`, result.rows[0]);
-    }
-
     const orders = result.rows.map(mapRowToOrder);
-    console.log(`[Scylla] Mapped to ${orders.length} orders`);
     return orders;
   } catch (error) {
     console.error(`[Scylla] Failed to fetch orders by userId: ${error.message}`, error);

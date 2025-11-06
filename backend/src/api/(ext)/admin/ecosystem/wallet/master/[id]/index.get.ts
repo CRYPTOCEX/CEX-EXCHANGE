@@ -105,10 +105,21 @@ const getWalletBalance = async (
     } else if (wallet.chain === "XMR") {
       const MoneroService = await getMoneroService();
       if (!MoneroService) {
-        throw new Error("Monero service not available");
+        console.log(`[${wallet.chain}] Monero service not available - skipping balance fetch`);
+        return;
       }
-      const moneroService = await MoneroService.getInstance();
-      formattedBalance = await moneroService.getBalance("master_wallet");
+      try {
+        const moneroService = await MoneroService.getInstance();
+        formattedBalance = await moneroService.getBalance("master_wallet");
+      } catch (xmrError: any) {
+        // Handle XMR-specific errors (chain not active, daemon not synchronized, etc.)
+        if (xmrError.message?.includes("not active") || xmrError.message?.includes("not synchronized")) {
+          console.log(`[${wallet.chain}] ${xmrError.message} - skipping balance fetch`);
+        } else {
+          console.log(`[${wallet.chain}] Error fetching balance: ${xmrError.message?.substring(0, 100)}`);
+        }
+        return;
+      }
     } else if (wallet.chain === "TON") {
       const TonService = await getTonService();
       if (!TonService) {

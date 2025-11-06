@@ -100,6 +100,7 @@ function sanitizeInput(input: string, maxLength: number = 255): string {
   // Remove null bytes, control characters, and excessive whitespace
   let sanitized = input
     .replace(/\0/g, '') // null bytes
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x1F\x7F]/g, '') // control characters
     .trim();
 
@@ -149,12 +150,12 @@ export default async (data: Handler) => {
   }
 
   try {
-    let { currency, chain, amount, toAddress } = body;
+    const { currency: rawCurrency, chain: rawChain, amount, toAddress: rawToAddress } = body;
 
     // Sanitize all string inputs
-    currency = sanitizeInput(currency, 10);
-    chain = sanitizeInput(chain, 20);
-    toAddress = sanitizeInput(toAddress, 200);
+    const currency = sanitizeInput(rawCurrency, 10);
+    const chain = sanitizeInput(rawChain, 20);
+    const toAddress = sanitizeInput(rawToAddress, 200);
 
     // Validate inputs
     if (!currency || !chain || !toAddress) {

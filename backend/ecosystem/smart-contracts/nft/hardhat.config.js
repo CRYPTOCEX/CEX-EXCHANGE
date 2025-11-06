@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("@openzeppelin/hardhat-upgrades");
-require("hardhat-contract-sizer");
-require("hardhat-gas-reporter");
+// require("@openzeppelin/hardhat-upgrades");
+// require("hardhat-contract-sizer");
+// require("hardhat-gas-reporter");
 require("dotenv").config();
 
 // Ensure environment variables are set
@@ -29,18 +29,7 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
-        details: {
-          yul: true,
-          yulDetails: {
-            stackAllocation: true,
-            optimizerSteps: "dhfoDgvulfnTUtnIf"
-          }
-        }
-      },
-      viaIR: true,
-      metadata: {
-        bytecodeHash: "none"
+        runs: 200
       }
     }
   },
@@ -137,21 +126,21 @@ module.exports = {
     }
   },
   
-  gasReporter: {
-    enabled: process.env.REPORT_GAS === "true",
-    currency: "USD",
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    outputFile: "gas-report.txt",
-    noColors: true
-  },
-  
-  contractSizer: {
-    alphaSort: true,
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: true,
-    only: ["NFTMarketplace", "ERC721", "ERC1155"]
-  },
+  // gasReporter: {
+  //   enabled: process.env.REPORT_GAS === "true",
+  //   currency: "USD",
+  //   coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+  //   outputFile: "gas-report.txt",
+  //   noColors: true
+  // },
+
+  // contractSizer: {
+  //   alphaSort: true,
+  //   disambiguatePaths: false,
+  //   runOnCompile: true,
+  //   strict: true,
+  //   only: ["NFTMarketplace", "ERC721", "ERC1155"]
+  // },
   
   paths: {
     sources: "./contracts",

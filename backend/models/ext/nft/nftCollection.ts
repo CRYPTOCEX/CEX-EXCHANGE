@@ -297,7 +297,7 @@ export default class nftCollection
   }
 
   public static associate(models: any) {
-    nftCollection.belongsTo(models.user, {
+    nftCollection.belongsTo(models.nftCreator, {
       as: "creator",
       foreignKey: "creatorId",
       onDelete: "CASCADE",

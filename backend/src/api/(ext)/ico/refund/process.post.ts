@@ -109,7 +109,7 @@ export default async (data: Handler) => {
     const pendingTransactions = await models.icoTransaction.findAll({
       where: {
         offeringId: offering.id,
-        status: { [Op.in]: ['PENDING', 'VERIFICATION', 'REFUND_PENDING'] }
+        status: { [Op.in]: ['PENDING', 'VERIFICATION', 'REJECTED'] }
       },
       include: [{
         model: models.user,
@@ -166,10 +166,10 @@ export default async (data: Handler) => {
           { transaction }
         );
 
-        // Update transaction status
+        // Update transaction to REJECTED status with refund info
         await icoTransaction.update(
-          { 
-            status: 'REFUNDED',
+          {
+            status: 'REJECTED',
             notes: JSON.stringify({
               ...JSON.parse(icoTransaction.notes || '{}'),
               refund: {
@@ -187,7 +187,7 @@ export default async (data: Handler) => {
         await models.transaction.create({
           userId: icoTransaction.userId,
           walletId: wallet.id,
-          type: "ICO_REFUND",
+          type: "REFUND",
           status: "COMPLETED",
           amount: refundAmount,
           fee: 0,
@@ -218,17 +218,20 @@ export default async (data: Handler) => {
       }
     }
 
-    // Update offering status if all refunds processed
+    // Update offering notes if all refunds processed
     if (failedRefunds.length === 0) {
       await offering.update(
-        { 
-          status: 'REFUNDED',
+        {
           notes: JSON.stringify({
-            refundReason: reason,
-            refundedAt: new Date().toISOString(),
-            refundedBy: user.id,
-            refundedCount,
-            totalRefunded,
+            ...JSON.parse(offering.notes || '{}'),
+            refund: {
+              refundReason: reason,
+              refundedAt: new Date().toISOString(),
+              refundedBy: user.id,
+              refundedCount,
+              totalRefunded,
+              allRefundsProcessed: true,
+            }
           })
         },
         { transaction }

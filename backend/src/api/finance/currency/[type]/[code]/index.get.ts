@@ -286,14 +286,40 @@ async function handleWithdraw(type: string, code: string) {
 
       return Object.values(currency.networks)
         .filter((network: any) => network.active && network.withdraw)
-        .map((network: any) => ({
-          id: network.id,
-          chain: network.network || network.name,
-          fixedFee: network.fee || network.fees?.withdraw || 0,
-          percentageFee: percentageFee,
-          precision: network.precision,
-          limits: network.limits,
-        }))
+        .map((network: any) => {
+          const chainName = network.network || network.name;
+          const fixedFee = network.fee || network.fees?.withdraw || 0;
+          const minAmount = network.limits?.withdraw?.min || network.min_withdraw || 0;
+          const maxAmount = network.limits?.withdraw?.max || network.max_withdraw || 0;
+
+          return {
+            id: network.id,
+            title: `${code} (${chainName})`,
+            chain: chainName,
+            network: chainName,
+            fixedFee: fixedFee,
+            percentageFee: percentageFee,
+            minAmount: minAmount,
+            maxAmount: maxAmount,
+            precision: network.precision,
+            limits: network.limits,
+            processingTime: "1-3",
+            instructions: `Withdraw ${code} to your ${chainName} wallet address.`,
+            customFields: JSON.stringify([
+              {
+                name: "address",
+                title: `${chainName} Address`,
+                type: "text",
+                required: true,
+                placeholder: `Enter your ${chainName} wallet address`,
+                validation: {
+                  pattern: "^[a-zA-Z0-9]{25,}$",
+                  message: "Invalid wallet address format"
+                }
+              }
+            ])
+          };
+        })
         .sort((a, b) => a.chain.localeCompare(b.chain));
     }
 

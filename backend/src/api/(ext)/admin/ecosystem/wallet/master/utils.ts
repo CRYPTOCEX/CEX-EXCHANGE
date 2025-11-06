@@ -290,10 +290,8 @@ export const getEcosystemMasterWalletBalance = async (
       const now = new Date();
       const lastUpdated = new Date(cachedBalanceData.timestamp);
 
-      if (
-        differenceInMinutes(now, lastUpdated) < 5 &&
-        parseFloat(cachedBalanceData.balance) !== 0
-      ) {
+      // Cache for 1 minute instead of 5 to allow more frequent updates
+      if (differenceInMinutes(now, lastUpdated) < 1) {
         return;
       }
     }
@@ -321,10 +319,21 @@ export const getEcosystemMasterWalletBalance = async (
     } else if (wallet.chain === "XMR") {
       const MoneroService = await getMoneroService();
       if (!MoneroService) {
-        throw new Error("Monero service not available");
+        console.log(`[${wallet.chain}] Monero service not available - skipping balance fetch`);
+        return;
       }
-      const moneroService = await MoneroService.getInstance();
-      formattedBalance = await moneroService.getBalance("master_wallet");
+      try {
+        const moneroService = await MoneroService.getInstance();
+        formattedBalance = await moneroService.getBalance("master_wallet");
+      } catch (xmrError: any) {
+        // Handle XMR-specific errors (chain not active, daemon not synchronized, etc.)
+        if (xmrError.message?.includes("not active") || xmrError.message?.includes("not synchronized")) {
+          console.log(`[${wallet.chain}] ${xmrError.message} - skipping balance fetch`);
+        } else {
+          console.log(`[${wallet.chain}] Error fetching balance: ${xmrError.message?.substring(0, 100)}`);
+        }
+        return;
+      }
     } else if (wallet.chain === "TON") {
       const TonService = await getTonService();
       if (!TonService) {
@@ -333,12 +342,16 @@ export const getEcosystemMasterWalletBalance = async (
       const tonService = await TonService.getInstance();
       formattedBalance = await tonService.getBalance(wallet.address);
     } else {
-      const provider = await getProvider(wallet.chain);
-
-      const balance = await provider.getBalance(wallet.address);
-
-      const decimals = chainConfigs[wallet.chain].decimals;
-      formattedBalance = ethers.formatUnits(balance.toString(), decimals);
+      try {
+        const provider = await getProvider(wallet.chain);
+        const balance = await provider.getBalance(wallet.address);
+        const decimals = chainConfigs[wallet.chain].decimals;
+        formattedBalance = ethers.formatUnits(balance.toString(), decimals);
+      } catch (providerError) {
+        // Silently skip provider errors (network issues, SSL certs, etc.)
+        console.log(`[${wallet.chain}] Provider error - skipping balance fetch`);
+        return;
+      }
     }
 
     if (!formattedBalance || isNaN(parseFloat(formattedBalance))) {
@@ -348,18 +361,17 @@ export const getEcosystemMasterWalletBalance = async (
       return;
     }
 
-    if (parseFloat(formattedBalance) === 0) {
-      return;
-    }
+    // Always update the database, even if balance is 0
+    const balanceFloat = parseFloat(formattedBalance);
+    await updateMasterWalletBalance(wallet.id, balanceFloat);
 
-    await updateMasterWalletBalance(wallet.id, parseFloat(formattedBalance));
-
+    // Cache the balance for 1 minute
     const cacheData = {
       balance: formattedBalance,
       timestamp: new Date().toISOString(),
     };
 
-    await redis.setex(cacheKey, 300, JSON.stringify(cacheData));
+    await redis.setex(cacheKey, 60, JSON.stringify(cacheData));
   } catch (error) {
     console.error(
       `Failed to fetch ${wallet.chain} wallet balance: ${error.message}`

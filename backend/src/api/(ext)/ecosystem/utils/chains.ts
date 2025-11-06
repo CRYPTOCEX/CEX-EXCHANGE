@@ -106,9 +106,9 @@ export const chainConfigs: Record<string, ChainConfig> = {
         explorer: "api.polygonscan.com",
         chainId: 137,
       },
-      "matic-mumbai": {
-        explorer: "api-testnet.polygonscan.com",
-        chainId: 80001,
+      amoy: {
+        explorer: "api-amoy.polygonscan.com",
+        chainId: 80002,
       },
     },
     currency: "MATIC",
@@ -150,9 +150,9 @@ export const chainConfigs: Record<string, ChainConfig> = {
         explorer: "api-optimistic.etherscan.io",
         chainId: 10,
       },
-      goerli: {
-        explorer: "api-goerli-optimistic.etherscan.io",
-        chainId: 420,
+      sepolia: {
+        explorer: "api-sepolia-optimistic.etherscan.io",
+        chainId: 11155420,
       },
     },
     currency: "ETH",
@@ -172,9 +172,9 @@ export const chainConfigs: Record<string, ChainConfig> = {
         explorer: "api.arbiscan.io",
         chainId: 42161,
       },
-      goerli: {
-        explorer: "api-goerli.arbiscan.io",
-        chainId: 421613,
+      sepolia: {
+        explorer: "api-sepolia.arbiscan.io",
+        chainId: 421614,
       },
     },
     currency: "ETH",
@@ -194,9 +194,9 @@ export const chainConfigs: Record<string, ChainConfig> = {
         explorer: "api.basescan.org",
         chainId: 8453,
       },
-      goerli: {
-        explorer: "api-goerli.basescan.org",
-        chainId: 84531,
+      sepolia: {
+        explorer: "api-sepolia.basescan.org",
+        chainId: 84532,
       },
     },
     currency: "ETH",
@@ -216,9 +216,9 @@ export const chainConfigs: Record<string, ChainConfig> = {
         explorer: "api.celoscan.io",
         chainId: 42220,
       },
-      alfajores: {
-        explorer: "api-alfajores.celoscan.io",
-        chainId: 44787,
+      sepolia: {
+        explorer: "api-sepolia.celoscan.io",
+        chainId: 11142220,
       },
     },
     currency: "CELO",

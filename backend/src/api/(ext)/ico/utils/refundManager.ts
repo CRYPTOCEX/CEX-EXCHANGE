@@ -48,9 +48,15 @@ export async function checkAndProcessFailedOfferings(): Promise<void> {
           { transaction }
         );
 
-        // Mark all pending transactions for refund
+        // Mark all pending transactions as rejected (will be refunded)
         await models.icoTransaction.update(
-          { status: 'REFUND_PENDING' },
+          {
+            status: 'REJECTED',
+            notes: JSON.stringify({
+              rejectionReason: 'Soft cap not reached - pending refund',
+              rejectedAt: now.toISOString(),
+            })
+          },
           {
             where: {
               offeringId: offering.id,
@@ -82,7 +88,7 @@ export async function checkAndProcessFailedOfferings(): Promise<void> {
         const investors = await models.icoTransaction.findAll({
           where: {
             offeringId: offering.id,
-            status: 'REFUND_PENDING',
+            status: 'REJECTED',
           },
           attributes: ['userId'],
           group: ['userId'],
@@ -143,7 +149,7 @@ export async function processAutomaticRefunds(): Promise<void> {
       const pendingRefunds = await models.icoTransaction.count({
         where: {
           offeringId: offering.id,
-          status: 'REFUND_PENDING',
+          status: 'REJECTED',
         },
         transaction,
       });
@@ -154,7 +160,7 @@ export async function processAutomaticRefunds(): Promise<void> {
       const pendingTransactions = await models.icoTransaction.findAll({
         where: {
           offeringId: offering.id,
-          status: 'REFUND_PENDING',
+          status: 'REJECTED',
         },
         transaction,
       });
@@ -185,10 +191,9 @@ export async function processAutomaticRefunds(): Promise<void> {
             { transaction }
           );
 
-          // Update transaction status
+          // Update transaction notes (status already REJECTED)
           await icoTransaction.update(
-            { 
-              status: 'REFUNDED',
+            {
               notes: JSON.stringify({
                 ...JSON.parse(icoTransaction.notes || '{}'),
                 refund: {
@@ -206,7 +211,7 @@ export async function processAutomaticRefunds(): Promise<void> {
           await models.transaction.create({
             userId: icoTransaction.userId,
             walletId: wallet.id,
-            type: "ICO_REFUND",
+            type: "REFUND",
             status: "COMPLETED",
             amount: refundAmount,
             fee: 0,
@@ -221,17 +226,17 @@ export async function processAutomaticRefunds(): Promise<void> {
         }
       }
 
-      // Update offering status if all refunds processed
+      // Update offering notes if all refunds processed
       if (refundedCount === pendingTransactions.length) {
         await offering.update(
-          { 
-            status: 'REFUNDED',
+          {
             notes: JSON.stringify({
               ...JSON.parse(offering.notes || '{}'),
               automaticRefund: {
                 refundedAt: new Date().toISOString(),
                 refundedCount,
                 totalRefunded,
+                allRefundsProcessed: true,
               }
             })
           },

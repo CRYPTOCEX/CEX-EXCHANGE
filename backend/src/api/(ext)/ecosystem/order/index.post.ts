@@ -14,6 +14,7 @@ import {
 import { fromBigInt, toBigIntFloat } from "@b/api/(ext)/ecosystem/utils/blockchain";
 import { createRecordResponses } from "@b/utils/query";
 import { models } from "@b/db";
+import { handleOrderBroadcast } from "@b/api/(ext)/ecosystem/utils/ws";
 
 export const metadata: OperationObject = {
   summary: "Creates a new trading order",
@@ -253,10 +254,8 @@ export default async (data: any) => {
     ]);
 
     if (side.toUpperCase() === "SELL") {
-      if (
-        !currencyWallet ||
-        parseFloat(currencyWallet.balance.toString()) < amount
-      ) {
+      const spendableBalance = parseFloat(currencyWallet.balance.toString()) - (parseFloat(currencyWallet.inOrder?.toString() || "0"));
+      if (!currencyWallet || spendableBalance < amount) {
         throw createError({
           statusCode: 400,
           message: `Insufficient balance. You need ${amount} ${currency}`,
@@ -264,7 +263,8 @@ export default async (data: any) => {
       }
     } else {
       // BUY
-      if (!pairWallet || parseFloat(pairWallet.balance.toString()) < cost) {
+      const spendableBalance = parseFloat(pairWallet.balance.toString()) - (parseFloat(pairWallet.inOrder?.toString() || "0"));
+      if (!pairWallet || spendableBalance < cost) {
         throw createError({
           statusCode: 400,
           message: `Insufficient balance. You need ${cost} ${pair}`,
@@ -339,6 +339,12 @@ export default async (data: any) => {
         message: "Failed to update wallet balance. Order rolled back.",
       });
     }
+
+    // Broadcast the new order to WebSocket subscribers
+    await handleOrderBroadcast({
+      ...newOrder,
+      status: "OPEN",
+    });
 
     return {
       message: "Order created successfully",

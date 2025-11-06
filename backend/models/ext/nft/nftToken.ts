@@ -250,7 +250,7 @@ export default class nftToken
       onUpdate: "CASCADE",
     });
 
-    nftToken.belongsTo(models.user, {
+    nftToken.belongsTo(models.nftCreator, {
       as: "creator",
       foreignKey: "creatorId",
       onDelete: "CASCADE",
@@ -290,6 +290,13 @@ export default class nftToken
 
     nftToken.hasMany(models.nftSale, {
       as: "sales",
+      foreignKey: "tokenId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    nftToken.hasMany(models.nftOffer, {
+      as: "offers",
       foreignKey: "tokenId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",

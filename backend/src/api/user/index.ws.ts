@@ -1,4 +1,4 @@
-import { handleDirectClientMessage } from "@b/handler/Websocket";
+import { messageBroker } from "@b/handler/Websocket";
 import { models } from "@b/db";
 
 export const metadata = {};
@@ -22,12 +22,11 @@ export default async (data: Handler, message: any) => {
     order: [["createdAt", "DESC"]],
   });
 
-  // Send notifications to the client using the new direct messaging function.
-  await handleDirectClientMessage({
+  // Send notifications to the client only on the /api/user route
+  messageBroker.sendToClientOnRoute("/api/user", user.id, {
     type: "notifications",
     method: "create",
-    clientId: user.id,
-    data: notifications.map((n) => n.get({ plain: true })),
+    payload: notifications.map((n) => n.get({ plain: true })),
   });
 
   // Fetch announcements with active status.
@@ -36,11 +35,10 @@ export default async (data: Handler, message: any) => {
     order: [["createdAt", "DESC"]],
   });
 
-  // Send announcements to the client using the new direct messaging function.
-  await handleDirectClientMessage({
+  // Send announcements to the client only on the /api/user route
+  messageBroker.sendToClientOnRoute("/api/user", user.id, {
     type: "announcements",
     method: "create",
-    clientId: user.id,
-    data: announcements.map((a) => a.get({ plain: true })),
+    payload: announcements.map((a) => a.get({ plain: true })),
   });
 };

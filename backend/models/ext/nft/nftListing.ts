@@ -12,6 +12,7 @@ export default class nftListing
   price?: number;
   currency!: string;
   reservePrice?: number;
+  minBidIncrement?: number;
   buyNowPrice?: number;
   startTime?: Date;
   endTime?: Date;
@@ -79,6 +80,13 @@ export default class nftListing
           allowNull: true,
           validate: {
             min: { args: [0], msg: "reservePrice: Reserve price must be non-negative" },
+          },
+        },
+        minBidIncrement: {
+          type: DataTypes.DECIMAL(36, 18),
+          allowNull: true,
+          validate: {
+            min: { args: [0], msg: "minBidIncrement: Minimum bid increment must be non-negative" },
           },
         },
         buyNowPrice: {

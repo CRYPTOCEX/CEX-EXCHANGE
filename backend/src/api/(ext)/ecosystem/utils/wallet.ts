@@ -1836,25 +1836,31 @@ export async function updateWalletBalance(
   try {
     if (!wallet) throw new Error("Wallet not found");
 
-    let newBalance: number;
-    let newInOrder: number;
-
     const roundTo8DecimalPlaces = (num: number) =>
       Math.round((num + Number.EPSILON) * 1e8) / 1e8;
 
-    // Initialize inOrder if it's undefined
-    const currentInOrder = wallet.inOrder ?? 0;
+    // CRITICAL FIX: Fetch fresh wallet data from database to prevent stale data issues
+    // This prevents double-locking when multiple operations happen in sequence
+    const freshWallet = await models.wallet.findByPk(wallet.id);
+    if (!freshWallet) throw new Error("Wallet not found in database");
+
+    let newBalance: number;
+    let newInOrder: number;
+
+    // Initialize inOrder if it's undefined - use fresh data
+    const currentBalance = freshWallet.balance;
+    const currentInOrder = freshWallet.inOrder ?? 0;
 
     switch (type) {
       case "add":
         // When adding balance back (order cancelled/filled), decrease inOrder
-        newBalance = roundTo8DecimalPlaces(wallet.balance + balanceChange);
+        newBalance = roundTo8DecimalPlaces(currentBalance + balanceChange);
         newInOrder = roundTo8DecimalPlaces(currentInOrder - balanceChange);
         if (newInOrder < 0) newInOrder = 0; // Prevent negative inOrder
         break;
       case "subtract":
         // When subtracting balance (new order), increase inOrder
-        newBalance = roundTo8DecimalPlaces(wallet.balance - balanceChange);
+        newBalance = roundTo8DecimalPlaces(currentBalance - balanceChange);
         newInOrder = roundTo8DecimalPlaces(currentInOrder + balanceChange);
         if (newBalance < 0) {
           throw new Error("Insufficient funds");

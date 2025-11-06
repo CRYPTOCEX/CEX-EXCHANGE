@@ -58,9 +58,11 @@ export const fetchTokenHolders = async (
       throw new Error(`Chain "${chain}" is not supported.`);
     }
 
-    const apiKey = process.env[`${chain}_EXPLORER_API_KEY`];
+    // V2 API uses a single Etherscan API key for all chains
+    // Fallback to chain-specific key for backward compatibility
+    const apiKey = process.env.ETHERSCAN_API_KEY || process.env[`${chain}_EXPLORER_API_KEY`];
     if (!apiKey) {
-      throw new Error(`API key for chain "${chain}" is not configured.`);
+      throw new Error(`ETHERSCAN_API_KEY or ${chain}_EXPLORER_API_KEY is not configured.`);
     }
 
     const networkConfig = chainConfig.networks[network];
@@ -76,8 +78,12 @@ export const fetchTokenHolders = async (
       return cachedData;
     }
 
-    const chainIdParam = networkConfig.chainId ? `&chainid=${networkConfig.chainId}` : "";
-    const apiUrl = `https://${networkConfig.explorer}/v2/api?module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc${chainIdParam}&apikey=${apiKey}`;
+    if (!networkConfig.chainId) {
+      throw new Error(`Chain ID not configured for network "${network}" on chain "${chain}". V2 API requires chainId.`);
+    }
+
+    // Use unified Etherscan V2 API endpoint
+    const apiUrl = `https://api.etherscan.io/v2/api?chainid=${networkConfig.chainId}&module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc&apikey=${apiKey}`;
 
     let data;
     try {

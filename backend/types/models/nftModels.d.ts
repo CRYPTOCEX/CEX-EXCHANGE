@@ -162,6 +162,7 @@ interface nftListingAttributes {
   price?: number;
   currency: string;
   reservePrice?: number;
+  minBidIncrement?: number;
   buyNowPrice?: number;
   startTime?: Date;
   endTime?: Date;
@@ -200,7 +201,7 @@ type nftListingCreationAttributes = Optional<
 // NFT Activity
 interface nftActivityAttributes {
   id: string;
-  type: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN";
+  type: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED";
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
@@ -547,4 +548,54 @@ type nftCreatorFollowOptionalAttributes =
 type nftCreatorFollowCreationAttributes = Optional<
   nftCreatorFollowAttributes,
   nftCreatorFollowOptionalAttributes
->; 
+>;
+
+// NFT Marketplace
+interface nftMarketplaceAttributes {
+  id: string;
+  chain: string;
+  network: string;
+  contractAddress: string;
+  deployerAddress: string;
+  deployedBy?: string;
+  feeRecipient: string;
+  feePercentage: number;
+  transactionHash: string;
+  blockNumber: number;
+  gasUsed?: string;
+  deploymentCost?: string;
+  status: "ACTIVE" | "PAUSED" | "DEPRECATED";
+  pauseReason?: string;
+  pausedAt?: Date;
+  pausedBy?: string;
+  version?: string;
+  metadata?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+type nftMarketplacePk = "id";
+type nftMarketplaceId = nftMarketplaceAttributes[nftMarketplacePk];
+type nftMarketplaceOptionalAttributes =
+  | "id"
+  | "deployedBy"
+  | "gasUsed"
+  | "deploymentCost"
+  | "status"
+  | "pauseReason"
+  | "pausedAt"
+  | "pausedBy"
+  | "version"
+  | "metadata"
+  | "network"
+  | "createdAt"
+  | "updatedAt";
+type nftMarketplaceCreationAttributes = Optional<
+  nftMarketplaceAttributes,
+  nftMarketplaceOptionalAttributes
+>;
+
+interface nftMarketplace extends nftMarketplaceAttributes {
+  deployer?: userAttributes;
+  pauser?: userAttributes;
+}

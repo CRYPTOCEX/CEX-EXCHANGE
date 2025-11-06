@@ -58,13 +58,19 @@ export default async (data: Handler) => {
   if (!user) throw createError({ statusCode: 401, message: "Unauthorized" });
 
   const { type, currency, pair } = query;
-  
+
   // Get wallet balances safely, defaulting to 0 if wallet doesn't exist
   const currencyWallet = await getWalletSafe(user.id, type, currency);
   const pairWallet = await getWalletSafe(user.id, type, pair);
-  
-  const CURRENCY = currencyWallet?.balance || 0;
-  const PAIR = pairWallet?.balance || 0;
-  
+
+  // For ECO wallets, return spendable balance (balance - inOrder)
+  // For other wallet types, inOrder is not used so just return balance
+  const CURRENCY = currencyWallet?.balance
+    ? (currencyWallet.balance - (currencyWallet.inOrder || 0))
+    : 0;
+  const PAIR = pairWallet?.balance
+    ? (pairWallet.balance - (pairWallet.inOrder || 0))
+    : 0;
+
   return { CURRENCY, PAIR };
 };
