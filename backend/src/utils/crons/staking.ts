@@ -609,19 +609,32 @@ export async function processStakingPositions() {
         __filename
       );
 
-      // Optionally create a task for admin review
+      // Create notification for admin about failed rewards
       try {
-        await models.adminTask.create({
-          type: "STAKING_REWARD_FAILURE",
-          status: "PENDING",
-          data: {
-            failedPositionIds,
-            executionTime: new Date().toISOString(),
-            cronName,
-          },
-          priority: "HIGH",
-          dueDate: addDays(new Date(), 1),
+        // Get admin users (role with admin permission)
+        const adminUsers = await models.user.findAll({
+          include: [{
+            model: models.role,
+            as: 'role',
+            where: { name: 'Super Admin' }
+          }],
+          limit: 1
         });
+
+        if (adminUsers.length > 0) {
+          await models.notification.create({
+            userId: adminUsers[0].id,
+            type: "system",
+            title: "Staking Reward Processing Failed",
+            message: `${failedPositionIds.length} staking rewards failed to process. Please review immediately.`,
+            relatedId: null,
+            metadata: JSON.stringify({
+              failedPositionIds,
+              executionTime: new Date().toISOString(),
+              cronName,
+            }),
+          });
+        }
         broadcastLog(
           cronName,
           "Created admin task for failed positions",

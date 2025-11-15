@@ -233,14 +233,14 @@ async function handleAuthorisation({
     await models.transaction.update(
       {
         status: newStatus,
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           pspReference,
           webhookProcessedAt: new Date().toISOString(),
           eventCode: "AUTHORISATION",
           success,
           additionalData,
-        },
+        }),
       },
       {
         where: { id: transaction.id },
@@ -275,20 +275,8 @@ async function handleAuthorisation({
       const depositAmount = transaction.amount - (transaction.fee || 0);
       await wallet.increment("balance", { by: depositAmount });
 
-      // Create wallet transaction record
-      await models.walletTransaction.create({
-        walletId: wallet.id,
-        type: "DEPOSIT",
-        amount: depositAmount,
-        balance: wallet.balance + depositAmount,
-        description: `Adyen deposit - ${merchantReference}`,
-        metadata: {
-          transactionId: transaction.id,
-          gateway: "adyen",
-          pspReference,
-          eventCode: "AUTHORISATION",
-        },
-      });
+      // Transaction record is already created in the transaction variable above
+      // No need to create another walletTransaction
 
       console.log(
         `Adyen deposit completed: ${depositAmount} ${currency} for user ${user.id}`
@@ -327,12 +315,12 @@ async function handleCapture({
     if (transaction) {
       await models.transaction.update(
         {
-          metadata: {
+          metadata: JSON.stringify({
             ...transaction.metadata,
             captureProcessedAt: new Date().toISOString(),
             captureSuccess: success,
             capturePspReference: pspReference,
-          },
+          }),
         },
         {
           where: { id: transaction.id },
@@ -391,12 +379,12 @@ async function handleCancellation({
       await models.transaction.update(
         {
           status: "CANCELLED",
-          metadata: {
+          metadata: JSON.stringify({
             ...transaction.metadata,
             pspReference,
             cancelledAt: new Date().toISOString(),
             eventCode: "CANCELLATION",
-          },
+          }),
         },
         {
           where: { id: transaction.id },

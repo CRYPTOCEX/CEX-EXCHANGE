@@ -4,18 +4,9 @@ import { createError } from "@b/utils/error";
 export const metadata = {
   summary: "Update Platform Settings",
   description:
-    "Updates the platform settings configuration by ID for ICO admin.",
+    "Updates the platform settings configuration for ICO admin.",
   operationId: "updatePlatformSettings",
   tags: ["ICO", "Admin", "PlatformSettings"],
-  parameters: [
-    {
-      index: 0,
-      name: "id",
-      in: "path",
-      required: true,
-      schema: { type: "string", description: "Platform settings ID" },
-    },
-  ],
   requestBody: {
     required: true,
     content: {
@@ -40,7 +31,6 @@ export const metadata = {
   responses: {
     200: { description: "Platform settings updated successfully." },
     401: { description: "Unauthorized – Admin privileges required." },
-    404: { description: "Platform settings not found." },
     500: { description: "Internal Server Error" },
   },
   requiresAuth: true,
@@ -48,21 +38,41 @@ export const metadata = {
 };
 
 export default async (data: Handler) => {
-  const { user, params, body } = data;
+  const { user, body } = data;
   if (!user?.id) {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const { id } = params;
-  const settings = await models.icoPlatformSettings.findByPk(id);
-  if (!settings) {
-    throw createError({
-      statusCode: 404,
-      message: "Platform settings not found",
+  const {
+    minInvestmentAmount,
+    maxInvestmentAmount,
+    platformFeePercentage,
+    kycRequired,
+    maintenanceMode,
+    allowPublicOfferings,
+    announcementMessage,
+    announcementActive,
+  } = body;
+
+  // Prepare settings updates
+  const updates = [
+    { key: 'icoPlatformMinInvestmentAmount', value: minInvestmentAmount?.toString() },
+    { key: 'icoPlatformMaxInvestmentAmount', value: maxInvestmentAmount?.toString() },
+    { key: 'icoPlatformFeePercentage', value: platformFeePercentage?.toString() },
+    { key: 'icoPlatformKycRequired', value: kycRequired?.toString() },
+    { key: 'icoPlatformMaintenanceMode', value: maintenanceMode?.toString() },
+    { key: 'icoPlatformAllowPublicOfferings', value: allowPublicOfferings?.toString() },
+    { key: 'icoPlatformAnnouncementMessage', value: announcementMessage },
+    { key: 'icoPlatformAnnouncementActive', value: announcementActive?.toString() },
+  ].filter(update => update.value !== undefined);
+
+  // Upsert each setting
+  for (const update of updates) {
+    await models.settings.upsert({
+      key: update.key,
+      value: update.value,
     });
   }
 
-  await settings.update(body);
-
-  return { message: "Platform settings updated successfully", settings };
+  return { message: "Platform settings updated successfully" };
 };

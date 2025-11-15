@@ -192,12 +192,12 @@ export default async (data: Handler) => {
       amount: amount,
       fee: 0, // Fee will be calculated by Mollie
       description: `Mollie deposit - ${amount} ${currency}`,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: 'mollie',
         currency: currency,
         method: method || 'auto',
         locale: locale,
-      },
+      }),
     })
 
     // Get available payment methods for currency
@@ -259,13 +259,13 @@ export default async (data: Handler) => {
     await models.transaction.update(
       {
         referenceId: molliePayment.id,
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           molliePaymentId: molliePayment.id,
           mollieStatus: molliePayment.status,
           expiresAt: molliePayment.expiresAt,
           checkoutUrl: molliePayment._links.checkout.href,
-        },
+        }),
       },
       {
         where: { uuid: transaction.uuid },

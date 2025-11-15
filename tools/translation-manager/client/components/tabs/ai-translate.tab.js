@@ -95,22 +95,22 @@
             localeSelect.addEventListener('change', onLocaleSelectionChange);
         }
 
-        // Mode selection
-        const modeRadios = document.querySelectorAll('input[name="translation-mode"]');
-        modeRadios.forEach(radio => {
-            radio.addEventListener('change', onModeChange);
-        });
+        // Mode selection (using select element, not radio buttons)
+        const modeSelect = document.getElementById('ai-mode');
+        if (modeSelect) {
+            modeSelect.addEventListener('change', onModeChange);
+        }
 
         // Priority selection
-        const prioritySelect = document.getElementById('priority-select');
+        const prioritySelect = document.getElementById('ai-priority');
         if (prioritySelect) {
             prioritySelect.addEventListener('change', updateEstimates);
         }
 
         // Batch size change
-        const batchSizeInput = document.getElementById('batch-size');
+        const batchSizeInput = document.getElementById('ai-batch-size');
         if (batchSizeInput) {
-            batchSizeInput.addEventListener('input', updateEstimates);
+            batchSizeInput.addEventListener('change', updateEstimates);
         }
     }
 
@@ -144,23 +144,35 @@
         const container = document.getElementById('ai-locale-checkboxes');
         if (!container) return;
 
+        // Save current checkbox states before re-rendering
+        const currentCheckedStates = {};
+        const currentCheckboxes = container.querySelectorAll('.locale-checkbox');
+        currentCheckboxes.forEach(cb => {
+            currentCheckedStates[cb.value] = cb.checked;
+        });
+
         const locales = Array.from(availableLocales.entries())
             .filter(([code]) => code !== 'en')
             .sort(([, a], [, b]) => (b.progress || 0) - (a.progress || 0));
 
         const html = locales.map(([code, locale]) => `
             <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" value="${code}" class="locale-checkbox rounded text-blue-600">
+                <input type="checkbox" value="${code}" class="locale-checkbox rounded text-blue-600" ${currentCheckedStates[code] ? 'checked' : ''}>
                 <span class="text-sm">${locale.name} (${locale.progress || 0}%)</span>
             </label>
         `).join('');
 
         container.innerHTML = html;
-        
-        // Add select all functionality
+
+        // Add select all functionality (remove old listener first to avoid duplicates)
         const selectAllCheckbox = document.getElementById('ai-select-all-locales');
         if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', (e) => {
+            // Clone and replace to remove all event listeners
+            const newSelectAll = selectAllCheckbox.cloneNode(true);
+            selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
+
+            // Add the event listener to the new element
+            newSelectAll.addEventListener('change', (e) => {
                 const checkboxes = container.querySelectorAll('.locale-checkbox');
                 checkboxes.forEach(cb => cb.checked = e.target.checked);
             });
@@ -333,12 +345,12 @@
 
     async function updateEstimates() {
         const locale = document.getElementById('ai-locale-select')?.value;
-        const mode = document.querySelector('input[name="translation-mode"]:checked')?.value;
-        const priority = document.getElementById('priority-select')?.value;
-        const batchSize = document.getElementById('batch-size')?.value || 10;
-        
+        const mode = document.getElementById('ai-mode')?.value;
+        const priority = document.getElementById('ai-priority')?.value;
+        const batchSize = document.getElementById('ai-batch-size')?.value || 10;
+
         if (!locale || !mode) return;
-        
+
         const localeData = availableLocales.get(locale);
         if (!localeData) return;
         
@@ -376,12 +388,12 @@
         // Get selected locales from checkboxes
         const checkboxes = document.querySelectorAll('#ai-locale-checkboxes .locale-checkbox:checked');
         const selectedLocales = Array.from(checkboxes).map(cb => cb.value);
-        
+
         // Get other settings
         const mode = document.getElementById('ai-mode')?.value || 'missing';
         const priority = document.getElementById('ai-priority')?.value || 'all';
         const batchSize = parseInt(document.getElementById('ai-batch-size')?.value) || 25;
-        
+
         if (selectedLocales.length === 0) {
             // Try to get from old select element as fallback
             const locale = document.getElementById('ai-locale-select')?.value;
@@ -392,24 +404,44 @@
                 return;
             }
         }
-        
+
         try {
-            for (const locale of selectedLocales) {
+            UIUtils.showInfo(`Starting translations for ${selectedLocales.length} locale(s)...`);
+
+            // Start all translations in parallel - let backend handle them concurrently
+            const startPromises = selectedLocales.map(async (locale) => {
                 if (activeTranslations.has(locale)) {
                     UIUtils.showWarning(`Translation already active for ${locale}`);
-                    continue;
+                    return null;
                 }
-                
-                UIUtils.showInfo(`Starting ${mode} translation for ${availableLocales.get(locale)?.name || locale}...`);
-                await apiClient.startBatchTranslation(locale, mode, priority, batchSize);
+
+                const localeName = availableLocales.get(locale)?.name || locale;
+                console.log(`Starting ${mode} translation for ${localeName}...`);
+
+                try {
+                    await apiClient.startBatchTranslation(locale, mode, priority, batchSize);
+                    return locale;
+                } catch (error) {
+                    console.error(`Failed to start translation for ${locale}:`, error);
+                    UIUtils.showError(`Failed to start ${localeName}: ${error.message}`);
+                    return null;
+                }
+            });
+
+            // Wait for all to start
+            const started = await Promise.all(startPromises);
+            const successfullyStarted = started.filter(l => l !== null);
+
+            if (successfullyStarted.length > 0) {
+                UIUtils.showSuccess(`Started translations for ${successfullyStarted.length} locale(s). Processing in background...`);
             }
-            
-            // Refresh active translations
+
+            // Refresh active translations immediately
             setTimeout(() => {
                 loadActiveTranslations();
                 loadLocales(); // Refresh progress
             }, 1000);
-            
+
         } catch (error) {
             console.error('Error starting translation:', error);
             UIUtils.showError('Failed to start translation: ' + error.message);

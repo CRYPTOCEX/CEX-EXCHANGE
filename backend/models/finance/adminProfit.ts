@@ -20,7 +20,10 @@ export default class adminProfit
     | "FOREX_INVESTMENT"
     | "ICO_CONTRIBUTION"
     | "STAKING"
-    | "P2P_TRADE";
+    | "P2P_TRADE"
+    | "NFT_SALE"
+    | "NFT_AUCTION"
+    | "NFT_OFFER";
   amount!: number;
   currency!: string;
   chain?: string | null;
@@ -64,7 +67,10 @@ export default class adminProfit
             "FOREX_INVESTMENT",
             "ICO_CONTRIBUTION",
             "STAKING",
-            "P2P_TRADE"
+            "P2P_TRADE",
+            "NFT_SALE",
+            "NFT_AUCTION",
+            "NFT_OFFER"
           ),
           allowNull: false,
           validate: {
@@ -84,6 +90,9 @@ export default class adminProfit
                   "ICO_CONTRIBUTION",
                   "STAKING",
                   "P2P_TRADE",
+                  "NFT_SALE",
+                  "NFT_AUCTION",
+                  "NFT_OFFER",
                 ],
               ],
               msg: "type: Type must be one of the defined transaction types",

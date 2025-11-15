@@ -322,27 +322,151 @@ function createToolsRoutes() {
         }
     });
     
+    // Extract menu translations
+    router.post('/extract-menu', async (req, res) => {
+        try {
+            const { spawn } = require('child_process');
+            const toolsDir = path.join(__dirname, '../../../..');
+
+            console.log('Running menu extraction tool...');
+
+            const process = spawn('node', ['tools/translation-manager/scripts/extract-menu-translations-v2.js'], {
+                cwd: toolsDir,
+                stdio: ['pipe', 'pipe', 'pipe']
+            });
+
+            let output = '';
+            let error = '';
+
+            process.stdout.on('data', (data) => {
+                const text = data.toString();
+                output += text;
+                console.log(text);
+            });
+
+            process.stderr.on('data', (data) => {
+                const text = data.toString();
+                error += text;
+                console.error(text);
+            });
+
+            process.on('close', (code) => {
+                if (code === 0) {
+                    // Parse the output to get statistics
+                    const keysMatch = output.match(/Translation keys: (\d+)/);
+                    const filesMatch = output.match(/Files updated: (\d+)/);
+                    const addedMatch = output.match(/Total keys added: (\d+)/);
+
+                    res.json({
+                        success: true,
+                        message: 'Menu translations extracted successfully',
+                        stats: {
+                            keysExtracted: keysMatch ? parseInt(keysMatch[1]) : 0,
+                            filesUpdated: filesMatch ? parseInt(filesMatch[1]) : 0,
+                            totalAdded: addedMatch ? parseInt(addedMatch[1]) : 0
+                        },
+                        output: output
+                    });
+                } else {
+                    res.status(500).json({
+                        success: false,
+                        error: error || 'Menu extraction failed',
+                        output: output
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error('Error extracting menu translations:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+    });
+
+    // Get menu translation status
+    router.get('/menu-status', async (req, res) => {
+        try {
+            const menuTranslationsPath = path.join(__dirname, '../../../../menu-translations.json');
+            const menuPath = path.join(__dirname, '../../../../frontend/config/menu.ts');
+
+            // Check if menu-translations.json exists
+            let extractedKeys = 0;
+            let lastExtracted = null;
+            try {
+                const menuTransContent = await fs.readFile(menuTranslationsPath, 'utf8');
+                const menuTrans = JSON.parse(menuTransContent);
+                extractedKeys = Object.keys(menuTrans).length;
+
+                const stats = await fs.stat(menuTranslationsPath);
+                lastExtracted = stats.mtime;
+            } catch (e) {
+                // File doesn't exist yet
+            }
+
+            // Get menu file info
+            let menuLastModified = null;
+            try {
+                const menuStats = await fs.stat(menuPath);
+                menuLastModified = menuStats.mtime;
+            } catch (e) {
+                // Menu file doesn't exist
+            }
+
+            // Check if menu was modified after last extraction
+            const needsUpdate = menuLastModified && lastExtracted && menuLastModified > lastExtracted;
+
+            res.json({
+                success: true,
+                status: {
+                    extracted: extractedKeys > 0,
+                    extractedKeys,
+                    lastExtracted,
+                    menuLastModified,
+                    needsUpdate,
+                    menuPath: 'frontend/config/menu.ts'
+                }
+            });
+
+        } catch (error) {
+            console.error('Error getting menu status:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
     // Get tools info
     router.get('/info', (req, res) => {
         res.json({
             tools: [
                 {
+                    id: 'extract-menu',
+                    name: 'Extract Menu Translations',
+                    description: 'Extract all menu titles and descriptions from menu.ts and add to translation files',
+                    command: 'api',
+                    category: 'extraction',
+                    icon: 'menu'
+                },
+                {
                     id: 'apply-english-values',
                     name: 'Apply English Values',
                     description: 'Apply English values to all translation files',
-                    command: 'npm run translations:apply-english-values'
+                    command: 'npm run translations:apply-english-values',
+                    category: 'maintenance'
                 },
                 {
                     id: 'find-duplicates',
                     name: 'Find Duplicate Values',
                     description: 'Find duplicate values across translation keys',
-                    command: 'api'
+                    command: 'api',
+                    category: 'analysis'
                 },
                 {
                     id: 'find-missing-v2',
                     name: 'Find Missing Translations (Improved)',
                     description: 'Find translation keys used in code but missing from translation files with better accuracy',
-                    command: 'api'
+                    command: 'api',
+                    category: 'analysis'
                 }
             ]
         });

@@ -1,5 +1,5 @@
 import * as Sequelize from "sequelize";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
 export default class nftToken
   extends Model<nftTokenAttributes, nftTokenCreationAttributes>
@@ -10,12 +10,11 @@ export default class nftToken
   tokenId!: string;
   name!: string;
   description?: string;
-  image?: string;
-  animationUrl?: string;
-  externalUrl?: string;
+  image?: string; // IPFS image URL
   attributes?: any;
-  metadataUri?: string;
+  metadataUri?: string; // IPFS metadata JSON URL (tokenURI on blockchain)
   metadataHash?: string;
+  ownerWalletAddress?: string; // Blockchain wallet address of the NFT owner
   ownerId?: string;
   creatorId!: string;
   mintedAt?: Date;
@@ -69,26 +68,7 @@ export default class nftToken
         image: {
           type: DataTypes.STRING(1000),
           allowNull: true,
-          validate: {
-            is: {
-              args: ["^/(uploads|img)/.*$", "i"],
-              msg: "image: Image must be a valid URL",
-            },
-          },
-        },
-        animationUrl: {
-          type: DataTypes.STRING(1000),
-          allowNull: true,
-          validate: {
-            isUrl: { msg: "animationUrl: Animation URL must be a valid URL" },
-          },
-        },
-        externalUrl: {
-          type: DataTypes.STRING(1000),
-          allowNull: true,
-          validate: {
-            isUrl: { msg: "externalUrl: External URL must be a valid URL" },
-          },
+          // No validation - accepts IPFS URLs, gateway URLs, or any image URL
         },
         attributes: {
           type: DataTypes.JSON,
@@ -111,6 +91,16 @@ export default class nftToken
         metadataHash: {
           type: DataTypes.STRING(255),
           allowNull: true,
+        },
+        ownerWalletAddress: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+          validate: {
+            is: {
+              args: /^0x[a-fA-F0-9]{40}$/,
+              msg: "ownerWalletAddress: Must be a valid Ethereum address",
+            },
+          },
         },
         ownerId: {
           type: DataTypes.UUID,

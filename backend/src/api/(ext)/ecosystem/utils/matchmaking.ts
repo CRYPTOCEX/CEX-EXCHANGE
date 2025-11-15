@@ -6,7 +6,7 @@ import {
   removeTolerance,
 } from "./blockchain";
 import type { Order, OrderBook } from "./scylla/queries";
-import { updateWalletBalance } from "./wallet";
+import { updateWalletBalance, updateWalletForFill } from "./wallet";
 import { handleTradesBroadcast, handleOrderBroadcast } from "./ws";
 import { logError } from "@b/utils/logger";
 
@@ -57,12 +57,17 @@ export const matchAndCalculateOrders = async (
           currentOrderBook,
           bookUpdates
         );
+        // Only add to matchedOrders if wallet updates succeeded
+        matchedOrders.push(buyOrder, sellOrder);
       } catch (error) {
         logError("match_calculate_orders", error, __filename);
         console.error(`Failed to process matched orders: ${error}`);
+        // Remove from processed orders so they can be tried again
+        processedOrders.delete(buyOrder.id);
+        processedOrders.delete(sellOrder.id);
+        // Skip this match and continue
+        continue;
       }
-
-      matchedOrders.push(buyOrder, sellOrder);
 
       if (buyOrder.type === "LIMIT" && buyOrder.remaining === BigInt(0)) {
         buyIndex++;
@@ -118,11 +123,21 @@ export async function processMatchedOrders(
   // Extract base and quote currency from symbol, e.g., "BTC/USDT" => base=BTC, quote=USDT
   const [baseCurrency, quoteCurrency] = buyOrder.symbol.split("/");
 
-  // Retrieve buyer's base wallet and seller's quote wallet
-  // - Buyer will receive BASE currency now
-  // - Seller will receive QUOTE currency now
+  // Retrieve all 4 wallets involved in the trade:
+  // 1. Buyer's BASE wallet - will receive BASE tokens
+  // 2. Buyer's QUOTE wallet - has locked QUOTE tokens (cost) in inOrder
+  // 3. Seller's BASE wallet - has locked BASE tokens (amount) in inOrder
+  // 4. Seller's QUOTE wallet - will receive QUOTE tokens (cost - fee)
   const buyerBaseWallet = await getUserEcosystemWalletByCurrency(
     buyOrder.userId,
+    baseCurrency
+  );
+  const buyerQuoteWallet = await getUserEcosystemWalletByCurrency(
+    buyOrder.userId,
+    quoteCurrency
+  );
+  const sellerBaseWallet = await getUserEcosystemWalletByCurrency(
+    sellOrder.userId,
     baseCurrency
   );
   const sellerQuoteWallet = await getUserEcosystemWalletByCurrency(
@@ -130,45 +145,97 @@ export async function processMatchedOrders(
     quoteCurrency
   );
 
-  if (!buyerBaseWallet || !sellerQuoteWallet) {
+  if (!buyerBaseWallet || !buyerQuoteWallet || !sellerBaseWallet || !sellerQuoteWallet) {
     throw new Error("Required wallets not found for buyer or seller.");
+  }
+
+  // Convert amount to fill to number for validation
+  const amountToFillNum = fromBigInt(removeTolerance(amountToFill));
+
+  // CRITICAL VALIDATION: Check if wallets have sufficient locked funds (inOrder)
+  // This prevents errors from old orders that were created before inOrder locking was implemented
+  const sellerInOrder = parseFloat(sellerBaseWallet.inOrder?.toString() || "0");
+  if (sellerInOrder < amountToFillNum) {
+    throw new Error(
+      `Seller has insufficient locked funds: order requires ${amountToFillNum} ${baseCurrency} locked, but only ${sellerInOrder} is locked. Order may be stale or corrupted.`
+    );
   }
 
   // Determine the final trade price
   // If one order is market, we take the other's price
-  // If both are limit, the match occurs at the best crossing price logic
+  // If both are limit, use the maker's price (order placed first)
   const finalPrice =
     buyOrder.type.toUpperCase() === "MARKET"
       ? sellOrder.price
       : sellOrder.type.toUpperCase() === "MARKET"
         ? buyOrder.price
-        : buyOrder.price; // Typically, matching engines define a specific priority, here we just use buyOrder.price as example
+        : buyOrder.createdAt <= sellOrder.createdAt
+          ? buyOrder.price  // Buyer was maker (placed first)
+          : sellOrder.price; // Seller was maker (placed first)
 
   // Calculate cost: amountToFill * finalPrice (scaled by 10^18)
   const cost = (amountToFill * finalPrice) / SCALING_FACTOR;
 
-  // Fee to be deducted from seller’s proceeds: this was determined at order creation time.
-  // For SELL orders, the fee is stored in `sellOrder.fee` and it should be applied at match time.
-  // For BUY orders, the fee is already covered by the buyer (included in buyer’s locked cost).
+  // CRITICAL FIX: Calculate proportional fees for partial fills
   //
-  // Since the buyer locked cost + fee upfront for a BUY order, we have:
-  // - Buyer: no extra subtraction now, just give them their BASE tokens.
-  // - Seller: receive cost - fee
-  const fee = sellOrder.fee; // Fee is in quote currency terms (scaled by 10^18).
+  // BUY orders: Fee was locked upfront in cost. Release proportional amount.
+  // SELL orders: Fee deducted from proceeds at match time. Calculate proportional amount.
 
-  // Distribute final amounts:
-  // Buyer receives BASE tokens for the filled amount
-  await updateWalletBalance(
+  // Calculate fill ratios for proportional fee calculation
+  const buyFillRatio = Number(amountToFill) / Number(buyOrder.amount);
+  const sellFillRatio = Number(amountToFill) / Number(sellOrder.amount);
+
+  // Proportional fee from sell order (deducted from seller's proceeds)
+  const sellProportionalFee = (sellOrder.fee * BigInt(Math.floor(sellFillRatio * 1e18))) / SCALING_FACTOR;
+
+  // Proportional cost+fee from buy order (to release from buyer's locked funds)
+  const buyProportionalCostWithFee = (buyOrder.cost * BigInt(Math.floor(buyFillRatio * 1e18))) / SCALING_FACTOR;
+
+  // Convert BigInt amounts to normal numbers (already declared amountToFillNum above)
+  const costNum = fromBigInt(removeTolerance(cost));
+  const sellFeeNum = fromBigInt(removeTolerance(sellProportionalFee));
+  const buyReleaseNum = fromBigInt(removeTolerance(buyProportionalCostWithFee));
+
+  // Validate buyer's locked funds as well
+  const buyerInOrder = parseFloat(buyerQuoteWallet.inOrder?.toString() || "0");
+  if (buyerInOrder < buyReleaseNum) {
+    throw new Error(
+      `Buyer has insufficient locked funds: order requires ${buyReleaseNum} ${quoteCurrency} locked, but only ${buyerInOrder} is locked. Order may be stale or corrupted.`
+    );
+  }
+
+  // Execute the trade with proper wallet updates:
+  //
+  // BUYER:
+  // - Receives BASE tokens (add to balance, no inOrder change)
+  // - Releases locked QUOTE tokens INCLUDING proportional fee (no balance change, subtract from inOrder)
+  await updateWalletForFill(
     buyerBaseWallet,
-    fromBigInt(removeTolerance(amountToFill)), // Convert to normal number
-    "add"
+    amountToFillNum, // Add BASE tokens to balance
+    0, // No inOrder change for received currency
+    "buyer receives base"
+  );
+  await updateWalletForFill(
+    buyerQuoteWallet,
+    0, // No balance change (cost+fee was already locked)
+    -buyReleaseNum, // Release locked QUOTE tokens INCLUDING proportional fee from inOrder
+    "buyer releases quote"
   );
 
-  // Seller receives (cost - fee) in QUOTE tokens
-  await updateWalletBalance(
+  // SELLER:
+  // - Releases locked BASE tokens (no balance change, subtract from inOrder)
+  // - Receives QUOTE tokens minus PROPORTIONAL fee (add to balance, no inOrder change)
+  await updateWalletForFill(
+    sellerBaseWallet,
+    0, // No balance change (tokens were already locked)
+    -amountToFillNum, // Release locked BASE tokens from inOrder
+    "seller releases base"
+  );
+  await updateWalletForFill(
     sellerQuoteWallet,
-    fromBigInt(removeTolerance(cost - fee)), // Convert to normal number
-    "add"
+    costNum - sellFeeNum, // Add QUOTE tokens minus PROPORTIONAL fee to balance
+    0, // No inOrder change for received currency
+    "seller receives quote"
   );
 
   // Record the trades

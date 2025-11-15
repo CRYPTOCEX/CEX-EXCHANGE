@@ -192,18 +192,18 @@ export default async (data: Handler) => {
                 });
 
                 // Create wallet transaction record
-                await models.walletTransaction.create({
+                await models.transaction.create({
                   userId: position.userId,
                   walletId: wallet.id,
                   amount: position.amount,
-                  type: 'DEPOSIT',
+                  type: 'STAKING',
                   status: 'COMPLETED',
                   description: `Staking position ${position.id} completed - principal returned`,
-                  metadata: {
+                  metadata: JSON.stringify({
                     source: 'STAKING_COMPLETE',
                     positionId: position.id,
                     reason: reason || 'Admin action'
-                  }
+                  })
                 }, { transaction });
               }
             } else {
@@ -237,18 +237,18 @@ export default async (data: Handler) => {
                 });
 
                 // Create wallet transaction record
-                await models.walletTransaction.create({
+                await models.transaction.create({
                   userId: position.userId,
                   walletId: wallet.id,
                   amount: position.amount,
-                  type: 'DEPOSIT',
+                  type: 'STAKING',
                   status: 'COMPLETED',
                   description: `Staking position ${position.id} cancelled - principal returned`,
-                  metadata: {
+                  metadata: JSON.stringify({
                     source: 'STAKING_CANCEL',
                     positionId: position.id,
                     reason: reason || 'Admin action'
-                  }
+                  })
                 }, { transaction });
               }
             } else {

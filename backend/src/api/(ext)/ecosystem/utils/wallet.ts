@@ -1847,9 +1847,9 @@ export async function updateWalletBalance(
     let newBalance: number;
     let newInOrder: number;
 
-    // Initialize inOrder if it's undefined - use fresh data
-    const currentBalance = freshWallet.balance;
-    const currentInOrder = freshWallet.inOrder ?? 0;
+    // Explicitly convert to numbers to handle Decimal types from database
+    const currentBalance = parseFloat(freshWallet.balance.toString());
+    const currentInOrder = parseFloat(freshWallet.inOrder?.toString() || "0");
 
     switch (type) {
       case "add":
@@ -1863,7 +1863,7 @@ export async function updateWalletBalance(
         newBalance = roundTo8DecimalPlaces(currentBalance - balanceChange);
         newInOrder = roundTo8DecimalPlaces(currentInOrder + balanceChange);
         if (newBalance < 0) {
-          throw new Error("Insufficient funds");
+          throw new Error(`Insufficient funds: need ${balanceChange}, have ${currentBalance}`);
         }
         break;
       default:
@@ -1881,6 +1881,68 @@ export async function updateWalletBalance(
     );
   } catch (error) {
     logError("wallet", error, __filename);
+    throw error;
+  }
+}
+
+/**
+ * Updates wallet for order fill/execution (matching engine)
+ * Different from updateWalletBalance which is for order creation/cancellation
+ *
+ * @param wallet - Wallet to update
+ * @param balanceChange - Amount to change balance by
+ * @param inOrderChange - Amount to change inOrder by (can be negative)
+ * @param operation - Description for error messages
+ */
+export async function updateWalletForFill(
+  wallet: walletAttributes,
+  balanceChange: number,
+  inOrderChange: number,
+  operation: string
+): Promise<void> {
+  try {
+    if (!wallet) throw new Error("Wallet not found");
+
+    const roundTo8DecimalPlaces = (num: number) =>
+      Math.round((num + Number.EPSILON) * 1e8) / 1e8;
+
+    // Fetch fresh wallet data to prevent stale data issues
+    const freshWallet = await models.wallet.findByPk(wallet.id);
+    if (!freshWallet) throw new Error("Wallet not found in database");
+
+    // Explicitly convert to numbers to handle Decimal types from database
+    const currentBalance = parseFloat(freshWallet.balance.toString());
+    const currentInOrder = parseFloat(freshWallet.inOrder?.toString() || "0");
+
+    // Calculate new values
+    const newBalance = roundTo8DecimalPlaces(currentBalance + balanceChange);
+    const newInOrder = roundTo8DecimalPlaces(currentInOrder + inOrderChange);
+
+    // Validation: balance can't go negative
+    if (newBalance < 0) {
+      throw new Error(
+        `Insufficient balance for ${operation}: current=${currentBalance}, change=${balanceChange}, would be=${newBalance}`
+      );
+    }
+
+    // Validation: inOrder can't go negative
+    if (newInOrder < 0) {
+      throw new Error(
+        `Insufficient locked funds for ${operation}: current inOrder=${currentInOrder}, change=${inOrderChange}, would be=${newInOrder}`
+      );
+    }
+
+    await models.wallet.update(
+      {
+        balance: newBalance,
+        inOrder: newInOrder,
+      },
+      {
+        where: { id: wallet.id },
+      }
+    );
+  } catch (error) {
+    logError("wallet_fill", error, __filename);
     throw error;
   }
 }

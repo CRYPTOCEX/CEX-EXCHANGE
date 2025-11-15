@@ -32,7 +32,15 @@ export default class transaction
     | "STAKING"
     | "STAKING_REWARD"
     | "P2P_OFFER_TRANSFER"
-    | "P2P_TRADE";
+    | "P2P_TRADE"
+    | "NFT_PURCHASE"
+    | "NFT_SALE"
+    | "NFT_MINT"
+    | "NFT_BURN"
+    | "NFT_TRANSFER"
+    | "NFT_AUCTION_BID"
+    | "NFT_AUCTION_SETTLE"
+    | "NFT_OFFER";
   status!:
     | "PENDING"
     | "COMPLETED"
@@ -105,7 +113,15 @@ export default class transaction
             "STAKING",
             "STAKING_REWARD",
             "P2P_OFFER_TRANSFER",
-            "P2P_TRADE"
+            "P2P_TRADE",
+            "NFT_PURCHASE",
+            "NFT_SALE",
+            "NFT_MINT",
+            "NFT_BURN",
+            "NFT_TRANSFER",
+            "NFT_AUCTION_BID",
+            "NFT_AUCTION_SETTLE",
+            "NFT_OFFER"
           ),
           allowNull: false,
           validate: {
@@ -136,12 +152,20 @@ export default class transaction
                   "STAKING_REWARD",
                   "P2P_OFFER_TRANSFER",
                   "P2P_TRADE",
+                  "NFT_PURCHASE",
+                  "NFT_SALE",
+                  "NFT_MINT",
+                  "NFT_BURN",
+                  "NFT_TRANSFER",
+                  "NFT_AUCTION_BID",
+                  "NFT_AUCTION_SETTLE",
+                  "NFT_OFFER",
                 ],
               ],
-              msg: "type: Type must be one of ['FAILED', 'DEPOSIT', 'WITHDRAW', 'OUTGOING_TRANSFER', 'INCOMING_TRANSFER', 'PAYMENT', 'REFUND', 'BINARY_ORDER', 'EXCHANGE_ORDER', 'INVESTMENT', 'INVESTMENT_ROI', 'AI_INVESTMENT', 'AI_INVESTMENT_ROI', 'INVOICE', 'FOREX_DEPOSIT', 'FOREX_WITHDRAW', 'FOREX_INVESTMENT', 'FOREX_INVESTMENT_ROI', 'ICO_CONTRIBUTION', 'REFERRAL_REWARD', 'STAKING', 'STAKING_REWARD', 'P2P_OFFER_TRANSFER', 'P2P_TRADE']",
+              msg: "type: Type must be one of the valid transaction types",
             },
           },
-          comment: "Type of transaction (deposit, withdrawal, transfer, trading, etc.)",
+          comment: "Type of transaction (deposit, withdrawal, transfer, trading, NFT, etc.)",
         },
         status: {
           type: DataTypes.ENUM(

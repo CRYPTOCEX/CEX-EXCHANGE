@@ -3,13 +3,14 @@ import {
   unauthorizedResponse,
 } from "@b/utils/query";
 
-import { 
-  makeEwayRequest, 
+import {
+  makeEwayRequest,
   EWAY_STATUS_MAPPING,
   EwayTransactionQueryResponse,
-  EwayError 
+  EwayError
 } from "./utils";
 import { models } from "@b/db";
+import { sendFiatTransactionEmail } from "@b/utils/emails";
 
 export const metadata: OperationObject = {
   summary: "Verify eWAY payment status",
@@ -128,13 +129,13 @@ export default async (data: Handler) => {
       // Update transaction status to failed
       await transaction.update({
         status: "FAILED",
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           eway_errors: ewayResponse.Errors,
           eway_response_code: ewayResponse.ResponseCode,
           eway_response_message: ewayResponse.ResponseMessage,
           verified_at: new Date().toISOString(),
-        },
+        }),
       });
 
       return {
@@ -162,15 +163,11 @@ export default async (data: Handler) => {
         balance: Number(wallet.balance) + Number(transaction.amount),
       });
 
-      // Send notification email
+      // Send notification email using email utility
       try {
-        await models.mailWizard.create({
-          userId: user.id,
-          type: "DEPOSIT_CONFIRMATION",
-          subject: "Deposit Confirmation - eWAY",
-          body: `Your deposit of ${transaction.amount} ${transaction.metadata.currency} has been successfully processed via eWAY.`,
-          status: "PENDING",
-        });
+        const currency = transaction.metadata?.currency || 'AUD';
+        const newBalance = wallet.balance;
+        await sendFiatTransactionEmail(user, transaction, currency, newBalance);
       } catch (emailError) {
         console.error("Failed to send deposit confirmation email:", emailError);
       }
@@ -179,7 +176,7 @@ export default async (data: Handler) => {
     // Update transaction with eWAY response
     await transaction.update({
       status: newStatus,
-      metadata: {
+      metadata: JSON.stringify({
         ...transaction.metadata,
         eway_transaction_id: ewayResponse.TransactionID,
         eway_authorisation_code: ewayResponse.AuthorisationCode,
@@ -188,7 +185,7 @@ export default async (data: Handler) => {
         eway_transaction_type: ewayResponse.TransactionType,
         eway_beagle_score: ewayResponse.BeagleScore,
         verified_at: new Date().toISOString(),
-      },
+      }),
     });
 
     return {

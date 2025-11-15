@@ -31,6 +31,7 @@ export default class nftCollection
   telegram?: string;
   isVerified?: boolean;
   isLazyMinted?: boolean;
+  isPublicMintEnabled?: boolean;
   status!: "DRAFT" | "PENDING" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
   metadata?: any;
   createdAt?: Date;
@@ -233,6 +234,12 @@ export default class nftCollection
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: true,
+        },
+        isPublicMintEnabled: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: true,
+          comment: "Whether public minting is enabled on the smart contract. True by default for marketplace collections.",
         },
         status: {
           type: DataTypes.ENUM("DRAFT", "PENDING", "ACTIVE", "INACTIVE", "SUSPENDED"),

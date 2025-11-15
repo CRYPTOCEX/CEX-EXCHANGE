@@ -202,10 +202,34 @@ export default async (data: any) => {
           : market.metadata.precision.price
       ) || 8;
 
-    const feeRate =
-      side.toUpperCase() === "BUY"
-        ? Number(market.metadata.taker)
-        : Number(market.metadata.maker);
+    // CORRECTED FEE LOGIC: Determine maker/taker based on whether order will immediately match
+    // Market orders ALWAYS take liquidity (taker)
+    // Limit orders: check if they cross the spread (taker) or rest on book (maker)
+    let isTaker = false;
+
+    if (type.toLowerCase() === "market") {
+      // Market orders always take liquidity
+      isTaker = true;
+    } else {
+      // Limit orders: check if they would immediately match
+      const { asks, bids } = await getOrderBook(symbol);
+
+      if (side.toUpperCase() === "BUY") {
+        // BUY limit: if price >= lowest ask, it takes liquidity (crosses spread)
+        if (asks && asks.length > 0 && effectivePrice >= asks[0][0]) {
+          isTaker = true;
+        }
+      } else {
+        // SELL limit: if price <= highest bid, it takes liquidity (crosses spread)
+        if (bids && bids.length > 0 && effectivePrice <= bids[0][0]) {
+          isTaker = true;
+        }
+      }
+    }
+
+    const feeRate = isTaker
+      ? Number(market.metadata.taker)
+      : Number(market.metadata.maker);
 
     if (isNaN(feeRate) || feeRate < 0) {
       throw createError({

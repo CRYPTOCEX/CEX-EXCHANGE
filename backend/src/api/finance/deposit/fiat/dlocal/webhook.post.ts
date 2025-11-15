@@ -129,7 +129,7 @@ export default async (data: Handler) => {
     // Update transaction with webhook data
     await transaction.update({
       status: internalStatus.toUpperCase(),
-      metadata: {
+      metadata: JSON.stringify({
         ...transaction.metadata,
         dlocal_payment_id: payload.id,
         dlocal_status: payload.status,
@@ -139,7 +139,7 @@ export default async (data: Handler) => {
         approved_date: payload.approved_date,
         webhook_received_at: new Date().toISOString(),
         live: payload.live,
-      },
+      }),
     });
 
     // Handle successful payment

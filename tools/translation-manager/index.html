@@ -724,6 +724,15 @@
                     
                     <div class="max-w-2xl space-y-4">
                         <div class="tool-card">
+                            <button class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-4 rounded-lg transition-all tool-btn flex items-center justify-center text-lg font-semibold shadow-lg" data-tool="extract-menu">
+                                <i class="fas fa-list mr-3"></i> Extract Menu Translations
+                            </button>
+                            <p class="text-sm text-gray-600 mt-3 px-2" id="extract-menu-description">
+                                <strong class="text-purple-700">NEW!</strong> Automatically extracts all menu titles and descriptions from <code class="bg-gray-100 px-1 rounded">frontend/config/menu.ts</code> and adds them to all locale files. Generates translation keys in format: <code class="bg-gray-100 px-1 rounded">menu.{key}.{field}</code>
+                            </p>
+                        </div>
+
+                        <div class="tool-card">
                             <button class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg transition-all tool-btn flex items-center justify-center text-lg font-semibold" data-tool="missing">
                                 <i class="fas fa-search mr-3"></i> Find Missing Translations
                             </button>
@@ -731,7 +740,7 @@
                                 Scans your codebase to find translation keys that are used in the code but missing from translation files. Also identifies orphaned keys that exist in translation files but are not used anywhere in the code.
                             </p>
                         </div>
-                        
+
                         <div class="tool-card">
                             <button class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-4 rounded-lg transition-all tool-btn flex items-center justify-center text-lg font-semibold" data-tool="duplicates">
                                 <i class="fas fa-copy mr-3"></i> Find Duplicate Values

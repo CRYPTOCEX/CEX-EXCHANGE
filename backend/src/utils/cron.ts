@@ -29,6 +29,7 @@ import { processGeneralInvestments } from "./crons/investment";
 import { processAiInvestments } from "./crons/aiInvestment";
 import { processPendingOrders } from "./crons/order";
 import { processExpiredUserBlocks } from "./crons/userBlock";
+
 // Safe import for ecosystem cron functions
 async function processPendingEcoWithdrawals() {
   try {
@@ -37,6 +38,27 @@ async function processPendingEcoWithdrawals() {
     return module.processPendingEcoWithdrawals();
   } catch (error) {
     console.log("Ecosystem cron extension not available, skipping eco withdrawals processing");
+  }
+}
+
+// Safe import for NFT cron functions
+async function expireOffers() {
+  try {
+    // @ts-ignore - Dynamic import for optional extension
+    const module = await import("./crons/nftExpireOffers");
+    return module.expireOffers();
+  } catch (error) {
+    console.log("NFT extension not available, skipping offer expiration");
+  }
+}
+
+async function settleAuctions() {
+  try {
+    // @ts-ignore - Dynamic import for optional extension
+    const module = await import("./crons/nftSettleAuctions");
+    return module.settleAuctions();
+  } catch (error) {
+    console.log("NFT extension not available, skipping auction settlement");
   }
 }
 import { broadcastLog, broadcastStatus } from "./crons/broadcast";
@@ -234,6 +256,36 @@ class CronJobManager {
           const scanner = BTCDepositScanner.getInstance();
           await scanner.start();
         },
+        lastRun: null,
+        lastRunError: null,
+        category: "normal",
+        status: "idle",
+        progress: 0,
+        lastExecutions: [],
+        nextScheduledRun: null,
+      },
+      {
+        name: "expireOffers",
+        title: "Expire NFT Offers",
+        period: 5 * 60 * 1000, // Run every 5 minutes
+        description: "Automatically expires NFT offers that have passed their expiration date.",
+        function: "expireOffers",
+        handler: expireOffers,
+        lastRun: null,
+        lastRunError: null,
+        category: "normal",
+        status: "idle",
+        progress: 0,
+        lastExecutions: [],
+        nextScheduledRun: null,
+      },
+      {
+        name: "settleAuctions",
+        title: "Settle NFT Auctions",
+        period: 10 * 60 * 1000, // Run every 10 minutes
+        description: "Automatically settles NFT auctions that have ended.",
+        function: "settleAuctions",
+        handler: settleAuctions,
         lastRun: null,
         lastRunError: null,
         category: "normal",

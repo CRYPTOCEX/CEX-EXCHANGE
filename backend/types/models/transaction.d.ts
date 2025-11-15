@@ -26,7 +26,15 @@ interface transactionAttributes {
     | "STAKING"
     | "STAKING_REWARD"
     | "P2P_OFFER_TRANSFER"
-    | "P2P_TRADE";
+    | "P2P_TRADE"
+    | "NFT_PURCHASE"
+    | "NFT_SALE"
+    | "NFT_MINT"
+    | "NFT_BURN"
+    | "NFT_TRANSFER"
+    | "NFT_AUCTION_BID"
+    | "NFT_AUCTION_SETTLE"
+    | "NFT_OFFER";
   status:
     | "PENDING"
     | "FAILED"

@@ -220,7 +220,7 @@ export default async (data: Handler) => {
       amount: amount,
       fee: calculatedFee,
       description: description || "eWAY deposit",
-      metadata: {
+      metadata: JSON.stringify({
         gateway: "eway",
         method: method,
         transaction_type: transaction_type,
@@ -228,7 +228,7 @@ export default async (data: Handler) => {
         reference: reference,
         invoice_number: invoice_number,
         customer: customer,
-      },
+      }),
       referenceId: reference,
     });
 
@@ -273,11 +273,11 @@ export default async (data: Handler) => {
 
       // Update transaction with eWAY details
       await transaction.update({
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           eway_access_code: response.AccessCode,
           eway_form_url: response.FormActionURL,
-        },
+        }),
       });
 
       return {
@@ -297,18 +297,18 @@ export default async (data: Handler) => {
     } else {
       // Use Transparent Redirect (default)
       const response = await makeEwayRequest("/CreateAccessCodeShared", "POST", ewayRequest) as EwayTransparentRedirectResponse;
-      
+
       if (response.Errors) {
         throw new EwayError("eWAY API Error", 400, { errors: response.Errors });
       }
 
       // Update transaction with eWAY details
       await transaction.update({
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           eway_access_code: response.AccessCode,
           eway_form_url: response.FormActionURL,
-        },
+        }),
       });
 
       return {

@@ -5,6 +5,8 @@
 /backend/node_modules
 /backend/dist
 /frontend/node_modules
+/backend/ecosystem/smart-contracts/nft/node_modules
+backend/ecosystem/smart-contracts/nft/node_modules
 /frontend/.next
 /.pnp
 .pnp.js
@@ -82,3 +84,4 @@ TODO.md
 /updates
 /updates/node_modules
 /updates
+/backend/ecosystem/smart-contracts/nft/node_modules

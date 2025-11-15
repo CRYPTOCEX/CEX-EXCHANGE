@@ -27,7 +27,7 @@ export async function processNFTBackups() {
     broadcastStatus("NFT Backup", "running", { message: "Processing scheduled NFT backups" });
     
     // Get all configured backup schedules
-    const schedules = await models.systemSetting?.findAll({
+    const schedules = await models.settings?.findAll({
       where: {
         key: {
           [models.Sequelize.Op.like]: 'nft_backup_schedule_%'
@@ -77,7 +77,7 @@ export async function processNFTBackups() {
           config.nextRun = calculateNextRun(config.schedule, now).toISOString();
           
           // Save updated schedule
-          await models.systemSetting?.update(
+          await models.settings?.update(
             { value: JSON.stringify(config) },
             { where: { key: schedule.key } }
           );
@@ -100,7 +100,7 @@ export async function processNFTBackups() {
  */
 export async function initializeNFTBackupSchedules() {
   try {
-    const schedules = await models.systemSetting?.findAll({
+    const schedules = await models.settings?.findAll({
       where: {
         key: {
           [models.Sequelize.Op.like]: 'nft_backup_schedule_%'
@@ -243,7 +243,7 @@ export async function createNFTBackupSchedule(
     };
     
     // Save to database
-    await models.systemSetting?.upsert({
+    await models.settings?.upsert({
       key,
       value: JSON.stringify(config)
     });
@@ -269,7 +269,7 @@ export async function createNFTBackupSchedule(
             config.lastRun = new Date().toISOString();
             config.nextRun = calculateNextRun(schedule).toISOString();
             
-            await models.systemSetting?.update(
+            await models.settings?.update(
               { value: JSON.stringify(config) },
               { where: { key } }
             );
@@ -304,7 +304,7 @@ export async function deleteNFTBackupSchedule(chain: string) {
     }
     
     // Delete from database
-    await models.systemSetting?.destroy({
+    await models.settings?.destroy({
       where: { key: `nft_backup_schedule_${chain}` }
     });
     

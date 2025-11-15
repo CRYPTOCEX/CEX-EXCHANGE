@@ -224,12 +224,12 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
 
     // ICO
     if (extensions.has("ico")) {
-      const icoContributions = await models.icoContribution?.findAll({
+      const icoContributions = await models.icoTransaction?.findAll({
         where: { userId },
         include: [
           {
-            model: models.icoProject,
-            as: "project",
+            model: models.icoTokenOffering,
+            as: "offering",
             attributes: ["name", "symbol", "status"],
           },
         ],
@@ -272,7 +272,7 @@ const getExtensionData = async (userId: string, extensions: Map<string, any>) =>
 
     // Staking
     if (extensions.has("staking")) {
-      const stakingLogs = await models.stakingLog?.findAll({
+      const stakingLogs = await models.stakingPosition?.findAll({
         where: { userId },
         include: [
           {

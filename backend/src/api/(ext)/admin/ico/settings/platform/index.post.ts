@@ -48,6 +48,36 @@ export default async (data: Handler) => {
     throw createError({ statusCode: 401, message: "Unauthorized" });
   }
 
-  const settings = await models.icoPlatformSettings.create(body);
-  return { message: "Platform settings created successfully.", settings };
+  const {
+    minInvestmentAmount,
+    maxInvestmentAmount,
+    platformFeePercentage,
+    kycRequired,
+    maintenanceMode,
+    allowPublicOfferings,
+    announcementMessage,
+    announcementActive,
+  } = body;
+
+  // Prepare settings updates
+  const updates = [
+    { key: 'icoPlatformMinInvestmentAmount', value: minInvestmentAmount?.toString() },
+    { key: 'icoPlatformMaxInvestmentAmount', value: maxInvestmentAmount?.toString() },
+    { key: 'icoPlatformFeePercentage', value: platformFeePercentage?.toString() },
+    { key: 'icoPlatformKycRequired', value: kycRequired?.toString() },
+    { key: 'icoPlatformMaintenanceMode', value: maintenanceMode?.toString() },
+    { key: 'icoPlatformAllowPublicOfferings', value: allowPublicOfferings?.toString() },
+    { key: 'icoPlatformAnnouncementMessage', value: announcementMessage },
+    { key: 'icoPlatformAnnouncementActive', value: announcementActive?.toString() },
+  ].filter(update => update.value !== undefined);
+
+  // Upsert each setting
+  for (const update of updates) {
+    await models.settings.upsert({
+      key: update.key,
+      value: update.value,
+    });
+  }
+
+  return { message: "Platform settings created successfully." };
 };

@@ -37,6 +37,8 @@ import { MobileAppSection } from "./components/mobile-app-section";
 import { getCryptoImageUrl } from "@/utils/image-fallback";
 import { useConfigStore } from "@/store/config";
 import { $fetch } from "@/lib/api";
+import { useSettings } from "@/hooks/use-settings";
+import { buildMarketLink } from "@/utils/market-links";
 
 // Type definition for page content
 interface PageContent {
@@ -474,7 +476,7 @@ export default function DefaultHomePage() {
                         ? renderSkeletonRows()
                         : topAssets.slice(0, 5).map((asset, index) => (
                             <Link
-                              href={`/trade?symbol=${asset.currency}-${asset.pair}`}
+                              href={buildMarketLink(settings, asset.currency, asset.pair)}
                               key={asset.symbol}
                             >
                               <motion.div

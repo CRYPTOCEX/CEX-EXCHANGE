@@ -92,10 +92,23 @@ node tools/translate-locales-azure.js all
 - `TRANSLATION-COMMANDS.md` - **Detailed usage guide**
 - `AZURE-SETUP-GUIDE.md` - Complete Azure setup guide
 
+### 🌐 Translation Manager (Web Interface)
+- `translation-manager/` - Full-featured web UI for translation management
+- `translation-manager/scripts/` - **All translation-related scripts**
+  - `extract-menu-translations-v2.js` - Menu translation extractor
+  - `extract-translation.js` - General translation extractor
+  - `sync-translations.js` - Sync translations across locales
+  - `fix-locale-structure.js` - Fix and validate locale structure
+  - `check-flat-keys.js` - Validate translation key structure
+  - See `translation-manager/scripts/README.md` for details
+
 ### 🔧 Other Tools
 - `extract-permission.js` - Permission extraction tool
+- `build-permission.js` - Build permission structures
 - `beautify-tsx.js` - Code formatting tools
 - `fix-hooks-in-maps.js` - React hooks linting tools
+- `add-payment-activities.js` - Payment activity utilities
+- `update-packages.js` - Package update utilities
 
 ## 🛠️ Translation Management Commands
 

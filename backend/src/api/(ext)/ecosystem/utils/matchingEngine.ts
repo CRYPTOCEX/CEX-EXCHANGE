@@ -59,6 +59,7 @@ export class MatchingEngine {
   public async init() {
     await this.initializeMarkets();
     await this.initializeOrders();
+    await this.validateAndCleanOrderbook(); // NEW: Validate orderbook integrity on startup
     await this.initializeLastCandles();
     await this.initializeYesterdayCandles();
   }
@@ -122,6 +123,385 @@ export class MatchingEngine {
       console.error(
         `Failed to populate order queue with open orders: ${error}`
       );
+    }
+  }
+
+  /**
+   * Syncs orderbook with actual order states from Scylla
+   * Removes "ghost" orderbook entries for orders that are CLOSED/CANCELLED
+   */
+  private async syncOrderbookWithOrders() {
+    try {
+      // Fetch all orderbook entries
+      const allOrderBookEntries = await fetchOrderBooks();
+
+      if (!allOrderBookEntries || allOrderBookEntries.length === 0) {
+        return;
+      }
+
+      // Group by symbol for efficient processing
+      const orderbookBySymbol: Record<string, any[]> = {};
+      allOrderBookEntries.forEach((entry) => {
+        if (!orderbookBySymbol[entry.symbol]) {
+          orderbookBySymbol[entry.symbol] = [];
+        }
+        orderbookBySymbol[entry.symbol].push(entry);
+      });
+
+      let ghostEntriesRemoved = 0;
+
+      // For each symbol, check if orderbook entries match actual OPEN orders
+      for (const symbol in orderbookBySymbol) {
+        const orderbookEntries = orderbookBySymbol[symbol];
+
+        // Get all OPEN orders for this symbol
+        const openOrders = this.orderQueue[symbol] || [];
+
+        // Create a map of price -> total remaining amount from OPEN orders
+        const openOrdersByPrice: Record<string, { bids: bigint; asks: bigint }> = {};
+
+        for (const order of openOrders) {
+          const priceStr = fromBigInt(order.price).toString();
+          if (!openOrdersByPrice[priceStr]) {
+            openOrdersByPrice[priceStr] = { bids: BigInt(0), asks: BigInt(0) };
+          }
+
+          if (order.side === "BUY") {
+            openOrdersByPrice[priceStr].bids += order.remaining;
+          } else {
+            openOrdersByPrice[priceStr].asks += order.remaining;
+          }
+        }
+
+        // Check each orderbook entry
+        for (const entry of orderbookEntries) {
+          const priceStr = entry.price.toString();
+          const side = entry.side.toUpperCase();
+
+          // Convert orderbook amount to BigInt (it's stored as a decimal)
+          const orderbookAmount = toBigIntFloat(Number(entry.amount));
+
+          const openAmount = openOrdersByPrice[priceStr]?.[side === "BIDS" ? "bids" : "asks"] || BigInt(0);
+
+          // Check for discrepancies between orderbook and actual open orders
+          if (orderbookAmount !== openAmount) {
+            if (openAmount === BigInt(0)) {
+              // Ghost entry: orderbook has amount but no open orders exist
+              try {
+                // Remove ghost entry from orderbook
+                const deleteQuery = `DELETE FROM ${client.keyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`;
+                await client.execute(deleteQuery, [symbol, priceStr, side], { prepare: true });
+                ghostEntriesRemoved++;
+              } catch (deleteError) {
+                console.error(`[ORDERBOOK_SYNC] Failed to remove ghost entry for ${symbol}:`, deleteError.message);
+              }
+            } else {
+              // Amount mismatch: orderbook amount doesn't match sum of open orders
+              try {
+                // Update orderbook with correct amount
+                const updateQuery = `UPDATE ${client.keyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`;
+                await client.execute(
+                  updateQuery,
+                  [fromBigInt(openAmount), symbol, priceStr, side],
+                  { prepare: true }
+                );
+                ghostEntriesRemoved++;
+              } catch (updateError) {
+                console.error(`[ORDERBOOK_SYNC] Failed to fix amount for ${symbol}:`, updateError.message);
+              }
+            }
+          }
+        }
+
+        // Check for missing orderbook entries (open orders not in orderbook)
+        for (const priceStr in openOrdersByPrice) {
+          const amounts = openOrdersByPrice[priceStr];
+
+          // Check BIDS
+          if (amounts.bids > BigInt(0)) {
+            const existingEntry = orderbookEntries.find(
+              e => e.price.toString() === priceStr && e.side.toUpperCase() === "BIDS"
+            );
+
+            if (!existingEntry) {
+              try {
+                const insertQuery = `INSERT INTO ${client.keyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
+                await client.execute(
+                  insertQuery,
+                  [symbol, priceStr, "BIDS", fromBigInt(amounts.bids)],
+                  { prepare: true }
+                );
+                ghostEntriesRemoved++;
+              } catch (insertError) {
+                console.error(`[ORDERBOOK_SYNC] Failed to add missing BID entry for ${symbol}:`, insertError.message);
+              }
+            }
+          }
+
+          // Check ASKS
+          if (amounts.asks > BigInt(0)) {
+            const existingEntry = orderbookEntries.find(
+              e => e.price.toString() === priceStr && e.side.toUpperCase() === "ASKS"
+            );
+
+            if (!existingEntry) {
+              try {
+                const insertQuery = `INSERT INTO ${client.keyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
+                await client.execute(
+                  insertQuery,
+                  [symbol, priceStr, "ASKS", fromBigInt(amounts.asks)],
+                  { prepare: true }
+                );
+                ghostEntriesRemoved++;
+              } catch (insertError) {
+                console.error(`[ORDERBOOK_SYNC] Failed to add missing ASK entry for ${symbol}:`, insertError.message);
+              }
+            }
+          }
+        }
+      }
+
+      // Only log if there were issues fixed
+      if (ghostEntriesRemoved > 0) {
+        console.log(`[ORDERBOOK_SYNC] Fixed ${ghostEntriesRemoved} orderbook discrepancies`);
+        // Refresh orderbook broadcasts
+        await this.refreshOrderBooks();
+      }
+    } catch (error) {
+      logError("orderbook_sync", error, __filename);
+      console.error(`[ORDERBOOK_SYNC] Sync failed:`, error);
+    }
+  }
+
+  /**
+   * Validates orderbook integrity on startup and fixes/cancels problematic orders
+   * This prevents stuck orderbooks where orders exist but funds aren't properly locked
+   */
+  private async validateAndCleanOrderbook() {
+    try {
+      // STEP 1: Sync orderbook with actual order states (remove ghost entries)
+      await this.syncOrderbookWithOrders();
+
+      const { getUserEcosystemWalletByCurrency } = await import("./matchmaking");
+      const { updateWalletBalance } = await import("./wallet");
+      let totalOrdersChecked = 0;
+      let ordersFixed = 0;
+      let invalidOrdersCancelled = 0;
+
+      for (const symbol in this.orderQueue) {
+        // Skip invalid/undefined symbols
+        if (!symbol || symbol === 'undefined' || !symbol.includes('/')) {
+          continue;
+        }
+
+        const orders = this.orderQueue[symbol];
+        const [baseCurrency, quoteCurrency] = symbol.split("/");
+
+        const invalidOrders: Order[] = [];
+
+        for (const order of orders) {
+          totalOrdersChecked++;
+
+          try {
+            const orderAmount = fromBigInt(removeTolerance(order.remaining));
+            const orderCost = fromBigInt(removeTolerance(
+              (order.remaining * order.price) / BigInt(10 ** 18)
+            ));
+
+            if (order.side === "SELL") {
+              // Check if seller has BASE tokens locked
+              const sellerWallet = await getUserEcosystemWalletByCurrency(
+                order.userId,
+                baseCurrency
+              );
+
+              if (!sellerWallet) {
+                console.warn(`[ORDERBOOK_VALIDATION] Wallet not found for user ${order.userId}, currency ${baseCurrency}`);
+                invalidOrders.push(order);
+                continue;
+              }
+
+              const sellerInOrder = parseFloat(sellerWallet.inOrder?.toString() || "0");
+              const sellerBalance = parseFloat(sellerWallet.balance?.toString() || "0");
+
+              if (sellerInOrder < orderAmount) {
+                // Check if user has enough available balance to lock the funds
+                const availableBalance = sellerBalance - sellerInOrder;
+
+                if (availableBalance >= orderAmount) {
+                  // FIX: User has balance, just wasn't locked. Lock it now.
+                  try {
+                    await updateWalletBalance(sellerWallet, orderAmount, "subtract");
+                    ordersFixed++;
+                  } catch (lockError) {
+                    console.error(`[ORDERBOOK_VALIDATION] Failed to lock funds for ${symbol}:`, lockError.message);
+                    invalidOrders.push(order);
+                  }
+                } else {
+                  // User doesn't have enough balance - invalid order
+                  invalidOrders.push(order);
+                }
+              }
+            } else if (order.side === "BUY") {
+              // Check if buyer has QUOTE tokens locked
+              const buyerWallet = await getUserEcosystemWalletByCurrency(
+                order.userId,
+                quoteCurrency
+              );
+
+              if (!buyerWallet) {
+                console.warn(`[ORDERBOOK_VALIDATION] Wallet not found for user ${order.userId}, currency ${quoteCurrency}`);
+                invalidOrders.push(order);
+                continue;
+              }
+
+              const buyerInOrder = parseFloat(buyerWallet.inOrder?.toString() || "0");
+              const buyerBalance = parseFloat(buyerWallet.balance?.toString() || "0");
+
+              if (buyerInOrder < orderCost) {
+                // Check if user has enough available balance to lock the funds
+                const availableBalance = buyerBalance - buyerInOrder;
+
+                if (availableBalance >= orderCost) {
+                  // FIX: User has balance, just wasn't locked. Lock it now.
+                  try {
+                    await updateWalletBalance(buyerWallet, orderCost, "subtract");
+                    ordersFixed++;
+                  } catch (lockError) {
+                    console.error(`[ORDERBOOK_VALIDATION] Failed to lock funds for ${symbol}:`, lockError.message);
+                    invalidOrders.push(order);
+                  }
+                } else {
+                  // User doesn't have enough balance - invalid order
+                  invalidOrders.push(order);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`[ORDERBOOK_VALIDATION] Error validating order ${order.id}:`, error.message);
+            invalidOrders.push(order);
+          }
+        }
+
+        // Cancel invalid orders
+        if (invalidOrders.length > 0) {
+          for (const order of invalidOrders) {
+            try {
+              // Import necessary functions
+              const { cancelOrderByUuid } = await import("./scylla/queries");
+
+              // Cancel in Scylla (requires all 7 parameters)
+              await cancelOrderByUuid(
+                order.userId,
+                order.id,
+                order.createdAt.toISOString(),
+                order.symbol,
+                order.price,
+                order.side,
+                order.remaining
+              );
+
+              // Remove from local queue
+              const index = this.orderQueue[symbol].indexOf(order);
+              if (index > -1) {
+                this.orderQueue[symbol].splice(index, 1);
+              }
+
+              // Broadcast cancellation
+              await handleOrderBroadcast({
+                ...order,
+                status: "CANCELLED",
+              });
+
+              invalidOrdersCancelled++;
+            } catch (cancelError) {
+              console.error(`[ORDERBOOK_VALIDATION] Failed to cancel order for ${symbol}:`, cancelError.message);
+            }
+          }
+        }
+      }
+
+      // Only log if there were issues
+      if (ordersFixed > 0 || invalidOrdersCancelled > 0) {
+        console.log(
+          `[ORDERBOOK_VALIDATION] Fixed ${ordersFixed} orders, cancelled ${invalidOrdersCancelled} invalid orders`
+        );
+      }
+
+      if (ordersFixed > 0 || invalidOrdersCancelled > 0) {
+        // Refresh orderbook after cleanup
+        await this.refreshOrderBooks();
+
+        // Re-load and re-run matching engine to process the fixed orders
+        if (ordersFixed > 0) {
+          // Clear the current queue
+          for (const symbol in this.orderQueue) {
+            this.orderQueue[symbol] = [];
+          }
+
+          // Reload all open orders from Scylla
+          const openOrders = await getAllOpenOrders();
+          const uuidStringify = await import("uuid").then(m => m.stringify);
+
+          openOrders.forEach((order) => {
+            const createdAt = new Date(order.createdAt);
+            const updatedAt = new Date(order.updatedAt);
+
+            if (isNaN(createdAt.getTime()) || isNaN(updatedAt.getTime())) return;
+            if (!order.userId?.buffer || !order.id?.buffer) return;
+
+            const normalizedOrder = {
+              ...order,
+              amount: BigInt(order.amount ?? 0),
+              price: BigInt(order.price ?? 0),
+              cost: BigInt(order.cost ?? 0),
+              fee: BigInt(order.fee ?? 0),
+              remaining: BigInt(order.remaining ?? 0),
+              filled: BigInt(order.filled ?? 0),
+              createdAt,
+              updatedAt,
+              userId: uuidStringify(order.userId.buffer),
+              id: uuidStringify(order.id.buffer),
+            };
+
+            if (!this.orderQueue[normalizedOrder.symbol]) {
+              this.orderQueue[normalizedOrder.symbol] = [];
+            }
+            this.orderQueue[normalizedOrder.symbol].push(normalizedOrder);
+          });
+
+          await this.processQueue();
+        }
+      }
+    } catch (error) {
+      logError("orderbook_validation", error, __filename);
+      console.error(`[ORDERBOOK_VALIDATION] Validation failed:`, error);
+    }
+  }
+
+  /**
+   * Refreshes all orderbooks after cleanup
+   */
+  private async refreshOrderBooks() {
+    try {
+      const allOrderBookEntries = await fetchOrderBooks();
+      const mappedOrderBook: Record<string, Record<"bids" | "asks", Record<string, bigint>>> = {};
+
+      allOrderBookEntries?.forEach((entry) => {
+        if (!mappedOrderBook[entry.symbol]) {
+          mappedOrderBook[entry.symbol] = { bids: {}, asks: {} };
+        }
+        mappedOrderBook[entry.symbol][entry.side.toLowerCase()][
+          removeTolerance(toBigIntFloat(Number(entry.price))).toString()
+        ] = removeTolerance(toBigIntFloat(Number(entry.amount)));
+      });
+
+      // Broadcast updated orderbooks
+      for (const symbol in mappedOrderBook) {
+        await handleOrderBookBroadcast(symbol, mappedOrderBook[symbol]);
+      }
+    } catch (error) {
+      console.error("[ORDERBOOK_VALIDATION] Failed to refresh orderbooks:", error);
     }
   }
 
@@ -456,13 +836,13 @@ export class MatchingEngine {
 
     updatePromises.push(...this.createOrdersBroadcastPromise(ordersToUpdate));
 
-    for (const symbol in this.orderQueue) {
-      if (finalOrderBooks[symbol]) {
-        updatePromises.push(
-          this.createOrderBookUpdatePromise(symbol, finalOrderBooks[symbol])
-        );
-        updatePromises.push(...this.createCandleBroadcastPromises(symbol));
-      }
+    // Broadcast updates for all symbols that had trades (in finalOrderBooks)
+    // instead of only symbols still in orderQueue (which may be empty after cleanup)
+    for (const symbol in finalOrderBooks) {
+      updatePromises.push(
+        this.createOrderBookUpdatePromise(symbol, finalOrderBooks[symbol])
+      );
+      updatePromises.push(...this.createCandleBroadcastPromises(symbol));
     }
 
     await Promise.all(updatePromises);
@@ -477,15 +857,20 @@ export class MatchingEngine {
 
   private createCandleBroadcastPromises(symbol: string) {
     const promises: Promise<void>[] = [];
-    for (const interval in this.lastCandle[symbol]) {
-      promises.push(
-        handleCandleBroadcast(
-          symbol,
-          interval,
-          this.lastCandle[symbol][interval]
-        )
-      );
+
+    // Broadcast candles for all intervals that have been updated
+    if (this.lastCandle[symbol]) {
+      for (const interval in this.lastCandle[symbol]) {
+        promises.push(
+          handleCandleBroadcast(
+            symbol,
+            interval,
+            this.lastCandle[symbol][interval]
+          )
+        );
+      }
     }
+
     promises.push(
       handleTickerBroadcast(symbol, this.getTicker(symbol)),
       handleTickersBroadcast(this.getTickers())

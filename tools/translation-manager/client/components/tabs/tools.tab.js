@@ -10,6 +10,12 @@
     }
 
     function setupEventListeners() {
+        // Extract Menu button
+        const menuBtn = document.querySelector('[data-tool="extract-menu"]');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', extractMenuTranslations);
+        }
+
         // Find Duplicates button
         const duplicatesBtn = document.querySelector('[data-tool="duplicates"]');
         if (duplicatesBtn) {
@@ -25,37 +31,147 @@
         // Other tool buttons (if any)
         document.querySelectorAll('.tool-btn').forEach(btn => {
             if (!btn.hasAttribute('data-tool')) return;
-            
+
             const tool = btn.getAttribute('data-tool');
-            if (tool && tool !== 'duplicates' && tool !== 'missing') {
+            if (tool && tool !== 'duplicates' && tool !== 'missing' && tool !== 'extract-menu') {
                 btn.addEventListener('click', () => runTool(tool));
             }
         });
+    }
+
+    async function extractMenuTranslations() {
+        const btn = document.querySelector('[data-tool="extract-menu"]');
+        const resultsContainer = document.getElementById('tool-results');
+        const resultsContent = document.getElementById('tool-results-content');
+
+        if (!resultsContainer || !resultsContent) return;
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i> Extracting Menu Translations...';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/tools-v2/extract-menu`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to extract menu translations');
+            }
+
+            // Display results
+            displayMenuExtractionResults(data);
+            resultsContainer.classList.remove('hidden');
+            UIUtils.showSuccess('Menu translations extracted successfully!');
+
+        } catch (error) {
+            console.error('Error extracting menu translations:', error);
+            UIUtils.showError('Failed to extract menu translations: ' + error.message);
+        } finally {
+            // Restore button state
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-list mr-3"></i> Extract Menu Translations';
+        }
+    }
+
+    function displayMenuExtractionResults(data) {
+        const resultsContent = document.getElementById('tool-results-content');
+        if (!resultsContent) return;
+
+        const html = `
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-green-800">
+                            Menu Translations Extracted Successfully!
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-green-600 mb-1">
+                                ${data.stats?.keysExtracted || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">Translation Keys Extracted</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-blue-600 mb-1">
+                                ${data.stats?.filesUpdated || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">Locale Files Updated</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-purple-600 mb-1">
+                                ${data.stats?.totalAdded || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">Total Keys Added</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-4 mt-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>What was extracted:
+                        </h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Menu item titles from <code class="bg-gray-100 px-1 rounded">frontend/config/menu.ts</code></li>
+                            <li>Menu item descriptions</li>
+                            <li>All nested menu items</li>
+                            <li>Translation keys follow format: <code class="bg-gray-100 px-1 rounded">menu.{key}.{field}</code></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>Next Steps:
+                    </h4>
+                    <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                        <li>Review the extracted translations in the <strong>Locales</strong> tab</li>
+                        <li>Use the <strong>AI Translate</strong> tab to translate menu items to other languages</li>
+                        <li>Update your menu components to use <code class="bg-blue-100 px-1 rounded">useTranslations()</code></li>
+                        <li>Test menu translations by switching languages</li>
+                    </ol>
+                </div>
+
+                ${data.output ? `
+                    <details class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <summary class="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">
+                            <i class="fas fa-terminal mr-2"></i>View Extraction Log
+                        </summary>
+                        <pre class="mt-3 text-xs bg-gray-900 text-green-400 p-4 rounded overflow-x-auto">${escapeHtml(data.output)}</pre>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+
+        resultsContent.innerHTML = html;
     }
 
     async function findDuplicates() {
         const btn = document.querySelector('[data-tool="duplicates"]');
         const resultsContainer = document.getElementById('tool-results');
         const resultsContent = document.getElementById('tool-results-content');
-        
+
         if (!resultsContainer || !resultsContent) return;
-        
+
         // Show loading state
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i> Finding Duplicates...';
-        
+
         try {
             const response = await fetch(`${API_BASE}/api/tools/find-duplicates`);
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to find duplicates');
             }
-            
+
             // Display results
             displayDuplicatesResults(data);
             resultsContainer.classList.remove('hidden');
-            
+
         } catch (error) {
             console.error('Error finding duplicates:', error);
             UIUtils.showError('Failed to find duplicates: ' + error.message);
@@ -430,6 +546,7 @@
     // Export functions to global scope
     window.toolsTab = {
         initialize: initializeToolsTab,
+        extractMenuTranslations,
         findDuplicates,
         findMissingTranslations,
         runTool

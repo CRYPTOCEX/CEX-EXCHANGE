@@ -1,5 +1,5 @@
 import * as Sequelize from "sequelize";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
 export default class nftOffer
   extends Model<nftOfferAttributes, nftOfferCreationAttributes>
@@ -9,11 +9,17 @@ export default class nftOffer
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
-  offererId!: string;
+  userId!: string; // Changed from offererId
   amount!: number;
   currency!: string;
   expiresAt?: Date;
   status!: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+  type?: "TOKEN" | "COLLECTION";
+  message?: string;
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  cancelledAt?: Date;
+  expiredAt?: Date;
   metadata?: any;
   createdAt?: Date;
   deletedAt?: Date;
@@ -49,12 +55,12 @@ export default class nftOffer
             isUUID: { args: 4, msg: "listingId: Listing ID must be a valid UUID" },
           },
         },
-        offererId: {
+        userId: {
           type: DataTypes.UUID,
           allowNull: false,
           validate: {
-            notNull: { msg: "offererId: Offerer ID cannot be null" },
-            isUUID: { args: 4, msg: "offererId: Offerer ID must be a valid UUID" },
+            notNull: { msg: "userId: User ID cannot be null" },
+            isUUID: { args: 4, msg: "userId: User ID must be a valid UUID" },
           },
         },
         amount: {
@@ -86,6 +92,30 @@ export default class nftOffer
               msg: "status: Status must be one of 'ACTIVE', 'ACCEPTED', 'REJECTED', 'EXPIRED', or 'CANCELLED'",
             },
           },
+        },
+        type: {
+          type: DataTypes.ENUM("TOKEN", "COLLECTION"),
+          allowNull: true,
+        },
+        message: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        acceptedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        rejectedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        cancelledAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        expiredAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
         metadata: {
           type: DataTypes.JSON,
@@ -128,9 +158,9 @@ export default class nftOffer
             fields: [{ name: "listingId" }],
           },
           {
-            name: "nftOfferOffererIdx",
+            name: "nftOfferUserIdx",
             using: "BTREE",
-            fields: [{ name: "offererId" }],
+            fields: [{ name: "userId" }],
           },
           {
             name: "nftOfferStatusIdx",
@@ -175,8 +205,8 @@ export default class nftOffer
     });
 
     nftOffer.belongsTo(models.user, {
-      as: "offerer",
-      foreignKey: "offererId",
+      as: "user",
+      foreignKey: "userId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });

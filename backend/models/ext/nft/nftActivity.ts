@@ -6,10 +6,12 @@ export default class nftActivity
   implements nftActivityAttributes
 {
   id!: string;
-  type!: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED";
+  type!: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED" | "AUCTION_ENDED";
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
+  offerId?: string;
+  bidId?: string;
   fromUserId?: string;
   toUserId?: string;
   price?: number;
@@ -31,12 +33,12 @@ export default class nftActivity
           allowNull: false,
         },
         type: {
-          type: DataTypes.ENUM("MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED"),
+          type: DataTypes.ENUM("MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED", "AUCTION_ENDED"),
           allowNull: false,
           validate: {
             isIn: {
-              args: [["MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED"]],
-              msg: "type: Type must be one of 'MINT', 'TRANSFER', 'SALE', 'LIST', 'DELIST', 'BID', 'OFFER', 'BURN', 'COLLECTION_CREATED', or 'COLLECTION_DEPLOYED'",
+              args: [["MINT", "TRANSFER", "SALE", "LIST", "DELIST", "BID", "OFFER", "BURN", "COLLECTION_CREATED", "COLLECTION_DEPLOYED", "AUCTION_ENDED"]],
+              msg: "type: Type must be one of 'MINT', 'TRANSFER', 'SALE', 'LIST', 'DELIST', 'BID', 'OFFER', 'BURN', 'COLLECTION_CREATED', 'COLLECTION_DEPLOYED', or 'AUCTION_ENDED'",
             },
           },
         },
@@ -59,6 +61,20 @@ export default class nftActivity
           allowNull: true,
           validate: {
             isUUID: { args: 4, msg: "listingId: Listing ID must be a valid UUID" },
+          },
+        },
+        offerId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          validate: {
+            isUUID: { args: 4, msg: "offerId: Offer ID must be a valid UUID" },
+          },
+        },
+        bidId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          validate: {
+            isUUID: { args: 4, msg: "bidId: Bid ID must be a valid UUID" },
           },
         },
         fromUserId: {
@@ -151,6 +167,16 @@ export default class nftActivity
             fields: [{ name: "toUserId" }],
           },
           {
+            name: "nftActivityOfferIdx",
+            using: "BTREE",
+            fields: [{ name: "offerId" }],
+          },
+          {
+            name: "nftActivityBidIdx",
+            using: "BTREE",
+            fields: [{ name: "bidId" }],
+          },
+          {
             name: "nftActivityCreatedAtIdx",
             using: "BTREE",
             fields: [{ name: "createdAt" }],
@@ -178,6 +204,20 @@ export default class nftActivity
     nftActivity.belongsTo(models.nftListing, {
       as: "listing",
       foreignKey: "listingId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    nftActivity.belongsTo(models.nftOffer, {
+      as: "offer",
+      foreignKey: "offerId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    nftActivity.belongsTo(models.nftBid, {
+      as: "bid",
+      foreignKey: "bidId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });

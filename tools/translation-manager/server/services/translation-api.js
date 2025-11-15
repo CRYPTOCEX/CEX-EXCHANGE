@@ -177,12 +177,23 @@ class TranslationAPI {
 
     unflattenObject(obj) {
         const result = {};
-        
-        // First, handle keys that might conflict with nested structures
-        // Sort keys to ensure shorter paths are processed first
-        const sortedKeys = Object.keys(obj).sort();
-        
-        for (const key of sortedKeys) {
+
+        // Preserve insertion order by NOT sorting - this maintains the original key order
+        // Instead, we need to process keys in the order they appear in the object
+        // But we must ensure parent paths are created before child paths
+        const allKeys = Object.keys(obj);
+
+        // Sort ONLY by path depth (number of dots), not alphabetically
+        // This ensures parent structures are created before children
+        const keysByDepth = allKeys.sort((a, b) => {
+            const depthA = (a.match(/\./g) || []).length;
+            const depthB = (b.match(/\./g) || []).length;
+            if (depthA !== depthB) return depthA - depthB;
+            // If same depth, preserve original order by comparing indices
+            return allKeys.indexOf(a) - allKeys.indexOf(b);
+        });
+
+        for (const key of keysByDepth) {
             const keys = key.split('.');
             let current = result;
             
@@ -264,24 +275,93 @@ class TranslationAPI {
     async findIdenticalValues(sourceLocale = 'en', targetLocale) {
         const source = this.locales.get(sourceLocale);
         const target = this.locales.get(targetLocale);
-        
+
         if (!source || !target) {
             throw new Error('Locale not found');
         }
-        
+
         const identical = [];
         const sourceKeys = source.keys;
         const targetKeys = target.keys;
-        
+
+        let totalChecked = 0;
+        let foundIdentical = 0;
+        let skippedByFilter = 0;
+
+        // Terms that are universally the same across languages (case-insensitive)
+        const universalTerms = [
+            'api', 'url', 'html', 'css', 'javascript', 'json', 'xml', 'http', 'https',
+            'email', 'sms', 'pdf', 'csv', 'sql', 'id', 'uuid', 'token', 'oauth',
+            'github', 'google', 'facebook', 'twitter', 'linkedin', 'youtube',
+            'wifi', 'vpn', 'ip', 'dns', 'ssl', 'tls', 'ftp', 'ssh'
+        ];
+
+        // Patterns that suggest the term should stay the same
+        const shouldKeepIdentical = (text) => {
+            const lowerText = text.toLowerCase().trim();
+            const trimmedText = text.trim();
+
+            // Skip very short strings (1-2 characters only)
+            if (trimmedText.length <= 2) return true;
+
+            // Check if it's a universal technical term (exact match)
+            if (universalTerms.includes(lowerText)) return true;
+
+            // Check if it's all caps AND is purely alphabetic (acronyms like BTC, ICO, P2P, ROI, APR)
+            // This excludes things like "Admin" or "Info" which have mixed case
+            if (trimmedText === trimmedText.toUpperCase() &&
+                trimmedText.length >= 2 &&
+                trimmedText.length <= 6 &&
+                /^[A-Z]+$/.test(trimmedText)) return true;
+
+            // Check if it's a number or time/size format (like "5MB", "15m", "1W", "90D")
+            if (/^\d+$/.test(trimmedText) || /^\d+[a-zA-Z]{1,3}$/.test(trimmedText)) return true;
+
+            // Check if it's a placeholder variable (like {variable})
+            if (/^{[^}]+}$/.test(trimmedText) || /^%[sd]$/.test(trimmedText)) return true;
+
+            // Check if it's a URL or path
+            if (/^(https?:\/\/|\/|\.\/|\.\.\/|[a-z]:\/)/i.test(trimmedText)) return true;
+
+            // Check if it's an email
+            if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedText)) return true;
+
+            // Check if it's a date format pattern (like "yyyy-MM-dd", "HH:mm:ss")
+            if (/^[yMdHhms:\s-]+$/.test(trimmedText) && trimmedText.length <= 20) return true;
+
+            // Check for very short measurement units and prepositions (px, kg, m³, vs, of, pm, am)
+            if (trimmedText.length <= 4 && /^[a-z]{1,3}[²³]?$/.test(lowerText)) {
+                const veryCommon = ['px', 'kg', 'm³', 'vs', 'of', 'pm', 'am', 'no', 'id'];
+                if (veryCommon.includes(lowerText)) return true;
+            }
+
+            // All other identical values should be translated (including "Admin", "Loading", "Success", etc.)
+            return false;
+        };
+
         for (const key in sourceKeys) {
+            totalChecked++;
             if (targetKeys[key] && sourceKeys[key] === targetKeys[key]) {
-                identical.push({
-                    key,
-                    value: sourceKeys[key]
-                });
+                foundIdentical++;
+                // Only include if it's NOT a universal term that should stay the same
+                if (!shouldKeepIdentical(sourceKeys[key])) {
+                    identical.push({
+                        key,
+                        value: sourceKeys[key]
+                    });
+                } else {
+                    skippedByFilter++;
+                    console.log(`Skipping identical value for key "${key}" as it's likely intentional: "${sourceKeys[key]}"`);
+                }
             }
         }
-        
+
+        console.log(`\n📊 Identical values scan for ${targetLocale}:`);
+        console.log(`   Total keys checked: ${totalChecked}`);
+        console.log(`   Found identical: ${foundIdentical}`);
+        console.log(`   Skipped by filter: ${skippedByFilter}`);
+        console.log(`   Selected for translation: ${identical.length}\n`);
+
         return identical;
     }
 
@@ -338,10 +418,12 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
             let hasReceivedData = false;
             let timeoutId;
 
-            // Set timeout for the command
+            // Set timeout for the command - dynamic based on batch size
+            // Allow 3 seconds per text minimum, or 90 seconds minimum
+            const dynamicTimeout = Math.max(90000, textsToTranslate.length * 3000);
             timeoutId = setTimeout(() => {
                 claudeProcess.kill();
-                console.error('Claude command timed out');
+                console.error(`Claude command timed out after ${dynamicTimeout}ms for ${textsToTranslate.length} texts`);
                 if (progressCallback) {
                     progressCallback({
                         type: 'batch_error',
@@ -351,7 +433,7 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                 }
                 // Fallback to returning original text
                 resolve(isArray ? textsToTranslate : textsToTranslate[0]);
-            }, 45000); // 45 second timeout for larger batches
+            }, dynamicTimeout);
 
             claudeProcess.stdout.on('data', (data) => {
                 hasReceivedData = true;
@@ -364,15 +446,19 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
 
             claudeProcess.on('close', (code) => {
                 clearTimeout(timeoutId);
-                
+
                 if (code !== 0 || !hasReceivedData) {
-                    console.error(`Claude process exited with code ${code}`);
-                    if (error) console.error(`Error: ${error}`);
+                    const errorMsg = code === null ? 'Claude process was terminated (timeout or killed)' : `Claude process exited with code ${code}`;
+                    console.error(errorMsg);
+                    if (error) console.error(`Stderr: ${error}`);
+                    if (output && output.trim()) {
+                        console.log(`Partial output received: ${output.substring(0, 200)}...`);
+                    }
                     if (progressCallback) {
                         progressCallback({
                             type: 'batch_error',
                             locale: targetLocale,
-                            error: error || 'Translation failed'
+                            error: error || errorMsg
                         });
                     }
                     // Fallback to returning original text
@@ -598,14 +684,44 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
 
         // If no content provided, use the current locale keys
         const keysToSave = content || locale.keys;
-        
-        const unflattened = this.unflattenObject(keysToSave);
-        await fs.writeFile(locale.filePath, JSON.stringify(unflattened, null, 2));
-        
-        // Update in-memory data
-        locale.content = unflattened;
-        locale.keys = keysToSave;
-        
+
+        // Get the English locale as a reference for key ordering
+        const enLocale = this.locales.get('en');
+
+        // If we have an English reference, order keys to match it
+        if (enLocale && localeCode !== 'en') {
+            const orderedKeys = {};
+
+            // First, add keys in the same order as English locale
+            for (const key in enLocale.keys) {
+                if (Object.prototype.hasOwnProperty.call(keysToSave, key)) {
+                    orderedKeys[key] = keysToSave[key];
+                }
+            }
+
+            // Then add any additional keys that exist in target but not in English
+            for (const key in keysToSave) {
+                if (!Object.prototype.hasOwnProperty.call(orderedKeys, key)) {
+                    orderedKeys[key] = keysToSave[key];
+                }
+            }
+
+            const unflattened = this.unflattenObject(orderedKeys);
+            await fs.writeFile(locale.filePath, JSON.stringify(unflattened, null, 2));
+
+            // Update in-memory data
+            locale.content = unflattened;
+            locale.keys = orderedKeys;
+        } else {
+            // For English or if no reference, save as is
+            const unflattened = this.unflattenObject(keysToSave);
+            await fs.writeFile(locale.filePath, JSON.stringify(unflattened, null, 2));
+
+            // Update in-memory data
+            locale.content = unflattened;
+            locale.keys = keysToSave;
+        }
+
         return true;
     }
 }

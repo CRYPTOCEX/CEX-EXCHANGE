@@ -168,7 +168,7 @@ export default async (data: Handler) => {
       amount: amount,
       fee: 0, // iPay88 fees are typically charged by the gateway
       description: description,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: "ipay88",
         currency: currency.toUpperCase(),
         payment_method: paymentMethod,
@@ -176,7 +176,7 @@ export default async (data: Handler) => {
         customer_email: customerEmail || user.email,
         customer_phone: customerPhone,
         language: lang,
-      },
+      }),
     });
 
     // Generate unique reference number

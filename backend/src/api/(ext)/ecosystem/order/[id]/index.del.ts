@@ -89,6 +89,8 @@ export default async (data: Handler) => {
     const totalAmount = BigInt(order.amount);
     const remaining = BigInt(order.remaining);
     const totalCost = BigInt(order.cost);
+    const totalFee = BigInt(order.fee);
+    const price = BigInt(order.price);
     const side = order.side;
     const symbol = order.symbol;
 
@@ -102,18 +104,22 @@ export default async (data: Handler) => {
     let refundAmount = 0;
 
     if (side === "BUY") {
-      // The user locked 'totalCost' = amount*price + fee in 'pair' currency upfront.
-      // Unused portion: (remaining/totalAmount) * totalCost
-      const leftoverRatio = Number(remaining) / Number(totalAmount);
-      refundAmount = fromBigInt(totalCost) * leftoverRatio;
-      // Refund is in 'pair' currency.
+      // BUY order: user locked (amount * price + fee) in pair currency
+      // For partial fills, the filled portion already released funds from inOrder
+      // We need to refund what's STILL LOCKED for the remaining unfilled portion
+
+      // Calculate proportional cost and fee for remaining amount
+      const fillRatio = Number(remaining) / Number(totalAmount);
+      const remainingCost = (remaining * price) / BigInt(1e18); // remaining * price
+      const remainingFee = (totalFee * BigInt(Math.floor(fillRatio * 1e18))) / BigInt(1e18);
+
+      // Total refund = remaining cost + remaining fee (what's still locked)
+      refundAmount = fromBigInt(remainingCost + remainingFee);
     } else {
-      // side === "SELL"
-      // The user locked 'amount' of the base currency upfront and did not pay fee upfront.
-      // Unused portion: (remaining/totalAmount) * amount
-      const leftoverRatio = Number(remaining) / Number(totalAmount);
-      refundAmount = fromBigInt(totalAmount) * leftoverRatio;
-      // Refund is in 'currency' (base) since that's what was locked.
+      // SELL order: user locked 'amount' in base currency
+      // For partial fills, filled amount was already released from inOrder
+      // Refund the remaining unfilled amount that's still locked
+      refundAmount = fromBigInt(remaining);
     }
 
     const refundCurrency = side === "BUY" ? pair : currency;

@@ -154,8 +154,19 @@ function createTranslationRoutes(api, translationState, wsManager) {
             
             if (mode === 'missing') {
                 for (const key in enLocale.keys) {
-                    if (!Object.prototype.hasOwnProperty.call(locale.keys, key) || !locale.keys[key] || (typeof locale.keys[key] === 'string' && locale.keys[key].trim() === '')) {
-                        keysToTranslate.push({ key, value: enLocale.keys[key] });
+                    const localeValue = locale.keys[key];
+                    const enValue = enLocale.keys[key];
+
+                    // A key is "missing" if:
+                    // 1. It doesn't exist in the target locale
+                    // 2. It's empty or whitespace-only
+                    // 3. It's identical to English (copy-pasted but not translated)
+                    const isMissing = !Object.prototype.hasOwnProperty.call(locale.keys, key) ||
+                                     !localeValue ||
+                                     (typeof localeValue === 'string' && localeValue.trim() === '');
+
+                    if (isMissing) {
+                        keysToTranslate.push({ key, value: enValue });
                     }
                 }
                 console.log(`Debug: Found ${keysToTranslate.length} missing keys to translate`);
@@ -165,11 +176,19 @@ function createTranslationRoutes(api, translationState, wsManager) {
             } else if (mode === 'both') {
                 // First add missing keys
                 for (const key in enLocale.keys) {
-                    if (!Object.prototype.hasOwnProperty.call(locale.keys, key) || !locale.keys[key] || locale.keys[key].trim() === '') {
-                        keysToTranslate.push({ key, value: enLocale.keys[key] });
+                    const localeValue = locale.keys[key];
+                    const enValue = enLocale.keys[key];
+
+                    // A key is "missing" if it doesn't exist, is empty, or is whitespace-only
+                    const isMissing = !Object.prototype.hasOwnProperty.call(locale.keys, key) ||
+                                     !localeValue ||
+                                     (typeof localeValue === 'string' && localeValue.trim() === '');
+
+                    if (isMissing) {
+                        keysToTranslate.push({ key, value: enValue });
                     }
                 }
-                // Then add identical keys
+                // Then add identical keys (smart filtering applied in findIdenticalValues)
                 const identical = await api.findIdenticalValues('en', targetLocale);
                 keysToTranslate = [...keysToTranslate, ...identical];
                 // Remove duplicates
@@ -178,6 +197,7 @@ function createTranslationRoutes(api, translationState, wsManager) {
                     uniqueKeys.set(item.key, item);
                 });
                 keysToTranslate = Array.from(uniqueKeys.values());
+                console.log(`Debug: Found ${keysToTranslate.length} keys to translate (missing + identical)`);
             }
             
             // Filter by priority if needed
@@ -539,6 +559,22 @@ function createTranslationRoutes(api, translationState, wsManager) {
             res.json({ success: true });
         } else {
             res.status(404).json({ error: 'No translation found for this locale' });
+        }
+    });
+
+    // Reload locales from disk (useful after code changes)
+    router.post('/locales/reload', async (req, res) => {
+        try {
+            console.log('Reloading locales from disk...');
+            await api.loadLocales();
+            res.json({
+                success: true,
+                message: 'Locales reloaded successfully',
+                totalLocales: api.locales.size
+            });
+        } catch (error) {
+            console.error('Error reloading locales:', error);
+            res.status(500).json({ error: error.message });
         }
     });
 

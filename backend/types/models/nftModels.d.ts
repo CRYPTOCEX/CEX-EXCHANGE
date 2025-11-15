@@ -54,6 +54,7 @@ interface nftCollectionAttributes {
   telegram?: string;
   isVerified?: boolean;
   isLazyMinted?: boolean;
+  isPublicMintEnabled?: boolean;
   status: "DRAFT" | "PENDING" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
   stakingRewardRate?: number;
   metadata?: any;
@@ -84,6 +85,7 @@ type nftCollectionOptionalAttributes =
   | "telegram"
   | "isVerified"
   | "isLazyMinted"
+  | "isPublicMintEnabled"
   | "status"
   | "stakingRewardRate"
   | "metadata"
@@ -104,12 +106,11 @@ interface nftTokenAttributes {
   tokenId: string;
   name: string;
   description?: string;
-  image?: string;
-  animationUrl?: string;
-  externalUrl?: string;
+  image?: string; // IPFS image URL
   attributes?: any;
-  metadataUri?: string;
+  metadataUri?: string; // IPFS metadata JSON URL (tokenURI on blockchain)
   metadataHash?: string;
+  ownerWalletAddress?: string; // Blockchain wallet address of the NFT owner
   ownerId?: string;
   creatorId: string;
   mintedAt?: Date;
@@ -131,11 +132,10 @@ type nftTokenOptionalAttributes =
   | "id"
   | "description"
   | "image"
-  | "animationUrl"
-  | "externalUrl"
   | "attributes"
   | "metadataUri"
   | "metadataHash"
+  | "ownerWalletAddress"
   | "ownerId"
   | "mintedAt"
   | "isMinted"
@@ -161,12 +161,19 @@ interface nftListingAttributes {
   type: "FIXED_PRICE" | "AUCTION" | "BUNDLE";
   price?: number;
   currency: string;
+  currentBid?: number;
+  startingBid?: number;
   reservePrice?: number;
   minBidIncrement?: number;
   buyNowPrice?: number;
+  auctionContractAddress?: string;
+  bundleTokenIds?: string;
   startTime?: Date;
   endTime?: Date;
   status: "ACTIVE" | "SOLD" | "CANCELLED" | "EXPIRED";
+  soldAt?: Date;
+  cancelledAt?: Date;
+  endedAt?: Date;
   views?: number;
   likes?: number;
   metadata?: any;
@@ -181,11 +188,19 @@ type nftListingOptionalAttributes =
   | "id"
   | "price"
   | "currency"
+  | "currentBid"
+  | "startingBid"
   | "reservePrice"
+  | "minBidIncrement"
   | "buyNowPrice"
+  | "auctionContractAddress"
+  | "bundleTokenIds"
   | "startTime"
   | "endTime"
   | "status"
+  | "soldAt"
+  | "cancelledAt"
+  | "endedAt"
   | "views"
   | "likes"
   | "metadata"
@@ -201,10 +216,12 @@ type nftListingCreationAttributes = Optional<
 // NFT Activity
 interface nftActivityAttributes {
   id: string;
-  type: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED";
+  type: "MINT" | "TRANSFER" | "SALE" | "LIST" | "DELIST" | "BID" | "OFFER" | "BURN" | "COLLECTION_CREATED" | "COLLECTION_DEPLOYED" | "AUCTION_ENDED";
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
+  offerId?: string;
+  bidId?: string;
   fromUserId?: string;
   toUserId?: string;
   price?: number;
@@ -224,6 +241,8 @@ type nftActivityOptionalAttributes =
   | "tokenId"
   | "collectionId"
   | "listingId"
+  | "offerId"
+  | "bidId"
   | "fromUserId"
   | "toUserId"
   | "price"
@@ -243,11 +262,17 @@ type nftActivityCreationAttributes = Optional<
 interface nftBidAttributes {
   id: string;
   listingId: string;
-  bidderId: string;
+  tokenId?: string;
+  userId: string; // Changed from bidderId
   amount: number;
   currency: string;
+  transactionHash?: string;
   expiresAt?: Date;
-  status: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+  status: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED" | "OUTBID";
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  outbidAt?: Date;
+  cancelledAt?: Date;
   metadata?: any;
   createdAt?: Date;
   deletedAt?: Date;
@@ -258,9 +283,15 @@ type nftBidPk = "id";
 type nftBidId = nftBidAttributes[nftBidPk];
 type nftBidOptionalAttributes =
   | "id"
+  | "tokenId"
   | "currency"
+  | "transactionHash"
   | "expiresAt"
   | "status"
+  | "acceptedAt"
+  | "rejectedAt"
+  | "outbidAt"
+  | "cancelledAt"
   | "metadata"
   | "createdAt"
   | "deletedAt"
@@ -276,11 +307,17 @@ interface nftOfferAttributes {
   tokenId?: string;
   collectionId?: string;
   listingId?: string;
-  offererId: string;
+  userId: string; // Changed from offererId
   amount: number;
   currency: string;
   expiresAt?: Date;
   status: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+  type?: "TOKEN" | "COLLECTION";
+  message?: string;
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  cancelledAt?: Date;
+  expiredAt?: Date;
   metadata?: any;
   createdAt?: Date;
   deletedAt?: Date;
@@ -297,6 +334,12 @@ type nftOfferOptionalAttributes =
   | "currency"
   | "expiresAt"
   | "status"
+  | "type"
+  | "message"
+  | "acceptedAt"
+  | "rejectedAt"
+  | "cancelledAt"
+  | "expiredAt"
   | "metadata"
   | "createdAt"
   | "deletedAt"
@@ -598,4 +641,41 @@ type nftMarketplaceCreationAttributes = Optional<
 interface nftMarketplace extends nftMarketplaceAttributes {
   deployer?: userAttributes;
   pauser?: userAttributes;
+}
+
+// NFT Price History
+interface nftPriceHistoryAttributes {
+  id: string;
+  tokenId: string;
+  collectionId?: string;
+  price: number;
+  currency: string;
+  priceUSD?: number;
+  saleType: "DIRECT" | "AUCTION" | "OFFER";
+  buyerId?: string;
+  sellerId?: string;
+  transactionHash?: string;
+  createdAt?: Date;
+}
+
+type nftPriceHistoryPk = "id";
+type nftPriceHistoryId = nftPriceHistoryAttributes[nftPriceHistoryPk];
+type nftPriceHistoryOptionalAttributes =
+  | "id"
+  | "collectionId"
+  | "priceUSD"
+  | "buyerId"
+  | "sellerId"
+  | "transactionHash"
+  | "createdAt";
+type nftPriceHistoryCreationAttributes = Optional<
+  nftPriceHistoryAttributes,
+  nftPriceHistoryOptionalAttributes
+>;
+
+interface nftPriceHistory extends nftPriceHistoryAttributes {
+  token?: nftTokenAttributes;
+  collection?: nftCollectionAttributes;
+  buyer?: userAttributes;
+  seller?: userAttributes;
 }

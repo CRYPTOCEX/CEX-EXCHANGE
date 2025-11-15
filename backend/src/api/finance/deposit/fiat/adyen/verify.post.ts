@@ -168,13 +168,13 @@ export default async (data: Handler) => {
     const updatedTransaction = await models.transaction.update(
       {
         status: newStatus,
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           pspReference: paymentData.pspReference,
           resultCode,
           verifiedAt: new Date().toISOString(),
           verificationMethod: "manual",
-        },
+        }),
       },
       {
         where: { id: transaction.id },
@@ -206,19 +206,8 @@ export default async (data: Handler) => {
         });
       }
 
-      // Create wallet transaction record
-      await models.walletTransaction.create({
-        walletId: wallet?.id,
-        type: "DEPOSIT",
-        amount: transaction.amount - (transaction.fee || 0),
-        balance: wallet ? wallet.balance + (transaction.amount - (transaction.fee || 0)) : transaction.amount - (transaction.fee || 0),
-        description: `Adyen deposit verification - ${reference}`,
-        metadata: {
-          transactionId: transaction.id,
-          gateway: "adyen",
-          pspReference: paymentData.pspReference,
-        },
-      });
+      // Transaction record is already created in the transaction variable above
+      // No need to create another walletTransaction
     }
 
     return {

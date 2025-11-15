@@ -140,7 +140,7 @@ export default async (data: Handler) => {
           {
             status: 'COMPLETED',
             referenceId: molliePayment.id,
-            metadata: {
+            metadata: JSON.stringify({
               ...targetTransaction.metadata,
               molliePaymentId: molliePayment.id,
               mollieStatus: molliePayment.status,
@@ -148,7 +148,7 @@ export default async (data: Handler) => {
               paidAt: molliePayment.createdAt,
               settlementAmount: molliePayment.settlementAmount,
               webhookProcessedAt: new Date().toISOString(),
-            },
+            }),
           },
           {
             where: { uuid: targetTransaction.uuid },
@@ -192,24 +192,8 @@ export default async (data: Handler) => {
           }
         )
 
-        // Create wallet transaction record
-        await models.walletTransaction.create(
-          {
-            walletId: wallet.id,
-            type: 'DEPOSIT',
-            amount: targetTransaction.amount,
-            balance: wallet.balance + targetTransaction.amount,
-            description: `Mollie deposit - ${targetTransaction.amount} ${currency}`,
-            referenceId: targetTransaction.uuid,
-            metadata: {
-              gateway: 'mollie',
-              molliePaymentId: molliePayment.id,
-              method: molliePayment.method,
-              processedVia: 'webhook',
-            },
-          },
-          { transaction: dbTransaction }
-        )
+        // Transaction record is already created in the targetTransaction variable above
+        // No need to create another walletTransaction
 
         // Record admin profit if there are fees
         if (molliePayment.settlementAmount && molliePayment.amount) {
@@ -261,13 +245,13 @@ export default async (data: Handler) => {
       await models.transaction.update(
         {
           status: newStatus,
-          metadata: {
+          metadata: JSON.stringify({
             ...targetTransaction.metadata,
             molliePaymentId: molliePayment.id,
             mollieStatus: molliePayment.status,
             failureReason: molliePayment.details?.failureReason || 'Payment failed',
             webhookProcessedAt: new Date().toISOString(),
-          },
+          }),
         },
         {
           where: { uuid: targetTransaction.uuid },
@@ -296,12 +280,12 @@ export default async (data: Handler) => {
       // Payment still pending or other status - update metadata only
       await models.transaction.update(
         {
-          metadata: {
+          metadata: JSON.stringify({
             ...targetTransaction.metadata,
             molliePaymentId: molliePayment.id,
             mollieStatus: molliePayment.status,
             webhookProcessedAt: new Date().toISOString(),
-          },
+          }),
         },
         {
           where: { uuid: targetTransaction.uuid },

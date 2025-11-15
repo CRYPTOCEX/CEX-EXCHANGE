@@ -161,14 +161,14 @@ export default async (data: Handler) => {
           {
             status: 'COMPLETED',
             referenceId: molliePayment.id,
-            metadata: {
+            metadata: JSON.stringify({
               ...transaction.metadata,
               molliePaymentId: molliePayment.id,
               mollieStatus: molliePayment.status,
               paymentMethod: molliePayment.method || 'unknown',
               paidAt: molliePayment.createdAt,
               settlementAmount: molliePayment.settlementAmount,
-            },
+            }),
           },
           {
             where: { uuid: transaction.uuid },
@@ -212,23 +212,8 @@ export default async (data: Handler) => {
           }
         )
 
-        // Create wallet transaction record
-        await models.walletTransaction.create(
-          {
-            walletId: wallet.id,
-            type: 'DEPOSIT',
-            amount: transaction.amount,
-            balance: wallet.balance + transaction.amount,
-            description: `Mollie deposit - ${transaction.amount} ${currency}`,
-            referenceId: transaction.uuid,
-            metadata: {
-              gateway: 'mollie',
-              molliePaymentId: molliePayment.id,
-              method: molliePayment.method,
-            },
-          },
-          { transaction: dbTransaction }
-        )
+        // Transaction record is already created in the transaction variable above
+        // No need to create another walletTransaction
 
         // Record admin profit if there are fees
         if (molliePayment.settlementAmount && molliePayment.amount) {
@@ -285,12 +270,12 @@ export default async (data: Handler) => {
       await models.transaction.update(
         {
           status: newStatus,
-          metadata: {
+          metadata: JSON.stringify({
             ...transaction.metadata,
             molliePaymentId: molliePayment.id,
             mollieStatus: molliePayment.status,
             failureReason: molliePayment.details?.failureReason || 'Payment failed',
-          },
+          }),
         },
         {
           where: { uuid: transaction.uuid },
@@ -304,11 +289,11 @@ export default async (data: Handler) => {
       // Payment still pending - update metadata only
       await models.transaction.update(
         {
-          metadata: {
+          metadata: JSON.stringify({
             ...transaction.metadata,
             molliePaymentId: molliePayment.id,
             mollieStatus: molliePayment.status,
-          },
+          }),
         },
         {
           where: { uuid: transaction.uuid },

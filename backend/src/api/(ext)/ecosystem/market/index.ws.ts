@@ -53,10 +53,6 @@ class UnifiedEcosystemMarketDataHandler {
                   payload,
                   { stream: streamKey, data: orderbook }
                 );
-                console.log(`[ORDERBOOK] Broadcasted orderbook for ${symbol} (initial: ${isInitialFetch}) with stream: ${streamKey}:`, {
-                  asksCount: orderbook.asks.length,
-                  bidsCount: orderbook.bids.length
-                });
               }
               break;
             case "trades":
@@ -82,7 +78,6 @@ class UnifiedEcosystemMarketDataHandler {
                   payload,
                   { stream: "ticker", data: ticker }
                 );
-                console.log(`[TICKER] Broadcasted ticker for ${symbol} (initial: ${isInitialFetch})`);
               }
               break;
             case "ohlcv":
@@ -157,8 +152,6 @@ class UnifiedEcosystemMarketDataHandler {
       this.activeSubscriptions.get(symbol)!.set(type, payload);
     }
 
-    console.log(`Added ${type} subscription for ${symbol}. Active types:`, Array.from(this.activeSubscriptions.get(symbol)!.keys()));
-
     // Immediately fetch and send initial data for the new subscription
     const singleSubscriptionMap = new Map();
     singleSubscriptionMap.set(type, payload);
@@ -178,10 +171,6 @@ class UnifiedEcosystemMarketDataHandler {
           clearInterval(this.intervalMap.get(symbol)!);
           this.intervalMap.delete(symbol);
         }
-
-        console.log(`Removed all subscriptions for ${symbol}`);
-      } else {
-        console.log(`Removed ${type} subscription for ${symbol}. Remaining types:`, Array.from(this.activeSubscriptions.get(symbol)!.keys()));
       }
     }
   }

@@ -32,6 +32,8 @@ import { getCryptoImageUrl } from "@/utils/image-fallback";
 import { useUserStore } from "@/store/user";
 import SiteHeader from "@/components/partials/header/site-header";
 import { useTranslations } from "next-intl";
+import { useSettings } from "@/hooks/use-settings";
+import { buildMarketLink } from "@/utils/market-links";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +53,7 @@ export default function MarketPage() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user } = useUserStore();
+  const { settings } = useSettings();
 
   // Handle mounting state
   useEffect(() => {
@@ -625,7 +628,7 @@ export default function MarketPage() {
                         )}
                       >
                         <Link
-                          href={`/trade?symbol=${market.currency}-${market.pair}`}
+                          href={buildMarketLink(settings, market.currency, market.pair)}
                           className="absolute inset-0 z-10"
                           aria-label={`Trade ${market.currency}/${market.pair}`}
                         />
@@ -755,7 +758,7 @@ export default function MarketPage() {
                         <div className="hidden md:flex items-center justify-end">
                           <button
                             onClick={() =>
-                              (window.location.href = `/trade?symbol=${market.currency}-${market.pair}`)
+                              (window.location.href = buildMarketLink(settings, market.currency, market.pair))
                             }
                             className="group/btn relative px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg font-medium text-white transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2"
                           >
@@ -806,7 +809,7 @@ export default function MarketPage() {
                 {user ? (
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
-                      href="/trade"
+                      href={settings?.marketLinkRoute === "binary" ? "/binary" : "/trade"}
                       className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg font-medium text-white transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                       {t("start_trading")}
@@ -821,7 +824,7 @@ export default function MarketPage() {
                       {t("create_free_account")}
                     </Link>
                     <Link
-                      href="/trade"
+                      href={settings?.marketLinkRoute === "binary" ? "/binary" : "/trade"}
                       className={cn(
                         "px-6 py-3 rounded-lg font-medium transition-all duration-300 border",
                         isDark

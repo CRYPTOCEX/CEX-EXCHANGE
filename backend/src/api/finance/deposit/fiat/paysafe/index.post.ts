@@ -208,13 +208,13 @@ export default async (data: Handler) => {
       amount: amount,
       fee: 0, // Paysafe fees are typically deducted from merchant account
       description: `Paysafe deposit - ${amount} ${currencyCode}`,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: 'paysafe',
         currency: currencyCode,
         originalAmount: amount,
         paymentType: paymentType,
         locale: locale,
-      }
+      })
     })
 
     // Get user profile data

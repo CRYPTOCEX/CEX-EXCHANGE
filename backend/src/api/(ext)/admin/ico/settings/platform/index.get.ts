@@ -31,12 +31,36 @@ export default async (data: Handler) => {
     });
   }
 
-  const settings = await models.icoPlatformSettings.findOne();
-  if (!settings) {
-    throw createError({
-      statusCode: 404,
-      message: "Platform settings not found.",
-    });
-  }
-  return settings;
+  // Get all ICO platform settings
+  const settingKeys = [
+    'icoPlatformMinInvestmentAmount',
+    'icoPlatformMaxInvestmentAmount',
+    'icoPlatformFeePercentage',
+    'icoPlatformKycRequired',
+    'icoPlatformMaintenanceMode',
+    'icoPlatformAllowPublicOfferings',
+    'icoPlatformAnnouncementMessage',
+    'icoPlatformAnnouncementActive',
+  ];
+
+  const settings = await models.settings.findAll({
+    where: { key: settingKeys },
+  });
+
+  // Convert to object with defaults
+  const settingsMap = settings.reduce((acc, setting) => {
+    acc[setting.key] = setting.value;
+    return acc;
+  }, {} as Record<string, any>);
+
+  return {
+    minInvestmentAmount: parseFloat(settingsMap.icoPlatformMinInvestmentAmount || '0'),
+    maxInvestmentAmount: parseFloat(settingsMap.icoPlatformMaxInvestmentAmount || '0'),
+    platformFeePercentage: parseFloat(settingsMap.icoPlatformFeePercentage || '0'),
+    kycRequired: settingsMap.icoPlatformKycRequired === 'true',
+    maintenanceMode: settingsMap.icoPlatformMaintenanceMode === 'true',
+    allowPublicOfferings: settingsMap.icoPlatformAllowPublicOfferings === 'true',
+    announcementMessage: settingsMap.icoPlatformAnnouncementMessage || '',
+    announcementActive: settingsMap.icoPlatformAnnouncementActive === 'true',
+  };
 };

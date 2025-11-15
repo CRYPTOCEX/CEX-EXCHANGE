@@ -1,0 +1,803 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⚙️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">NFT Settings Configuration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Settings Reference Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Settings Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The NFT Marketplace settings provide comprehensive control over trading mechanics, fees, verification requirements, and content policies. All settings are stored in flat configuration format with the <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">nft</code> prefix and can be modified at runtime without requiring system restart.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Access settings at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/settings</code> with appropriate admin permissions.
+        </p>
+    </div>
+</div>
+
+<!-- Trading Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💰 Trading Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Control which trading types are available to users and configure auction mechanics.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Fixed Price Sales -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Enable Fixed-Price Sales</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Allow users to list NFTs at fixed prices for immediate purchase.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftEnableFixedPriceSales</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> When disabled, "List for Sale" option hidden from UI and fixed-price endpoints return errors.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Auctions -->
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Enable Auctions</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Allow users to create timed auctions with bidding mechanics.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftEnableAuctions</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> When disabled, auction listing option removed from UI and auction endpoints blocked.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Offers -->
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Enable Direct Offers</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Allow users to make offers on any NFT (even unlisted ones).</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftEnableOffers</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> When disabled, "Make Offer" button hidden from NFT details pages.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Auction Duration Min -->
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Minimum Auction Duration</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Shortest allowed auction length in hours.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftMinAuctionDuration</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 3600 (1 hour in seconds)<br>
+                        <strong>Range:</strong> 1 hour - 720 hours (30 days)<br>
+                        <strong>Effect:</strong> Users cannot create auctions shorter than this duration.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Auction Duration Max -->
+            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Maximum Auction Duration</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Longest allowed auction length in hours.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftMaxAuctionDuration</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 604800 (7 days in seconds)<br>
+                        <strong>Range:</strong> 1 hour - 720 hours (30 days)<br>
+                        <strong>Effect:</strong> Users cannot create auctions longer than this duration.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bid Increment -->
+            <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Minimum Bid Increment</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Percentage by which each bid must exceed the current highest bid.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftBidIncrementPercentage</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 5 (5%)<br>
+                        <strong>Range:</strong> 1-50%<br>
+                        <strong>Effect:</strong> If current bid is 1 ETH and increment is 5%, minimum next bid is 1.05 ETH.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Anti-Snipe Enable -->
+            <div class="bg-pink-50 dark:bg-pink-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Enable Anti-Snipe Protection</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Automatically extend auction when bids placed near end time.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftEnableAntiSnipe</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> If bid placed within 10 minutes of end, auction extends by configured duration.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Anti-Snipe Extension -->
+            <div class="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Anti-Snipe Extension Duration</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">How many seconds to extend auction when late bid is placed.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftAntiSnipeExtension</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 300 (5 minutes in seconds)<br>
+                        <strong>Range:</strong> 60-3600 seconds (1 minute - 1 hour)<br>
+                        <strong>Effect:</strong> Auction extends by this duration every time a bid is placed near end.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fee Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💵 Fee Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Configure marketplace revenue model and creator royalty limits.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Marketplace Fee -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Marketplace Fee Percentage</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Platform commission on each sale (goes to marketplace).</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftMarketplaceFeePercentage</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 2.5 (2.5%)<br>
+                        <strong>Range:</strong> 0-10%<br>
+                        <strong>Effect:</strong> Deducted from sale price. On 1 ETH sale with 2.5% fee, marketplace receives 0.025 ETH.
+                    </p>
+                    <div class="bg-amber-100 dark:bg-amber-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-amber-900 dark:text-amber-100"><strong>Note:</strong> Industry standard is 2-3%. OpenSea charges 2.5%.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Max Royalty -->
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Maximum Royalty Percentage</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Highest royalty percentage creators can set on secondary sales.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftMaxRoyaltyPercentage</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 10 (10%)<br>
+                        <strong>Range:</strong> 0-50%<br>
+                        <strong>Effect:</strong> Creators cannot set royalties above this limit when creating collections.
+                    </p>
+                    <div class="bg-blue-100 dark:bg-blue-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-blue-900 dark:text-blue-100"><strong>Typical Range:</strong> 5-10% is standard. Higher percentages may discourage resales.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listing Fee -->
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Listing Fee</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Optional fixed fee charged when listing an NFT (in native token).</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftListingFee</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 0 (disabled)<br>
+                        <strong>Range:</strong> 0+ (in native token, e.g., ETH, BNB)<br>
+                        <strong>Effect:</strong> Users must pay this fee to list NFT. Helps prevent spam listings.
+                    </p>
+                    <div class="bg-amber-100 dark:bg-amber-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-amber-900 dark:text-amber-100"><strong>Warning:</strong> Non-zero listing fees may reduce listing activity. Most marketplaces use 0.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg mt-6">
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Fee Calculation Example</h4>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">NFT sells for 1 ETH with 2.5% marketplace fee and 10% royalty:</p>
+            <div class="bg-white dark:bg-zinc-800 p-3 rounded space-y-1 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Sale Price:</span>
+                    <span class="font-mono text-zinc-900 dark:text-zinc-100">1.00 ETH</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Marketplace Fee (2.5%):</span>
+                    <span class="font-mono text-red-600 dark:text-red-400">-0.025 ETH</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-zinc-600 dark:text-zinc-400">Creator Royalty (10%):</span>
+                    <span class="font-mono text-red-600 dark:text-red-400">-0.100 ETH</span>
+                </div>
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-1 flex justify-between font-semibold">
+                    <span class="text-zinc-900 dark:text-zinc-100">Seller Receives:</span>
+                    <span class="font-mono text-green-600 dark:text-green-400">0.875 ETH</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verification Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔐 Verification Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Configure KYC requirements and high-value transaction protection.
+        </p>
+
+        <div class="space-y-6">
+            <!-- KYC for Creators -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Require KYC for Creators</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Force creators to complete KYC verification before creating collections.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftRequireKycForCreators</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> false<br>
+                        <strong>Dependency:</strong> Requires KYC extension installed and configured<br>
+                        <strong>Effect:</strong> When enabled, collection creation blocked until KYC status is APPROVED.
+                    </p>
+                    <div class="bg-amber-100 dark:bg-amber-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-amber-900 dark:text-amber-100"><strong>Compliance:</strong> Recommended for jurisdictions with strict digital asset regulations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KYC for High Value -->
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Require KYC for High-Value Transactions</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Force buyers to complete KYC when purchasing high-value NFTs.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftRequireKycForHighValue</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Dependency:</strong> Requires KYC extension and currency price conversion<br>
+                        <strong>Effect:</strong> Purchases above threshold blocked until KYC APPROVED. System converts crypto price to USD.
+                    </p>
+                    <div class="bg-blue-100 dark:bg-blue-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-blue-900 dark:text-blue-100"><strong>Implementation:</strong> Uses backend/src/api/(ext)/nft/utils/price-converter.ts for USD conversion via currency table.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Value Threshold -->
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">High-Value Transaction Threshold</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">USD value at which KYC becomes required for purchases.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">number</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftHighValueThreshold</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> 1000 (USD)<br>
+                        <strong>Range:</strong> 0+ (USD)<br>
+                        <strong>Effect:</strong> When enabled and purchase exceeds this USD value, KYC required.
+                    </p>
+                    <div class="bg-green-100 dark:bg-green-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-green-900 dark:text-green-100"><strong>Price Conversion:</strong> System automatically converts ETH/BNB/MATIC prices to USD using currency table. Stablecoins (USDC, USDT, DAI) = $1 each.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-6">
+            <h4 class="text-sm font-semibold mb-1 text-amber-900 dark:text-amber-100">⚠️ KYC Requirements</h4>
+            <p class="text-amber-800 dark:text-amber-200 text-xs mb-2">
+                To use KYC-based settings:
+            </p>
+            <ul class="text-amber-800 dark:text-amber-200 text-xs space-y-1 ml-4">
+                <li>1. Install and activate KYC extension</li>
+                <li>2. Configure KYC verification workflow</li>
+                <li>3. Set up currency price updates (for high-value threshold)</li>
+                <li>4. Test with various purchase amounts</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Content Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Content Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Configure metadata validation and content integrity policies.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Metadata Validation -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Require Metadata Validation</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Validate IPFS metadata and images when creating NFT listings.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftRequireMetadataValidation</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> When enabled, system validates:
+                    </p>
+                    <ul class="text-xs text-zinc-600 dark:text-zinc-400 ml-4 mt-2 space-y-1">
+                        <li>• IPFS URL format correctness</li>
+                        <li>• Metadata JSON structure (ERC-721 compliance)</li>
+                        <li>• Image URL accessibility</li>
+                        <li>• Required fields presence (name, description, image)</li>
+                    </ul>
+                    <div class="bg-green-100 dark:bg-green-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-green-900 dark:text-green-100"><strong>Implementation:</strong> Uses backend/src/api/(ext)/nft/utils/metadata-validator.ts with IPFS gateway fetching and JSON validation.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Supported IPFS URL Formats:</h4>
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="bg-white dark:bg-zinc-800 p-2 rounded">
+                        <code class="text-green-600 dark:text-green-400">ipfs://QmHash...</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 ml-2">Standard IPFS protocol</span>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 p-2 rounded">
+                        <code class="text-green-600 dark:text-green-400">https://ipfs.io/ipfs/QmHash...</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 ml-2">IPFS.io gateway</span>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 p-2 rounded">
+                        <code class="text-green-600 dark:text-green-400">https://gateway.pinata.cloud/ipfs/QmHash...</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 ml-2">Pinata gateway</span>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 p-2 rounded">
+                        <code class="text-green-600 dark:text-green-400">https://cloudflare-ipfs.com/ipfs/QmHash...</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 ml-2">Cloudflare gateway</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Integration Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔗 Integration Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Configure blockchain and cross-chain features.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Cross-Chain -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Enable Cross-Chain Support</h3>
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">Allow users to create and trade NFTs on multiple blockchains.</p>
+                    </div>
+                    <div class="bg-white dark:bg-zinc-800 px-3 py-1 rounded">
+                        <code class="text-xs">boolean</code>
+                    </div>
+                </div>
+                <div class="mt-3 bg-white dark:bg-zinc-800 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 mb-1">Configuration Key:</p>
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nftEnableCrossChain</code>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                        <strong>Default:</strong> true<br>
+                        <strong>Effect:</strong> When enabled, users can select different blockchains during collection creation. When disabled, only primary chain available.
+                    </p>
+                    <div class="bg-purple-100 dark:bg-purple-900/20 p-2 rounded mt-2">
+                        <p class="text-xs text-purple-900 dark:text-purple-100"><strong>Supported Chains:</strong> Ethereum, BSC, Polygon, Arbitrum, Optimism (when marketplace contracts deployed).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Storage -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💾 Settings Storage & Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Configuration Format</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            All NFT settings are stored in the flat configuration system with consistent naming:
+        </p>
+
+        <div class="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg mb-4">
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 text-sm">Naming Convention:</h4>
+            <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">nft + PascalCaseName</code>
+            <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2">Examples:</p>
+            <ul class="text-xs text-zinc-600 dark:text-zinc-400 ml-4 mt-1 space-y-1 font-mono">
+                <li>• nftEnableFixedPriceSales</li>
+                <li>• nftMarketplaceFeePercentage</li>
+                <li>• nftRequireKycForHighValue</li>
+            </ul>
+        </div>
+
+        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Complete Settings List</h3>
+        <div class="bg-white dark:bg-zinc-800 p-4 rounded-lg overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Key</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Default</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftEnableFixedPriceSales</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftEnableAuctions</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftEnableOffers</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftMinAuctionDuration</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">3600 (seconds)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftMaxAuctionDuration</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">604800 (seconds)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftBidIncrementPercentage</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">5 (%)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftEnableAntiSnipe</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftAntiSnipeExtension</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">300 (seconds)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftMarketplaceFeePercentage</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">2.5 (%)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftMaxRoyaltyPercentage</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">10 (%)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftListingFee</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">0</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftRequireKycForCreators</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">false</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftRequireKycForHighValue</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftHighValueThreshold</td>
+                        <td class="py-2">number</td>
+                        <td class="py-2">1000 (USD)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">nftRequireMetadataValidation</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-mono">nftEnableCrossChain</td>
+                        <td class="py-2">boolean</td>
+                        <td class="py-2">true</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">💡 Runtime Updates</h4>
+            <p class="text-blue-800 dark:text-blue-200 text-xs">
+                All settings can be changed via admin panel and take effect immediately without system restart. Settings are cached in frontend store with configurable refresh intervals.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Configuration Best Practices</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Launch Configuration</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>✓ Start with default settings</li>
+                <li>✓ Enable all trading types initially</li>
+                <li>✓ Set marketplace fee to 2-3%</li>
+                <li>✓ Limit royalties to 10%</li>
+                <li>✓ Enable anti-snipe protection</li>
+                <li>✓ Disable KYC initially (enable later)</li>
+                <li>✓ Enable metadata validation</li>
+                <li>✓ Keep listing fees at 0</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Compliance Settings</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>✓ Enable creator KYC in regulated markets</li>
+                <li>✓ Set high-value threshold (e.g., $10,000)</li>
+                <li>✓ Enable metadata validation always</li>
+                <li>✓ Monitor for suspicious activity</li>
+                <li>✓ Document all policy changes</li>
+                <li>✓ Review settings quarterly</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Auction Settings</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>✓ Min duration: 1 hour (reduce spam)</li>
+                <li>✓ Max duration: 7 days default (can extend to 30 days)</li>
+                <li>✓ Bid increment: 5% (prevents penny bidding)</li>
+                <li>✓ Anti-snipe: Always enabled</li>
+                <li>✓ Extension: 5 minutes standard</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Fee Optimization</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>✓ Marketplace fee: 2-3% competitive</li>
+                <li>✓ Royalties: 5-10% encourages resales</li>
+                <li>✓ Avoid listing fees (reduces activity)</li>
+                <li>✓ Test fee changes on testnet first</li>
+                <li>✓ Monitor revenue vs. volume tradeoff</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Settings Troubleshooting</h2>
+
+    <div class="space-y-3">
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Settings not taking effect
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Clear frontend cache and reload page</li>
+                    <li>• Check settings save confirmation message</li>
+                    <li>• Verify no browser console errors</li>
+                    <li>• Test in incognito mode</li>
+                    <li>• Check backend logs for save errors</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                KYC settings not working
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Verify KYC extension is installed and active</li>
+                    <li>• Check KYC workflow is configured</li>
+                    <li>• Ensure currency price data is updating</li>
+                    <li>• Test with APPROVED KYC user</li>
+                    <li>• Check backend logs for KYC check errors</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Metadata validation failing unexpectedly
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Verify IPFS gateway is accessible</li>
+                    <li>• Check IPFS URL format is correct</li>
+                    <li>• Ensure metadata JSON is valid</li>
+                    <li>• Test with known-good IPFS URL</li>
+                    <li>• Check firewall allows IPFS gateway access</li>
+                    <li>• Temporarily disable to isolate issue</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Fee calculations incorrect
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Verify fee percentage values (should be 0-100, not decimals)</li>
+                    <li>• Check smart contract fee configuration matches</li>
+                    <li>• Review transaction receipts for actual fees</li>
+                    <li>• Test with simple round numbers</li>
+                    <li>• Check blockchain explorer for contract fees</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Next Steps</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/docs/nft/installation" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">📦 Installation</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Setup and deployment guide</p>
+        </a>
+
+        <a href="/docs/nft/admin-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👨‍💼 Admin Features</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Management and moderation tools</p>
+        </a>
+
+        <a href="/docs/nft/user-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👥 User Features</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">User workflows and features</p>
+        </a>
+    </div>
+</div>
+
+<!-- Support -->
+<div class="border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 p-6 rounded-lg">
+    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">💬 Need Help?</h3>
+    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+        For configuration assistance or questions about specific settings, visit our <a href="https://support.mash3div.com" target="_blank" class="text-purple-600 dark:text-purple-400 hover:underline">support portal</a> or contact the support team.
+    </p>
+</div>

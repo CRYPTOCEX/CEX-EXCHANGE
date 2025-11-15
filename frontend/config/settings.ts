@@ -225,6 +225,18 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       { label: "TradingView Advanced", value: "TRADINGVIEW" },
     ],
   },
+  {
+    key: "marketLinkRoute",
+    label: "Market Link Route",
+    type: "select",
+    description: "Choose where market links redirect to from markets page and home page",
+    category: "features",
+    subcategory: "Trading",
+    options: [
+      { label: "Trading Page", value: "trade" },
+      { label: "Binary Trading", value: "binary" },
+    ],
+  },
   // {
   //   key: "p2pCommission",
   //   label: "P2P Commission (%)",
@@ -592,4 +604,5 @@ export const DEFAULT_SETTINGS = {
   withdrawalRestrictions: "false",
   withdrawApproval: "true",
   withdrawChainFee: "false",
+  marketLinkRoute: "trade",
 };

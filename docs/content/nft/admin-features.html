@@ -1,0 +1,797 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">👨‍💼</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">NFT Admin Features</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Administrator Management Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Admin Dashboard Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The NFT Admin Dashboard provides comprehensive control over your multi-chain NFT marketplace. Monitor real-time statistics, manage content, deploy blockchain contracts, configure trading rules, handle disputes, and analyze performance metrics—all from a centralized interface.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Access the admin panel at <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft</code> with appropriate permissions.
+        </p>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Dashboard Metrics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-2">📦</div>
+            <h3 class="text-lg font-semibold mb-1 text-zinc-900 dark:text-zinc-100">Collections</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Total collections with active/verified counts</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-2">🖼️</div>
+            <h3 class="text-lg font-semibold mb-1 text-zinc-900 dark:text-zinc-100">NFTs</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Total minted NFTs and active listings</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-2">💰</div>
+            <h3 class="text-lg font-semibold mb-1 text-zinc-900 dark:text-zinc-100">Trading Volume</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Total sales value across all chains</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-2">📈</div>
+            <h3 class="text-lg font-semibold mb-1 text-zinc-900 dark:text-zinc-100">Platform Revenue</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Marketplace fees + royalty earnings</p>
+        </div>
+    </div>
+</div>
+
+<!-- Content Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📁 Content Management</h2>
+
+    <!-- Categories -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Categories</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/category</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Features:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Create categories:</strong> Define NFT types (Art, Music, Gaming, Collectibles, etc.)</li>
+                <li>• <strong>Edit metadata:</strong> Update name, slug, description, and emoji icons</li>
+                <li>• <strong>Delete categories:</strong> Remove unused categories (protected by paranoid mode)</li>
+                <li>• <strong>Auto-slug generation:</strong> URL-friendly slugs created automatically</li>
+            </ul>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">💡 Best Practice</h4>
+                <p class="text-blue-800 dark:text-blue-200 text-xs">Create at least 5-10 categories before launch to help users organize their collections. Popular categories: Art, Photography, Music, Gaming, Sports, Collectibles, Virtual Worlds, Domain Names.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collections -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Collections</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/collection</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Management Capabilities:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>View all collections:</strong> See creator, category, chain, supply, volume, floor price</li>
+                <li>• <strong>Edit status:</strong> DRAFT, PENDING, ACTIVE, INACTIVE, SUSPENDED</li>
+                <li>• <strong>Verify collections:</strong> Award verification badge to legitimate creators</li>
+                <li>• <strong>Monitor deployment:</strong> Track smart contract deployment status</li>
+                <li>• <strong>Delete collections:</strong> Remove fraudulent or policy-violating collections</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Collection Details:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Contract Info</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Address, chain, standard (ERC-721)</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Supply Stats</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Current vs. max supply tracking</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Trading Metrics</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Volume, floor price, listings</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-amber-900 dark:text-amber-100">⚠️ Note</h4>
+                <p class="text-amber-800 dark:text-amber-200 text-xs">Admins cannot create collections—only users can. Collections require PENDING approval after creation. Use status management to control which collections appear in the marketplace.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NFTs/Tokens -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">NFT Tokens</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/token</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Content Moderation:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>View all minted NFTs:</strong> Browse complete token registry</li>
+                <li>• <strong>Review metadata:</strong> Check name, description, image, attributes</li>
+                <li>• <strong>Edit token details:</strong> Update if needed (rare cases)</li>
+                <li>• <strong>Delete problematic NFTs:</strong> Remove policy violations, fraudulent content</li>
+                <li>• <strong>Track ownership:</strong> Monitor current owner and transfer history</li>
+                <li>• <strong>Review metadata:</strong> Users provide their own IPFS URLs (validated for format)</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Token Information:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Metadata</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">IPFS URI, image, attributes, properties</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Minting Details</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Token ID, collection, mint date, creator</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Ownership</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Current owner, listing status</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Trading History</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Sales, transfers, price history</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trading Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💰 Trading Management</h2>
+
+    <!-- Marketplace Contracts -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Marketplace Contracts</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/marketplace</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Contract Deployment:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Deploy to multiple chains:</strong> ETH, BSC, Polygon, Arbitrum, Optimism</li>
+                <li>• <strong>Configure fee structure:</strong> Set marketplace fee (0-10%)</li>
+                <li>• <strong>Set royalty limits:</strong> Maximum creator royalty (0-50%)</li>
+                <li>• <strong>Define fee recipient:</strong> Address to receive marketplace fees</li>
+                <li>• <strong>Set listing fees:</strong> Optional fixed fee per listing (in native token)</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Emergency Controls:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Pause marketplace:</strong> Emergency stop for security issues</li>
+                <li>• <strong>Resume trading:</strong> Re-enable after resolving issues</li>
+                <li>• <strong>Withdraw fees:</strong> Extract accumulated marketplace fees</li>
+                <li>• <strong>Update configuration:</strong> Change fee percentage and recipients</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Contract Monitoring:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-green-900 dark:text-green-100">Status</p>
+                    <p class="text-xs text-green-800 dark:text-green-200">ACTIVE, PAUSED deployment status</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-blue-900 dark:text-blue-100">Balance</p>
+                    <p class="text-xs text-blue-800 dark:text-blue-200">Accumulated fees with USD conversion</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-purple-900 dark:text-purple-100">Health</p>
+                    <p class="text-xs text-purple-800 dark:text-purple-200">Contract health and connectivity</p>
+                </div>
+            </div>
+
+            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-red-900 dark:text-red-100">🚨 Critical</h4>
+                <p class="text-red-800 dark:text-red-200 text-xs">Contract deployment is irreversible and requires gas fees. Test thoroughly on Sepolia testnet before mainnet deployment. Ensure master wallets have sufficient funds (0.05-0.1 ETH equivalent per chain).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Listings</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/listing</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Management:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Monitor active listings:</strong> View all fixed-price and auction listings</li>
+                <li>• <strong>Track listing type:</strong> FIXED_PRICE vs AUCTION identification</li>
+                <li>• <strong>View pricing:</strong> See asking price, reserve price, current bid</li>
+                <li>• <strong>Edit listings:</strong> Modify details if policy violations detected</li>
+                <li>• <strong>Delete listings:</strong> Remove fraudulent or problematic listings</li>
+                <li>• <strong>Monitor status:</strong> ACTIVE, SOLD, CANCELLED, EXPIRED states</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Offers & Auctions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Offers</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">/admin/nft/offer</code>
+            </p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• Monitor all offers on NFTs</li>
+                <li>• Track offer status and expiration</li>
+                <li>• View offer amounts and currency</li>
+                <li>• Edit/delete problematic offers</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Auctions</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">/admin/nft/auction</code>
+            </p>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• Monitor active auctions</li>
+                <li>• Track bidding activity</li>
+                <li>• View auction timeline</li>
+                <li>• Manage auction status</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sales -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Sales</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/sale</code>
+            </p>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">📋 View-Only Access</h4>
+                <p class="text-blue-800 dark:text-blue-200 text-xs mb-2">
+                    Sales records are immutable transaction history. Admins can view but cannot edit or delete completed sales.
+                </p>
+                <ul class="text-blue-800 dark:text-blue-200 text-xs space-y-1 ml-4">
+                    <li>• View transaction details and blockchain hashes</li>
+                    <li>• Track buyer and seller information</li>
+                    <li>• Monitor marketplace fee collection</li>
+                    <li>• Analyze revenue and performance metrics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Community Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">👥 Community Management</h2>
+
+    <!-- Creators -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Creator Profiles</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/creator</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Creator Management:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>View all creators:</strong> Browse complete creator registry</li>
+                <li>• <strong>Verify creators:</strong> Award verification badges (Silver, Gold, Platinum)</li>
+                <li>• <strong>Unverify creators:</strong> Remove verification for policy violations</li>
+                <li>• <strong>Monitor performance:</strong> Collections, sales, volume, earnings</li>
+                <li>• <strong>Review profiles:</strong> Username, bio, social links, website</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Creator Analytics:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Collections</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Total created collections</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">NFTs Created</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Total minted tokens</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Sales Volume</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Total trading volume</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                    <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Royalty Earnings</p>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400">Secondary sales royalties</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-amber-900 dark:text-amber-100">⚠️ Note</h4>
+                <p class="text-amber-800 dark:text-amber-200 text-xs">Admins cannot delete creator profiles—only verify/unverify. Creator profiles are automatically created when users mint their first NFT or create a collection.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Review Moderation</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/review</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Review Management:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Moderate user reviews:</strong> Approve or reject NFT reviews</li>
+                <li>• <strong>Filter by status:</strong> PENDING, APPROVED, REJECTED, HIDDEN</li>
+                <li>• <strong>View ratings:</strong> 1-5 star ratings with helpful count</li>
+                <li>• <strong>Verify reviews:</strong> Mark authentic reviews from verified purchasers</li>
+                <li>• <strong>Hide spam:</strong> Hide inappropriate or fake reviews</li>
+            </ul>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-amber-900 dark:text-amber-100">⚠️ Note</h4>
+                <p class="text-amber-800 dark:text-amber-200 text-xs">Review moderation helps maintain marketplace trust. Focus on removing spam and fraudulent reviews while allowing honest feedback.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Activity Monitoring</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/activity</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Real-Time Monitoring:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Live activity feed:</strong> All marketplace actions in real-time</li>
+                <li>• <strong>Filter by type:</strong> MINT, SALE, TRANSFER, LIST, BID, OFFER, DELIST, BURN</li>
+                <li>• <strong>Search capabilities:</strong> Find by collection, creator, or token</li>
+                <li>• <strong>Transaction details:</strong> View blockchain hash, timestamp, participants</li>
+                <li>• <strong>Delete records:</strong> Remove spam or test activity (for moderation)</li>
+                <li>• <strong>Infinite scroll:</strong> Load more activities as you browse</li>
+            </ul>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Activity Types:</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+                <div class="bg-green-50 dark:bg-green-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-green-900 dark:text-green-100">MINT</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-blue-900 dark:text-blue-100">SALE</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-purple-900 dark:text-purple-100">TRANSFER</p>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-amber-900 dark:text-amber-100">LIST</p>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-red-900 dark:text-red-100">DELIST</p>
+                </div>
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-indigo-900 dark:text-indigo-100">BID</p>
+                </div>
+                <div class="bg-pink-50 dark:bg-pink-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-pink-900 dark:text-pink-100">OFFER</p>
+                </div>
+                <div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded text-center">
+                    <p class="text-xs font-medium text-orange-900 dark:text-orange-100">BURN</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dispute Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚖️ Dispute Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/dispute</code>
+        </p>
+
+        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Dispute Resolution System:</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 text-sm">Status Management:</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• PENDING - New disputes</li>
+                    <li>• INVESTIGATING - Under review</li>
+                    <li>• AWAITING_RESPONSE - Waiting for party</li>
+                    <li>• RESOLVED - Dispute closed</li>
+                    <li>• REJECTED - No action taken</li>
+                    <li>• ESCALATED - Sent to higher authority</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 text-sm">Priority Levels:</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• LOW - Minor issues</li>
+                    <li>• MEDIUM - Standard disputes</li>
+                    <li>• HIGH - Significant issues</li>
+                    <li>• CRITICAL - Urgent fraud/security</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Resolution Actions:</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+            <div class="bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-green-900 dark:text-green-100">REFUND</p>
+                <p class="text-xs text-green-800 dark:text-green-200">Full refund to buyer</p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-blue-900 dark:text-blue-100">PARTIAL_REFUND</p>
+                <p class="text-xs text-blue-800 dark:text-blue-200">Partial compensation</p>
+            </div>
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-amber-900 dark:text-amber-100">CANCEL_SALE</p>
+                <p class="text-xs text-amber-800 dark:text-amber-200">Reverse transaction</p>
+            </div>
+            <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-red-900 dark:text-red-100">BAN_USER</p>
+                <p class="text-xs text-red-800 dark:text-red-200">Suspend violator</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-purple-900 dark:text-purple-100">REMOVE_LISTING</p>
+                <p class="text-xs text-purple-800 dark:text-purple-200">Delist problematic NFT</p>
+            </div>
+            <div class="bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
+                <p class="text-xs font-medium text-orange-900 dark:text-orange-100">WARNING</p>
+                <p class="text-xs text-orange-800 dark:text-orange-200">Issue warning to user</p>
+            </div>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">NO_ACTION</p>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400">Dispute invalid</p>
+            </div>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Features:</h4>
+        <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+            <li>• <strong>Internal notes:</strong> Add admin-only comments for investigation</li>
+            <li>• <strong>Communication system:</strong> Message disputants directly</li>
+            <li>• <strong>Evidence tracking:</strong> Attach screenshots, blockchain proofs</li>
+            <li>• <strong>Statistics dashboard:</strong> Resolution time, success rate, volume</li>
+            <li>• <strong>Dispute categories:</strong> Fraud, quality issues, delivery, description mismatch</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Analytics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Analytics & Insights</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/analytics</code>
+        </p>
+
+        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Comprehensive Metrics:</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">KPI Cards</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Total collections, NFTs, trading volume</li>
+                    <li>• Sales count and average price</li>
+                    <li>• Active users and listings</li>
+                    <li>• 24-hour activity metrics</li>
+                </ul>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Visual Charts</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Category distribution pie chart</li>
+                    <li>• Blockchain distribution chart</li>
+                    <li>• Growth trend line charts</li>
+                    <li>• Volume over time graphs</li>
+                </ul>
+            </div>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Top Performers:</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Top Collections</p>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400">By volume, floor price, sales</p>
+            </div>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Top Creators</p>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400">By earnings and activity</p>
+            </div>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded">
+                <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100">Recent Sales</p>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400">Latest transactions</p>
+            </div>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2 mt-4">Timeframe Selection:</h4>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">View analytics for: 7 days, 30 days, 90 days, or 1 year</p>
+
+        <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg mt-4">
+            <h4 class="text-sm font-semibold mb-1 text-purple-900 dark:text-purple-100">💡 Export Functionality</h4>
+            <p class="text-purple-800 dark:text-purple-200 text-xs">Export analytics data to CSV for external analysis, reporting, or sharing with stakeholders.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Infrastructure Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Infrastructure Management</h2>
+
+    <!-- Dashboard Stats -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Dashboard Statistics</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/stats</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Real-Time Statistics:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-blue-900 dark:text-blue-100">Collections & Tokens</p>
+                    <p class="text-xs text-blue-800 dark:text-blue-200">Total, active, pending, verified counts</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-green-900 dark:text-green-100">Listings & Sales</p>
+                    <p class="text-xs text-green-800 dark:text-green-200">Active listings, auctions, total volume</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded">
+                    <p class="text-xs font-medium text-purple-900 dark:text-purple-100">Revenue & Activity</p>
+                    <p class="text-xs text-purple-800 dark:text-purple-200">Fees collected, 24h activity, unique users</p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">💡 Usage</h4>
+                <p class="text-blue-800 dark:text-blue-200 text-xs">Dashboard stats provide instant overview of marketplace health. Use this alongside analytics for comprehensive monitoring.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Options -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Blockchain Configuration</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/blockchain/options</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Supported Chains:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>EVM Compatible:</strong> ETH, BSC, Polygon, Arbitrum, Optimism, Avalanche, Fantom, Celo, Base, RSK</li>
+                <li>• <strong>Non-EVM:</strong> Solana (SOL), Movement (MO)</li>
+                <li>• <strong>Selection API:</strong> Returns enabled chains for dropdown/deployment options</li>
+                <li>• <strong>Integration:</strong> Works with Ecosystem extension for RPC connectivity</li>
+            </ul>
+
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-green-900 dark:text-green-100">✅ Note</h4>
+                <p class="text-green-800 dark:text-green-200 text-xs">Only blockchains enabled in the Ecosystem extension will appear in the NFT deployment options. Ensure chains are properly configured before attempting contract deployment.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Management -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Data Backup</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/backup/schedule</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Backup Features:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Schedule backups:</strong> Create automated backup schedules for NFT data</li>
+                <li>• <strong>Chain-specific:</strong> Filter backups by blockchain (ETH, BSC, Polygon)</li>
+                <li>• <strong>View schedules:</strong> List all configured backup routines</li>
+                <li>• <strong>Delete schedules:</strong> Remove outdated backup configurations</li>
+                <li>• <strong>Data protection:</strong> Safeguard collections, tokens, and transaction history</li>
+            </ul>
+
+            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-red-900 dark:text-red-100">🚨 Critical</h4>
+                <p class="text-red-800 dark:text-red-200 text-xs">Regular backups are essential for NFT marketplaces. Blockchain data is immutable, but database records (metadata, ownership, listings) must be backed up regularly to prevent data loss.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Status -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Onboarding Progress</h3>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Route: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/onboarding/status</code>
+            </p>
+
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Setup Tracking:</h4>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                <li>• <strong>Infrastructure:</strong> Marketplaces deployed, chains active, total contracts</li>
+                <li>• <strong>Configuration:</strong> Fees configured, settings complete, policies set</li>
+                <li>• <strong>Content:</strong> Categories created, collections approved, featured content</li>
+                <li>• <strong>User Management:</strong> Verification enabled, roles configured, KYC setup</li>
+                <li>• <strong>Readiness Score:</strong> 0-100% completion with critical tasks list</li>
+                <li>• <strong>Launch Ready:</strong> Flag indicating marketplace is production-ready</li>
+            </ul>
+
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg mt-4">
+                <h4 class="text-sm font-semibold mb-1 text-purple-900 dark:text-purple-100">💡 Wizard</h4>
+                <p class="text-purple-800 dark:text-purple-200 text-xs">The onboarding wizard (at /admin/nft/onboarding) uses this status endpoint to track progress through the 4-phase setup process.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Settings Configuration</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Settings are managed through multiple endpoints and the marketplace contract configuration. See the <a href="/docs/nft/settings" class="text-blue-600 dark:text-blue-400 hover:underline">Settings Documentation</a> for detailed information on all configuration options.
+        </p>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+            <h4 class="text-sm font-semibold mb-1 text-blue-900 dark:text-blue-100">ℹ️ Configuration Sources</h4>
+            <p class="text-blue-800 dark:text-blue-200 text-xs mb-2">NFT marketplace settings are distributed across:</p>
+            <ul class="text-blue-800 dark:text-blue-200 text-xs space-y-1 ml-4">
+                <li>• <strong>Marketplace Contracts:</strong> Via <code>/admin/nft/marketplace</code> PUT endpoint (fees, royalties)</li>
+                <li>• <strong>System Settings:</strong> Stored in database systemSetting model</li>
+                <li>• <strong>Feature Toggles:</strong> Through onboarding and configuration endpoints</li>
+            </ul>
+        </div>
+
+        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Configuration Categories:</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Trading Settings</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Enable/disable trading types, auction mechanics, anti-snipe protection</p>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Fee Settings</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Marketplace fee percentage, royalty limits, listing fees</p>
+            </div>
+
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Verification Settings</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">KYC requirements, high-value transaction protection</p>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Content Settings</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Metadata validation requirements</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Admin Best Practices</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Marketplace Launch Checklist</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>✓ Complete onboarding wizard</li>
+                <li>✓ Deploy contracts to primary chain</li>
+                <li>✓ Create 5-10 diverse categories</li>
+                <li>✓ Configure trading and fee settings</li>
+                <li>✓ Set up KYC integration (if applicable)</li>
+                <li>✓ Test all workflows on testnet</li>
+                <li>✓ Ensure users can provide valid IPFS URLs</li>
+                <li>✓ Review and approve first collections</li>
+                <li>✓ Verify first set of creators</li>
+                <li>✓ Monitor initial transactions closely</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Daily Operations</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Check dashboard for anomalies</li>
+                <li>• Review pending collections</li>
+                <li>• Monitor activity feed for spam</li>
+                <li>• Process new disputes promptly</li>
+                <li>• Verify legitimate creator requests</li>
+                <li>• Check marketplace contract balances</li>
+                <li>• Review analytics for trends</li>
+                <li>• Moderate reported content</li>
+                <li>• Respond to support tickets</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Security Practices</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Enable paranoid mode for critical actions</li>
+                <li>• Use multi-factor authentication</li>
+                <li>• Limit admin permissions by role</li>
+                <li>• Regular backup of database</li>
+                <li>• Monitor for fraudulent patterns</li>
+                <li>• Keep emergency pause ready</li>
+                <li>• Document all major decisions</li>
+                <li>• Audit fee withdrawals</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Growth Strategies</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Feature high-quality collections</li>
+                <li>• Verify reputable creators</li>
+                <li>• Promote top performers</li>
+                <li>• Run creator campaigns</li>
+                <li>• Analyze category trends</li>
+                <li>• Optimize fee structure</li>
+                <li>• Expand to new blockchains</li>
+                <li>• Share marketplace analytics</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Next Steps</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/docs/nft/user-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👥 User Features</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Learn about the user experience and workflows</p>
+        </a>
+
+        <a href="/docs/nft/settings" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⚙️ Settings Guide</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Detailed configuration options explained</p>
+        </a>
+
+        <a href="/docs/nft/installation" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">📦 Installation</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Setup and deployment instructions</p>
+        </a>
+    </div>
+</div>
+
+<!-- Support -->
+<div class="border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 p-6 rounded-lg">
+    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">💬 Need Help?</h3>
+    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+        For admin-specific questions or technical support, visit our <a href="https://support.mash3div.com" target="_blank" class="text-purple-600 dark:text-purple-400 hover:underline">support portal</a> or contact the support team via your admin panel.
+    </p>
+</div>

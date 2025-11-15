@@ -169,7 +169,7 @@ export default async (data: Handler) => {
       await transaction.update({
         status: newStatus,
         fee: feeAmount,
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           payfast: {
             ...transaction.metadata?.payfast,
@@ -183,7 +183,7 @@ export default async (data: Handler) => {
             itn_valid: itnValidation.valid,
             webhook_data: body
           }
-        }
+        })
       }, { transaction: dbTransaction })
 
       // If payment was successful, update user wallet
@@ -222,12 +222,12 @@ export default async (data: Handler) => {
               amount: feeAmount,
               currency: currency,
               description: `PayFast processing fee for transaction ${transaction.id}`,
-              metadata: {
+              metadata: JSON.stringify({
                 transactionId: transaction.id,
                 userId: transaction.userId,
                 gateway: 'payfast',
                 pf_payment_id: body.pf_payment_id
-              }
+              })
             }, { transaction: dbTransaction })
           } catch (profitError) {
             console.error('Failed to record admin profit:', profitError)

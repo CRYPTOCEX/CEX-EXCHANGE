@@ -178,12 +178,12 @@ export default async (data: Handler) => {
       amount: amount,
       fee: 0, // PayFast fees are deducted from the amount
       description: `PayFast deposit - ${amount} ${currencyCode}`,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: 'payfast',
         currency: currencyCode,
         originalAmount: amount,
         paymentMethod: 'payfast'
-      }
+      })
     })
 
     // Prepare PayFast payment data

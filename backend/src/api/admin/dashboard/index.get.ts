@@ -521,7 +521,7 @@ export default async (data: Handler) => {
     // Trading activity with complete date range
     let dailyTrades: Array<{ date: string; count: number; volume: number }> = [];
     try {
-      if (models.order) {
+      if (models.exchangeOrder) {
         const groupByClause = period === 'yearly' 
           ? [fn('YEAR', col('createdAt')), fn('MONTH', col('createdAt'))]
           : period === 'monthly'
@@ -534,7 +534,7 @@ export default async (data: Handler) => {
           ? fn('DATE', fn('DATE_SUB', col('createdAt'), literal('INTERVAL WEEKDAY(createdAt) DAY'))) // Monday of the week
           : fn('DATE', col('createdAt'));
 
-        const tradesData = await models.order.findAll({
+        const tradesData = await models.exchangeOrder.findAll({
           attributes: [
             [dateFormatClause, 'date'],
             [fn('COUNT', col('id')), 'count'],
@@ -578,8 +578,8 @@ export default async (data: Handler) => {
     // Top trading assets
     const topAssets: Array<{ asset: string; volume: number; trades: number }> = [];
     try {
-      if (models.order) {
-        const assetsData = await models.order.findAll({
+      if (models.exchangeOrder) {
+        const assetsData = await models.exchangeOrder.findAll({
           attributes: [
             'symbol',
             [fn('SUM', col('amount')), 'volume'],

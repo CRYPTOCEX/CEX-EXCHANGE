@@ -55,7 +55,7 @@ export default async (data: Handler) => {
     });
   }
 
-  const investmentModel = models.icoInvestment || models.icoTransaction;
+  const investmentModel = models.icoTransaction;
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);

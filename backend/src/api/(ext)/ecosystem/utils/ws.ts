@@ -103,11 +103,12 @@ export async function handleCandleBroadcast(
     candle.close,
     candle.volume,
   ];
+
   messageBroker.broadcastToSubscribedClients(
     `/api/ecosystem/market`,
-    { type: "ohlcv", symbol, interval },
+    { type: "ohlcv", interval, symbol },
     {
-      stream: "ohlcv",
+      stream: `ohlcv:${interval}`,
       data: [parsedCandle],
     }
   );

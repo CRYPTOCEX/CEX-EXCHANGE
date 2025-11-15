@@ -224,12 +224,12 @@ export default async (data: Handler) => {
       // Update transaction with failed verification
       await transaction.update({
         status: "FAILED",
-        metadata: {
+        metadata: JSON.stringify({
           ...transaction.metadata,
           verification_failed: true,
           signature_valid: false,
           ipay88_response: body,
-        },
+        }),
       });
 
       throw new Error("Invalid signature - payment verification failed");

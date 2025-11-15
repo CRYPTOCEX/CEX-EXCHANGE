@@ -1,5 +1,5 @@
 import * as Sequelize from "sequelize";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
 export default class nftBid
   extends Model<nftBidAttributes, nftBidCreationAttributes>
@@ -7,11 +7,17 @@ export default class nftBid
 {
   id!: string;
   listingId!: string;
-  bidderId!: string;
+  tokenId?: string;
+  userId!: string; // Changed from bidderId
   amount!: number;
   currency!: string;
+  transactionHash?: string;
   expiresAt?: Date;
-  status!: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+  status!: "ACTIVE" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED" | "OUTBID";
+  acceptedAt?: Date;
+  rejectedAt?: Date;
+  outbidAt?: Date;
+  cancelledAt?: Date;
   metadata?: any;
   createdAt?: Date;
   deletedAt?: Date;
@@ -34,12 +40,19 @@ export default class nftBid
             isUUID: { args: 4, msg: "listingId: Listing ID must be a valid UUID" },
           },
         },
-        bidderId: {
+        tokenId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          validate: {
+            isUUID: { args: 4, msg: "tokenId: Token ID must be a valid UUID" },
+          },
+        },
+        userId: {
           type: DataTypes.UUID,
           allowNull: false,
           validate: {
-            notNull: { msg: "bidderId: Bidder ID cannot be null" },
-            isUUID: { args: 4, msg: "bidderId: Bidder ID must be a valid UUID" },
+            notNull: { msg: "userId: User ID cannot be null" },
+            isUUID: { args: 4, msg: "userId: User ID must be a valid UUID" },
           },
         },
         amount: {
@@ -57,20 +70,40 @@ export default class nftBid
             notEmpty: { msg: "currency: Currency must not be empty" },
           },
         },
+        transactionHash: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+        },
         expiresAt: {
           type: DataTypes.DATE,
           allowNull: true,
         },
         status: {
-          type: DataTypes.ENUM("ACTIVE", "ACCEPTED", "REJECTED", "EXPIRED", "CANCELLED"),
+          type: DataTypes.ENUM("ACTIVE", "ACCEPTED", "REJECTED", "EXPIRED", "CANCELLED", "OUTBID"),
           allowNull: false,
           defaultValue: "ACTIVE",
           validate: {
             isIn: {
-              args: [["ACTIVE", "ACCEPTED", "REJECTED", "EXPIRED", "CANCELLED"]],
-              msg: "status: Status must be one of 'ACTIVE', 'ACCEPTED', 'REJECTED', 'EXPIRED', or 'CANCELLED'",
+              args: [["ACTIVE", "ACCEPTED", "REJECTED", "EXPIRED", "CANCELLED", "OUTBID"]],
+              msg: "status: Status must be one of 'ACTIVE', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CANCELLED', or 'OUTBID'",
             },
           },
+        },
+        acceptedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        rejectedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        outbidAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        cancelledAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
         metadata: {
           type: DataTypes.JSON,
@@ -103,9 +136,14 @@ export default class nftBid
             fields: [{ name: "listingId" }],
           },
           {
-            name: "nftBidBidderIdx",
+            name: "nftBidUserIdx",
             using: "BTREE",
-            fields: [{ name: "bidderId" }],
+            fields: [{ name: "userId" }],
+          },
+          {
+            name: "nftBidTokenIdx",
+            using: "BTREE",
+            fields: [{ name: "tokenId" }],
           },
           {
             name: "nftBidStatusIdx",
@@ -136,8 +174,15 @@ export default class nftBid
     });
 
     nftBid.belongsTo(models.user, {
-      as: "bidder",
-      foreignKey: "bidderId",
+      as: "user",
+      foreignKey: "userId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+
+    nftBid.belongsTo(models.nftToken, {
+      as: "token",
+      foreignKey: "tokenId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });

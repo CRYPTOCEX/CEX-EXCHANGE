@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.338742'; // Update this when deploying changes
+        this.cacheVersion = '1.0.789049'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration
@@ -258,6 +258,18 @@ class DocsLayout {
                             { title: 'Offer Management', href: '#p2p-offers', icon: '💼' },
                             { title: 'Trade Management', href: '#p2p-trades', icon: '🤝' },
                             { title: 'Dispute Resolution', href: '#p2p-disputes', icon: '⚖️' }
+                        ]
+                    },
+                    {
+                        title: 'NFT Marketplace',
+                        href: '',
+                        icon: '🎨',
+                        isGroup: true,
+                        children: [
+                            { title: 'Installation', href: '#nft-installation', icon: '🚀' },
+                            { title: 'Admin Features', href: '#nft-admin-features', icon: '👨‍💼' },
+                            { title: 'User Features', href: '#nft-user-features', icon: '👥' },
+                            { title: 'Settings', href: '#nft-settings', icon: '⚙️' }
                         ]
                     },
                     {
@@ -1349,7 +1361,26 @@ class DocsLayout {
             contentFile: 'content/p2p/disputes.html'
         });
 
-        
+
+        // NFT Marketplace Routes
+        this.routes.set('nft-installation', {
+            title: 'NFT Marketplace - Installation Guide',
+            contentFile: 'content/nft/installation.html'
+        });
+        this.routes.set('nft-admin-features', {
+            title: 'NFT Marketplace - Admin Features',
+            contentFile: 'content/nft/admin-features.html'
+        });
+        this.routes.set('nft-user-features', {
+            title: 'NFT Marketplace - User Features',
+            contentFile: 'content/nft/user-features.html'
+        });
+        this.routes.set('nft-settings', {
+            title: 'NFT Marketplace - Settings Configuration',
+            contentFile: 'content/nft/settings.html'
+        });
+
+
         // Staking Extension Routes
         this.routes.set('staking-installation', {
             title: 'Staking - Installation',

@@ -163,7 +163,7 @@ export default async (data: Handler) => {
       amount: totalAmount,
       fee: feeAmount,
       description: `Adyen deposit of ${totalAmount} ${currency}`,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: "adyen",
         sessionId: sessionResponse.id,
         pspReference: null,
@@ -171,7 +171,7 @@ export default async (data: Handler) => {
         originalAmount: amount,
         feeAmount,
         countryCode,
-      },
+      }),
     });
 
     return {

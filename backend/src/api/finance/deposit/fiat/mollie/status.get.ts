@@ -136,12 +136,12 @@ export default async (data: Handler) => {
         await models.transaction.update(
           {
             status: newStatus,
-            metadata: {
+            metadata: JSON.stringify({
               ...transaction.metadata,
               molliePaymentId: molliePayment.id,
               mollieStatus: molliePayment.status,
               lastStatusCheck: new Date().toISOString(),
-            },
+            }),
           },
           {
             where: { uuid: transaction.uuid },

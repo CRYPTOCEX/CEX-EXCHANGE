@@ -46,7 +46,11 @@ export const metadata = {
               },
               tokenPrice: {
                 type: "number",
-                description: "Current token price",
+                description: "Current active phase token price (used for purchase calculations)",
+              },
+              baseTokenPrice: {
+                type: "number",
+                description: "Base token price from offering (for reference)",
               },
               targetAmount: {
                 type: "number",
@@ -162,9 +166,13 @@ export default async (data: { params?: any }): Promise<any> => {
       (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
     let cumulativeDays = 0;
-    let currentPhase = null;
-    let nextPhase = null;
+    let currentPhase: any = null;
+    let nextPhase: any = null;
 
+    // First, try to find the active phase based on remaining tokens (matching purchase logic)
+    const activePhaseByRemaining = phases.find((phase: any) => phase.remaining > 0);
+
+    // Then calculate based on time
     for (let i = 0; i < phases.length; i++) {
       cumulativeDays += phases[i].duration;
       if (daysSinceStart < cumulativeDays) {
@@ -182,6 +190,15 @@ export default async (data: { params?: any }): Promise<any> => {
       }
     }
 
+    // If we found an active phase by remaining tokens, use that instead
+    // This ensures consistency with the purchase endpoint logic
+    if (activePhaseByRemaining && (!currentPhase || activePhaseByRemaining.sequence < currentPhase.sequence)) {
+      currentPhase = {
+        ...activePhaseByRemaining.toJSON(),
+        endsIn: currentPhase?.endsIn || 0,
+      };
+    }
+
     // Await the currentRaised aggregation query
     const currentRaisedResult = await currentRaisedPromise;
     const currentRaised =
@@ -190,6 +207,9 @@ export default async (data: { params?: any }): Promise<any> => {
         : 0;
 
     // Assemble the response with plain objects
+    // Use current phase token price if available, otherwise fall back to offering token price
+    const currentTokenPrice = currentPhase?.tokenPrice || offering.tokenPrice;
+
     const transformedOffering = {
       id: offering.id,
       name: offering.name,
@@ -198,7 +218,8 @@ export default async (data: { params?: any }): Promise<any> => {
       purchaseWalletCurrency: offering.purchaseWalletCurrency,
       purchaseWalletType: offering.purchaseWalletType,
       status: offering.status,
-      tokenPrice: offering.tokenPrice,
+      tokenPrice: currentTokenPrice, // Use current phase price for accurate calculations
+      baseTokenPrice: offering.tokenPrice, // Keep original price for reference
       targetAmount: offering.targetAmount,
       participants: offering.participants,
       isPaused: offering.isPaused,

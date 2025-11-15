@@ -135,7 +135,8 @@ export const userInclude = {
       attributes: ["type", "enabled"],
     },
     {
-      model: models.kyc,
+      model: models.kycApplication,
+      as: "kyc",
       attributes: ["status", "level"],
     },
     {

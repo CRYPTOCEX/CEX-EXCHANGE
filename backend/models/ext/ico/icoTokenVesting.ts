@@ -134,6 +134,29 @@ export default class icoTokenVesting
   }
 
   public static associate(models: any) {
-    // Add associations here if needed
+    icoTokenVesting.hasMany(models.icoTokenVestingRelease, {
+      as: "releases",
+      foreignKey: "vestingId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    icoTokenVesting.belongsTo(models.icoTransaction, {
+      as: "transaction",
+      foreignKey: "transactionId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    icoTokenVesting.belongsTo(models.user, {
+      as: "user",
+      foreignKey: "userId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    icoTokenVesting.belongsTo(models.icoTokenOffering, {
+      as: "offering",
+      foreignKey: "offeringId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
   }
 }

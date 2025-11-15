@@ -130,8 +130,6 @@ class UnifiedFuturesMarketDataHandler {
       this.activeSubscriptions.get(symbol)!.add(type);
     }
 
-    console.log(`Added ${type} subscription for ${symbol}. Active types:`, Array.from(this.activeSubscriptions.get(symbol)!));
-
     // Immediately fetch data for the new subscription
     await this.fetchAndBroadcastData(symbol, new Set([type]));
   }
@@ -149,10 +147,6 @@ class UnifiedFuturesMarketDataHandler {
           clearInterval(this.intervalMap.get(symbol)!);
           this.intervalMap.delete(symbol);
         }
-        
-        console.log(`Removed all subscriptions for ${symbol}`);
-      } else {
-        console.log(`Removed ${type} subscription for ${symbol}. Remaining types:`, Array.from(this.activeSubscriptions.get(symbol)!));
       }
     }
   }

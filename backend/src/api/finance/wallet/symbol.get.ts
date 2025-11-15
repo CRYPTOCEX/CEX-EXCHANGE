@@ -63,14 +63,21 @@ export default async (data: Handler) => {
   const currencyWallet = await getWalletSafe(user.id, type, currency);
   const pairWallet = await getWalletSafe(user.id, type, pair);
 
-  // For ECO wallets, return spendable balance (balance - inOrder)
-  // For other wallet types, inOrder is not used so just return balance
-  const CURRENCY = currencyWallet?.balance
-    ? (currencyWallet.balance - (currencyWallet.inOrder || 0))
-    : 0;
-  const PAIR = pairWallet?.balance
-    ? (pairWallet.balance - (pairWallet.inOrder || 0))
-    : 0;
+  // Return detailed balance information
+  // balance = available to use (spendable)
+  // inOrder = locked in orders
+  // total = balance + inOrder (total owned)
+  const CURRENCY = {
+    balance: currencyWallet?.balance || 0,        // Available/spendable
+    inOrder: currencyWallet?.inOrder || 0,        // Locked in orders
+    total: (currencyWallet?.balance || 0) + (currencyWallet?.inOrder || 0), // Total owned
+  };
+
+  const PAIR = {
+    balance: pairWallet?.balance || 0,            // Available/spendable
+    inOrder: pairWallet?.inOrder || 0,            // Locked in orders
+    total: (pairWallet?.balance || 0) + (pairWallet?.inOrder || 0),         // Total owned
+  };
 
   return { CURRENCY, PAIR };
 };

@@ -1,0 +1,685 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🎨</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">NFT Marketplace Extension</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Installation & Setup Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 What is the NFT Marketplace Extension?</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The NFT Marketplace extension transforms your v5 platform into a comprehensive multi-chain NFT marketplace. Users can create collections, mint NFTs, list them for sale (fixed price or auction), make offers, and trade digital assets across multiple blockchains including Ethereum, BSC, Polygon, Arbitrum, and Optimism.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Built on industry-standard ERC-721 smart contracts with IPFS metadata storage, the marketplace supports creator royalties, KYC integration, auction mechanics with anti-sniping protection, and real-time activity feeds. Administrators have full control over marketplace configuration, content moderation, creator verification, and multi-chain contract deployment.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            The system integrates seamlessly with the Ecosystem extension for blockchain connectivity and supports both custodial and non-custodial wallet workflows.
+        </p>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✨ Key Features</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🖼️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">NFT Creation & Minting</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">6-step wizard for creating and minting NFTs with IPFS storage</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📦</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Collection Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Deploy ERC-721 smart contracts with custom royalties and metadata</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">💰</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Trading System</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Fixed-price sales, timed auctions, and direct offers with blockchain execution</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🌐</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Multi-Chain Support</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Deploy and trade on ETH, BSC, Polygon, Arbitrum, and Optimism</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🏆</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Creator Royalties</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Automatic royalty distribution on secondary sales (0-50%)</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🔐</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">KYC Integration</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Optional KYC requirements for creators and high-value transactions</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">⚖️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Dispute Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Comprehensive dispute resolution system with priority levels</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📊</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Analytics Dashboard</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Real-time metrics, volume tracking, and creator performance analytics</p>
+        </div>
+    </div>
+</div>
+
+<!-- Prerequisites -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Prerequisites</h2>
+
+    <div class="space-y-4">
+        <div class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">✅ Required Components</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>v5 Core Platform installed and configured</li>
+                <li><strong>Ecosystem Extension</strong> - Required for blockchain connectivity, wallet management, and RPC providers</li>
+                <li>User authentication system active</li>
+                <li>Database with proper user management</li>
+                <li>RPC endpoints for supported chains (Ethereum, BSC, Polygon, Arbitrum, Optimism)</li>
+                <li>Gas funds in master wallets for contract deployment</li>
+            </ul>
+        </div>
+
+        <div class="border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔌 Recommended Integrations</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>KYC Extension - For creator and buyer verification</li>
+                <li>Email service - For transaction notifications</li>
+                <li>WebSocket server - For real-time activity feeds</li>
+                <li>SSL certificate - Required for wallet connections</li>
+            </ul>
+        </div>
+
+        <div class="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⚠️ Important Notes</h3>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>Smart contract deployment requires gas fees on each blockchain</li>
+                <li>Users provide their own IPFS URLs when creating NFTs (no platform IPFS setup required)</li>
+                <li>IPFS metadata validation ensures proper format before blockchain minting</li>
+                <li>Test on testnets (Sepolia) before deploying to mainnet</li>
+                <li>Configure proper permissions and access controls for admin features</li>
+                <li>Plan marketplace fee structure and royalty limits before launch</li>
+                <li>Ensure compliance with local digital asset and NFT regulations</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Installation Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📦 Installation Steps</h2>
+
+    <!-- Step 1 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Download License from CodeCanyon</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Purchase and download the NFT Marketplace extension license from CodeCanyon:
+                </p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• Visit the CodeCanyon marketplace</li>
+                    <li>• Purchase the NFT Marketplace extension</li>
+                    <li>• Download the license file</li>
+                    <li>• Note down your <strong>username</strong> and <strong>license code</strong></li>
+                </ul>
+
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+                    <p class="text-amber-800 dark:text-amber-200 text-sm">
+                        <strong>⚠️ Important:</strong> Keep your license code secure and don't share it with others.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Access Extension Management</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Navigate to the system extension management page:
+                </p>
+                <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+                    /admin/system/extension
+                </div>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4 mt-3">
+                    <li>• Login to your admin panel</li>
+                    <li>• Go to <strong>System → Extensions</strong></li>
+                    <li>• Find the "NFT Marketplace" extension in the list</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Activate the Extension</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Use your CodeCanyon credentials to activate the extension:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>1. Click on the "NFT Marketplace" extension</li>
+                    <li>2. Enter your <strong>CodeCanyon username</strong></li>
+                    <li>3. Enter your <strong>license code</strong></li>
+                    <li>4. Click "Activate"</li>
+                </ol>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-3">
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">
+                        <strong>ℹ️ Note:</strong> The system will verify your license with CodeCanyon and activate the extension. This may take a few seconds.
+                    </p>
+                </div>
+
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+                    <p class="text-amber-800 dark:text-amber-200 text-sm">
+                        <strong>⚠️ Important:</strong> Keep your license code secure and don't share it with others.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Verify Database Setup</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    After activation, the system automatically creates the following database tables:
+                </p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_collection</code> - NFT collection contracts</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_token</code> - Individual NFT tokens</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_listing</code> - Marketplace listings</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_bid</code> - Auction bids</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_offer</code> - Direct offers</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_activity</code> - Activity feed</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_creator</code> - Creator profiles</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_marketplace</code> - Marketplace contracts</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_category</code> - NFT categories</li>
+                    <li>• <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-xs">nft_dispute</code> - Dispute management</li>
+                </ul>
+
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mt-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm">
+                        <strong>✅ Success:</strong> Once activated, you'll see "NFT Marketplace" in your admin sidebar navigation under the Extensions section.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Ecosystem Integration</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Ensure the Ecosystem extension is properly configured for blockchain connectivity:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                    <li>1. Navigate to <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/ecosystem</code></li>
+                    <li>2. Configure RPC endpoints for each blockchain you want to support:</li>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li>• Ethereum (chainId: 1)</li>
+                        <li>• BSC (chainId: 56)</li>
+                        <li>• Polygon (chainId: 137)</li>
+                        <li>• Arbitrum (chainId: 42161)</li>
+                        <li>• Optimism (chainId: 10)</li>
+                        <li>• Sepolia testnet (chainId: 11155111) - for testing</li>
+                    </ul>
+                    <li>3. Set up master wallets with sufficient gas for each chain</li>
+                    <li>4. Enable the blockchains in the Ecosystem settings</li>
+                </ol>
+
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+                    <h4 class="text-sm font-semibold mb-1 text-amber-900 dark:text-amber-100">⚠️ Gas Requirements</h4>
+                    <p class="text-amber-800 dark:text-amber-200 text-xs">Deploying marketplace contracts requires approximately 0.05-0.1 ETH (or equivalent) per chain. Ensure master wallets are funded before deployment.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">6</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Run Onboarding Setup</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Complete the guided onboarding process to set up your NFT marketplace:
+                </p>
+                <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2 ml-4">
+                    <li>1. Navigate to <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">/admin/nft/onboarding</code></li>
+                    <li>2. Follow the 4-phase setup wizard:</li>
+                </ol>
+
+                <div class="mt-4 space-y-3">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-blue-900 dark:text-blue-100">Phase 1: Infrastructure Setup (CRITICAL)</p>
+                        <ul class="text-xs text-blue-800 dark:text-blue-200 ml-4 mt-1 space-y-1">
+                            <li>• Deploy primary marketplace contract (choose your main chain)</li>
+                            <li>• Verify blockchain integration health</li>
+                            <li>• Configure marketplace fee structure (default 2.5%)</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-green-900 dark:text-green-100">Phase 2: Marketplace Configuration (IMPORTANT)</p>
+                        <ul class="text-xs text-green-800 dark:text-green-200 ml-4 mt-1 space-y-1">
+                            <li>• Enable trading types (fixed-price, auctions, offers)</li>
+                            <li>• Configure auction mechanics (duration limits, bid increments)</li>
+                            <li>• Set up content policies (metadata validation)</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-purple-900 dark:text-purple-100">Phase 3: Content Management (IMPORTANT)</p>
+                        <ul class="text-xs text-purple-800 dark:text-purple-200 ml-4 mt-1 space-y-1">
+                            <li>• Create NFT categories (minimum 2 required)</li>
+                            <li>• Review and approve first user collection</li>
+                            <li>• Ensure collections have minted NFTs</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded p-3">
+                        <p class="text-sm font-medium text-amber-900 dark:text-amber-100">Phase 4: User & Creator Management (IMPORTANT)</p>
+                        <ul class="text-xs text-amber-800 dark:text-amber-200 ml-4 mt-1 space-y-1">
+                            <li>• Verify first creator profile</li>
+                            <li>• Configure KYC requirements (if applicable)</li>
+                            <li>• Set high-value transaction thresholds</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+                    <h4 class="text-sm font-semibold mb-1 text-green-900 dark:text-green-100">✅ Progress Tracking</h4>
+                    <p class="text-green-800 dark:text-green-200 text-xs">The onboarding wizard tracks your progress and estimates time remaining. You can pause and resume at any time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Database Tables -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🗄️ Database Tables</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            The NFT Marketplace extension creates the following database tables automatically during activation:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">📦 nftCollection</p>
+                <p class="text-xs text-blue-800 dark:text-blue-200">NFT collections and smart contract details</p>
+            </div>
+
+            <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                <p class="text-sm font-medium text-purple-900 dark:text-purple-100">🖼️ nftToken</p>
+                <p class="text-xs text-purple-800 dark:text-purple-200">Individual NFT tokens with metadata</p>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                <p class="text-sm font-medium text-green-900 dark:text-green-100">💰 nftListing</p>
+                <p class="text-xs text-green-800 dark:text-green-200">Active marketplace listings (sales/auctions)</p>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 rounded p-3">
+                <p class="text-sm font-medium text-amber-900 dark:text-amber-100">🎯 nftBid</p>
+                <p class="text-xs text-amber-800 dark:text-amber-200">Auction bids with status tracking</p>
+            </div>
+
+            <div class="bg-red-50 dark:bg-red-900/20 rounded p-3">
+                <p class="text-sm font-medium text-red-900 dark:text-red-100">💵 nftOffer</p>
+                <p class="text-xs text-red-800 dark:text-red-200">Direct offers on NFTs</p>
+            </div>
+
+            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded p-3">
+                <p class="text-sm font-medium text-indigo-900 dark:text-indigo-100">📊 nftActivity</p>
+                <p class="text-xs text-indigo-800 dark:text-indigo-200">All marketplace activities and transactions</p>
+            </div>
+
+            <div class="bg-pink-50 dark:bg-pink-900/20 rounded p-3">
+                <p class="text-sm font-medium text-pink-900 dark:text-pink-100">👤 nftCreator</p>
+                <p class="text-xs text-pink-800 dark:text-pink-200">Creator profiles and verification</p>
+            </div>
+
+            <div class="bg-teal-50 dark:bg-teal-900/20 rounded p-3">
+                <p class="text-sm font-medium text-teal-900 dark:text-teal-100">🏪 nftMarketplace</p>
+                <p class="text-xs text-teal-800 dark:text-teal-200">Deployed marketplace contracts per chain</p>
+            </div>
+
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 rounded p-3">
+                <p class="text-sm font-medium text-cyan-900 dark:text-cyan-100">📁 nftCategory</p>
+                <p class="text-xs text-cyan-800 dark:text-cyan-200">NFT categories for organization</p>
+            </div>
+
+            <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                <p class="text-sm font-medium text-orange-900 dark:text-orange-100">⚖️ nftDispute</p>
+                <p class="text-xs text-orange-800 dark:text-orange-200">Dispute management and resolution</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permissions & Access Control -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔐 Permissions & Access Control</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            The NFT Marketplace extension includes a comprehensive permission system:
+        </p>
+
+        <div class="space-y-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Admin Permissions</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Main NFT admin access</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.onboarding</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Access onboarding wizard</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.category</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage categories</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.collection</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage collections</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.token</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage NFT tokens</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.creator</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage creator profiles</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.marketplace</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Deploy & manage contracts</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.blockchain</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Blockchain operations</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.listing</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage listings</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.auction</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage auctions & bids</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.offer</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage offers</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.sale</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Manage sales & transactions</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.activity</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">View & manage activity feed</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.dispute</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Handle disputes</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.review</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Review & approve content</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.analytics</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">View analytics dashboard</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.stats</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">View statistics</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                        <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">access.nft.backup</code>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Backup management</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">User Access</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">All authenticated users can:</p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                    <li>• Browse marketplace and view NFTs</li>
+                    <li>• Create collections (requires wallet connection)</li>
+                    <li>• Mint NFTs to their own collections</li>
+                    <li>• List owned NFTs for sale</li>
+                    <li>• Purchase, bid, and make offers on NFTs</li>
+                    <li>• Manage creator profile</li>
+                </ul>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Paranoid Mode Protection</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    When paranoid mode is enabled, the following admin actions require additional confirmation: deleting categories, collections, tokens, listings, offers, and activity records.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Structure -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🧭 Navigation Structure</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Admin Routes</h3>
+            <div class="space-y-2 text-sm">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Dashboard & overview</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/onboarding</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Setup wizard</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/category</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Category management</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/collection</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Collection management</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/marketplace</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Contract deployment</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/settings</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Marketplace configuration</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/admin/nft/analytics</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Performance analytics</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">User Routes</h3>
+            <div class="space-y-2 text-sm">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Marketplace home</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft/marketplace</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Browse NFTs</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft/create</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Mint new NFT</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft/collection/create</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Create collection</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft/creator</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">Creator dashboard</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded">
+                    <code class="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">/nft/token/[id]</code>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-xs ml-2">NFT details page</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Troubleshooting</h2>
+
+    <div class="space-y-3">
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Extension activation failed
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Check database connection and permissions</li>
+                    <li>• Ensure Ecosystem extension is activated first</li>
+                    <li>• Verify no conflicting database table names exist</li>
+                    <li>• Check server error logs for detailed error messages</li>
+                    <li>• Ensure sufficient disk space for uploads</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Marketplace contract deployment fails
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Verify master wallet has sufficient gas funds</li>
+                    <li>• Check RPC endpoint is accessible and not rate-limited</li>
+                    <li>• Ensure blockchain network is not congested</li>
+                    <li>• Verify smart contract bytecode is valid</li>
+                    <li>• Check firewall allows outbound connections to RPC endpoint</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                Users can't connect wallets
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Ensure site is running on HTTPS (required for wallet connections)</li>
+                    <li>• Verify Reown (Coinbase) AppKit project ID is configured</li>
+                    <li>• Check browser console for wallet provider errors</li>
+                    <li>• Ensure users have MetaMask or compatible wallet installed</li>
+                    <li>• Verify chain IDs match between frontend and smart contracts</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <summary class="p-4 cursor-pointer font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                NFT transactions not processing
+            </summary>
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                <ul class="text-sm space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>• Check user wallet has sufficient native token for gas</li>
+                    <li>• Verify smart contract approvals are set correctly</li>
+                    <li>• Ensure blockchain network is operational</li>
+                    <li>• Check gas price estimation is reasonable</li>
+                    <li>• Review transaction logs for revert reasons</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Next Steps</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/docs/nft/admin-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👨‍💼 Admin Features Guide</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Learn about all admin management features, analytics, and moderation tools</p>
+        </a>
+
+        <a href="/docs/nft/user-features" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">👥 User Features Guide</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Understand user workflows for creating, minting, listing, and trading NFTs</p>
+        </a>
+
+        <a href="/docs/nft/settings" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⚙️ Settings Configuration</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Detailed guide to all marketplace settings and configuration options</p>
+        </a>
+
+        <a href="/docs/ecosystem/installation" class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔗 Ecosystem Extension</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Set up blockchain connectivity and wallet infrastructure</p>
+        </a>
+    </div>
+</div>
+
+<!-- Support -->
+<div class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
+    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">💬 Need Help?</h3>
+    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+        If you encounter any issues during installation or have questions about the NFT Marketplace extension:
+    </p>
+    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+        <li>• Check the <a href="/docs/faq" class="text-blue-600 dark:text-blue-400 hover:underline">FAQ section</a></li>
+        <li>• Visit our <a href="https://support.mash3div.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">support portal</a></li>
+        <li>• Contact our support team via the admin panel</li>
+        <li>• Join our community Discord server</li>
+    </ul>
+</div>

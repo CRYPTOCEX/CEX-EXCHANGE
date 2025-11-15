@@ -30,7 +30,7 @@ export default async (data: Handler) => {
   const users = await models.user.findAll({
     include: [
       { model: models.role, as: "role" },
-      { model: models.kyc, as: "kyc" },
+      { model: models.kycApplication, as: "kyc" },
     ],
   });
 

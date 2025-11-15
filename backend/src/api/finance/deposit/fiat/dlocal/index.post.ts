@@ -204,13 +204,13 @@ export default async (data: Handler) => {
       amount: amount,
       fee: feeAmount,
       description: description,
-      metadata: {
+      metadata: JSON.stringify({
         gateway: "dlocal",
         currency: currency,
         country: country,
         payment_method_id: payment_method_id,
         customer: customer,
-      },
+      }),
     });
 
     // Prepare dLocal payment request
@@ -248,14 +248,14 @@ export default async (data: Handler) => {
     // Update transaction with dLocal payment ID
     await transaction.update({
       referenceId: paymentResponse.id,
-      metadata: {
+      metadata: JSON.stringify({
         ...transaction.metadata,
         dlocal_payment_id: paymentResponse.id,
         dlocal_status: paymentResponse.status,
         dlocal_status_code: paymentResponse.status_code,
         payment_method_type: paymentResponse.payment_method_type,
         payment_method_flow: paymentResponse.payment_method_flow,
-      },
+      }),
     });
 
     // Log the payment creation
@@ -280,12 +280,12 @@ export default async (data: Handler) => {
     if (orderId) {
       try {
         await models.transaction.update(
-          { 
+          {
             status: "FAILED",
-            metadata: {
+            metadata: JSON.stringify({
               error: error.message,
               timestamp: new Date().toISOString(),
-            }
+            })
           },
           { where: { uuid: orderId } }
         );

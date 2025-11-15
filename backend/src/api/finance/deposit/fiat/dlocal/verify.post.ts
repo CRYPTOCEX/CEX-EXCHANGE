@@ -138,7 +138,7 @@ export default async (data: Handler) => {
     await transaction.update({
       status: internalStatus.toUpperCase(),
       referenceId: paymentData.id,
-      metadata: {
+      metadata: JSON.stringify({
         ...transaction.metadata,
         dlocal_payment_id: paymentData.id,
         dlocal_status: paymentData.status,
@@ -147,7 +147,7 @@ export default async (data: Handler) => {
         payment_method_type: paymentData.payment_method_type,
         verification_date: new Date().toISOString(),
         verified_by: user.id,
-      },
+      }),
     });
 
     // Handle successful payment - update wallet if not already done

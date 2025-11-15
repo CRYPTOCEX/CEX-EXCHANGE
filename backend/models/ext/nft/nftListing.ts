@@ -11,12 +11,19 @@ export default class nftListing
   type!: "FIXED_PRICE" | "AUCTION" | "BUNDLE";
   price?: number;
   currency!: string;
+  currentBid?: number;
+  startingBid?: number;
   reservePrice?: number;
   minBidIncrement?: number;
   buyNowPrice?: number;
+  auctionContractAddress?: string;
+  bundleTokenIds?: string;
   startTime?: Date;
   endTime?: Date;
   status!: "ACTIVE" | "SOLD" | "CANCELLED" | "EXPIRED";
+  soldAt?: Date;
+  cancelledAt?: Date;
+  endedAt?: Date;
   views?: number;
   likes?: number;
   metadata?: any;
@@ -75,6 +82,20 @@ export default class nftListing
             notEmpty: { msg: "currency: Currency must not be empty" },
           },
         },
+        currentBid: {
+          type: DataTypes.DECIMAL(36, 18),
+          allowNull: true,
+          validate: {
+            min: { args: [0], msg: "currentBid: Current bid must be non-negative" },
+          },
+        },
+        startingBid: {
+          type: DataTypes.DECIMAL(36, 18),
+          allowNull: true,
+          validate: {
+            min: { args: [0], msg: "startingBid: Starting bid must be non-negative" },
+          },
+        },
         reservePrice: {
           type: DataTypes.DECIMAL(36, 18),
           allowNull: true,
@@ -96,6 +117,14 @@ export default class nftListing
             min: { args: [0], msg: "buyNowPrice: Buy now price must be non-negative" },
           },
         },
+        auctionContractAddress: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+        },
+        bundleTokenIds: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
         startTime: {
           type: DataTypes.DATE,
           allowNull: true,
@@ -114,6 +143,18 @@ export default class nftListing
               msg: "status: Status must be one of 'ACTIVE', 'SOLD', 'CANCELLED', or 'EXPIRED'",
             },
           },
+        },
+        soldAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        cancelledAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+        endedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
         views: {
           type: DataTypes.INTEGER,
