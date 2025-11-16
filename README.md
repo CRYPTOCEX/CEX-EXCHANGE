@@ -51,9 +51,9 @@ For the main application installation and initial Virtualmin setup, please follo
     ```
  ### Configure your API + secret
  ![View Database Tables](./doc/exchange.png)
- ![View Database Tables](./doc/2-2 Enable exchange .png)
+ ![View Database Tables](./doc/2-2.png)
  ### Enable spot trading
- ![View Database Tables](./doc/3 enable spot trading.png)
+ ![View Database Tables](./doc/3trading.png)
  
  ![View Database Tables](./doc/click%20on%20view.png)
 ![View Database Tables](./doc/click%20on%20currencies.png)
