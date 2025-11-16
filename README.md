@@ -49,7 +49,7 @@ For the main application installation and initial Virtualmin setup, please follo
     NEXT_PUBLIC_EXCHANGE="bin"
     Configure your API + secret
     ```
- ![View Database Tables](./doc/2-1 ip restricted exchange.png)
+ ![View Database Tables](./doc/exchange.png)
  ![View Database Tables](./doc/click%20on%20view.png)
 ![View Database Tables](./doc/click%20on%20currencies.png)
 ![View Database Tables](./doc/import%20and%20activate.png)
