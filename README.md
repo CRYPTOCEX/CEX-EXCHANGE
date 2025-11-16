@@ -47,9 +47,14 @@ For the main application installation and initial Virtualmin setup, please follo
     ```env
     # Exchange first 3 letters of the alias (kucoin, binance, kraken, okx, xt)
     NEXT_PUBLIC_EXCHANGE="bin"
-    Configure your API + secret
+    
     ```
+ ### Configure your API + secret
  ![View Database Tables](./doc/exchange.png)
+ ![View Database Tables](./doc/2-2 Enable exchange .png)
+ ### Enable spot trading
+ ![View Database Tables](./doc/3 enable spot trading.png)
+ 
  ![View Database Tables](./doc/click%20on%20view.png)
 ![View Database Tables](./doc/click%20on%20currencies.png)
 ![View Database Tables](./doc/import%20and%20activate.png)
