@@ -110,6 +110,7 @@ Certain features must be enabled directly in the database. To do this, find the 
 ![View Database Tables](./doc/sol.png)
 
 ## 🚨 Troubleshooting Common Errors
+Admin login fails due to ssl certificate : use certibot to generate valid ssl certificate get free let"s encrypt certificate and restart apache
 
 ### Low RAM on Small VPS
 
