@@ -1,0 +1,429 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🤝</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">P2P Trade Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Monitor and manage peer-to-peer trades</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Trade Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            P2P trades represent executed transactions between users based on published offers. Each trade includes buyer and seller information, amount and pricing details, payment method selection, status tracking, and optional timeline management. The system provides administrative oversight for trade monitoring and dispute resolution.
+        </p>
+    </div>
+</div>
+
+<!-- Trade Structure -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🏗️ Trade Structure</h2>
+    
+    <!-- Core Fields -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Core Trade Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Trade Identifiers</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Trade ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID primary key for the trade</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Offer ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Link to the original P2P offer</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Buyer ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID of the purchasing user</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Seller ID</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">UUID of the selling user</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Trade Details</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Type</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">BUY or SELL operation</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Currency</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Cryptocurrency being traded (max 50 chars)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Amount</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Quantity of cryptocurrency (double, ≥0)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Price</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Unit price (double, ≥0)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Information -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Financial Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Transaction Values</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Total</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Total transaction value (amount × price)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Escrow Fee</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Platform fee (optional string)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Payment Information</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Payment Method</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Selected payment method (max 50 chars)</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Payment Details</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">JSON object with payment specifics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Timeline -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Status and Timeline Management</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Status Tracking</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Status</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Payment Confirmed At</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Timestamp of payment confirmation</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Timeline and Terms</h4>
+                <div class="space-y-3">
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Timeline</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">JSON object tracking trade progression</span>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                        <strong class="text-zinc-900 dark:text-zinc-100 block">Terms</strong>
+                        <span class="text-zinc-600 dark:text-zinc-400 text-sm">Agreed trading terms (text field)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trade Status -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Trade Status System</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Available Status Types</h3>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span class="text-yellow-600 dark:text-yellow-400 font-bold text-sm">⏳</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">PENDING</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs">Trade initiated, awaiting payment</p>
+            </div>
+            
+            <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span class="text-blue-600 dark:text-blue-400 font-bold text-sm">💸</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">PAYMENT_SENT</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs">Payment marked as sent by buyer</p>
+            </div>
+            
+            <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span class="text-green-600 dark:text-green-400 font-bold text-sm">✅</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">COMPLETED</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs">Trade successfully finished</p>
+            </div>
+            
+            <div class="text-center p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                <div class="w-12 h-12 bg-gray-100 dark:bg-gray-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold text-sm">❌</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">CANCELLED</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs">Trade cancelled by user</p>
+            </div>
+            
+            <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span class="text-red-600 dark:text-red-400 font-bold text-sm">⚖️</span>
+                </div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">DISPUTED</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs">Trade under dispute resolution</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trade Lifecycle -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔄 Trade Lifecycle</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Typical Trade Flow</h3>
+        <div class="space-y-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Trade Creation (PENDING)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        User accepts an offer, creating a trade record with buyer/seller assignments, amount, price, and payment method selection.
+                    </p>
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded p-3">
+                        <span class="text-yellow-800 dark:text-yellow-200 text-sm">Trade record created with all essential information and PENDING status</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Payment Process (PAYMENT_SENT)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Buyer sends payment via the agreed method and marks it as sent, updating status and adding payment reference.
+                    </p>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                        <span class="text-blue-800 dark:text-blue-200 text-sm">Status updated to PAYMENT_SENT with payment confirmation timestamp</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h4 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Trade Completion (COMPLETED)</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Seller verifies payment and releases cryptocurrency, marking the trade as completed.
+                    </p>
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                        <span class="text-green-800 dark:text-green-200 text-sm">Final status set to COMPLETED, trade successfully finished</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <h4 class="font-semibold text-red-800 dark:text-red-200 mb-2">Alternative Outcomes</h4>
+            <ul class="text-red-600 dark:text-red-400 text-sm space-y-1">
+                <li>• <strong>CANCELLED</strong>: Trade cancelled before completion by either party</li>
+                <li>• <strong>DISPUTED</strong>: Issues arise requiring dispute resolution intervention</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Trade Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Administrative Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Admin Operations</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Monitoring Functions</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• View all active and completed trades</li>
+                    <li>• Filter trades by status, currency, date range</li>
+                    <li>• Monitor trade progression and timelines</li>
+                    <li>• Track payment confirmations and delays</li>
+                    <li>• Review user trading patterns</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Support Actions</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Investigate disputed trades</li>
+                    <li>• Review payment evidence and details</li>
+                    <li>• Monitor compliance with platform rules</li>
+                    <li>• Handle user reports and complaints</li>
+                    <li>• Provide trade assistance when needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment and Timeline -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💳 Payment and Timeline Tracking</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Payment Details -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Payment Details (JSON)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                The paymentDetails field stores payment-specific information:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4 font-mono text-sm mb-4">
+{<br/>
+&nbsp;&nbsp;"accountNumber": "***1234",<br/>
+&nbsp;&nbsp;"bankName": "Example Bank",<br/>
+&nbsp;&nbsp;"reference": "TXN789012",<br/>
+&nbsp;&nbsp;"notes": "Payment sent via mobile app"<br/>
+}
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Flexible JSON structure</li>
+                <li>• Payment method specific fields</li>
+                <li>• Optional reference information</li>
+                <li>• User-provided notes</li>
+            </ul>
+        </div>
+        
+        <!-- Timeline Tracking -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Timeline Tracking (JSON)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                The timeline field tracks trade progression timestamps:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4 font-mono text-sm mb-4">
+{<br/>
+&nbsp;&nbsp;"created": "2024-01-15T10:00:00Z",<br/>
+&nbsp;&nbsp;"paymentSent": "2024-01-15T10:15:00Z",<br/>
+&nbsp;&nbsp;"paymentConfirmed": "2024-01-15T10:45:00Z",<br/>
+&nbsp;&nbsp;"completed": "2024-01-15T11:00:00Z"<br/>
+}
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Automatic timestamp tracking</li>
+                <li>• Key milestone recording</li>
+                <li>• Performance analysis data</li>
+                <li>• Dispute resolution timeline</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Escrow and Security -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Escrow and Security</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Security Features</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Escrow Management</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Escrow fee tracking (optional string field)</li>
+                    <li>• Escrow time limits (optional string field)</li>
+                    <li>• Automated fund holding during trade</li>
+                    <li>• Secure release mechanisms</li>
+                    <li>• Protection against fraud</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Payment Security</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Payment reference tracking</li>
+                    <li>• Confirmation timestamp recording</li>
+                    <li>• Payment detail verification</li>
+                    <li>• Dispute protection mechanisms</li>
+                    <li>• Audit trail maintenance</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Associations and Relationships -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔗 Trade Associations</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Database Relationships</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Core Relationships</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• <strong>Buyer/Seller</strong>: Links to user records</li>
+                    <li>• <strong>Offer</strong>: Connected to originating P2P offer</li>
+                    <li>• <strong>Dispute</strong>: One-to-one dispute relationship</li>
+                    <li>• <strong>Reviews</strong>: One-to-many review system</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Cascading Behavior</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Cascade delete on user removal</li>
+                    <li>• Cascade delete on offer removal</li>
+                    <li>• Automatic dispute cleanup</li>
+                    <li>• Review system integration</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Trade Monitoring</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Monitor trades regularly for issues</li>
+                    <li>• Track payment confirmation times</li>
+                    <li>• Watch for unusual trading patterns</li>
+                    <li>• Ensure proper timeline progression</li>
+                    <li>• Maintain audit trails for disputes</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Administrative Actions</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Investigate disputed trades promptly</li>
+                    <li>• Verify payment details when requested</li>
+                    <li>• Maintain clear communication records</li>
+                    <li>• Follow escalation procedures for issues</li>
+                    <li>• Update trade data accurately</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 

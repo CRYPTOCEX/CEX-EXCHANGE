@@ -1,0 +1,19 @@
+/* Ensure blue buttons in dark mode have white text */
+.dark .btn-glow,
+.dark .bg-primary,
+.dark .bg-gradient-to-r.from-primary,
+.dark button[type="submit"],
+.dark .bg-blue-600 {
+  color: white;
+}
+
+/* Ensure proper contrast for badges in dark mode */
+.dark .bg-blue-50.text-blue-700 {
+  background-color: rgba(30, 58, 138, 0.3);
+  color: rgb(147, 197, 253);
+}
+
+.dark .bg-green-50.text-green-700 {
+  background-color: rgba(6, 78, 59, 0.3);
+  color: rgb(134, 239, 172);
+}

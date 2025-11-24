@@ -1,0 +1,190 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🛍️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Order Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Manage customer orders and track their status</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Order Management Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The order management system tracks customer purchases through a simple status-based workflow. Orders are linked to user accounts and contain the products that were purchased.
+        </p>
+    </div>
+</div>
+
+<!-- Order Status Flow -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔄 Order Status Flow</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span class="text-2xl text-blue-600 dark:text-blue-400">⏳</span>
+                </div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Pending</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs mt-1">Order placed, awaiting processing</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span class="text-2xl text-green-600 dark:text-green-400">✅</span>
+                </div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Completed</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs mt-1">Order successfully fulfilled</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span class="text-2xl text-red-600 dark:text-red-400">❌</span>
+                </div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Cancelled</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs mt-1">Order cancelled by user or admin</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span class="text-2xl text-yellow-600 dark:text-yellow-400">🚫</span>
+                </div>
+                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Rejected</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-xs mt-1">Order rejected due to issues</p>
+            </div>
+        </div>
+        
+        <!-- Status Progression -->
+        <div class="mt-6 flex justify-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <div class="w-8 h-1 bg-zinc-300 dark:bg-zinc-600"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+        </div>
+        <p class="text-center text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            Orders flow from Pending to Completed, or can be Cancelled/Rejected
+        </p>
+    </div>
+</div>
+
+<!-- Order Structure -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Order Information</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Order Fields</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Each order contains the following information:
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Basic Information</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">Order ID:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Unique identifier</span>
+                    </div>
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">User ID:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Customer account</span>
+                    </div>
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">Status:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Current order status</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Additional Details</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">Products:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Ordered items list</span>
+                    </div>
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">Shipping ID:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Optional shipping info</span>
+                    </div>
+                    <div class="flex justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded">
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400">Timestamps:</span>
+                        <span class="text-sm text-zinc-900 dark:text-zinc-100">Created/Updated dates</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Managing Orders</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">View Orders</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Access the order management interface to view all customer orders.
+            </p>
+            <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>1. Navigate to <strong>Ecommerce → Orders</strong></li>
+                <li>2. View order list with status indicators</li>
+                <li>3. Click on any order to view details</li>
+                <li>4. See products included in each order</li>
+            </ol>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Update Status</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                Change order status as orders are processed.
+            </p>
+            <ol class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                <li>1. Open the order details</li>
+                <li>2. Select new status from dropdown</li>
+                <li>3. Confirm status change</li>
+                <li>4. Customer will be notified of update</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Order Processing</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Process pending orders promptly</li>
+                    <li>• Update order status regularly</li>
+                    <li>• Communicate with customers about delays</li>
+                    <li>• Complete orders once fulfilled</li>
+                    <li>• Cancel orders that cannot be fulfilled</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Customer Service</h3>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                    <li>• Respond to order inquiries quickly</li>
+                    <li>• Provide tracking information when available</li>
+                    <li>• Handle cancellation requests professionally</li>
+                    <li>• Follow up on completed orders</li>
+                    <li>• Monitor order patterns for improvements</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 

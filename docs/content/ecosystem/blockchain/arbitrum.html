@@ -1,0 +1,207 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🌀</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Arbitrum Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating Arbitrum networks into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide shows you how to integrate Arbitrum networks (Arbitrum Mainnet and Goerli) into your Bicrypto Ecosystem. You'll add Arbitrum credentials in <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code>, acquire API/RPC endpoints, then set up wallets and tokens in the admin panel—similar to how it's done for other EVM-compatible chains like Ethereum or Optimism.
+        </p>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Supported Networks</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                Arbitrum Mainnet and Goerli Testnet are supported. ETH (Layer 2) is used for transaction fees on Arbitrum.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Configure Environment Variables</h2>
+    
+    <!-- Include shared component -->
+    <div id="env-file-editing"></div>
+    
+    <!-- Arbitrum-specific variables -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Arbitrum Environment Variables</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Add the following Arbitrum-specific variables to your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file:
+        </p>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+            <pre><code class="language-bash text-sm"># Arbitrum Networks (mainnet, goerli)
+ARBITRUM_EXPLORER_API_KEY="YOUR_ARBITRUM_EXPLORER_API_KEY"  # e.g., 4EEJEPRYQG7D...
+ARBITRUM_NETWORK="goerli"
+ARBITRUM_MAINNET_RPC="https://YOUR_MAINNET_RPC_PLACEHOLDER"
+ARBITRUM_MAINNET_RPC_WSS=""
+ARBITRUM_GOERLI_RPC="https://YOUR_GOERLI_RPC_PLACEHOLDER"
+ARBITRUM_GOERLI_RPC_WSS=""</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>• <strong>ARBITRUM_EXPLORER_API_KEY:</strong> Your Arbiscan API key for blockchain data</p>
+            <p>• <strong>ARBITRUM_NETWORK:</strong> Active network (mainnet or goerli)</p>
+            <p>• <strong>RPC/WSS URLs:</strong> HTTP and WebSocket endpoints for each network</p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: API Providers -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Acquire API Keys and RPC Endpoints</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-blue-600 dark:text-blue-400 text-sm font-bold">AS</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Arbiscan API</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Create an account at <a href="https://arbiscan.io" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">arbiscan.io</a> and generate an API key for blockchain data access.
+            </p>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <code class="text-xs text-blue-800 dark:text-blue-200">ARBITRUM_EXPLORER_API_KEY="your_key_here"</code>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-green-600 dark:text-green-400 text-sm font-bold">RPC</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">RPC Providers</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Sign up for RPC services like Alchemy, GetBlock, or others offering Arbitrum endpoints with reliable uptime and performance.
+            </p>
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                <code class="text-xs text-green-800 dark:text-green-200">ARBITRUM_MAINNET_RPC="https://your-endpoint"</code>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <img src="https://support.mashdiv.com/storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="Arbiscan API key creation" class="w-full max-w-2xl rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+</div>
+
+<!-- Step 3: Apply Updates -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Apply Environment Updates</h2>
+    <div id="apply-env-updates"></div>
+</div>
+
+<!-- Step 4: Master Wallet -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Master Wallet</h2>
+    <div id="master-wallet-setup"></div>
+</div>
+
+<!-- Step 5: Token Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Enable Tokens and Configure Fees</h2>
+    <div id="token-management"></div>
+</div>
+
+<!-- Step 6: Custodial Wallets -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Custodial Wallets (For Non-Permit Tokens)</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-orange-900 dark:text-orange-100">When Custodial Wallets Are Needed</span>
+            </div>
+            <p class="text-orange-800 dark:text-orange-200 text-sm">
+                Some tokens don't support the PERMIT feature for fee delegation. For these tokens, you'll need to deploy custodial wallets.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Fund Master Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Ensure your master wallet has sufficient ETH (Layer 2) to cover gas fees for custodial wallet deployments and transactions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Deploy Custodial Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
+                        Go to <strong>Admin → Extensions → Ecosystem → Custodial Wallets</strong> and deploy a new custodial wallet for Arbitrum.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        The platform will handle user deposits/withdrawals through this wallet, with the master wallet paying ETH gas fees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Arbitrum-Specific Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Arbitrum-Specific Considerations</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Lower Gas Fees</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Arbitrum gas fees are generally lower than Ethereum L1, but can still fluctuate. Monitor fees and adjust your minimum withdrawal fees accordingly.
+            </p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Goerli Testnet</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Use Goerli testnet for development. Set <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">ARBITRUM_NETWORK="goerli"</code> and acquire test ETH from Goerli faucets.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Best Practices</h2>
+    <div id="security-best-practices"></div>
+</div> 

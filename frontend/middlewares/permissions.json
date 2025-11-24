@@ -1,0 +1,610 @@
+[
+  {
+    "path": "/admin",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/affiliate",
+    "permission": "access.affiliate"
+  },
+  {
+    "path": "/admin/affiliate/referral",
+    "permission": "access.affiliate.referral"
+  },
+  {
+    "path": "/admin/affiliate/referral/[id]",
+    "permission": "access.affiliate.referral"
+  },
+  {
+    "path": "/admin/affiliate/reward",
+    "permission": "access.affiliate.reward"
+  },
+  {
+    "path": "/admin/affiliate/settings",
+    "permission": "access.affiliate.settings"
+  },
+  {
+    "path": "/admin/ai/investment/duration",
+    "permission": "access.ai.investment.duration"
+  },
+  {
+    "path": "/admin/ai/investment/log",
+    "permission": "access.ai.investment"
+  },
+  {
+    "path": "/admin/ai/investment/plan",
+    "permission": "access.ai.investment.plan"
+  },
+  {
+    "path": "/admin/api/key",
+    "permission": "access.api.key"
+  },
+  {
+    "path": "/admin/blog",
+    "permission": "access.blog"
+  },
+  {
+    "path": "/admin/blog/author",
+    "permission": "access.blog.author"
+  },
+  {
+    "path": "/admin/blog/category",
+    "permission": "access.blog.category"
+  },
+  {
+    "path": "/admin/blog/comment",
+    "permission": "access.blog.comment"
+  },
+  {
+    "path": "/admin/blog/post",
+    "permission": "access.blog.post"
+  },
+  {
+    "path": "/admin/blog/settings",
+    "permission": "access.blog.settings"
+  },
+  {
+    "path": "/admin/blog/tag",
+    "permission": "access.blog.tag"
+  },
+  {
+    "path": "/admin/content",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/content/media",
+    "permission": "access.content.media"
+  },
+  {
+    "path": "/admin/content/slider",
+    "permission": "access.content.slider"
+  },
+  {
+    "path": "/admin/crm",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/crm/kyc/application",
+    "permission": "access.kyc.application"
+  },
+  {
+    "path": "/admin/crm/kyc/application/[id]",
+    "permission": "access.kyc.application"
+  },
+  {
+    "path": "/admin/crm/kyc/level",
+    "permission": "access.kyc.level"
+  },
+  {
+    "path": "/admin/crm/kyc/level/create",
+    "permission": "create.kyc.level"
+  },
+  {
+    "path": "/admin/crm/permission",
+    "permission": "access.permission"
+  },
+  {
+    "path": "/admin/crm/role",
+    "permission": "access.role"
+  },
+  {
+    "path": "/admin/crm/support",
+    "permission": "access.support.ticket"
+  },
+  {
+    "path": "/admin/crm/support/[id]",
+    "permission": "view.support.ticket"
+  },
+  {
+    "path": "/admin/crm/user",
+    "permission": "access.user"
+  },
+  {
+    "path": "/admin/ecommerce/category",
+    "permission": "access.ecommerce.category"
+  },
+  {
+    "path": "/admin/ecommerce/discount",
+    "permission": "access.ecommerce.discount"
+  },
+  {
+    "path": "/admin/ecommerce/order",
+    "permission": "access.ecommerce.order"
+  },
+  {
+    "path": "/admin/ecommerce/product",
+    "permission": "access.ecommerce.product"
+  },
+  {
+    "path": "/admin/ecommerce/review",
+    "permission": "access.ecommerce.review"
+  },
+  {
+    "path": "/admin/ecommerce/shipping",
+    "permission": "access.ecommerce.shipping"
+  },
+  {
+    "path": "/admin/ecommerce/wishlist",
+    "permission": "access.ecommerce.wishlist"
+  },
+  {
+    "path": "/admin/ecosystem",
+    "permission": "access.ecosystem"
+  },
+  {
+    "path": "/admin/ecosystem/blockchain/[productId]",
+    "permission": "access.ecosystem.blockchain"
+  },
+  {
+    "path": "/admin/ecosystem/ledger",
+    "permission": "access.ecosystem.private.ledger"
+  },
+  {
+    "path": "/admin/ecosystem/market",
+    "permission": "access.ecosystem.market"
+  },
+  {
+    "path": "/admin/ecosystem/market/[id]",
+    "permission": "edit.ecosystem.market"
+  },
+  {
+    "path": "/admin/ecosystem/market/create",
+    "permission": "create.ecosystem.market"
+  },
+  {
+    "path": "/admin/ecosystem/token",
+    "permission": "access.ecosystem.token"
+  },
+  {
+    "path": "/admin/ecosystem/token/[id]",
+    "permission": "edit.ecosystem.token"
+  },
+  {
+    "path": "/admin/ecosystem/token/create",
+    "permission": "create.ecosystem.token"
+  },
+  {
+    "path": "/admin/ecosystem/utxo",
+    "permission": "access.ecosystem.utxo"
+  },
+  {
+    "path": "/admin/ecosystem/wallet/custodial",
+    "permission": "access.ecosystem.custodial.wallet"
+  },
+  {
+    "path": "/admin/ecosystem/wallet/master",
+    "permission": "access.ecosystem.master.wallet"
+  },
+  {
+    "path": "/admin/faq",
+    "permission": "access.faq"
+  },
+  {
+    "path": "/admin/faq/ai",
+    "permission": "access.faq"
+  },
+  {
+    "path": "/admin/faq/feedback",
+    "permission": "access.faq.feedback"
+  },
+  {
+    "path": "/admin/faq/manage",
+    "permission": "access.faq"
+  },
+  {
+    "path": "/admin/faq/manage/[id]",
+    "permission": "access.faq"
+  },
+  {
+    "path": "/admin/faq/question",
+    "permission": "access.faq.question"
+  },
+  {
+    "path": "/admin/finance",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/finance/currency/fiat",
+    "permission": "access.fiat.currency"
+  },
+  {
+    "path": "/admin/finance/currency/spot",
+    "permission": "access.spot.currency"
+  },
+  {
+    "path": "/admin/finance/deposit/gateway",
+    "permission": "access.deposit.gateway"
+  },
+  {
+    "path": "/admin/finance/deposit/log",
+    "permission": "access.deposit"
+  },
+  {
+    "path": "/admin/finance/deposit/log/[id]",
+    "permission": "edit.deposit"
+  },
+  {
+    "path": "/admin/finance/deposit/method",
+    "permission": "access.deposit.method"
+  },
+  {
+    "path": "/admin/finance/exchange",
+    "permission": "access.exchange"
+  },
+  {
+    "path": "/admin/finance/binary/market",
+    "permission": "access.binary.market"
+  },
+  {
+    "path": "/admin/finance/binary/duration",
+    "permission": "access.binary.duration"
+  },
+  {
+    "path": "/admin/finance/investment/duration",
+    "permission": "access.investment.duration"
+  },
+  {
+    "path": "/admin/finance/investment/history",
+    "permission": "access.investment"
+  },
+  {
+    "path": "/admin/finance/investment/plan",
+    "permission": "access.investment.plan"
+  },
+  {
+    "path": "/admin/finance/order/binary",
+    "permission": "access.binary.order"
+  },
+  {
+    "path": "/admin/finance/order/ecosystem",
+    "permission": "access.ecosystem.order"
+  },
+  {
+    "path": "/admin/finance/order/exchange",
+    "permission": "access.exchange.order"
+  },
+  {
+    "path": "/admin/finance/order/futures",
+    "permission": "access.futures.order"
+  },
+  {
+    "path": "/admin/finance/profit",
+    "permission": "access.admin.profit"
+  },
+  {
+    "path": "/admin/finance/transaction",
+    "permission": "access.transaction"
+  },
+  {
+    "path": "/admin/finance/transfer",
+    "permission": "access.transfer"
+  },
+  {
+    "path": "/admin/finance/transfer/[id]",
+    "permission": "access.transfer"
+  },
+  {
+    "path": "/admin/finance/wallet",
+    "permission": "access.wallet"
+  },
+  {
+    "path": "/admin/finance/withdraw/log",
+    "permission": "access.withdraw"
+  },
+  {
+    "path": "/admin/finance/withdraw/log/[id]",
+    "permission": "access.withdraw"
+  },
+  {
+    "path": "/admin/finance/withdraw/method",
+    "permission": "access.withdraw.method"
+  },
+  {
+    "path": "/admin/forex",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/forex/account",
+    "permission": "access.forex.account"
+  },
+  {
+    "path": "/admin/forex/deposit",
+    "permission": "access.forex.deposit"
+  },
+  {
+    "path": "/admin/forex/deposit/[id]",
+    "permission": "access.forex.deposit"
+  },
+  {
+    "path": "/admin/forex/duration",
+    "permission": "access.forex.duration"
+  },
+  {
+    "path": "/admin/forex/investment",
+    "permission": "access.forex.investment"
+  },
+  {
+    "path": "/admin/forex/plan",
+    "permission": "access.forex.plan"
+  },
+  {
+    "path": "/admin/forex/signal",
+    "permission": "access.forex.signal"
+  },
+  {
+    "path": "/admin/forex/withdraw",
+    "permission": "access.forex.withdraw"
+  },
+  {
+    "path": "/admin/forex/withdraw/[id]",
+    "permission": "access.forex.withdraw"
+  },
+  {
+    "path": "/admin/futures/market",
+    "permission": "access.futures.market"
+  },
+  {
+    "path": "/admin/futures/position",
+    "permission": "access.futures.position"
+  },
+  {
+    "path": "/admin/ico",
+    "permission": "access.ico"
+  },
+  {
+    "path": "/admin/ico/offer",
+    "permission": "access.ico.offer"
+  },
+  {
+    "path": "/admin/ico/offer/[id]",
+    "permission": "edit.ico.offer"
+  },
+  {
+    "path": "/admin/ico/offer/create",
+    "permission": "create.ico.offer"
+  },
+  {
+    "path": "/admin/ico/offer/status/[status]",
+    "permission": "access.ico.offer"
+  },
+  {
+    "path": "/admin/ico/settings",
+    "permission": "access.ico.settings"
+  },
+  {
+    "path": "/admin/ico/transaction",
+    "permission": "access.ico.transaction"
+  },
+  {
+    "path": "/admin/ico/transaction/[id]",
+    "permission": "access.ico.transaction"
+  },
+  {
+    "path": "/admin/mailwizard/campaign",
+    "permission": "access.mailwizard.campaign"
+  },
+  {
+    "path": "/admin/mailwizard/campaign/[id]",
+    "permission": "edit.mailwizard.campaign"
+  },
+  {
+    "path": "/admin/mailwizard/campaign/create",
+    "permission": "create.mailwizard.campaign"
+  },
+  {
+    "path": "/admin/mailwizard/template",
+    "permission": "access.mailwizard.template"
+  },
+  {
+    "path": "/admin/mailwizard/template/[id]",
+    "permission": "edit.mailwizard.template"
+  },
+  {
+    "path": "/admin/mailwizard/template/create",
+    "permission": "create.mailwizard.template"
+  },
+  {
+    "path": "/admin/p2p",
+    "permission": "access.p2p"
+  },
+  {
+    "path": "/admin/p2p/activity",
+    "permission": "access.p2p.activity"
+  },
+  {
+    "path": "/admin/p2p/dispute",
+    "permission": "access.p2p.dispute"
+  },
+  {
+    "path": "/admin/p2p/dispute/[id]",
+    "permission": "access.p2p.dispute"
+  },
+  {
+    "path": "/admin/p2p/offer",
+    "permission": "access.p2p.offer"
+  },
+  {
+    "path": "/admin/p2p/offer/[id]",
+    "permission": "access.p2p.offer"
+  },
+  {
+    "path": "/admin/p2p/offer/[id]/edit",
+    "permission": "edit.p2p.offer"
+  },
+  {
+    "path": "/admin/p2p/settings",
+    "permission": "access.p2p.settings"
+  },
+  {
+    "path": "/admin/p2p/trade",
+    "permission": "access.p2p.trade"
+  },
+  {
+    "path": "/admin/p2p/trade/[id]",
+    "permission": "access.p2p.trade"
+  },
+  {
+    "path": "/admin/staking",
+    "permission": "access.staking"
+  },
+  {
+    "path": "/admin/staking/earning",
+    "permission": "access.staking.earning"
+  },
+  {
+    "path": "/admin/staking/pool",
+    "permission": "access.staking.pool"
+  },
+  {
+    "path": "/admin/staking/pool/new",
+    "permission": "create.staking.pool"
+  },
+  {
+    "path": "/admin/staking/position",
+    "permission": "access.staking.position"
+  },
+  {
+    "path": "/admin/staking/settings",
+    "permission": "access.staking.settings"
+  },
+  {
+    "path": "/admin/system",
+    "permission": "access.admin"
+  },
+  {
+    "path": "/admin/system/announcement",
+    "permission": "access.system.announcement"
+  },
+  {
+    "path": "/admin/system/cron",
+    "permission": "access.cron"
+  },
+  {
+    "path": "/admin/system/database/backup",
+    "permission": "access.database"
+  },
+  {
+    "path": "/admin/system/extension",
+    "permission": "access.extension"
+  },
+  {
+    "path": "/admin/system/extension/[id]",
+    "permission": "access.extension"
+  },
+  {
+    "path": "/admin/system/log",
+    "permission": "access.system.log"
+  },
+  {
+    "path": "/admin/system/notification/template",
+    "permission": "access.notification.template"
+  },
+  {
+    "path": "/admin/system/notification/template/[id]",
+    "permission": "access.notification.template"
+  },
+  {
+    "path": "/admin/system/settings",
+    "permission": "access.settings"
+  },
+  {
+    "path": "/admin/system/update",
+    "permission": "access.system.update"
+  },
+  {
+    "path": "/admin/nft",
+    "permission": "access.nft"
+  },
+  {
+    "path": "/admin/nft/category",
+    "permission": "access.nft.category"
+  },
+  {
+    "path": "/admin/nft/category/[id]",
+    "permission": "edit.nft.category"
+  },
+  {
+    "path": "/admin/nft/category/create",
+    "permission": "create.nft.category"
+  },
+  {
+    "path": "/admin/nft/collection",
+    "permission": "access.nft.collection"
+  },
+  {
+    "path": "/admin/nft/collection/[id]",
+    "permission": "edit.nft.collection"
+  },
+  {
+    "path": "/admin/nft/collection/create",
+    "permission": "create.nft.collection"
+  },
+  {
+    "path": "/admin/nft/token",
+    "permission": "access.nft.token"
+  },
+  {
+    "path": "/admin/nft/token/[id]",
+    "permission": "edit.nft.token"
+  },
+  {
+    "path": "/admin/nft/listing",
+    "permission": "access.nft.listing"
+  },
+  {
+    "path": "/admin/nft/listing/[id]",
+    "permission": "access.nft.listing"
+  },
+  {
+    "path": "/admin/nft/activity",
+    "permission": "access.nft.activity"
+  },
+  {
+    "path": "/admin/nft/sale",
+    "permission": "access.nft.sale"
+  },
+  {
+    "path": "/admin/nft/analytics",
+    "permission": "access.nft.analytics"
+  },
+  {
+    "path": "/admin/nft/settings",
+    "permission": "access.nft.settings"
+  },
+  {
+    "path": "/admin/nft/staking",
+    "permission": "access.nft.staking"
+  },
+  {
+    "path": "/admin/nft/staking/[id]",
+    "permission": "access.nft.staking"
+  },
+  {
+    "path": "/admin/nft/auction",
+    "permission": "access.nft.auction"
+  },
+  {
+    "path": "/admin/nft/auction/[id]",
+    "permission": "access.nft.auction"
+  }
+]

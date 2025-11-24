@@ -1,0 +1,49 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1"/>
+    </linearGradient>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.5" opacity="0.5"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="400" fill="url(#grid)"/>
+  
+  <!-- Center icon group -->
+  <g transform="translate(200,200)">
+    <!-- Frame -->
+    <rect x="-80" y="-60" width="160" height="120" rx="12" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="8,4"/>
+    
+    <!-- NFT Icon -->
+    <g transform="translate(0,-10)">
+      <!-- Hexagon shape (common NFT symbol) -->
+      <path d="M -30 -15 L -15 -25 L 15 -25 L 30 -15 L 30 15 L 15 25 L -15 25 L -30 15 Z" 
+            fill="#667eea" opacity="0.3" stroke="#667eea" stroke-width="2"/>
+      
+      <!-- Diamond inside -->
+      <path d="M 0 -15 L 15 0 L 0 15 L -15 0 Z" fill="#764ba2" opacity="0.6"/>
+      
+      <!-- Sparkle effects -->
+      <circle cx="-25" cy="-20" r="2" fill="#667eea" opacity="0.8"/>
+      <circle cx="28" cy="-18" r="1.5" fill="#764ba2" opacity="0.8"/>
+      <circle cx="-30" cy="25" r="1" fill="#667eea" opacity="0.8"/>
+      <circle cx="32" cy="22" r="2" fill="#764ba2" opacity="0.8"/>
+    </g>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="290" text-anchor="middle" fill="#667eea" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600">
+    NFT Placeholder
+  </text>
+  <text x="200" y="315" text-anchor="middle" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="400">
+    400 × 400 • Digital Asset
+  </text>
+  
+  <!-- Subtle border -->
+  <rect x="1" y="1" width="398" height="398" fill="none" stroke="#e2e8f0" stroke-width="2" rx="8"/>
+</svg>

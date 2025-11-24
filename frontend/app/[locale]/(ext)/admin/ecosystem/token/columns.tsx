@@ -1,0 +1,181 @@
+import {
+  Shield,
+  ClipboardList,
+  DollarSign,
+  CheckSquare,
+  CalendarIcon,
+} from "lucide-react";
+
+export const columns: ColumnDefinition[] = [
+  {
+    key: "id",
+    title: "ID",
+    type: "text",
+    icon: Shield,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Unique token identifier",
+    priority: 3,
+    expandedOnly: true,
+  },
+  {
+    key: "token",
+    disablePrefixSort: true,
+    title: "Token",
+    expandedTitle: (row) => `Token: ${row.id}`,
+    type: "compound",
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    priority: 1,
+    icon: ClipboardList,
+    render: {
+      type: "compound",
+      config: {
+        image: {
+          key: "image",
+          type: "image",
+          fallback: (row) =>
+            row.currency
+              ? `/img/crypto/${row.currency.toLowerCase()}.webp`
+              : "/img/placeholder.svg",
+          title: "Logo",
+          description: "Token logo",
+          editable: true,
+          usedInCreate: true,
+          filterable: false,
+          sortable: false,
+        },
+        primary: {
+          key: "name",
+          title: "Name",
+          description: "Token name",
+          editable: false,
+          usedInCreate: true,
+          sortable: true,
+          sortKey: "name",
+          icon: ClipboardList,
+          validation: (value: string) => {
+            if (!value) return "Name is required";
+            if (value.length < 2)
+              return "Name must be at least 2 characters long";
+            return null;
+          },
+        },
+        secondary: {
+          key: "currency",
+          icon: DollarSign,
+          type: "text",
+          title: "Currency",
+          description: "Token currency",
+          editable: false,
+          usedInCreate: true,
+          sortable: true,
+        },
+      },
+    },
+  },
+  {
+    key: "contract",
+    title: "Contract",
+    type: "text",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    editable: false,
+    usedInCreate: true,
+    description: "Smart contract address",
+    priority: 1,
+    expandedOnly: true,
+  },
+  {
+    key: "chain",
+    title: "Chain",
+    type: "text",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Blockchain chain (e.g., BSC, ETH, POLYGON) - must have corresponding environment variable",
+    priority: 1,
+  },
+  {
+    key: "network",
+    title: "Network",
+    type: "text",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Network environment (must match environment variables like BSC_NETWORK)",
+    priority: 1,
+    validation: (value: string) => {
+      if (!value) return "Network is required";
+      const validNetworks = ["mainnet", "testnet", "sepolia", "goerli", "matic-mumbai", "matic"];
+      if (!validNetworks.includes(value.toLowerCase())) {
+        return "Network should be one of: mainnet, testnet, sepolia, goerli, matic-mumbai, matic";
+      }
+      return null;
+    },
+  },
+  {
+    key: "contractType",
+    title: "Contract Type",
+    type: "select",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    editable: false,
+    usedInCreate: true,
+    description: "PERMIT, NO_PERMIT, or NATIVE",
+    options: [
+      { value: "PERMIT", label: "Permit" },
+      { value: "NO_PERMIT", label: "No Permit" },
+      { value: "NATIVE", label: "Native" },
+    ],
+    priority: 1,
+  },
+  {
+    key: "decimals",
+    title: "Decimals",
+    type: "number",
+    icon: ClipboardList,
+    sortable: true,
+    searchable: false,
+    filterable: true,
+    editable: false,
+    usedInCreate: true,
+    description: "Decimal places",
+    priority: 1,
+    expandedOnly: true,
+  },
+  {
+    key: "status",
+    title: "Status",
+    type: "toggle",
+    icon: CheckSquare,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    editable: true,
+    usedInCreate: true,
+    description: "Token status",
+    priority: 1,
+  },
+  {
+    key: "createdAt",
+    title: "Created At",
+    type: "date",
+    icon: CalendarIcon,
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Token creation date",
+    render: { type: "date", format: "PPP" },
+    priority: 2,
+    expandedOnly: true,
+  },
+];

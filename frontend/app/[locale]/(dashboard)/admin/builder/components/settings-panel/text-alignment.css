@@ -1,0 +1,116 @@
+/* Ensure text alignment is properly applied */
+.text-left {
+  text-align: left !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.text-justify {
+  text-align: justify !important;
+}
+
+/* Normalize contentEditable elements to behave like regular elements */
+[contenteditable="true"] {
+  /* Reset browser defaults but preserve spacing */
+  outline: none !important;
+  border: none !important;
+  background: transparent !important;
+  /* DON'T reset margin/padding - let element settings control this */
+  /* margin: 0 !important; */
+  /* padding: 0 !important; */
+
+  /* Inherit all text properties to match regular elements */
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  text-align: inherit !important;
+  text-decoration: inherit !important;
+  text-transform: inherit !important;
+  word-spacing: inherit !important;
+  word-break: inherit !important;
+  white-space: inherit !important;
+
+  /* Ensure minimum height to prevent thin line appearance */
+  min-height: 1.2em !important;
+
+  /* Remove any special contentEditable styling */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+
+  /* Ensure cursor behaves correctly */
+  cursor: inherit !important;
+}
+
+/* Force contentEditable elements to respect text alignment */
+[contenteditable="true"].text-left {
+  text-align: left !important;
+}
+
+[contenteditable="true"].text-center {
+  text-align: center !important;
+}
+
+[contenteditable="true"].text-right {
+  text-align: right !important;
+}
+
+[contenteditable="true"].text-justify {
+  text-align: justify !important;
+}
+
+/* Override any conflicting styles */
+.builder-text-element {
+  text-align: inherit !important;
+}
+
+.builder-text-element * {
+  text-align: inherit !important;
+}
+
+/* Specific fixes for contentEditable in builder */
+.builder-canvas [contenteditable="true"] {
+  text-align: inherit !important;
+}
+
+/* Ensure the wrapper div also has the correct alignment */
+.text-element-wrapper {
+  text-align: inherit !important;
+}
+
+.text-element-wrapper [contenteditable="true"] {
+  text-align: inherit !important;
+}
+
+/* Remove any webkit/browser specific contentEditable styling */
+[contenteditable="true"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure consistent rendering in both modes */
+.editable-content {
+  /* Normalize display and layout */
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Remove any default contentEditable margins/padding in different browsers */
+[contenteditable="true"]:empty:before {
+  content: none !important;
+}
+
+[contenteditable="true"]:empty:after {
+  content: none !important;
+}

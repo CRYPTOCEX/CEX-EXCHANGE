@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Success</title>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            const queryParams = new URLSearchParams(window.location.search);
+            const sessionId = queryParams.get('sessionId');
+            console.log("Success page loaded with sessionId:", sessionId);
+            
+            if (window.opener && sessionId) {
+                window.opener.postMessage({ 
+                    sessionId: sessionId,
+                    status: 'success',
+                    message: 'Payment completed successfully'
+                }, '*');
+            }
+            
+            // Small delay before closing to ensure message is sent
+            setTimeout(() => {
+                window.close();
+            }, 100);
+        };
+    </script>
+</body>
+</html>

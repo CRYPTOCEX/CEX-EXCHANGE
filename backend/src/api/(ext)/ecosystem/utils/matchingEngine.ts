@@ -625,7 +625,8 @@ export class MatchingEngine {
 
     const updateQueries: Array<{ query: string; params: any[] }> = [];
 
-    updateQueries.push(...generateOrderUpdateQueries(ordersToUpdate));
+    const orderUpdateQueries = await generateOrderUpdateQueries(ordersToUpdate);
+    updateQueries.push(...orderUpdateQueries);
 
     const latestOrdersForCandles = getLatestOrdersForCandles(ordersToUpdate);
 

@@ -1,0 +1,120 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">📧</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Email & SMS Setup</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure SMTP, SendGrid, Twilio for notifications</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- SMTP Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">SMTP Email Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">SMTP Settings</h3>
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-medium mb-2">Email Server Configuration</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASSWORD="your-app-password"
+SMTP_FROM_NAME="Bicrypto"
+SMTP_FROM_EMAIL="noreply@yourdomain.com"</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    Configure your SMTP server for sending emails.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SendGrid Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">SendGrid Email Service</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">SendGrid API Setup</h3>
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-medium mb-2">SendGrid Configuration</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">SENDGRID_API_KEY="SG.your_sendgrid_api_key"
+SENDGRID_FROM_EMAIL="noreply@yourdomain.com"
+SENDGRID_FROM_NAME="Bicrypto Platform"</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Twilio SMS -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Twilio SMS Service</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">SMS Configuration</h3>
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-medium mb-2">Twilio Settings</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">TWILIO_ACCOUNT_SID="your_account_sid"
+TWILIO_AUTH_TOKEN="your_auth_token"
+TWILIO_PHONE_NUMBER="+1234567890"</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    Configure SMS notifications and 2FA codes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Configuration Changes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Apply Email & SMS Configuration</h3>
+        <div class="space-y-4">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                After configuring email and SMS settings, apply the changes to your production environment:
+            </p>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
+                </div>
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    Email and SMS configuration changes require running the updator to take effect.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-medium mb-2">Run the updator command</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm updator</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    This will apply your new email and SMS configuration to the production environment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

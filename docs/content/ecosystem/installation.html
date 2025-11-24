@@ -1,0 +1,538 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-violet-100 dark:bg-violet-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🚀</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Ecosystem Installation</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for installing ScyllaDB, Java 8, and enabling the Ecosystem Add-On</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide covers installing and configuring ScyllaDB (v5.4), Java 8, and enabling the Ecosystem Add-On for your Bicrypto platform. You'll also learn how to manually create a new ScyllaDB user and update your <code>.env</code> accordingly.
+        </p>
+        
+        <div class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-violet-600 dark:text-violet-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-violet-900 dark:text-violet-100">Requirements</span>
+            </div>
+            <ul class="text-violet-800 dark:text-violet-200 text-sm space-y-1">
+                <li>• <strong>CPU:</strong> With SSE 4.2 and PCLMUL support</li>
+                <li>• <strong>RAM:</strong> 4GB minimum</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Install ScyllaDB -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Install ScyllaDB 5.4</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-violet-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Open the Root Terminal</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Open the Root Terminal in Virtualmin (or SSH into your server).
+                    </p>
+                    <img src="../assets/shared/root-terminal.png" alt="Root Terminal in Virtualmin" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-violet-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Run Installation Commands</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Execute the following commands to install ScyllaDB version 5.4:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm block whitespace-pre-wrap">sudo mkdir -p /etc/apt/keyrings
+sudo gpg --homedir /tmp --no-default-keyring --keyring /etc/apt/keyrings/scylladb.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys d0a112e067426ab2
+sudo curl -L --output /etc/apt/sources.list.d/scylla.list https://downloads.scylladb.com/deb/ubuntu/scylla-5.4.list
+sudo apt-get update
+sudo apt-get install -y scylla</code>
+                    </div>
+                    <img src="../assets/ecosystem-installation/cqlsh.png" alt="Terminal showing successful ScyllaDB installation" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: Install Java -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Install Java (Required for ScyllaDB Tools)</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">☕</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Install Java 8</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Run the following commands to install Java 8:
+                </p>
+                <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                    <code class="text-green-400 text-sm block whitespace-pre-wrap">sudo apt-get update
+sudo apt-get install -y openjdk-8-jre-headless
+sudo update-java-alternatives --jre-headless -s java-1.8.0-openjdk-amd64</code>
+                </div>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    This ensures Java 8 is installed and set as your default Java runtime for headless environment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Configure ScyllaDB -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Edit ScyllaDB Configuration</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Open Configuration File</h3>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">nano /etc/scylla/scylla.yaml</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Change API Port</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Find <code>api_port: 10000</code> and modify it to <code>api_port: 10001</code>. This avoids conflicts with Virtualmin's default port 10000.
+                    </p>
+                    <img src="../assets/ecosystem-installation/api-port.png" alt="Changing API port in scylla.yaml" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Enable Password Authentication</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Locate <code># authenticator: AllowAllAuthenticator</code> and change it to:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">authenticator: PasswordAuthenticator</code>
+                    </div>
+                    <img src="../assets/ecosystem-installation/authenticator.png" alt="Changing authenticator to PasswordAuthenticator" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Save and Exit</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Press <code>Ctrl + X</code>, type <code>Y</code> to confirm, then <code>Enter</code> to save.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 4: Run Scylla Setup -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Run Scylla Setup</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">⚙️</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Initialize Scylla</h3>
+                <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                    <code class="text-green-400 text-sm">sudo scylla_setup</code>
+                </div>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                    Follow the on-screen prompts. The setup process includes multiple configuration steps:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <img src="../assets/ecosystem-installation/scylla-setup/1.png" alt="Scylla setup step 1" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/2.png" alt="Scylla setup step 2" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/3.png" alt="Scylla setup step 3" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/4.png" alt="Scylla setup step 4" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/5.png" alt="Scylla setup step 5" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/6.png" alt="Scylla setup step 6" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/7.png" alt="Scylla setup step 7" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/8.png" alt="Scylla setup step 8" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/9.png" alt="Scylla setup step 9" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/10.png" alt="Scylla setup step 10" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/11.png" alt="Scylla setup step 11" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/12.png" alt="Scylla setup step 12" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/13.png" alt="Scylla setup step 13" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="../assets/ecosystem-installation/scylla-setup/14.png" alt="Scylla setup step 14" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 5: Start Scylla -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Start and Enable Scylla Server</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🚀</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Start ScyllaDB Service</h3>
+                <div class="bg-zinc-900 rounded-lg p-4">
+                    <code class="text-green-400 text-sm block whitespace-pre-wrap">sudo systemctl start scylla-server
+sudo systemctl enable scylla-server</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 6: Enable Ecosystem Extension -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Enable Ecosystem Extension in Bicrypto</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Navigate to Extensions</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Go to your site's <strong>Admin</strong> side: <strong>System > Extensions</strong>.
+                    </p>
+                 </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Select Ecosystem Extension</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Select the <strong>Ecosystem</strong> extension page.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Verify License and Update</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        <strong>Verify your License:</strong> If it's your first time, you may need to verify the license or install the add-on manually by contacting support.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        <strong>Check for Updates:</strong> Click <strong>Check for Updates</strong>, then <strong>Update</strong>. Refresh the page once it's done.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Enable Extension and Run Updator</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        <strong>Enable the Extension:</strong> If you're on the latest version, click <strong>Enable</strong>.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        <strong>Run PNPM Updator:</strong> Open the <strong>User Terminal</strong>, navigate to <code>public_html</code>, and run:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4">
+                        <code class="text-green-400 text-sm">pnpm updator</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 7: Create ScyllaDB User -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">7️⃣ Create a New ScyllaDB User</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Here's how to create a new ScyllaDB user manually:
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Open Root Terminal</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Open the Root Terminal in Virtualmin (or SSH into your server).
+                    </p>
+                    <img src="../assets/shared/root-terminal.png" alt="Root Terminal in Virtualmin" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Connect with Default Credentials</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        By default, ScyllaDB comes with <code>cassandra:cassandra</code> for the superuser. Run:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">cqlsh -u cassandra -p cassandra</code>
+                    </div>
+                    <img src="../assets/ecosystem-installation/cqlsh.png" alt="Logging into cqlsh with default credentials" class="rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Create New Superuser Role</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Inside the <code>cqlsh</code> prompt, type:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">CREATE ROLE IF NOT EXISTS new_username WITH PASSWORD = 'new_password' AND LOGIN = true AND SUPERUSER = true;</code>
+                    </div>
+                    <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 mb-3">
+                        <li>• <code>new_username</code> = Your desired username</li>
+                        <li>• <code>new_password</code> = A strong password</li>
+                    </ul>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Press <code>Enter</code> to execute. This will create (or update) a superuser role.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Test New Credentials</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Exit cqlsh by typing <code>exit</code> or pressing <code>Ctrl + D</code>, then reconnect using your new credentials:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">cqlsh -u new_username -p new_password</code>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        If you can run <code>describe keyspaces;</code> without errors, the new user is valid.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Update .env File</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Go to File Manager and edit the <code>.env</code> file:
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        In your <code>.env</code> file (within <code>public_html</code> or your project root), add or edit these lines:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4">
+                        <code class="text-green-400 text-sm block whitespace-pre-wrap">SCYLLA_USERNAME="new_username"
+SCYLLA_PASSWORD="new_password"</code>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-3">
+                        Save and close the file. Make sure you have the correct syntax (use quotes if needed).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 8: KMS Setup -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">8️⃣ Generate and Encrypt a Passphrase (Optional KMS Setup)</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                If you need to set up an encryption passphrase for KMS (Key Management Service) within Bicrypto:
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Navigate to Project Directory</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Go to the User Terminal and enter <code>public_html</code>:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">cd public_html</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Generate Passphrase</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Run the following command to generate a passphrase:
+                    </p>
+                    <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                        <code class="text-green-400 text-sm">node ./scripts/kms/generate.mjs</code>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <p class="text-blue-800 dark:text-blue-200 text-sm">
+                            <strong>This script will:</strong>
+                        </p>
+                        <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-1 mt-2">
+                            <li>• Ask you to create a passphrase of at least 12 characters</li>
+                            <li>• Generate a raw encryption key and encrypted encryption key</li>
+                            <li>• Add <code>ENCRYPTED_ENCRYPTION_KEY</code> to your <code>.env</code> if not already set</li>
+                            <li>• Warn you to securely store your passphrase</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 9: Finalize -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">9️⃣ Finalize Changes by Updating the Backend</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🔄</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Update Backend</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                    Still in the <strong>User Terminal</strong>, run:
+                </p>
+                <div class="bg-zinc-900 rounded-lg p-4 mb-3">
+                    <code class="text-green-400 text-sm">pnpm updator:backend</code>
+                </div>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    This applies any new environment settings (e.g., <code>.env</code> changes, encryption keys) to your Bicrypto backend.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verification -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Verification & Final Steps</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">🔧 System Checks</h3>
+                <div class="space-y-2">
+                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded p-3">
+                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">ScyllaDB Status</p>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-400">Check <code>systemctl status scylla-server</code></p>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded p-3">
+                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Check Logs</p>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-400">Use <code>journalctl -u scylla-server</code> or <code>pm2 log</code></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">✅ Functionality</h3>
+                <div class="space-y-2">
+                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded p-3">
+                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Ecosystem Features</p>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-400">Confirm advanced trading features work properly</p>
+                    </div>
+                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded p-3">
+                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Additional Modules</p>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-400">Test blockchain integration and wallet functionality</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Considerations</h2>
+    
+    <div class="space-y-4">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <span class="font-medium text-red-900 dark:text-red-100">Critical Security Warnings</span>
+            </div>
+            <ul class="text-red-800 dark:text-red-200 text-sm space-y-1">
+                <li>• <strong>Secure Credentials:</strong> Always secure your server and rotate credentials periodically</li>
+                <li>• <strong>Monitor Logs:</strong> Regularly check logs for potential security issues</li>
+                <li>• <strong>Backup Strategy:</strong> Maintain regular backups of your database and configuration</li>
+                <li>• <strong>Access Control:</strong> Limit access to ScyllaDB and admin interfaces</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Final Thoughts -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Conclusion</h2>
+    
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium text-green-900 dark:text-green-100">Installation Complete!</span>
+        </div>
+        <p class="text-green-800 dark:text-green-200">
+            <em>By installing ScyllaDB, configuring Java 8, enabling password authentication, and integrating the Ecosystem add-on, your Bicrypto platform can leverage high-performance features and additional functionalities. Always secure your server, rotate credentials periodically, and monitor logs for potential issues.</em>
+        </p>
+    </div>
+</div> 
+</div> 

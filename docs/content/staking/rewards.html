@@ -1,0 +1,312 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">💰</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Staking Rewards & Earnings</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Manage Basic Reward Distribution</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Rewards Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The staking rewards system provides basic earnings management functionality. Administrators can create earnings records, track user rewards, and distribute payments. The system supports simple earning types and basic distribution management.
+        </p>
+    </div>
+</div>
+
+<!-- Earning Types -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Earning Types</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-green-600 dark:text-green-400">💵</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">REGULAR</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Standard staking rewards based on APR</p>
+            <div class="bg-green-50 dark:bg-green-900/20 rounded p-2">
+                <span class="text-green-800 dark:text-green-200 text-sm">Primary earning type</span>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-blue-600 dark:text-blue-400">🎁</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">BONUS</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Additional rewards and incentives</p>
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-2">
+                <span class="text-blue-800 dark:text-blue-200 text-sm">Special promotions</span>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3 text-purple-600 dark:text-purple-400">🤝</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">REFERRAL</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Referral program rewards</p>
+            <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-2">
+                <span class="text-purple-800 dark:text-purple-200 text-sm">User referrals</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earnings Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Earnings Management</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Access Earnings Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Navigate to the earnings management section:
+            </p>
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+                Admin Panel → Staking → Earnings
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                View aggregated earnings data and create new earning records.
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Creating Earning Records</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                When creating earning records, you need to specify:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <strong class="text-blue-800 dark:text-blue-200 block">Basic Information</strong>
+                    <ul class="text-blue-600 dark:text-blue-400 text-sm space-y-1 mt-2">
+                        <li>• Position ID (which position earns)</li>
+                        <li>• Amount to be credited</li>
+                        <li>• Earning type (REGULAR/BONUS/REFERRAL)</li>
+                        <li>• Description of the earning</li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <strong class="text-green-800 dark:text-green-200 block">Status Information</strong>
+                    <ul class="text-green-600 dark:text-green-400 text-sm space-y-1 mt-2">
+                        <li>• Claimed status (isClaimed: true/false)</li>
+                        <li>• Claimed date (claimedAt: optional)</li>
+                        <li>• Automatic timestamps</li>
+                        <li>• Soft delete support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Earnings Overview</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                The earnings dashboard provides:
+            </p>
+            <div class="space-y-2">
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Aggregated Totals:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Total user earnings, admin earnings, and overall earnings</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Pool Breakdown:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Earnings by staking pool with detailed breakdown</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Historical Data:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Admin earnings history with computed user earnings</span>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                    <strong class="text-zinc-900 dark:text-zinc-100">Filtering Options:</strong>
+                    <span class="text-zinc-600 dark:text-zinc-400 text-sm"> Filter by pool, date range, and other criteria</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Distribution System -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Distribution System</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Distribution Management</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                The system provides basic distribution functionality:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <strong class="text-green-800 dark:text-green-200 block">Admin Distribution</strong>
+                    <p class="text-green-600 dark:text-green-400 text-sm mt-1">Create admin earning records for platform fees and management</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <strong class="text-blue-800 dark:text-blue-200 block">User Rewards</strong>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm mt-1">Track user earning records linked to specific positions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Distribution Actions</h3>
+            <div class="space-y-4">
+                <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                    <code class="text-orange-800 dark:text-orange-200 font-mono text-sm">POST /api/admin/staking/earning/distribute</code>
+                    <p class="text-orange-600 dark:text-orange-400 text-sm mt-1">Process earnings distribution</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Models -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Data Models</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">stakingEarningRecord Model</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Field</th>
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-600 dark:text-zinc-400">
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">id</td>
+                            <td class="py-2">UUID</td>
+                            <td class="py-2">Unique earning record identifier</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">positionId</td>
+                            <td class="py-2">UUID</td>
+                            <td class="py-2">Reference to the staking position</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">amount</td>
+                            <td class="py-2">Float</td>
+                            <td class="py-2">Amount of reward earned</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">type</td>
+                            <td class="py-2">Enum</td>
+                            <td class="py-2">REGULAR | BONUS | REFERRAL</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">description</td>
+                            <td class="py-2">String</td>
+                            <td class="py-2">Description of the earning</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">isClaimed</td>
+                            <td class="py-2">Boolean</td>
+                            <td class="py-2">Whether the reward has been claimed</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">claimedAt</td>
+                            <td class="py-2">Date</td>
+                            <td class="py-2">When the reward was claimed (optional)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">stakingAdminEarning Model</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Field</th>
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                            <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-600 dark:text-zinc-400">
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">id</td>
+                            <td class="py-2">UUID</td>
+                            <td class="py-2">Unique admin earning identifier</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">poolId</td>
+                            <td class="py-2">UUID</td>
+                            <td class="py-2">Reference to the staking pool</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">amount</td>
+                            <td class="py-2">Float</td>
+                            <td class="py-2">Amount of admin earnings</td>
+                        </tr>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-mono">description</td>
+                            <td class="py-2">String</td>
+                            <td class="py-2">Description of the admin earning</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Integration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Integration</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Available Endpoints</h3>
+            <div class="space-y-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded p-3">
+                    <code class="text-blue-800 dark:text-blue-200 font-mono text-sm">GET /api/admin/staking/earning</code>
+                    <p class="text-blue-600 dark:text-blue-400 text-sm mt-1">Get aggregated earnings data with filtering options</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded p-3">
+                    <code class="text-green-800 dark:text-green-200 font-mono text-sm">POST /api/admin/staking/earning</code>
+                    <p class="text-green-600 dark:text-green-400 text-sm mt-1">Create new earning record</p>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded p-3">
+                    <code class="text-purple-800 dark:text-purple-200 font-mono text-sm">GET /api/admin/staking/earning/{id}</code>
+                    <p class="text-purple-600 dark:text-purple-400 text-sm mt-1">Get specific earning record details</p>
+                </div>
+                <div class="bg-orange-50 dark:bg-orange-900/20 rounded p-3">
+                    <code class="text-orange-800 dark:text-orange-200 font-mono text-sm">POST /api/admin/staking/earning/distribute</code>
+                    <p class="text-orange-600 dark:text-orange-400 text-sm mt-1">Process earnings distribution</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+    
+    <div class="space-y-4">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Accurate Record Keeping</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Ensure all earning amounts and descriptions are accurate before creating records.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Proper Type Classification</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Use the correct earning type (REGULAR, BONUS, REFERRAL) for proper categorization.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Distribution Monitoring</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Regularly monitor distribution processes and handle any failed transactions.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Data Analysis</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Use the aggregated data to analyze pool performance and user engagement.</p>
+        </div>
+    </div>
+</div> 

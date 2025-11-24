@@ -41,8 +41,10 @@ import { $fetch } from "@/lib/api";
 
 // Add this import at the top of the file
 import { marketDataWs } from "@/services/market-data-ws";
+import { ordersWs } from "@/services/orders-ws";
 import { marketService } from "@/services/market-service";
 import { useTranslations, useLocale } from "next-intl";
+import { useUserStore } from "@/store/user";
 
 // Replace the existing memoized component declarations with this component registry
 const PanelComponentRegistry = {
@@ -730,6 +732,7 @@ export default function TradingLayout() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { user } = useUserStore();
   const initialSymbol = searchParams.get("symbol");
   const type = searchParams.get("type");
 
@@ -824,7 +827,6 @@ export default function TradingLayout() {
         handleSymbolChange(symbol, isFutures ? "futures" : (market.isEco ? "eco" : "spot"));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedSymbol, isFutures, marketDataLoaded, spotMarkets, futuresMarkets]);
 
   // Add order submission handler for futures
@@ -919,6 +921,32 @@ export default function TradingLayout() {
       marketDataWs.cleanup();
     };
   }, []);
+
+  // Initialize orders WebSocket when user is available
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Initialize orders WebSocket service
+    ordersWs.initialize();
+
+    // Determine the market type
+    const ordersMarketType = isFutures ? "futures" : isEcoFromUrl ? "eco" : "spot";
+
+    // Subscribe to keep connection alive (no callback needed at this level)
+    const unsubscribe = ordersWs.subscribe(
+      {
+        userId: user.id,
+        marketType: ordersMarketType,
+      },
+      () => {
+        // No-op callback - individual panels will handle their own subscriptions
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id, isFutures, isEcoFromUrl]);
 
   // Handle symbol change
   const handleSymbolChange = (symbol: Symbol, marketType?: "spot" | "eco" | "futures") => {

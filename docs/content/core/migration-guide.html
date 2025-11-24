@@ -1,0 +1,775 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔄</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Migration Guide</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for migrating from previous versions to V5</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support during migration, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Important Notice -->
+<div class="mb-12">
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+        <div class="flex items-center mb-3">
+            <svg class="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <span class="font-bold text-red-900 dark:text-red-100 text-lg">Critical Migration Warning</span>
+        </div>
+        <p class="text-red-800 dark:text-red-200 mb-3">
+            This migration involves significant database changes and removal of deprecated features. 
+            <strong>Always create a complete backup before proceeding.</strong>
+        </p>
+        <div class="bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 rounded-lg p-4">
+            <p class="text-red-900 dark:text-red-100 font-medium text-sm">
+                ⚠️ Some features from previous versions have been completely redesigned in V5. 
+                Users will need to reconfigure certain modules after migration.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Database Migration Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🗄️ Database Migration Steps</h2>
+    
+    <div class="space-y-6">
+        <!-- Step 1: Backup -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Take Complete Database Backup</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Before making any changes, create a full backup of your database. This is your safety net in case anything goes wrong during the migration process.
+                    </p>
+                    
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M9 12h6m-3-9v18"></path>
+                            </svg>
+                            <span class="font-medium text-amber-900 dark:text-amber-100">phpMyAdmin Backup Steps</span>
+                        </div>
+                        <div class="text-amber-800 dark:text-amber-200 text-sm mt-2">
+                            <ol class="ml-4 space-y-2 list-decimal">
+                                <li>Open phpMyAdmin in your browser</li>
+                                <li>Log in with your database credentials</li>
+                                <li>Select your Bicrypto database from the left sidebar</li>
+                                <li>Click on the <strong>"Export"</strong> tab at the top</li>
+                                <li>Choose <strong>"Custom"</strong> export method for more options</li>
+                                <li>In Format section, select <strong>"SQL"</strong></li>
+                                <li>Make sure all tables are selected (should be by default)</li>
+                                <li>In "Output" section, check <strong>"Save output to a file"</strong></li>
+                                <li>Set file name template to: <code>backup_%Y%m%d_%H%M%S</code></li>
+                                <li>Choose compression if needed (Gzipped is recommended)</li>
+                                <li>Click <strong>"Export"</strong> to download the backup file</li>
+                            </ol>
+                            <div class="mt-3 p-3 bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded">
+                                <p class="text-amber-900 dark:text-amber-100 text-xs">
+                                    <strong>💡 Tip:</strong> Save the backup file with today's date in the filename for easy identification later.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Remove Pages Records -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Remove Page Records</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        The page management system has been completely redesigned. Remove old page records or drop the entire table.
+                    </p>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="font-medium text-blue-900 dark:text-blue-100">phpMyAdmin Steps</span>
+                        </div>
+                        <div class="text-blue-800 dark:text-blue-200 text-sm mt-2">
+                            <p class="mb-2"><strong>Option 1: Empty the table</strong></p>
+                            <ol class="ml-4 mb-3 space-y-1 list-decimal">
+                                <li>Open phpMyAdmin and select your database</li>
+                                <li>Find the table that starts with <code>pages</code> (or your prefix)</li>
+                                <li>Click on the table name</li>
+                                <li>Click "Operations" tab → "Empty the table (TRUNCATE)"</li>
+                            </ol>
+                            <p class="mb-2"><strong>Option 2: Drop the table (recommended)</strong></p>
+                            <ol class="ml-4 space-y-1 list-decimal">
+                                <li>Select the table that starts with <code>pages</code></li>
+                                <li>Click "Drop" and confirm the action</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Remove Deprecated Tables -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Remove Deprecated Extension Tables</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Several extension tables have been completely redesigned with new architectures. Remove the old tables as they are incompatible with V5.
+                    </p>
+                    
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span class="font-medium text-red-900 dark:text-red-100">Tables to Remove via phpMyAdmin</span>
+                        </div>
+                        <div class="text-red-800 dark:text-red-200 text-sm mt-2">
+                            <p class="mb-3">In phpMyAdmin, drop all tables that start with the following prefixes:</p>
+                            <div class="space-y-2">
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>🏦 Staking Extension:</strong> Remove all tables starting with <code>staking_</code>
+                                </div>
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>🤝 P2P Trading:</strong> Remove all tables starting with <code>p2p_</code>
+                                </div>
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>🪙 ICO Extension:</strong> Remove all tables starting with <code>ico_</code>
+                                </div>
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>🎨 NFT Extension:</strong> Remove all tables starting with <code>nft_</code>
+                                </div>
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>❓ FAQ System:</strong> Remove all tables starting with <code>faq_</code>
+                                </div>
+                                <div class="bg-red-100 dark:bg-red-900/40 rounded p-2">
+                                    <strong>🆔 KYC System:</strong> Remove tables <code>kyc_template</code> and <code>kyc</code> (replaced with 4 new tables)
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+                                <p class="text-amber-800 dark:text-amber-200 text-xs">
+                                    <strong>How to drop tables:</strong> In phpMyAdmin, select the tables → Click "Drop" button → Confirm the action
+                                </p>
+                            </div>
+                            <div class="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded">
+                                <div class="flex items-center mb-2">
+                                    <svg class="w-4 h-4 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                    </svg>
+                                    <span class="font-medium text-orange-900 dark:text-orange-100 text-xs">Foreign Key Constraint Issues</span>
+                                </div>
+                                <p class="text-orange-800 dark:text-orange-200 text-xs">
+                                    If you encounter foreign key constraint errors when dropping tables, you may need to <strong>repeat the drop operation 2-3 times</strong> until all foreign key relationships are removed in the correct order. This is normal and expected due to table dependencies.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Clean Permission Tables -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Clean Permission System Tables</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        The permission system has been completely redesigned. You need to clean the role_permission and permission tables to avoid conflicts.
+                    </p>
+                    
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <span class="font-medium text-indigo-900 dark:text-indigo-100">Clean Permission Tables</span>
+                        </div>
+                        <div class="text-indigo-800 dark:text-indigo-200 text-sm mt-2">
+                            <p class="mb-2">In phpMyAdmin, empty (TRUNCATE) the following tables:</p>
+                            <ol class="ml-4 mb-3 space-y-1 list-decimal">
+                                <li>Find the table that starts with <code>role_permission</code> (or your prefix)</li>
+                                <li>Click on the table → "Operations" tab → "Empty the table (TRUNCATE)"</li>
+                                <li>Find the table that starts with <code>permission</code> (or your prefix)</li>
+                                <li>Click on the table → "Operations" tab → "Empty the table (TRUNCATE)"</li>
+                            </ol>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2">
+                                <p class="text-blue-800 dark:text-blue-200 text-xs">
+                                    <strong>Note:</strong> These tables will be repopulated with the new permission structure when you run the seed command later.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Clean Notification Table -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-teal-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Clean Notification Table</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        The notification system has been enhanced in V5. Clean the existing notification table to avoid conflicts with the new notification structure.
+                    </p>
+                    
+                    <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-teal-600 dark:text-teal-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 2v20l5-5h11V2H4z"></path>
+                            </svg>
+                            <span class="font-medium text-teal-900 dark:text-teal-100">Clean Notification Table</span>
+                        </div>
+                        <div class="text-teal-800 dark:text-teal-200 text-sm mt-2">
+                            <p class="mb-2">In phpMyAdmin, empty (TRUNCATE) the notification table:</p>
+                            <ol class="ml-4 mb-3 space-y-1 list-decimal">
+                                <li>Find the table that starts with <code>notification</code> (or your prefix)</li>
+                                <li>Click on the table → "Operations" tab → "Empty the table (TRUNCATE)"</li>
+                            </ol>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2">
+                                <p class="text-blue-800 dark:text-blue-200 text-xs">
+                                    <strong>Note:</strong> This removes old notifications to ensure compatibility with the enhanced notification system in V5.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Import KYC SQL -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">6</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Import New KYC Schema</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        After dropping the old KYC tables, you need to import the new KYC schema that includes 4 new tables for the redesigned KYC system.
+                    </p>
+                    
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            <span class="font-medium text-emerald-900 dark:text-emerald-100">Import kyc.sql via phpMyAdmin</span>
+                        </div>
+                        <div class="text-emerald-800 dark:text-emerald-200 text-sm mt-2">
+                            <p class="mb-2"><strong>Before running any terminal commands, import the new KYC schema:</strong></p>
+                            <ol class="ml-4 mb-3 space-y-1 list-decimal">
+                                <li>In your V5 installation folder, locate the file <code>kyc.sql</code></li>
+                                <li>Open phpMyAdmin and select your database</li>
+                                <li>Click on the <strong>"Import"</strong> tab</li>
+                                <li>Click <strong>"Choose File"</strong> and select the <code>kyc.sql</code> file</li>
+                                <li>Make sure the format is set to <strong>"SQL"</strong></li>
+                                <li>Click <strong>"Import"</strong> to execute the SQL file</li>
+                                <li>Verify that 4 new KYC-related tables have been created</li>
+                            </ol>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2">
+                                <p class="text-blue-800 dark:text-blue-200 text-xs">
+                                    <strong>Important:</strong> This must be done BEFORE running the terminal commands in the next steps. The new KYC system depends on these tables being present.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File System Migration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📁 File System Migration</h2>
+    
+    <div class="space-y-6">
+        <!-- Step 1: Move Public Folder -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Move Public Folder</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        The public folder structure has changed in V5. You need to create a frontend folder and move the public folder into it.
+                    </p>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                            </svg>
+                            <span class="font-medium text-blue-900 dark:text-blue-100">Folder Movement Steps</span>
+                        </div>
+                        <ol class="text-blue-800 dark:text-blue-200 text-sm ml-4 space-y-1 list-decimal">
+                            <li>Create a new folder called <code>frontend</code> in your root directory</li>
+                            <li>Move the entire <code>/public</code> folder into the <code>/frontend</code> folder</li>
+                            <li>Final structure should be: <code>/frontend/public</code></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Clean Installation Directory -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Clean Installation Directory</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Remove all files and folders except the .env file and the frontend folder you just created.
+                    </p>
+                    
+                    <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="font-medium text-orange-900 dark:text-orange-100">Keep Only .env File and Frontend Folder</span>
+                        </div>
+                        <p class="text-orange-800 dark:text-orange-200 text-sm">
+                            <strong>Important:</strong> Delete all files and folders in your installation directory, but keep:
+                        </p>
+                        <ul class="text-orange-800 dark:text-orange-200 text-sm mt-2 ml-4 space-y-1">
+                            <li>• The <code>.env</code> file (contains your database and configuration settings)</li>
+                            <li>• The <code>frontend</code> folder (contains your moved public folder)</li>
+                            <li>• The <code>lic</code> folder (contains your license files)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Update Environment Variables -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Add AI API Keys to .env</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        V5 requires additional AI API keys for enhanced features. Add the new API keys to your existing .env file.
+                    </p>
+                    
+                    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <span class="font-medium text-purple-900 dark:text-purple-100">Add These Lines After OPENAI_API_KEY</span>
+                        </div>
+                        <p class="text-purple-800 dark:text-purple-200 text-sm mb-2">
+                            Your .env file already has <code>OPENAI_API_KEY=""</code>. Add these new lines right after it:
+                        </p>
+                        <div class="bg-zinc-900 dark:bg-zinc-800 rounded-md p-3 mt-2">
+                            <code class="text-green-400 text-sm">
+DEEPSEEK_API_KEY=""<br>
+GEMINI_API_KEY=""
+                            </code>
+                        </div>
+                        <p class="text-purple-800 dark:text-purple-200 text-sm mt-2">
+                            Leave the values empty for now - you can configure them later through the admin panel.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Download and Extract V5 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Download and Extract Bicrypto V5</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Download the latest version of Bicrypto V5 from your Envato downloads and extract it to your server.
+                    </p>
+                    
+                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                            </svg>
+                            <span class="font-medium text-green-900 dark:text-green-100">Installation Steps</span>
+                        </div>
+                        <ol class="text-green-800 dark:text-green-200 text-sm ml-4 space-y-1 list-decimal">
+                            <li>Log in to your Envato account</li>
+                            <li>Go to your downloads section</li>
+                            <li>Download the latest Bicrypto V5 zip file</li>
+                            <li>Extract the contents to your <code>public_html</code> directory</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Install Dependencies and Build -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Install Dependencies and Start</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Access your server terminal via Virtualmin and run the following commands to install dependencies, build, and start the application.
+                    </p>
+                    
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="font-medium text-indigo-900 dark:text-indigo-100">Virtualmin Terminal Access</span>
+                        </div>
+                        <ol class="text-indigo-800 dark:text-indigo-200 text-sm mb-3 ml-4 space-y-1 list-decimal">
+                            <li>Log in to your Virtualmin control panel</li>
+                            <li>Go to <strong>System Settings → Terminal</strong></li>
+                            <li>Navigate to your domain's public_html directory</li>
+                            <li>Run the following commands in order:</li>
+                        </ol>
+                        <div class="bg-zinc-900 dark:bg-zinc-800 rounded-md p-3 mt-2">
+                            <code class="text-green-400 text-sm">
+# Stop any running instance<br>
+pnpm stop<br><br>
+# Step 1: Install dependencies<br>
+pnpm install<br><br>
+# Step 2: Build backend<br>
+pnpm build:backend<br><br>
+# Step 3: Build frontend<br>
+pnpm build:frontend<br><br>
+# Step 4: Seed the database with new data<br>
+pnpm seed<br><br>
+# Step 5: Start the application<br>
+pnpm start
+                            </code>
+                        </div>
+                        <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+                            <p class="text-amber-800 dark:text-amber-200 text-sm">
+                                <strong>Note:</strong> If you don't have Virtualmin terminal access, you can use SSH or your hosting provider's terminal. Make sure Node.js 18+ and pnpm are installed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Migration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Configuration Updates</h2>
+    
+    <div class="space-y-6">
+        <!-- Binary Durations -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Binary Durations Configuration</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Binary option durations are now configurable by the admin. You need to set up new durations with their respective profit percentages.
+                    </p>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium text-blue-900 dark:text-blue-100">Admin Action Required</span>
+                        </div>
+                        <p class="text-blue-800 dark:text-blue-200 text-sm">
+                            Navigate to <strong>Admin Panel → Binary Options → Durations</strong> and create new duration entries with:
+                        </p>
+                        <ul class="text-blue-800 dark:text-blue-200 text-sm mt-2 ml-4 space-y-1">
+                            <li>• Duration in minutes (e.g., 5, 15, 30, 60)</li>
+                            <li>• Profit percentage for each duration</li>
+                            <li>• Enable/disable status for each option</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Binary Markets -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Binary Markets Separation</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Binary markets are now completely separated from spot markets. You need to create dedicated binary markets.
+                    </p>
+                    
+                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="font-medium text-green-900 dark:text-green-100">Market Setup Steps</span>
+                        </div>
+                        <p class="text-green-800 dark:text-green-200 text-sm">
+                            Go to <strong>Admin Panel → Binary Options → Markets</strong> and:
+                        </p>
+                        <ul class="text-green-800 dark:text-green-200 text-sm mt-2 ml-4 space-y-1">
+                            <li>• Create markets for popular pairs (BTC/USD, ETH/USD, etc.)</li>
+                            <li>• Configure market parameters and spreads</li>
+                            <li>• Set active trading hours if needed</li>
+                            <li>• Enable/disable markets as required</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Integration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">AI Integration Setup</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        V5 introduces comprehensive AI integration across multiple features. The AI system powers document analysis, chat support, content generation, and automated processes.
+                    </p>
+                    
+                    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <span class="font-medium text-purple-900 dark:text-purple-100">AI Configuration Overview</span>
+                        </div>
+                        <p class="text-purple-800 dark:text-purple-200 text-sm mb-2">
+                            The AI Configuration section allows you to set up:
+                        </p>
+                        <ul class="text-purple-800 dark:text-purple-200 text-sm ml-4 space-y-1">
+                            <li>• <strong>Multiple AI Providers:</strong> OpenAI (GPT models), DeepSeek, Google Gemini</li>
+                            <li>• <strong>KYC Document Analysis:</strong> Automated ID verification and document processing</li>
+                            <li>• <strong>Chat Support:</strong> AI-powered customer service with context awareness</li>
+                            <li>• <strong>Content Generation:</strong> Automated email templates and announcements</li>
+                            <li>• <strong>Risk Assessment:</strong> Transaction monitoring and fraud detection</li>
+                            <li>• <strong>Language Processing:</strong> Multi-language support and translation</li>
+                        </ul>
+                        <div class="mt-3 p-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded">
+                            <p class="text-indigo-800 dark:text-indigo-200 text-sm">
+                                📚 <strong>Follow the complete AI Configuration Guide</strong> in the core documentation for detailed setup instructions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KYC Levels -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">KYC Level System</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        KYC verification now uses a tiered level system. Create KYC levels and configure permissions for each tier.
+                    </p>
+                    
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                            <span class="font-medium text-indigo-900 dark:text-indigo-100">KYC Configuration</span>
+                        </div>
+                        <p class="text-indigo-800 dark:text-indigo-200 text-sm mb-2">
+                            Access <strong>Admin Panel → KYC → Levels</strong> to create verification tiers:
+                        </p>
+                        <ul class="text-indigo-800 dark:text-indigo-200 text-sm ml-4 space-y-1">
+                            <li>• <strong>Level 1:</strong> Basic verification (email, phone)</li>
+                            <li>• <strong>Level 2:</strong> Identity documents (ID, passport)</li>
+                            <li>• <strong>Level 3:</strong> Enhanced verification (address proof, selfie)</li>
+                            <li>• Configure withdrawal limits and feature access per level</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="font-medium text-amber-900 dark:text-amber-100">User Re-verification Required</span>
+                        </div>
+                        <p class="text-amber-800 dark:text-amber-200 text-sm">
+                            Existing users will need to submit new KYC applications under the new tiered system. 
+                            Notify your users about the updated verification process.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Post-Migration Checklist -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✅ Post-Migration Checklist</h2>
+    
+    <div class="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            After completing the migration, verify all systems are working correctly:
+        </p>
+        
+        <div class="space-y-3">
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Database backup completed via phpMyAdmin export</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Page table removed/dropped via phpMyAdmin</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Extension tables removed (staking_, p2p_, ico_, nft_, faq_ prefixes)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Handled foreign key constraints (repeated table drops 2-3 times if needed)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Role_permission and permission tables cleaned (TRUNCATED)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Frontend folder created in root directory</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Public folder moved to /frontend/public</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">All files removed except .env file, frontend folder, and lic folder</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">DEEPSEEK_API_KEY and GEMINI_API_KEY added to .env</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Bicrypto V5 downloaded from Envato and extracted</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Accessed terminal via Virtualmin (System Settings → Terminal)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Ran pnpm stop to stop any running instances</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Dependencies installed (pnpm install)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Application built (pnpm build:all)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Database seeded with new data (pnpm seed)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Application started (pnpm start)</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Binary durations configured with profit percentages</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Binary markets created and configured</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">AI integration configured following the guide</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">KYC levels created with appropriate permissions</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Users notified about new KYC requirements</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">All systems tested and functioning properly</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Resources -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📚 Additional Resources</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                <h3 class="font-semibold text-blue-900 dark:text-blue-100">AI Configuration</h3>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm mb-3">
+                Comprehensive guide for setting up AI integration features in V5.
+            </p>
+            <a href="#ai-configuration" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm">
+                View AI Setup Guide →
+            </a>
+        </div>
+        
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <h3 class="font-semibold text-green-900 dark:text-green-100">Extension Guides</h3>
+            </div>
+            <p class="text-green-800 dark:text-green-200 text-sm mb-3">
+                Detailed installation and configuration guides for all V5 extensions.
+            </p>
+            <div class="space-y-1">
+                <a href="#staking-installation" class="block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-sm">
+                    Staking Extension →
+                </a>
+                <a href="#p2p-installation" class="block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-sm">
+                    P2P Trading Extension →
+                </a>
+                <a href="#ico-installation" class="block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-sm">
+                    ICO Extension →
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 

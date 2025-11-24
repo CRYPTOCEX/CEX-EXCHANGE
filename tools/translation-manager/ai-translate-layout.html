@@ -1,0 +1,364 @@
+<!-- Improved AI Translation Tab Layout -->
+<style>
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.expandable-text {
+    transition: all 0.2s ease;
+}
+</style>
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-robot mr-2"></i> AI Translation with Claude Code
+        </h2>
+    </div>
+    
+    <!-- Translation Settings -->
+    <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl overflow-hidden shadow-sm">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+            <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-cogs mr-3"></i>
+                Translation Configuration
+            </h3>
+            <p class="text-blue-100 text-sm mt-1">Configure your AI translation parameters</p>
+        </div>
+        
+        <!-- Settings Grid -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <!-- Target Locales - Enhanced -->
+                <div class="md:col-span-2 xl:col-span-1">
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm h-full">
+                        <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-globe text-blue-500 mr-2"></i>
+                            Target Locales
+                        </label>
+                        
+                        <!-- Select All with counter -->
+                        <div class="flex items-center justify-between mb-3 p-2 bg-gray-50 rounded-lg">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="ai-select-all-locales" class="mr-2 scale-110 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm font-medium text-gray-700">Select All</span>
+                            </label>
+                            <span id="locale-count" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">0 selected</span>
+                        </div>
+                        
+                        <!-- Locale checkboxes with enhanced styling -->
+                        <div id="ai-locale-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-100 rounded-lg p-3 bg-gradient-to-br from-gray-50 to-white">
+                            <!-- Checkboxes will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Translation Mode - Enhanced -->
+                <div>
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm h-full">
+                        <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-filter text-purple-500 mr-2"></i>
+                            Translation Mode
+                        </label>
+                        <select id="ai-mode" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <option value="missing">🔍 Missing Only</option>
+                            <option value="identical">🔄 Identical Only</option>
+                            <option value="both" selected>🎯 Both (Recommended)</option>
+                        </select>
+                        <div class="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                            <span id="mode-description">Translates missing and identical keys</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Priority - Enhanced -->
+                <div>
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm h-full">
+                        <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-star text-yellow-500 mr-2"></i>
+                            Priority Level
+                        </label>
+                        <select id="ai-priority" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <option value="high">⭐ High Priority Only</option>
+                            <option value="medium">⭐⭐ Medium & High</option>
+                            <option value="all" selected>⭐⭐⭐ All Priorities</option>
+                        </select>
+                        <div class="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                            Filter translations by importance level
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Batch Size - Enhanced -->
+                <div>
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm h-full">
+                        <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                            <i class="fas fa-layer-group text-green-500 mr-2"></i>
+                            Batch Size
+                        </label>
+                        <select id="ai-batch-size" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <option value="5">📦 5 keys (Most Accurate)</option>
+                            <option value="10" selected>📦📦 10 keys (Recommended)</option>
+                            <option value="20">📦📦📦 20 keys (Faster)</option>
+                            <option value="50">📦📦📦📦 50 keys (Fastest - May have errors)</option>
+                        </select>
+                        <div class="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                            <i class="fas fa-info-circle mr-1 text-blue-500"></i>
+                            <span id="batch-description">Balanced speed and reliability</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Bar -->
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                <button id="start-ai-translation" class="group w-full sm:w-auto bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                    <i class="fas fa-rocket mr-2 group-hover:animate-bounce"></i> 
+                    Start AI Translation
+                </button>
+                <button id="stop-all-translations" class="hidden group w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                    <i class="fas fa-stop-circle mr-2"></i> 
+                    Stop All Translations
+                </button>
+                
+                <!-- Quick Stats & Info -->
+                <div class="flex flex-col sm:flex-row items-center gap-4 text-sm">
+                    <div class="flex items-center text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                        <i class="fas fa-save mr-2 text-green-500"></i>
+                        Auto-saves to locale files
+                    </div>
+                    <div id="translation-estimate" class="flex items-center text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+                        <i class="fas fa-clock mr-2 text-blue-500"></i>
+                        Ready to start
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Live Progress (Full Width Row) -->
+    <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-4 ">Live Translation Progress</h3>
+        <div id="ai-progress-container" class="border border-gray-200  rounded-lg p-4 bg-white ">
+            <div id="ai-progress-idle" class="text-center text-gray-500  py-8">
+                <i class="fas fa-robot text-4xl mb-4"></i>
+                <p>Configure settings and click "Start AI Translation" to begin</p>
+            </div>
+            
+            <!-- Per-Locale Progress Cards -->
+            <div id="locale-progress-cards" class="hidden space-y-3 mb-4">
+                <!-- Individual locale progress will be added here dynamically -->
+            </div>
+            
+            <div id="ai-progress-active" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left Column: Progress and Stats -->
+                    <div>
+                        <!-- Overall Progress -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-600  mb-1">
+                                <span>Overall Progress</span>
+                                <span id="ai-progress-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div id="ai-progress-bar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500  mt-1">
+                                <span id="ai-progress-count">0 / 0 keys</span>
+                                <span id="ai-progress-time">Time: 0s</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Batch -->
+                        <div class="mb-4 p-3 bg-blue-50  rounded-lg">
+                            <div class="text-sm font-medium text-blue-800  mb-1">Current Batch</div>
+                            <div class="text-xs text-blue-600 ">
+                                <span id="ai-batch-info">Batch 0/0</span>
+                                <span class="mx-2">•</span>
+                                <span id="ai-batch-locale">Locale: --</span>
+                                <span class="mx-2">•</span>
+                                <span id="ai-speed">-- keys/sec</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Statistics -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center p-2 bg-green-50  rounded">
+                                <div class="text-xl font-bold text-green-600 " id="ai-success-count">0</div>
+                                <div class="text-xs text-green-700">Success</div>
+                            </div>
+                            <div class="text-center p-2 bg-yellow-50  rounded">
+                                <div class="text-xl font-bold text-yellow-600 " id="ai-unchanged-count">0</div>
+                                <div class="text-xs text-yellow-700">Same</div>
+                            </div>
+                            <div class="text-center p-2 bg-red-50  rounded">
+                                <div class="text-xl font-bold text-red-600 " id="ai-error-count">0</div>
+                                <div class="text-xs text-red-700">Error</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Live Feed -->
+                    <div>
+                        <div class="border border-gray-200  rounded-lg p-3 h-full">
+                            <div class="text-sm font-medium text-gray-700  mb-2">Live Translation Feed</div>
+                            <div id="ai-live-feed" class="space-y-1 max-h-64 overflow-y-auto text-xs font-mono">
+                                <!-- Live updates will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Translation History (Full Width Row) -->
+    <div>
+        <h3 class="text-lg font-semibold mb-4 ">Translation History</h3>
+        <div class="border border-gray-200  rounded-lg p-4 bg-white ">
+            <div id="translation-history" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                <!-- History will be populated from localStorage -->
+                <div class="col-span-full text-center text-gray-500  py-8">
+                    <i class="fas fa-history text-3xl mb-2"></i>
+                    <p class="text-sm">No translation history yet</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center border-t pt-3">
+                <div class="text-sm text-gray-600 ">
+                    <span>Total Sessions: </span>
+                    <span id="history-count" class="font-medium">0</span>
+                </div>
+                <button id="clear-history" class="text-sm text-red-600  hover:text-red-700 dark:hover:text-red-300">
+                    <i class="fas fa-trash mr-1"></i> Clear History
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Untranslatable Content Manager -->
+    <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-3">
+            <i class="fas fa-filter mr-2 text-orange-600"></i>Untranslatable Content Manager
+        </h3>
+        <div class="border border-gray-200 rounded-lg bg-white">
+            
+            <!-- Control Panel -->
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <button id="scan-untranslatable" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                            <i class="fas fa-search mr-1"></i>Scan
+                        </button>
+                        <button id="clean-all-untranslatable" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors" disabled>
+                            <i class="fas fa-broom mr-1"></i>Clean Selected
+                        </button>
+                        <div class="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                            <span>Found: </span>
+                            <span id="untranslatable-total" class="font-medium text-orange-600">0</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" id="select-all-untranslatable" class="mr-1">
+                            Select All
+                        </label>
+                        <div class="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                            <span id="untranslatable-categories">No scan yet</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Area -->
+            <div class="p-3">
+                <!-- Scan Results -->
+                <div id="untranslatable-results" class="hidden">
+                    <!-- Category Filters -->
+                    <div class="mb-3">
+                        <div class="flex flex-wrap gap-1" id="category-filters">
+                            <!-- Category filter buttons will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Results - Impressive Card Layout -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="select-all-items" class="mr-2 scale-110">
+                                Select All Items
+                            </label>
+                            <div class="text-xs text-gray-500">
+                                <span id="selected-count">0</span> selected for processing
+                            </div>
+                        </div>
+                        <div id="untranslatable-items" class="space-y-2 max-h-96 overflow-y-auto">
+                            <!-- Items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Idle State -->
+                <div id="untranslatable-idle" class="text-center text-gray-500 py-8">
+                    <i class="fas fa-filter text-4xl mb-3 text-gray-300"></i>
+                    <p class="text-sm">Scan to identify symbols, numbers, placeholders, and other non-translatable content</p>
+                    <p class="text-xs text-gray-400 mt-1">Pattern-based detection • Batch processing • Smart categorization</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pattern Configuration Section -->
+    <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-4 ">
+            <i class="fas fa-history mr-2 text-orange-600"></i>Data-Driven Pattern Creation
+        </h3>
+        <div class="border border-gray-200  rounded-lg p-4 bg-white ">
+            
+            
+            <!-- Add Pattern from Translation History -->
+            <div class="mb-4 p-4 bg-yellow-50 rounded-lg">
+                <h4 class="font-medium mb-3 text-yellow-800">Add Pattern from Translation History</h4>
+                <div class="mb-3">
+                    <button id="load-untranslated-history" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded text-sm transition-colors">
+                        <i class="fas fa-history mr-2"></i>Load Unchanged from History
+                    </button>
+                    <p class="text-xs text-yellow-700 mt-1">Shows texts that remained unchanged after translation attempts</p>
+                </div>
+                <div id="history-untranslated-items" class="hidden">
+                    <div class="mb-3 p-2 bg-white rounded border">
+                        <div class="text-sm font-medium mb-2">Untranslated Items from History (Not Covered by Patterns):</div>
+                        <div id="history-items-list" class="space-y-2 overflow-y-auto" style="max-height: 50vh;">
+                            <!-- Items will be populated here -->
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="create-pattern-from-history" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded text-sm transition-colors" disabled>
+                            <i class="fas fa-magic mr-2"></i>Create Pattern from Selected
+                        </button>
+                        <select id="history-pattern-action" class="p-2 border border-gray-300 rounded bg-white text-sm">
+                            <option value="remove">Remove & Hardcode</option>
+                            <option value="replace">Replace Value</option>
+                            <option value="keep">Keep As Is</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Existing Patterns -->
+            <div>
+                <h4 class="font-medium mb-3 ">Existing Patterns</h4>
+                <div id="pattern-list" class="space-y-2 max-h-64 overflow-y-auto">
+                    <!-- Patterns will be loaded here -->
+                    <div class="text-center text-gray-500  py-4">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Loading patterns...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

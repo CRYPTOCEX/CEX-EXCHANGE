@@ -1,0 +1,259 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">💳</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Stripe Payment Gateway</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide to integrating Stripe payments with your platform</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Stripe Overview -->
+<div class="mb-12">
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center mb-4">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-white font-bold text-lg">S</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Stripe - Global Payment Platform</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Trusted by millions of businesses worldwide</p>
+            </div>
+        </div>
+        
+        <!-- Feature Grid -->
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">🌍 Global Coverage</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• 46+ countries supported</li>
+                    <li>• 135+ currencies accepted</li>
+                    <li>• Local payment methods</li>
+                    <li>• Multi-region processing</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">💳 Payment Methods</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Credit & Debit Cards</li>
+                    <li>• Digital Wallets (Apple Pay, Google Pay)</li>
+                    <li>• Bank Transfers & ACH</li>
+                    <li>• Buy Now, Pay Later (BNPL)</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">🔒 Security & Compliance</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• PCI DSS Level 1 certified</li>
+                    <li>• Advanced fraud detection</li>
+                    <li>• 3D Secure authentication</li>
+                    <li>• Machine learning protection</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">⚡ Developer Experience</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Comprehensive APIs</li>
+                    <li>• Real-time webhooks</li>
+                    <li>• Test environment</li>
+                    <li>• Extensive documentation</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="bg-blue-100 dark:bg-blue-800/30 rounded-lg p-4">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Pricing</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm mt-1">
+                2.9% + 30¢ per successful card charge for US businesses. International rates vary by country.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- API Key Creation Guide -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔑 How to Create Stripe API Keys</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Create Stripe Account</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Go to <a href="https://dashboard.stripe.com/register" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">https://dashboard.stripe.com/register</a> and create a new account.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Access API Keys</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        In your Stripe Dashboard, click on "Developers" → "API keys".
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Copy Your Keys</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Copy both the Publishable key and Secret key for your environment.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Environment Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">APP_STRIPE_PUBLIC_KEY="pk_test_your_publishable_key"
+APP_STRIPE_SECRET_KEY="sk_test_your_secret_key"</code>
+    </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Endpoints</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/stripe/</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Creates a new Stripe payment session</p>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Request Body:</p>
+                <code class="text-xs block">
+{
+  "amount": 100.00,
+  "currency": "USD",
+  "paymentMethod": "card"
+}
+                </code>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded text-xs font-medium mr-3">GET</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/stripe/status</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Checks the status of a Stripe payment</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/stripe/webhook</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Handles Stripe webhook notifications for real-time payment updates</p>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✨ Supported Features</h2>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Payment Methods</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Credit & Debit Cards</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Apple Pay & Google Pay</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>ACH Direct Debit</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>SEPA Direct Debit</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Bancontact</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>iDEAL</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Advanced Features</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Real-time Processing</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Webhook Notifications</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Multi-currency Support</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Fraud Protection</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>3D Secure Authentication</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Comprehensive Dashboard</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Testing -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🧪 Testing</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Test Card Numbers</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Card Number</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Brand</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Result</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">4242 4242 4242 4242</td>
+                        <td class="py-2">Visa</td>
+                        <td class="py-2">Success</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">4000 0000 0000 0002</td>
+                        <td class="py-2">Visa</td>
+                        <td class="py-2">Declined</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">5555 5555 5555 4444</td>
+                        <td class="py-2">Mastercard</td>
+                        <td class="py-2">Success</td>
+                    </tr>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <td class="py-2 font-mono">3782 8224 6310 005</td>
+                        <td class="py-2">American Express</td>
+                        <td class="py-2">Success</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-3">
+            Use any future expiry date and any 3-digit CVC for testing.
+        </p>
+    </div>
+</div> 

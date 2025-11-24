@@ -1,0 +1,1786 @@
+{
+  "patterns": [
+    {
+      "id": "empty_key",
+      "name": "Empty Translation Keys",
+      "description": "Keys that are empty strings or contain only quotes/brackets",
+      "type": "key_pattern",
+      "pattern": "^$",
+      "testOn": "key",
+      "action": "remove",
+      "replacement": "",
+      "category": "empty",
+      "enabled": true,
+      "examples": [
+        "",
+        "\"",
+        "[",
+        "]"
+      ]
+    },
+    {
+      "id": "bracket_only_value",
+      "name": "Bracket-Only Values",
+      "description": "Values that are just brackets, quotes, or similar characters",
+      "type": "value_pattern",
+      "pattern": "^[\\[\\]\"'`]+$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "",
+      "category": "empty",
+      "enabled": true,
+      "examples": [
+        "[",
+        "]",
+        "\"",
+        "'",
+        "```"
+      ]
+    },
+    {
+      "id": "placeholder_number",
+      "name": "Placeholder Numbers",
+      "description": "Keys like _1, _2, _100 used as placeholders",
+      "type": "key_pattern",
+      "pattern": "^_\\d+$",
+      "testOn": "key",
+      "action": "remove",
+      "replacement": " ",
+      "category": "placeholder",
+      "enabled": true,
+      "examples": [
+        "_1",
+        "_2",
+        "_100"
+      ]
+    },
+    {
+      "id": "single_underscore",
+      "name": "Single Underscore",
+      "description": "Keys that are just a single underscore",
+      "type": "key_pattern",
+      "pattern": "^_$",
+      "testOn": "key",
+      "action": "remove",
+      "replacement": "_",
+      "category": "underscore",
+      "enabled": true,
+      "examples": [
+        "_"
+      ]
+    },
+    {
+      "id": "only_numbers",
+      "name": "Number-only Values",
+      "description": "Values containing only numbers",
+      "type": "value_pattern",
+      "pattern": "^\\d+$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "number",
+      "enabled": true,
+      "examples": [
+        "0",
+        "1",
+        "100",
+        "2024"
+      ]
+    },
+    {
+      "id": "percentage_pattern",
+      "name": "Percentage Values",
+      "description": "Values that are percentages",
+      "type": "value_pattern",
+      "pattern": "^\\d+%$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "number",
+      "enabled": true,
+      "examples": [
+        "100%",
+        "50%",
+        "0%"
+      ]
+    },
+    {
+      "id": "decimal_numbers",
+      "name": "Decimal Numbers",
+      "description": "Decimal number values",
+      "type": "value_pattern",
+      "pattern": "^\\d+\\.\\d+$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "number",
+      "enabled": true,
+      "examples": [
+        "1.0",
+        "3.14",
+        "99.99"
+      ]
+    },
+    {
+      "id": "simple_symbols",
+      "name": "Simple Symbol Values",
+      "description": "Values that are just basic symbols",
+      "type": "value_pattern",
+      "pattern": "^[\\*\\+\\-=<>]{1,3}$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "symbol",
+      "enabled": true,
+      "examples": [
+        "*",
+        "+",
+        "-",
+        "=",
+        "<",
+        ">",
+        "**"
+      ]
+    },
+    {
+      "id": "whitespace_only",
+      "name": "Whitespace Only",
+      "description": "Values containing only whitespace",
+      "type": "value_pattern",
+      "pattern": "^\\s+$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": " ",
+      "category": "whitespace",
+      "enabled": true,
+      "examples": [
+        "  ",
+        "   "
+      ]
+    },
+    {
+      "id": "untitled_key",
+      "name": "Untitled Keys",
+      "description": "Keys that are 'untitled' which often create empty nested objects",
+      "type": "key_pattern",
+      "pattern": "^untitled$",
+      "testOn": "key",
+      "action": "remove",
+      "replacement": "",
+      "category": "empty",
+      "enabled": true,
+      "examples": [
+        "untitled"
+      ]
+    },
+    {
+      "id": "nested_empty_objects",
+      "name": "Nested Empty Objects",
+      "description": "Keys that create empty nested object structures with empty values",
+      "type": "structure_pattern",
+      "pattern": ".*\\.untitled$",
+      "testOn": "key",
+      "action": "remove",
+      "replacement": "",
+      "category": "empty",
+      "enabled": true,
+      "examples": [
+        "component.untitled",
+        "dialog.untitled"
+      ]
+    },
+    {
+      "id": "execution_error_value",
+      "name": "Technical Error Messages",
+      "description": "Values containing technical execution errors and stack trace messages, not user-facing error labels",
+      "type": "value_pattern",
+      "pattern": "^(Execution error|TypeError|ReferenceError|Stack trace|Uncaught|at Object\\.|at Function\\.|Error: |Exception: |Traceback|\\w+Exception$).*$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "",
+      "category": "error",
+      "enabled": true,
+      "examples": [
+        "Execution error",
+        "TypeError: Cannot read",
+        "ReferenceError: x is not defined",
+        "Uncaught Error",
+        "at Object.function",
+        "Exception: Invalid input"
+      ]
+    }
+  ],
+  "customPatterns": [
+    {
+      "id": "history_pattern_1754826759523",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 📄",
+      "type": "value_pattern",
+      "pattern": "^(📄)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "📄"
+      ]
+    },
+    {
+      "id": "history_pattern_1754830849582",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: )",
+      "type": "value_pattern",
+      "pattern": "^(\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        ")"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832517361",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: @",
+      "type": "value_pattern",
+      "pattern": "^(@)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "@"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832556782",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: %)",
+      "type": "value_pattern",
+      "pattern": "^(%\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "%)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832561595",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: •",
+      "type": "value_pattern",
+      "pattern": "^(•)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "•"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832567035",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: (",
+      "type": "value_pattern",
+      "pattern": "^(\\()$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "("
+      ]
+    },
+    {
+      "id": "history_pattern_1754832571947",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ****",
+      "type": "value_pattern",
+      "pattern": "^(\\*\\*\\*\\*)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "****"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832575191",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ⟳",
+      "type": "value_pattern",
+      "pattern": "^(⟳)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "⟳"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832578651",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: /auth/login",
+      "type": "value_pattern",
+      "pattern": "^(/auth/login)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "/auth/login"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832582303",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: % (",
+      "type": "value_pattern",
+      "pattern": "^(% \\()$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "% ("
+      ]
+    },
+    {
+      "id": "history_pattern_1754832585192",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: —",
+      "type": "value_pattern",
+      "pattern": "^(—)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "—"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832588490",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: $",
+      "type": "value_pattern",
+      "pattern": "^(\\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "$"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832591330",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: #",
+      "type": "value_pattern",
+      "pattern": "^(#)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "#"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832602711",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ×",
+      "type": "value_pattern",
+      "pattern": "^(×)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "×"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832605294",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: x",
+      "type": "value_pattern",
+      "pattern": "^(x)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "x"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832608580",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ≈",
+      "type": "value_pattern",
+      "pattern": "^(≈)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "≈"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832613326",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ≈ $",
+      "type": "value_pattern",
+      "pattern": "^(≈ \\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "≈ $"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832623440",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ≈ $",
+      "type": "value_pattern",
+      "pattern": "^(≈ \\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "≈ $"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832626825",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ·",
+      "type": "value_pattern",
+      "pattern": "^(·)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "·"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832630145",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: -$",
+      "type": "value_pattern",
+      "pattern": "^(-\\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "-$"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832633466",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ✓",
+      "type": "value_pattern",
+      "pattern": "^(✓)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "✓"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832636383",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 🔍",
+      "type": "value_pattern",
+      "pattern": "^(🔍)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "🔍"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832640140",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: +$",
+      "type": "value_pattern",
+      "pattern": "^(\\+\\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "+$"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832643128",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ▼",
+      "type": "value_pattern",
+      "pattern": "^(▼)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "▼"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832646243",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: |",
+      "type": "value_pattern",
+      "pattern": "^(\\|)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "|"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832648981",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ⚡",
+      "type": "value_pattern",
+      "pattern": "^(⚡)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "⚡"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832654975",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: https://example.com/animation.mp4",
+      "type": "value_pattern",
+      "pattern": "^(https://example\\.com/animation\\.mp4)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "https://example.com/animation.mp4"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832660031",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: https://example.com",
+      "type": "value_pattern",
+      "pattern": "^(https://example\\.com)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "https://example.com"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832664221",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: -10",
+      "type": "value_pattern",
+      "pattern": "^(-10)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "-10"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832667048",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: % -",
+      "type": "value_pattern",
+      "pattern": "^(% -)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "% -"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832671853",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: support@p2pshop",
+      "type": "value_pattern",
+      "pattern": "^(support@p2pshop)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "support@p2pshop"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832675528",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: $0",
+      "type": "value_pattern",
+      "pattern": "^(\\$0)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "$0"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832678287",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: (0",
+      "type": "value_pattern",
+      "pattern": "^(\\(0)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "(0"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832681699",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1%)",
+      "type": "value_pattern",
+      "pattern": "^(1%\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1%)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832684469",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: - $",
+      "type": "value_pattern",
+      "pattern": "^(- \\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "- $"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832687297",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1:0",
+      "type": "value_pattern",
+      "pattern": "^(1:0)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1:0"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832689935",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1:2",
+      "type": "value_pattern",
+      "pattern": "^(1:2)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1:2"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832692564",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1:5",
+      "type": "value_pattern",
+      "pattern": "^(1:5)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1:5"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832695165",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1% - 20%)",
+      "type": "value_pattern",
+      "pattern": "^(1% - 20%\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1% - 20%)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832698075",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1:",
+      "type": "value_pattern",
+      "pattern": "^(1:)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1:"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832701978",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: /USD",
+      "type": "value_pattern",
+      "pattern": "^(/USD)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "/USD"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832704652",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1-5 ETH",
+      "type": "value_pattern",
+      "pattern": "^(1-5 ETH)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1-5 ETH"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832707081",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 5-10 ETH",
+      "type": "value_pattern",
+      "pattern": "^(5-10 ETH)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "5-10 ETH"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832709584",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 10+ ETH",
+      "type": "value_pattern",
+      "pattern": "^(10\\+ ETH)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "10+ ETH"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832713981",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 🎨",
+      "type": "value_pattern",
+      "pattern": "^(🎨)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "🎨"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832717700",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: +2",
+      "type": "value_pattern",
+      "pattern": "^(\\+2)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "+2"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832723587",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: https://example",
+      "type": "value_pattern",
+      "pattern": "^(https://example)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "https://example"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832726401",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: /faq/",
+      "type": "value_pattern",
+      "pattern": "^(/faq/)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "/faq/"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832730448",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ) –",
+      "type": "value_pattern",
+      "pattern": "^(\\) –)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        ") –"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832733739",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: XRP (XRP)",
+      "type": "value_pattern",
+      "pattern": "^(XRP \\(XRP\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "XRP (XRP)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832741357",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 5% - 30%",
+      "type": "value_pattern",
+      "pattern": "^(5% - 30%)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "5% - 30%"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832744376",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: F:",
+      "type": "value_pattern",
+      "pattern": "^(F:)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "F:"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832747464",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: ~$5-10",
+      "type": "value_pattern",
+      "pattern": "^(~\\$5-10)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "~$5-10"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832754892",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: _API_KEY=",
+      "type": "value_pattern",
+      "pattern": "^(_API_KEY=)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "_API_KEY="
+      ]
+    },
+    {
+      "id": "history_pattern_1754832758989",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: _API_PASSPHRASE=",
+      "type": "value_pattern",
+      "pattern": "^(_API_PASSPHRASE=)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "_API_PASSPHRASE="
+      ]
+    },
+    {
+      "id": "history_pattern_1754832762917",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: L",
+      "type": "value_pattern",
+      "pattern": "^(L)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "L"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832771031",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+      "type": "value_pattern",
+      "pattern": "^(Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832774386",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: s)",
+      "type": "value_pattern",
+      "pattern": "^(s\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "s)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832778805",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: UTC",
+      "type": "value_pattern",
+      "pattern": "^(UTC)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "UTC"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832784837",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1x",
+      "type": "value_pattern",
+      "pattern": "^(1x)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1x"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832788688",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: m)",
+      "type": "value_pattern",
+      "pattern": "^(m\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "m)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832791867",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: / $",
+      "type": "value_pattern",
+      "pattern": "^(/ \\$)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "/ $"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832801168",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: / 5",
+      "type": "value_pattern",
+      "pattern": "^(/ 5)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "/ 5"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832808147",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: com/ref/",
+      "type": "value_pattern",
+      "pattern": "^(com/ref/)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "com/ref/"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832811793",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: © 2025",
+      "type": "value_pattern",
+      "pattern": "^(© 2025)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "© 2025"
+      ]
+    },
+    {
+      "id": "history_pattern_1754832975744",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: _API_SECRET=",
+      "type": "value_pattern",
+      "pattern": "^(_API_SECRET=)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "_API_SECRET="
+      ]
+    },
+    {
+      "id": "history_pattern_1754832991083",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: RPC WSS",
+      "type": "value_pattern",
+      "pattern": "^(RPC WSS)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "RPC WSS"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833000738",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Discord",
+      "type": "value_pattern",
+      "pattern": "^(Discord)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Discord"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833003475",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Twitter",
+      "type": "value_pattern",
+      "pattern": "^(Twitter)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Twitter"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833006279",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Google Play",
+      "type": "value_pattern",
+      "pattern": "^(Google Play)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Google Play"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833008733",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: PayPal",
+      "type": "value_pattern",
+      "pattern": "^(PayPal)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "PayPal"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833011935",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: App Store",
+      "type": "value_pattern",
+      "pattern": "^(App Store)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "App Store"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833014853",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Instagram",
+      "type": "value_pattern",
+      "pattern": "^(Instagram)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Instagram"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833017966",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: % APR",
+      "type": "value_pattern",
+      "pattern": "^(% APR)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "% APR"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833020843",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: M",
+      "type": "value_pattern",
+      "pattern": "^(M)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "M"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833023246",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: g",
+      "type": "value_pattern",
+      "pattern": "^(g)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "g"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833026382",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: NO_PERMIT",
+      "type": "value_pattern",
+      "pattern": "^(NO_PERMIT)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "NO_PERMIT"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833029530",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: m",
+      "type": "value_pattern",
+      "pattern": "^(m)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "m"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833032422",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: min",
+      "type": "value_pattern",
+      "pattern": "^(min)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "min"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833042097",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: s",
+      "type": "value_pattern",
+      "pattern": "^(s)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "s"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833045614",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: JSON",
+      "type": "value_pattern",
+      "pattern": "^(JSON)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "JSON"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833053345",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: h/",
+      "type": "value_pattern",
+      "pattern": "^(h/)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "h/"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833056191",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: h",
+      "type": "value_pattern",
+      "pattern": "^(h)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "h"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833059143",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: (USD)",
+      "type": "value_pattern",
+      "pattern": "^(\\(USD\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "(USD)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833063756",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: FX",
+      "type": "value_pattern",
+      "pattern": "^(FX)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "FX"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833162802",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: USD)",
+      "type": "value_pattern",
+      "pattern": "^(USD\\))$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "USD)"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833165459",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: RPC",
+      "type": "value_pattern",
+      "pattern": "^(RPC)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "RPC"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833168209",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 24h",
+      "type": "value_pattern",
+      "pattern": "^(24h)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "24h"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833169224",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: MB",
+      "type": "value_pattern",
+      "pattern": "^(MB)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "MB"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833170800",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 1D",
+      "type": "value_pattern",
+      "pattern": "^(1D)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "1D"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833178560",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: USDT",
+      "type": "value_pattern",
+      "pattern": "^(USDT)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "USDT"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833192463",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: USD",
+      "type": "value_pattern",
+      "pattern": "^(USD)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "USD"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833194666",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: MT",
+      "type": "value_pattern",
+      "pattern": "^(MT)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "MT"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833196376",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: APP_",
+      "type": "value_pattern",
+      "pattern": "^(APP_)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "APP_"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833198043",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 30D",
+      "type": "value_pattern",
+      "pattern": "^(30D)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "30D"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833199289",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: T-12339",
+      "type": "value_pattern",
+      "pattern": "^(T-12339)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "T-12339"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833203246",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: Error",
+      "type": "value_pattern",
+      "pattern": "^(Error)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "Error"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833210821",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: BTC/USDT",
+      "type": "value_pattern",
+      "pattern": "^(BTC/USDT)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "BTC/USDT"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833213039",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: KB",
+      "type": "value_pattern",
+      "pattern": "^(KB)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "KB"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833214739",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: K+",
+      "type": "value_pattern",
+      "pattern": "^(K\\+)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "K+"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833216492",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: APY",
+      "type": "value_pattern",
+      "pattern": "^(APY)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "APY"
+      ]
+    },
+    {
+      "id": "history_pattern_1754833217961",
+      "name": "History Pattern (1 items)",
+      "description": "Auto-generated pattern from 1 history items: 7D",
+      "type": "value_pattern",
+      "pattern": "^(7D)$",
+      "testOn": "value",
+      "action": "remove",
+      "replacement": "self",
+      "category": "history",
+      "enabled": true,
+      "examples": [
+        "7D"
+      ]
+    }
+  ],
+  "actions": {
+    "remove": {
+      "name": "Remove and Hardcode",
+      "description": "Remove from translation files and hardcode in source",
+      "localeAction": "delete",
+      "tsxAction": "hardcode"
+    },
+    "replace": {
+      "name": "Replace Value",
+      "description": "Replace with a specific value in translation files",
+      "localeAction": "replace",
+      "tsxAction": "keep"
+    },
+    "space": {
+      "name": "Replace with Space",
+      "description": "Replace with a single space",
+      "localeAction": "replace",
+      "tsxAction": "keep",
+      "replacementValue": " "
+    },
+    "empty": {
+      "name": "Replace with Empty",
+      "description": "Replace with empty string",
+      "localeAction": "replace",
+      "tsxAction": "keep",
+      "replacementValue": ""
+    },
+    "keep": {
+      "name": "Keep As Is",
+      "description": "Keep the translation (do not process)",
+      "localeAction": "none",
+      "tsxAction": "none"
+    }
+  },
+  "replacementTypes": {
+    "self": "Use the original value",
+    "space": "Replace with a single space",
+    "empty": "Replace with empty string",
+    "underscore": "Replace with underscore",
+    "custom": "Use custom replacement value"
+  }
+}

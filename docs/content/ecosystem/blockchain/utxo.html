@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTXO Networks Integration Guide | Bicrypto Documentation</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="docs-container">
+        <div class="blockchain-header utxo-theme">
+            <div class="blockchain-icon">₿</div>
+            <div class="blockchain-info">
+                <h1>UTXO Networks Integration Guide</h1>
+                <p class="blockchain-subtitle">Bitcoin • Litecoin • Dogecoin • Dash</p>
+                <div class="blockchain-badges">
+                    <span class="badge">Bitcoin (BTC)</span>
+                    <span class="badge">Litecoin (LTC)</span>
+                    <span class="badge">Dogecoin (DOGE)</span>
+                    <span class="badge">Dash (DASH)</span>
+                    <span class="badge">Providers: Mempool • BlockCypher • Bitcoin Node</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-intro">
+            <p>
+                This guide shows you how to integrate UTXO-based networks—Bitcoin (BTC), Litecoin (LTC), Dogecoin (DOGE), and Dash (DASH)—into your Bicrypto Ecosystem. You'll add UTXO credentials in <code>.env</code>, choose between multiple provider options (Mempool.space, BlockCypher, or self-hosted Bitcoin Node), and then configure master wallets and tokens in the admin panel. Unlike EVM-compatible chains, UTXO networks handle transactions differently (no "permit" tokens, different address management, etc.).
+            </p>
+        </div>
+
+        <div class="steps-container">
+            <!-- Step 1: Configure Environment Variables -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>Configure Environment Variables</h3>
+                </div>
+                <div class="step-content">
+                    <div id="env-file-editing"></div>
+                    
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            <span class="code-title">Add to .env file</span>
+                            <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        </div>
+                        <pre class="code-block"><code># ============================================
+# UTXO Networks Configuration
+# ============================================
+
+# Network Selection (mainnet only)
+BTC_NETWORK="mainnet"
+LTC_NETWORK="mainnet"
+DOGE_NETWORK="mainnet"
+DASH_NETWORK="mainnet"
+
+# ============================================
+# Provider Selection
+# ============================================
+# Options: mempool, blockcypher, or node
+#
+# mempool:     Free, unlimited (BTC, LTC)
+# blockcypher: 200 req/hour free (BTC, LTC, DOGE, DASH)
+# node:        Self-hosted (BTC, LTC, DOGE, DASH)
+
+# Bitcoin Provider
+BTC_NODE="mempool"
+# BTC_NODE="blockcypher"
+# BTC_NODE="node"
+
+# Litecoin Provider
+LTC_NODE="mempool"
+# LTC_NODE="blockcypher"
+# LTC_NODE="node"
+
+# Dogecoin Provider
+DOGE_NODE="blockcypher"
+# DOGE_NODE="node"
+
+# Dash Provider
+DASH_NODE="blockcypher"
+# DASH_NODE="node"
+
+# ============================================
+# Fee Configuration
+# ============================================
+# BTC Fee Rate Priority (regular, priority)
+# regular: Normal network fees (~10-30 min confirmation)
+# priority: Higher fees for faster confirmation (~5-10 min)
+BTC_FEE_RATE_PRIORITY="regular"
+
+# ============================================
+# BlockCypher API (if using blockcypher provider)
+# ============================================
+# Get your token at: https://www.blockcypher.com/
+BLOCKCYPHER_TOKEN=""
+
+# ============================================
+# Bitcoin Core Node Settings (if BTC_NODE="node")
+# ============================================
+BTC_NODE_HOST="127.0.0.1"
+BTC_NODE_PORT="8332"
+BTC_NODE_USER=""
+BTC_NODE_PASSWORD=""
+
+# Bitcoin ZMQ Settings (real-time notifications)
+BTC_ZMQ_RAWTX="tcp://127.0.0.1:28333"
+BTC_ZMQ_RAWBLOCK="tcp://127.0.0.1:28332"
+BTC_ZMQ_HASHTX="tcp://127.0.0.1:28334"
+BTC_ZMQ_HASHBLOCK="tcp://127.0.0.1:28335"
+
+# ============================================
+# Litecoin Core Node Settings (if LTC_NODE="node")
+# ============================================
+LTC_NODE_HOST="127.0.0.1"
+LTC_NODE_PORT="9332"
+LTC_NODE_USER=""
+LTC_NODE_PASSWORD=""
+
+# Litecoin ZMQ Settings (real-time notifications)
+LTC_ZMQ_RAWTX="tcp://127.0.0.1:29333"
+LTC_ZMQ_RAWBLOCK="tcp://127.0.0.1:29332"
+LTC_ZMQ_HASHTX="tcp://127.0.0.1:29334"
+LTC_ZMQ_HASHBLOCK="tcp://127.0.0.1:29335"
+
+# ============================================
+# Dogecoin Core Node Settings (if DOGE_NODE="node")
+# ============================================
+DOGE_NODE_HOST="127.0.0.1"
+DOGE_NODE_PORT="22555"
+DOGE_NODE_USER=""
+DOGE_NODE_PASSWORD=""
+
+# Dogecoin ZMQ Settings (real-time notifications)
+DOGE_ZMQ_RAWTX="tcp://127.0.0.1:30333"
+DOGE_ZMQ_RAWBLOCK="tcp://127.0.0.1:30332"
+DOGE_ZMQ_HASHTX="tcp://127.0.0.1:30334"
+DOGE_ZMQ_HASHBLOCK="tcp://127.0.0.1:30335"
+
+# ============================================
+# Dash Core Node Settings (if DASH_NODE="node")
+# ============================================
+DASH_NODE_HOST="127.0.0.1"
+DASH_NODE_PORT="9998"
+DASH_NODE_USER=""
+DASH_NODE_PASSWORD=""
+
+# Dash ZMQ Settings (real-time notifications)
+DASH_ZMQ_RAWTX="tcp://127.0.0.1:31333"
+DASH_ZMQ_RAWBLOCK="tcp://127.0.0.1:31332"
+DASH_ZMQ_HASHTX="tcp://127.0.0.1:31334"
+DASH_ZMQ_HASHBLOCK="tcp://127.0.0.1:31335"</code></pre>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h4>🔑 Provider Options</h4>
+                            <ul>
+                                <li><strong>mempool:</strong> Free, unlimited API for BTC & LTC - No token required ✅</li>
+                                <li><strong>blockcypher:</strong> 200 requests/hour free tier for BTC, LTC, DOGE, DASH - Requires token</li>
+                                <li><strong>node:</strong> Self-hosted nodes for BTC, LTC, DOGE, DASH - Full control, requires setup</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>🔧 Configuration Details</h4>
+                            <ul>
+                                <li><strong>Network Settings:</strong> Currently only <code>mainnet</code> is supported</li>
+                                <li><strong>BTC_FEE_RATE_PRIORITY:</strong> <code>regular</code> (10-30 min) or <code>priority</code> (5-10 min)</li>
+                                <li><strong>BLOCKCYPHER_TOKEN:</strong> Required only when using <code>blockcypher</code> provider</li>
+                                <li><strong>Node RPC & ZMQ:</strong> Required only when using <code>node</code> provider for each coin</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choose and Configure Provider -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>Choose and Configure Provider</h3>
+                </div>
+                <div class="step-content">
+                    <div class="provider-section">
+                        <h4>🌐 Option 1: Mempool.space (Recommended for BTC/LTC)</h4>
+                        <p><strong>Best for:</strong> Production use with unlimited free access</p>
+                        <ul>
+                            <li>✅ <strong>Free & Unlimited:</strong> No rate limits, no API key required</li>
+                            <li>✅ <strong>Supported Coins:</strong> Bitcoin (BTC) and Litecoin (LTC)</li>
+                            <li>✅ <strong>Fast API:</strong> Direct UTXO endpoint support</li>
+                            <li>✅ <strong>Setup:</strong> Just set <code>BTC_NODE="mempool"</code> or <code>LTC_NODE="mempool"</code></li>
+                        </ul>
+                        <p><strong>Configuration:</strong> No additional setup required - works out of the box!</p>
+                    </div>
+
+                    <div class="provider-section">
+                        <h4>🔗 Option 2: BlockCypher</h4>
+                        <p><strong>Best for:</strong> All UTXO coins (BTC, LTC, DOGE, DASH) with moderate usage</p>
+                        <ul>
+                            <li>⚠️ <strong>Free Tier:</strong> 200 requests/hour (4,800/day)</li>
+                            <li>✅ <strong>Supported Coins:</strong> BTC, LTC, DOGE, DASH</li>
+                            <li>⚠️ <strong>Requires Token:</strong> API key needed</li>
+                        </ul>
+
+                        <p><strong>Setup Steps:</strong></p>
+                        <ol>
+                            <li>Create an account at <a href="https://www.blockcypher.com/" target="_blank">BlockCypher</a></li>
+                            <li>Navigate to your dashboard</li>
+                            <li>Generate an API token</li>
+                            <li>Insert it into <code>BLOCKCYPHER_TOKEN</code> in your .env file</li>
+                        </ol>
+
+                        <div class="image-container">
+                            <img src="storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="BlockCypher dashboard showing how to create an API token">
+                        </div>
+                    </div>
+
+                    <div class="provider-section">
+                        <h4>🏗️ Option 3: Self-Hosted UTXO Nodes</h4>
+                        <p><strong>Best for:</strong> Maximum privacy, control, and advanced features</p>
+
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <h5>✅ Benefits</h5>
+                                <ul>
+                                    <li><strong>Full Privacy:</strong> No third-party sees your addresses</li>
+                                    <li><strong>No Rate Limits:</strong> Unlimited local queries</li>
+                                    <li><strong>Instant Deposits:</strong> ZMQ real-time notifications (0-5 seconds vs 30+ seconds)</li>
+                                    <li><strong>Advanced Features:</strong> Mempool monitoring, RBF (Replace-By-Fee), 0-conf warnings</li>
+                                    <li><strong>No Monthly Costs:</strong> $0 API fees (only electricity)</li>
+                                </ul>
+                            </div>
+                            <div class="info-card">
+                                <h5>⚠️ Requirements</h5>
+                                <ul>
+                                    <li><strong>Initial Sync:</strong> BTC: 3-7 days, LTC/DOGE/DASH: 6-12 hours</li>
+                                    <li><strong>Storage:</strong> 2-10 GB per coin (pruned mode) or 40-600 GB (full)</li>
+                                    <li><strong>RAM:</strong> ~500 MB - 1 GB per node</li>
+                                    <li><strong>Bandwidth:</strong> ~1-5 GB/month per coin after sync</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5>📊 Supported Coins</h5>
+                        <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Coin</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Node Software</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Full Size</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Pruned Size</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Sync Time</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Default Port</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Bitcoin</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Bitcoin Core</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">~600 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">2-10 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">3-7 days</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">8332</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Litecoin</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Litecoin Core</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">~80 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">2-10 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">6-12 hours</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">9332</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Dogecoin</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Dogecoin Core</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">~80 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">2-10 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">6-12 hours</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">22555</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Dash</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Dash Core</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">~40 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">2-10 GB</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">6-12 hours</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">9998</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h5>⚙️ Setup Guide</h5>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">1. Download Node Software</span>
+                            </div>
+                            <div style="padding: 1rem;">
+                                <ul>
+                                    <li><strong>Bitcoin Core:</strong> <a href="https://bitcoincore.org/" target="_blank">https://bitcoincore.org/</a></li>
+                                    <li><strong>Litecoin Core:</strong> <a href="https://litecoin.org/" target="_blank">https://litecoin.org/</a></li>
+                                    <li><strong>Dogecoin Core:</strong> <a href="https://dogecoin.com/" target="_blank">https://dogecoin.com/</a></li>
+                                    <li><strong>Dash Core:</strong> <a href="https://www.dash.org/downloads/" target="_blank">https://www.dash.org/downloads/</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">2a. Bitcoin Configuration (bitcoin.conf)</span>
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                            </div>
+                            <pre class="code-block"><code># Bitcoin Core Configuration
+
+# Pruned mode - keeps only last 10 GB of blocks (recommended)
+prune=2000
+
+# RPC Server Settings
+server=1
+rpcuser=your_username
+rpcpassword=your_secure_password
+rpcallowip=127.0.0.1
+rpcport=8332
+
+# ZMQ for real-time notifications (instant deposits)
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28333
+zmqpubhashtx=tcp://127.0.0.1:28334
+zmqpubhashblock=tcp://127.0.0.1:28335
+
+# Performance
+maxmempool=300
+dbcache=450
+
+# Logging
+debug=rpc
+debug=walletdb</code></pre>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">2b. Litecoin Configuration (litecoin.conf)</span>
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                            </div>
+                            <pre class="code-block"><code># Litecoin Core Configuration
+
+# Pruned mode - keeps only last 10 GB of blocks (recommended)
+prune=2000
+
+# RPC Server Settings
+server=1
+rpcuser=your_username
+rpcpassword=your_secure_password
+rpcallowip=127.0.0.1
+rpcport=9332
+
+# ZMQ for real-time notifications (instant deposits)
+zmqpubrawblock=tcp://127.0.0.1:29332
+zmqpubrawtx=tcp://127.0.0.1:29333
+zmqpubhashtx=tcp://127.0.0.1:29334
+zmqpubhashblock=tcp://127.0.0.1:29335
+
+# Performance
+maxmempool=300
+dbcache=450
+
+# Logging
+debug=rpc
+debug=walletdb</code></pre>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">2c. Dogecoin Configuration (dogecoin.conf)</span>
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                            </div>
+                            <pre class="code-block"><code># Dogecoin Core Configuration
+
+# Pruned mode - keeps only last 10 GB of blocks (recommended)
+prune=2000
+
+# RPC Server Settings
+server=1
+rpcuser=your_username
+rpcpassword=your_secure_password
+rpcallowip=127.0.0.1
+rpcport=22555
+
+# ZMQ for real-time notifications (instant deposits)
+zmqpubrawblock=tcp://127.0.0.1:30332
+zmqpubrawtx=tcp://127.0.0.1:30333
+zmqpubhashtx=tcp://127.0.0.1:30334
+zmqpubhashblock=tcp://127.0.0.1:30335
+
+# Performance
+maxmempool=300
+dbcache=450
+
+# Logging
+debug=rpc
+debug=walletdb</code></pre>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">2d. Dash Configuration (dash.conf)</span>
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                            </div>
+                            <pre class="code-block"><code># Dash Core Configuration
+
+# Pruned mode - keeps only last 10 GB of blocks (recommended)
+prune=2000
+
+# RPC Server Settings
+server=1
+rpcuser=your_username
+rpcpassword=your_secure_password
+rpcallowip=127.0.0.1
+rpcport=9998
+
+# ZMQ for real-time notifications (instant deposits)
+zmqpubrawblock=tcp://127.0.0.1:31332
+zmqpubrawtx=tcp://127.0.0.1:31333
+zmqpubhashtx=tcp://127.0.0.1:31334
+zmqpubhashblock=tcp://127.0.0.1:31335
+
+# Performance
+maxmempool=300
+dbcache=450
+
+# Logging
+debug=rpc
+debug=walletdb</code></pre>
+                        </div>
+
+                        <div class="info-box">
+                            <p><strong>📍 Note:</strong> Create the appropriate config file based on which node(s) you're setting up. Use the same username/password that you configured in your .env file (Step 1).</p>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">3. Start Your Node(s)</span>
+                            </div>
+                            <div style="padding: 1rem;">
+                                <p>After creating the config file, start the node:</p>
+                                <ul>
+                                    <li><strong>Bitcoin:</strong> Launch Bitcoin Core and let it sync (3-7 days)</li>
+                                    <li><strong>Litecoin:</strong> Launch Litecoin Core and let it sync (6-12 hours)</li>
+                                    <li><strong>Dogecoin:</strong> Launch Dogecoin Core and let it sync (6-12 hours)</li>
+                                    <li><strong>Dash:</strong> Launch Dash Core and let it sync (6-12 hours)</li>
+                                </ul>
+                                <p style="margin-top: 1rem;"><strong>⏳ Sync Progress:</strong> You can monitor sync progress in the node's GUI or check via RPC. Once <code>blocks</code> equals <code>headers</code>, your node is fully synced and ready.</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block-container">
+                            <div class="code-block-header">
+                                <span class="code-title">4. Update .env Provider Setting</span>
+                            </div>
+                            <div style="padding: 1rem;">
+                                <p>After your node is synced, update the provider in your .env (already configured in Step 1):</p>
+                                <ul>
+                                    <li>Change <code>BTC_NODE="mempool"</code> to <code>BTC_NODE="node"</code></li>
+                                    <li>Change <code>LTC_NODE="mempool"</code> to <code>LTC_NODE="node"</code></li>
+                                    <li>Change <code>DOGE_NODE="blockcypher"</code> to <code>DOGE_NODE="node"</code></li>
+                                    <li>Change <code>DASH_NODE="blockcypher"</code> to <code>DASH_NODE="node"</code></li>
+                                </ul>
+                                <p style="margin-top: 1rem;"><strong>🔄 Then restart your backend</strong> to apply changes.</p>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <strong>🔒 Security Note:</strong> Never share your RPC credentials publicly. Use strong, unique passwords for each node. Store configuration files in secure locations with restricted access.
+                        </div>
+
+                        <h5>🚀 Advanced Features (Node Only)</h5>
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <h6>⚡ ZMQ Real-Time Deposits</h6>
+                                <p>Instant push notifications when deposits arrive (0-5 seconds vs 30+ seconds polling). Automatic confirmation tracking with each new block.</p>
+                            </div>
+                            <div class="info-card">
+                                <h6>📊 Mempool Monitoring</h6>
+                                <p>Check 0-conf transaction status, detect low-fee transactions that may get stuck, estimate confirmation times based on current mempool.</p>
+                            </div>
+                            <div class="info-card">
+                                <h6>🔄 RBF (Replace-By-Fee)</h6>
+                                <p>Automatically unstuck failed withdrawals by increasing fees, abandon impossible transactions, speed up slow confirmations.</p>
+                            </div>
+                        </div>
+
+                        <div class="success-message">
+                            <p><strong>💡 Recommendation:</strong> Start with Bitcoin node (most critical), then add Litecoin if needed. Dogecoin and Dash can remain on APIs unless you require maximum privacy or have high volume.</p>
+                        </div>
+                    </div>
+
+                    <div class="provider-section">
+                        <h4>📊 Provider Comparison</h4>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Feature</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Mempool</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">BlockCypher</th>
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Bitcoin Node</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Chains</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">BTC, LTC</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">BTC, LTC, DOGE, DASH</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">BTC, LTC, DOGE, DASH</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Rate Limits</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ None</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">❌ 200/hour</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ None</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Cost</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ Free forever</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">⚠️ Free tier, paid plans</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">⚠️ Infrastructure cost</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Setup</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ No setup</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ API key only</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">❌ Complex installation</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>Privacy</strong></td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">⚠️ Third-party</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">⚠️ Third-party</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">✅ Full control</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>💡 Recommendation:</strong> Use <code>mempool</code> for BTC and LTC (free, unlimited), <code>blockcypher</code> for DOGE and DASH (only option), and <code>node</code> only if you need maximum privacy and control.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Apply Environment Updates -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>Apply Environment Updates</h3>
+                </div>
+                <div class="step-content">
+                    <div id="apply-env-updates"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Configure Master Wallet -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>Configure Master Wallet</h3>
+                </div>
+                <div class="step-content">
+                    <p>Unlike EVM chains, UTXO-based coins (BTC, LTC, DOGE, DASH) manage addresses differently. However, Bicrypto's <strong>Master Wallet</strong> concept still applies for deposit and withdrawal flows.</p>
+                    
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-number">1</div>
+                            <div class="process-content">
+                                <h4>Navigate to Master Wallet</h4>
+                                <p>Go to <strong>Admin → Extensions → Ecosystem → Master Wallet</strong></p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/11dfcfa7-ec52-4c02-ba66-3e151674057b.png" alt="Navigating to Ecosystem Master Wallet in Bicrypto">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">2</div>
+                            <div class="process-content">
+                                <h4>Generate Master Wallets</h4>
+                                <p><strong>Generate a New Master Wallet</strong> for each UTXO coin you want to enable (BTC, LTC, DOGE, DASH). These wallets hold addresses and manage incoming/outgoing transactions for each coin.</p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/8bde9ffa-8147-411e-89d6-384f9b7fd95c.png" alt="Generate Master Wallet button">
+                                    <img src="storage/article_images/719b78c1-d5d6-43dd-871a-34870411d262.png" alt="Master Wallet creation process">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>Important:</strong> Each UTXO coin requires its own master wallet due to different address formats and transaction structures.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Enable UTXO Coins and Configure Fees -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">5</span>
+                    <h3>Enable UTXO Coins and Configure Fees</h3>
+                </div>
+                <div class="step-content">
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-number">1</div>
+                            <div class="process-content">
+                                <h4>Enable UTXO Coins</h4>
+                                <p>Go to <strong>Admin → Extensions → Ecosystem → Tokens</strong> and enable the UTXO coins (BTC, LTC, DOGE, DASH) you plan to support. They appear as "native" tokens since they're not ERC-20 or token contracts.</p>
+                                <div class="image-container">
+                                    <img src="storage/article_images/c8b015f9-e872-48a8-8f50-bb8220369aee.png" alt="List of tokens in Bicrypto Ecosystem">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">2</div>
+                            <div class="process-content">
+                                <h4>Configure Fees and Limits</h4>
+                                <p><strong>Click the 3 dots</strong> next to a coin and select <strong>Edit</strong> to configure:</p>
+                                
+                                <div class="config-section">
+                                    <h5>💰 Fee Configuration</h5>
+                                    <ul>
+                                        <li><strong>Minimum Fee:</strong> If your percentage fee (e.g., 1%) results in a very low fee (like $1 on $100 withdrawal), set a minimum fee (e.g., $5) to ensure you cover network transaction fees or operational overhead.</li>
+                                        <li><strong>Percentage Fee:</strong> The standard withdrawal fee based on a percentage of the withdrawn amount.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="config-section">
+                                    <h5>📊 Limits</h5>
+                                    <ul>
+                                        <li><strong>Deposit Limits:</strong> The minimum/maximum amount a user can deposit for that coin.</li>
+                                        <li><strong>Withdraw Limits:</strong> The minimum/maximum amount a user can withdraw for that coin.</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="image-container">
+                                    <img src="storage/article_images/f6ecee92-81f0-4a73-be4d-592e67fcf140.png" alt="Coin edit form showing fee and limit configuration">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Notes & Best Practices -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">✅</span>
+                    <h3>Final Notes & Best Practices</h3>
+                </div>
+                <div class="step-content">
+                    <div class="additional-tips">
+                        <div class="tip-card">
+                            <h4>🔐 Security</h4>
+                            <p>Storing private keys for UTXO coins is a critical responsibility. Always secure your wallet seeds/keys in a safe environment with proper backup procedures.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>⛽ Fee Rate Priority</h4>
+                            <p>BTC has a <code>BTC_FEE_RATE_PRIORITY</code> setting. If you notice slow confirmations, consider <code>priority</code>. For LTC, DOGE, and DASH, typical fees are lower.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>💰 Monitoring Balances</h4>
+                            <p>Check your Master Wallet balances regularly to ensure you have enough coin for withdrawal fees (especially if <code>BTC_FEE_RATE_PRIORITY</code> is <code>priority</code>).</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>📈 Scaling</h4>
+                            <p>If high volume is expected, explore solutions like batching withdrawals or using a separate hot/cold wallet architecture for better security.</p>
+                        </div>
+                    </div>
+
+                    <div class="utxo-differences">
+                        <h4>🔄 UTXO vs EVM Differences</h4>
+                        <div class="difference-cards">
+                            <div class="difference-card">
+                                <h5>Address Management</h5>
+                                <p>UTXO coins generate new addresses for each transaction, enhancing privacy but requiring different tracking mechanisms.</p>
+                            </div>
+                            <div class="difference-card">
+                                <h5>Transaction Structure</h5>
+                                <p>Transactions are built from unspent outputs (UTXOs) rather than account balances, requiring specialized handling logic.</p>
+                            </div>
+                            <div class="difference-card">
+                                <h5>No Smart Contracts</h5>
+                                <p>These coins don't support complex smart contracts or permit-style transactions like EVM chains.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-message">
+                        <p><em>By configuring these UTXO environment variables, generating Master Wallets for BTC, LTC, DOGE, or DASH, and adjusting deposit/withdrawal fees and limits, you can effectively manage UTXO-based coins within your Bicrypto Ecosystem.</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/layout.js"></script>
+</body>
+</html> 

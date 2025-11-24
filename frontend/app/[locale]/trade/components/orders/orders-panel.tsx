@@ -23,9 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
-import { useWebSocketStore } from "@/store/websocket-store";
 import { useUserStore } from "@/store/user";
 import { useWalletStore } from "@/store/finance/wallet-store";
+import {
+  ordersWs,
+  type OrderData,
+  type MarketType as OrdersMarketType,
+  ConnectionStatus,
+} from "@/services/orders-ws";
 interface ExchangeOrder {
   id: string;
   referenceId?: string;
@@ -44,9 +49,9 @@ interface ExchangeOrder {
   trades?: string;
   fee: number;
   feeCurrency: string;
-  createdAt?: Date;
-  deletedAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string;
+  deletedAt?: Date | string;
+  updatedAt?: Date | string;
   currency?: string;
   pair?: string;
   isEco?: boolean;
@@ -67,8 +72,8 @@ interface FuturesOrder {
   take_profit_price?: number;
   leverage?: number;
   liquidation_price?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 interface FuturesPosition {
   id: string;
@@ -138,16 +143,6 @@ export default function OrdersPanel({
   const { user } = useUserStore();
   const { fetchWallets } = useWalletStore();
 
-  // WebSocket store
-  const {
-    createConnection,
-    removeConnection,
-    subscribe,
-    unsubscribe,
-    addMessageHandler,
-    removeMessageHandler,
-    isConnectionOpen,
-  } = useWebSocketStore();
   const [openOrders, setOpenOrders] = useState<
     ExchangeOrder[] | FuturesOrder[]
   >([]);
@@ -166,24 +161,22 @@ export default function OrdersPanel({
   const [aiInvestments, setAiInvestments] = useState([]);
   const [isLoadingAiInvestments, setIsLoadingAiInvestments] = useState(false);
   const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    ConnectionStatus.DISCONNECTED
+  );
 
   // Refs for cleanup
   const isMountedRef = useRef(true);
-  const wsHandlerRef = useRef<((message: any) => void) | null>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  // WebSocket connection key
-  const connectionKey = "ordersConnection";
-
   // Handle order WebSocket messages
-  const handleOrderMessage = (message: any) => {
-    if (!message || !message.data || !isMountedRef.current) return;
-    const { data } = message;
-    if (!data || !Array.isArray(data)) return;
+  const handleOrderMessage = (data: OrderData[]) => {
+    if (!isMountedRef.current || !Array.isArray(data)) return;
 
     let shouldRefreshWallet = false;
     setOpenOrders((prevOpenOrders) => {
@@ -204,7 +197,7 @@ export default function OrdersPanel({
             // Also refresh order history to include the updated order
             fetchOrderHistory();
           } else {
-            // Update existing open order
+            // Update existing open order (including partial fills)
             newItems[index] = {
               ...newItems[index],
               ...orderItem,
@@ -382,63 +375,51 @@ export default function OrdersPanel({
     }
   };
 
-  // Initialize WebSocket connection
+  // Subscribe to order updates (connection is managed by trading-layout)
   useEffect(() => {
     if (!user?.id) return;
     isMountedRef.current = true;
 
-    // Determine the correct WebSocket path based on market type
-    const wsPath = isFutures
-      ? `/api/futures/order?userId=${user.id}`
+    // Determine the market type
+    const ordersMarketType: OrdersMarketType = isFutures
+      ? "futures"
       : isEco
-        ? `/api/ecosystem/order?userId=${user.id}`
-        : `/api/exchange/order?userId=${user.id}`;
+        ? "eco"
+        : "spot";
 
-    // Create WebSocket connection
-    createConnection(connectionKey, wsPath, {
-      onOpen: () => {
-        console.log("Orders WebSocket connection opened");
+    // Subscribe to connection status
+    const unsubscribeStatus = ordersWs.subscribeToConnectionStatus(
+      (status) => {
+        if (isMountedRef.current) {
+          setConnectionStatus(status);
+        }
       },
-      onClose: () => {
-        console.log("Orders WebSocket connection closed");
+      ordersMarketType
+    );
+
+    // Subscribe to order updates - adds callback to existing connection
+    const unsubscribeOrders = ordersWs.subscribe<OrderData[]>(
+      {
+        userId: user.id,
+        marketType: ordersMarketType,
       },
-      onError: (error) => {
-        console.error("Orders WebSocket error:", error);
-      },
-    });
+      handleOrderMessage
+    );
+
+    // Store unsubscribe function
+    unsubscribeRef.current = () => {
+      unsubscribeStatus();
+      unsubscribeOrders();
+    };
+
     return () => {
       isMountedRef.current = false;
-      // Clean up WebSocket connection
-      removeConnection(connectionKey);
-    };
-  }, [user?.id, isFutures, isEco]);
-
-  // Subscribe to order updates when connection is ready
-  useEffect(() => {
-    if (!user?.id || !isConnectionOpen(connectionKey)) return;
-
-    // Subscribe to orders stream
-    subscribe(connectionKey, "orders", {
-      userId: user.id,
-    });
-
-    // Add message handler
-    const messageFilter = (message: any) => message.stream === "orders";
-    addMessageHandler(connectionKey, handleOrderMessage, messageFilter);
-
-    // Store handler reference for cleanup
-    wsHandlerRef.current = handleOrderMessage;
-    return () => {
-      // Unsubscribe and remove message handler
-      unsubscribe(connectionKey, "orders", {
-        userId: user.id,
-      });
-      if (wsHandlerRef.current) {
-        removeMessageHandler(connectionKey, wsHandlerRef.current);
-        wsHandlerRef.current = null;
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
       }
     };
-  }, [user?.id, isConnectionOpen(connectionKey)]);
+  }, [user?.id, isFutures, isEco]);
 
   // Load data on component mount and when market type changes
   useEffect(() => {
@@ -534,11 +515,16 @@ export default function OrdersPanel({
   };
 
   // Handle cancel order
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (orderId: string, createdAt?: Date | string) => {
     try {
       setIsLoading(true);
       setError(null);
-      const timestamp = Date.now();
+
+      // For ecosystem orders, use the order's createdAt timestamp
+      // Convert Date to milliseconds if it's a Date object
+      const timestamp = createdAt
+        ? (createdAt instanceof Date ? createdAt.getTime() : new Date(createdAt).getTime())
+        : Date.now();
 
       // Use the appropriate URL based on market type
       const url = isFutures
@@ -561,12 +547,21 @@ export default function OrdersPanel({
             }),
       });
       const data = await response.json();
-      if (data.success) {
-        // Refresh open orders and wallet balances
+
+      // Eco endpoints return { message: "..." } without success field
+      // Other endpoints return { success: true, ... }
+      const isSuccess = isEco ? (response.ok && data.message) : data.success;
+
+      if (isSuccess) {
+        // Refresh open orders, order history, and wallet balances
         await Promise.all([
           fetchOpenOrders(),
+          fetchOrderHistory(),
           fetchWallets()
         ]);
+
+        // Emit event to notify other components (like trading forms) to refresh their wallet data
+        window.dispatchEvent(new CustomEvent('walletUpdated'));
       } else {
         setError("Failed to cancel order");
         console.error("Failed to cancel order:", data);
@@ -665,12 +660,21 @@ export default function OrdersPanel({
             }),
       });
       const data = await response.json();
-      if (data.success) {
-        // Refresh open orders and wallet balances
+
+      // Eco endpoints return { message: "...", cancelledCount: N } without success field
+      // Other endpoints return { success: true, ... }
+      const isSuccess = isEco ? (response.ok && data.message) : data.success;
+
+      if (isSuccess) {
+        // Refresh open orders, order history, and wallet balances
         await Promise.all([
           fetchOpenOrders(),
+          fetchOrderHistory(),
           fetchWallets()
         ]);
+
+        // Emit event to notify other components (like trading forms) to refresh their wallet data
+        window.dispatchEvent(new CustomEvent('walletUpdated'));
       } else {
         setError("Failed to cancel all orders");
         console.error("Failed to cancel all orders:", data);
@@ -805,7 +809,7 @@ export default function OrdersPanel({
                         Price{pair ? ` (${pair})` : ''}
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                        Amount
+                        Filled / Amount
                       </th>
                       <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                         Total
@@ -881,8 +885,38 @@ export default function OrdersPanel({
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                             {formatDecimal(order.price, 'price')}
                           </td>
-                          <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                            {formatDecimal(order.amount, 'amount')}
+                          <td className="p-2 text-right">
+                            <div className="inline-flex flex-col items-end gap-0.5 min-w-[120px]">
+                              <div className="text-[11px] font-mono whitespace-nowrap">
+                                <span className="text-foreground dark:text-zinc-300">
+                                  {Number(order.filled) > 0 ? formatDecimal(order.filled, 'amount') : '0.00000000'}
+                                </span>
+                                <span className="text-muted-foreground dark:text-zinc-500 mx-0.5">/</span>
+                                <span className="text-muted-foreground dark:text-zinc-400">
+                                  {formatDecimal(order.amount, 'amount')}
+                                </span>
+                              </div>
+                              {Number(order.filled) > 0 && (
+                                <div className="flex items-center gap-1 w-full">
+                                  <div className="flex-1 h-1 bg-muted dark:bg-zinc-800 rounded-full overflow-hidden">
+                                    <div
+                                      className={cn(
+                                        "h-full transition-all",
+                                        order.side === "BUY"
+                                          ? "bg-emerald-500"
+                                          : "bg-red-500"
+                                      )}
+                                      style={{
+                                        width: `${((order.filled / order.amount) * 100).toFixed(1)}%`,
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-[9px] font-medium text-muted-foreground dark:text-zinc-500 tabular-nums">
+                                    {((order.filled / order.amount) * 100).toFixed(0)}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                             {formatDecimal(order.cost || order.amount * order.price, 'total')}
@@ -909,7 +943,7 @@ export default function OrdersPanel({
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6 text-muted-foreground dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-500"
-                              onClick={() => handleCancelOrder(order.id)}
+                              onClick={() => handleCancelOrder(order.id, order.createdAt)}
                               disabled={isLoading}
                             >
                               <Trash2 className="h-3 w-3" />
@@ -984,7 +1018,7 @@ export default function OrdersPanel({
                           Price{pair ? ` (${pair})` : ''}
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
-                          Amount
+                          Filled / Amount
                         </th>
                         <th className="text-right p-2 font-medium text-muted-foreground dark:text-zinc-400">
                           Total
@@ -1061,8 +1095,38 @@ export default function OrdersPanel({
                             <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                               {formatDecimal(order.price, 'price')}
                             </td>
-                            <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
-                              {formatDecimal(order.amount, 'amount')}
+                            <td className="p-2 text-right">
+                              <div className="inline-flex flex-col items-end gap-0.5 min-w-[120px]">
+                                <div className="text-[11px] font-mono whitespace-nowrap">
+                                  <span className="text-foreground dark:text-zinc-300">
+                                    {Number(order.filled) > 0 ? formatDecimal(order.filled, 'amount') : '0.00000000'}
+                                  </span>
+                                  <span className="text-muted-foreground dark:text-zinc-500 mx-0.5">/</span>
+                                  <span className="text-muted-foreground dark:text-zinc-400">
+                                    {formatDecimal(order.amount, 'amount')}
+                                  </span>
+                                </div>
+                                {Number(order.filled) > 0 && order.status === "CANCELED" && (
+                                  <div className="flex items-center gap-1 w-full">
+                                    <div className="flex-1 h-1 bg-muted dark:bg-zinc-800 rounded-full overflow-hidden">
+                                      <div
+                                        className={cn(
+                                          "h-full transition-all",
+                                          order.side === "BUY"
+                                            ? "bg-emerald-500"
+                                            : "bg-red-500"
+                                        )}
+                                        style={{
+                                          width: `${((order.filled / order.amount) * 100).toFixed(1)}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="text-[9px] font-medium text-muted-foreground dark:text-zinc-500 tabular-nums">
+                                      {((order.filled / order.amount) * 100).toFixed(0)}%
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="p-2 text-right font-mono text-foreground dark:text-zinc-300">
                               {formatDecimal(order.cost || order.amount * order.price, 'total')}

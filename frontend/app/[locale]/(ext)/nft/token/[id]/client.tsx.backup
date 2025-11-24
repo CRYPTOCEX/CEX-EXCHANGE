@@ -1,0 +1,756 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  Heart,
+  Share2,
+  ExternalLink,
+  Eye,
+  Clock,
+  Gavel,
+  ShoppingCart,
+  HandHeart,
+  Settings,
+  MoreHorizontal,
+  Copy,
+  Timer,
+  TrendingUp,
+  Activity,
+  Users,
+  Verified
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link } from "@/i18n/routing";
+import { useUserStore } from "@/store/user";
+import { useNftStore } from "@/store/nft/nft-store";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { toast } from "sonner";
+import ListNFTModal from "../../components/modals/list-nft-modal";
+import MakeOfferModal from "../../components/modals/make-offer-modal";
+import { useWalletStore } from "@/store/nft/wallet-store";
+import { purchaseNFT } from "@/utils/nft-purchase";
+import { $fetch } from "@/lib/api";
+
+interface NFTTokenClientProps {
+  tokenId: string;
+}
+
+export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
+  const t = useTranslations("nft/token");
+  const router = useRouter();
+  const { user } = useUserStore();
+  const { isConnected, address } = useWalletStore();
+  const {
+    selectedToken,
+    loading,
+    fetchTokenById,
+    addToFavorites,
+    removeFromFavorites,
+  } = useNftStore();
+
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [showListModal, setShowListModal] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  useEffect(() => {
+    if (tokenId) {
+      fetchTokenById(tokenId);
+    }
+  }, [tokenId, fetchTokenById]);
+
+  useEffect(() => {
+    if (selectedToken) {
+      setIsLiked(selectedToken.isFavorited || false);
+      setLikesCount(selectedToken.likes || 0);
+    }
+  }, [selectedToken]);
+
+  // Countdown timer for auctions
+  useEffect(() => {
+    if (selectedToken?.currentListing?.type === "AUCTION" && selectedToken.currentListing?.endTime) {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const endTime = new Date(selectedToken.currentListing!.endTime!).getTime();
+        const distance = endTime - now;
+
+        if (distance > 0) {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          if (days > 0) {
+            setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+          } else if (hours > 0) {
+            setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+          } else {
+            setTimeLeft(`${minutes}m ${seconds}s`);
+          }
+        } else {
+          setTimeLeft(t("auction_ended"));
+          clearInterval(timer);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [selectedToken?.currentListing]);
+
+  const handleLike = async () => {
+    if (!user) {
+      toast.error(t("please_sign_in_to_add_to_favorites"));
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (isLiked) {
+      await removeFromFavorites(tokenId);
+      setLikesCount(prev => prev - 1);
+    } else {
+      await addToFavorites(tokenId);
+      setLikesCount(prev => prev + 1);
+    }
+    setIsLiked(!isLiked);
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast.error(t("please_sign_in_to_purchase_nfts"));
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (!isConnected || !address) {
+      toast.error("Please connect your wallet to purchase NFTs");
+      return;
+    }
+
+    if (!selectedToken?.currentListing || !selectedToken.collection?.contractAddress) {
+      toast.error("Unable to process purchase - missing contract information");
+      return;
+    }
+
+    // TODO: Get marketplace address from settings/config
+    const marketplaceAddress = process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS || "";
+    if (!marketplaceAddress) {
+      toast.error("Marketplace contract not configured");
+      return;
+    }
+
+    setIsPurchasing(true);
+
+    try {
+      toast.info("Initiating purchase transaction...");
+
+      // Execute Web3 purchase
+      const result = await purchaseNFT({
+        marketplaceAddress,
+        nftContractAddress: selectedToken.collection.contractAddress,
+        tokenId: selectedToken.tokenId,
+        price: selectedToken.currentListing.price?.toString() || "0",
+        royaltyPercentage: selectedToken.collection.royaltyPercentage || 0,
+      });
+
+      toast.success("Transaction confirmed! Processing purchase...");
+
+      // Send transaction details to backend
+      const { data, error } = await $fetch({
+        url: `/api/nft/listing/${selectedToken.currentListing.id}/buy`,
+        method: "POST",
+        body: {
+          transactionHash: result.transactionHash,
+          gasUsed: parseInt(result.gasUsed),
+          gasPrice: result.gasPrice,
+        },
+      });
+
+      if (error) {
+        toast.error("Failed to complete purchase on server: " + error);
+      } else {
+        toast.success("NFT purchased successfully!");
+        // Refresh token data
+        fetchTokenById(tokenId);
+      }
+    } catch (error: any) {
+      console.error("Purchase error:", error);
+
+      if (error.code === "ACTION_REJECTED") {
+        toast.error("Transaction rejected by user");
+      } else if (error.message?.includes("insufficient funds")) {
+        toast.error("Insufficient funds to complete purchase");
+      } else {
+        toast.error(error.message || "Failed to purchase NFT");
+      }
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-12 px-4">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (!selectedToken) {
+    return (
+      <div className="container mx-auto py-12 px-4 text-center">
+        <h1 className="text-2xl font-bold mb-4">{t("nft_not_found")}</h1>
+        <p className="text-muted-foreground mb-6">
+          {t("the_nft_youre_looking")}
+        </p>
+        <Link href="/nft">
+          <Button>{t("browse_nfts")}</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const isOwner = user?.id === selectedToken.ownerId;
+  const isListed = selectedToken.isListed && selectedToken.currentListing;
+  const isAuction = selectedToken.currentListing?.type === "AUCTION";
+  const hasEnded = isAuction && selectedToken.currentListing?.endTime &&
+    new Date() > new Date(selectedToken.currentListing.endTime);
+
+  // Debug ownership
+  console.log("Ownership check:", {
+    userId: user?.id,
+    ownerId: selectedToken.ownerId,
+    isOwner,
+    tokenData: selectedToken
+  });
+
+  // Fix image URL - ensure it's absolute
+  const imageUrl = selectedToken.image?.startsWith('http')
+    ? selectedToken.image
+    : selectedToken.image?.startsWith('/')
+      ? selectedToken.image
+      : selectedToken.image
+        ? `/uploads/nft/${selectedToken.image}`
+        : null;
+
+  // Parse attributes if it's a string
+  let parsedAttributes: any[] = [];
+  try {
+    if (typeof selectedToken.attributes === 'string' && selectedToken.attributes) {
+      let parsed = JSON.parse(selectedToken.attributes);
+      // Handle double-stringified JSON
+      while (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+      // Ensure it's an array
+      parsedAttributes = Array.isArray(parsed) ? parsed : [];
+    } else if (Array.isArray(selectedToken.attributes)) {
+      parsedAttributes = selectedToken.attributes;
+    } else if (selectedToken.attributes === null || selectedToken.attributes === undefined) {
+      parsedAttributes = [];
+    } else {
+      console.warn("Unexpected attributes type:", typeof selectedToken.attributes, selectedToken.attributes);
+      parsedAttributes = [];
+    }
+  } catch (error) {
+    console.error("Failed to parse attributes:", error, selectedToken.attributes);
+    parsedAttributes = [];
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      <div className="container mx-auto py-6 px-4 max-w-7xl">
+        {/* Breadcrumb */}
+        <nav className="mb-8 flex items-center gap-2 text-sm">
+          <Link href="/nft/marketplace" className="text-muted-foreground hover:text-foreground transition-colors">
+            Marketplace
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          {selectedToken.collection && (
+            <>
+              <Link
+                href={`/nft/collection/${selectedToken.collection.id}`}
+                className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                {selectedToken.collection.name}
+                {selectedToken.collection.isVerified && (
+                  <Verified className="h-3 w-3 text-blue-500" />
+                )}
+              </Link>
+              <span className="text-muted-foreground">/</span>
+            </>
+          )}
+          <span className="text-foreground font-medium">{selectedToken.name}</span>
+        </nav>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Left Column - Image & Details */}
+          <div className="space-y-6">
+            {/* Main Image */}
+            <div className="relative group">
+              <div className="aspect-square relative bg-gradient-to-br from-primary/5 via-primary/10 to-muted/50 rounded-3xl overflow-hidden border border-border/50 shadow-2xl backdrop-blur-sm">
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt={selectedToken.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    priority
+                    onError={(e) => {
+                      console.error("Image load error:", imageUrl);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-6">
+                    <div className="text-9xl opacity-10">🖼️</div>
+                    <div className="text-center space-y-2">
+                      <p className="text-muted-foreground">No image available</p>
+                      {selectedToken.image && (
+                        <p className="text-xs text-muted-foreground/60 font-mono px-4 break-all max-w-md">
+                          {selectedToken.image}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overlay Badges */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {isOwner && (
+                    <div className="absolute top-4 left-4 pointer-events-auto">
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-lg backdrop-blur-sm px-3 py-1.5">
+                        <Users className="h-3.5 w-3.5 mr-1.5" />
+                        You own this
+                      </Badge>
+                    </div>
+                  )}
+
+                  {selectedToken.rarity && (
+                    <div className="absolute top-4 right-4 pointer-events-auto">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0 shadow-lg backdrop-blur-sm px-3 py-1.5">
+                        {selectedToken.rarity}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Attributes */}
+            {parsedAttributes && parsedAttributes.length > 0 && (
+              <Card className="border-border/50 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    Attributes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {parsedAttributes.map((attr: any, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 text-center hover:border-primary/40 transition-all hover:shadow-md"
+                      >
+                        <p className="text-xs font-medium text-primary/70 uppercase tracking-wider mb-1">
+                          {attr.trait_type}
+                        </p>
+                        <p className="font-bold text-foreground">{attr.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Token Details */}
+            <Card className="border-border/50 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Token ID</p>
+                    <p className="font-mono font-semibold">#{selectedToken.tokenId}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Blockchain</p>
+                    <p className="font-semibold">{selectedToken.collection?.chain || "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Standard</p>
+                    <p className="font-semibold">{selectedToken.collection?.standard}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Views</p>
+                    <p className="font-semibold flex items-center gap-1">
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      {selectedToken.views || 0}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Info & Actions */}
+          <div className="space-y-6">
+            {/* Title & Collection */}
+            <div className="space-y-4">
+              {selectedToken.collection && (
+                <Link
+                  href={`/nft/collection/${selectedToken.collection.id}`}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors group"
+                >
+                  <span className="group-hover:underline">{selectedToken.collection.name}</span>
+                  {selectedToken.collection.isVerified && (
+                    <Verified className="h-4 w-4 text-blue-500" />
+                  )}
+                </Link>
+              )}
+
+              <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+                {selectedToken.name}
+              </h1>
+
+              {selectedToken.description && (
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  {selectedToken.description}
+                </p>
+              )}
+
+              {/* Quick Actions */}
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLike}
+                    className={`${isLiked ? "text-red-500 border-red-500/50 bg-red-500/5" : ""} transition-all hover:scale-105`}
+                  >
+                    <Heart className={`h-4 w-4 mr-1.5 ${isLiked ? 'fill-current' : ''}`} />
+                    <span className="font-semibold">{likesCount}</span>
+                  </Button>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => copyToClipboard(window.location.href)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      {t("copy_link")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      {t("Share")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      {t("view_on_explorer")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Owner & Creator Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              {selectedToken.creator?.user && (
+                <Card className="border-border/50 hover:border-primary/30 transition-colors">
+                  <CardContent className="p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      {t("Creator")}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+                        <AvatarImage src={selectedToken.creator.user.avatar} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {selectedToken.creator.user.firstName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">
+                          {selectedToken.creator.user.firstName} {selectedToken.creator.user.lastName}
+                        </p>
+                        {selectedToken.creator.isVerified && (
+                          <div className="flex items-center gap-1 text-xs text-blue-500 mt-0.5">
+                            <Verified className="h-3 w-3" />
+                            <span>Verified Creator</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {selectedToken.owner && (
+                <Card className={`border-border/50 hover:border-primary/30 transition-colors ${isOwner ? 'ring-2 ring-green-500/20' : ''}`}>
+                  <CardContent className="p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      {t("Owner")}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+                        <AvatarImage src={selectedToken.owner.avatar} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {selectedToken.owner.firstName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">
+                          {isOwner ? t("You") : `${selectedToken.owner.firstName} ${selectedToken.owner.lastName}`}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Pricing & Actions */}
+            {isListed && selectedToken.currentListing && (
+              <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-background to-primary/5">
+                <CardContent className="p-6">
+                  {isAuction ? (
+                    <div className="space-y-6">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                            {t("current_bid")}
+                          </p>
+                          <p className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                            {selectedToken.currentListing.price} {selectedToken.currentListing.currency}
+                          </p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 justify-end">
+                            <Timer className="h-4 w-4" />
+                            {hasEnded ? t("auction_ended") : t("time_left")}
+                          </p>
+                          <p className="text-lg font-bold">{timeLeft}</p>
+                        </div>
+                      </div>
+
+                      {!hasEnded && (
+                        <div className="space-y-3">
+                          {!isOwner && (
+                            <Button className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all">
+                              <Gavel className="h-5 w-5 mr-2" />
+                              {t("place_bid")}
+                            </Button>
+                          )}
+                          {selectedToken.currentListing.buyNowPrice && !isOwner && (
+                            <Button
+                              variant="outline"
+                              className="w-full h-12 text-base font-semibold border-2"
+                              onClick={handleBuyNow}
+                              disabled={isPurchasing}
+                            >
+                              {isPurchasing ? (
+                                <>
+                                  <LoadingSpinner />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <ShoppingCart className="h-5 w-5 mr-2" />
+                                  {t("buy_now")} ({selectedToken.currentListing.buyNowPrice} {selectedToken.currentListing.currency})
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                          {t("Price")}
+                        </p>
+                        <p className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                          {selectedToken.currentListing.price} <span className="text-2xl">{selectedToken.currentListing.currency}</span>
+                        </p>
+                      </div>
+
+                      {!isOwner && (
+                        <Button
+                          className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+                          onClick={handleBuyNow}
+                          disabled={isPurchasing}
+                        >
+                          {isPurchasing ? (
+                            <>
+                              <LoadingSpinner />
+                              <span className="ml-2">Processing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-5 w-5 mr-2" />
+                              {t("buy_now")}
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {isOwner && !isListed && (
+                <Button
+                  onClick={() => setShowListModal(true)}
+                  className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all"
+                >
+                  <TrendingUp className="h-5 w-5 mr-2" />
+                  {t("list_for_sale")}
+                </Button>
+              )}
+
+              {!isOwner && !isListed && (
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 text-base font-semibold border-2 hover:bg-primary/5 transition-all"
+                  onClick={() => {
+                    if (!user) {
+                      toast.error(t("please_sign_in_to_make_offers"));
+                      setIsAuthModalOpen(true);
+                      return;
+                    }
+                    setShowOfferModal(true);
+                  }}
+                >
+                  <HandHeart className="h-5 w-5 mr-2" />
+                  {t("make_offer")}
+                </Button>
+              )}
+
+              {isOwner && isListed && (
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 text-base font-semibold border-2"
+                >
+                  <Settings className="h-5 w-5 mr-2" />
+                  {t("manage_listing")}
+                </Button>
+              )}
+            </div>
+
+            {/* Activity, Offers, etc. */}
+            <Card className="border-border/50 shadow-lg">
+              <Tabs defaultValue="activity" className="w-full">
+                <CardHeader className="pb-3">
+                  <TabsList className="grid w-full grid-cols-3 h-11">
+                    <TabsTrigger value="activity" className="text-sm font-semibold">{t("Activity")}</TabsTrigger>
+                    <TabsTrigger value="offers" className="text-sm font-semibold">{t("Offers")}</TabsTrigger>
+                    <TabsTrigger value="details" className="text-sm font-semibold">{t("Details")}</TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+
+                <CardContent className="pt-0">
+                  <TabsContent value="activity" className="mt-0">
+                    <div className="text-center py-12">
+                      <Activity className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground">{t("no_activity_yet")}</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="offers" className="mt-0">
+                    <div className="text-center py-12">
+                      <HandHeart className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground">{t("no_offers_yet")}</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="details" className="mt-0">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start py-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">{t("contract_address")}</span>
+                        <span className="font-mono text-sm text-right max-w-[200px] truncate">
+                          {selectedToken.collection?.contractAddress || "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">{t("token_standard")}</span>
+                        <span className="font-semibold">{selectedToken.collection?.standard}</span>
+                      </div>
+                      <div className="flex justify-between py-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">{t("Blockchain")}</span>
+                        <span className="font-semibold">{selectedToken.collection?.chain || "—"}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-sm text-muted-foreground">{t("Metadata")}</span>
+                        <Button variant="ghost" size="sm" className="h-8">
+                          <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                          {t("View")}
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Similar NFTs - Placeholder for future implementation */}
+
+      {/* Modals */}
+      {showListModal && (
+        <ListNFTModal
+          isOpen={showListModal}
+          onClose={() => setShowListModal(false)}
+          token={selectedToken}
+        />
+      )}
+
+      {showOfferModal && (
+        <MakeOfferModal
+          isOpen={showOfferModal}
+          onClose={() => setShowOfferModal(false)}
+          token={selectedToken}
+        />
+      )}
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialView="login"
+      />
+    </div>
+  );
+} 

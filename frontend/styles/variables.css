@@ -1,0 +1,9 @@
+:root {
+  /* Layout dimensions */
+  --header-height: 60px;
+  --footer-height: 40px;
+
+  /* Colors - can be extended as needed */
+  --color-win: #22c55e;
+  --color-loss: #ef4444;
+}

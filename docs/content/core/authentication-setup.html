@@ -1,0 +1,282 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔐</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Authentication Setup</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure Google OAuth, 2FA, reCAPTCHA, and security features</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Google OAuth Setup -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Google OAuth Configuration</h2>
+    
+    <div class="space-y-6">
+        <!-- Google Cloud Console Setup -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">1. Google Cloud Console Setup</h3>
+            <div class="space-y-4">
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <strong>Step-by-Step Guide:</strong>
+                    <ol class="list-decimal list-inside mt-2 space-y-1 text-sm">
+                        <li>Go to <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 dark:text-blue-400 underline">Google Cloud Console</a></li>
+                        <li>Create a new project or select existing one</li>
+                        <li>Navigate to "APIs & Services" → "Credentials"</li>
+                        <li>Click "Create Credentials" → "OAuth 2.0 Client IDs"</li>
+                        <li>Configure OAuth consent screen if prompted</li>
+                        <li>Select "Web application" as application type</li>
+                        <li>Add authorized redirect URIs</li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-2">Authorized Redirect URIs</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">
+http://localhost:3000/api/auth/callback/google
+https://yourdomain.com/api/auth/callback/google
+                    </code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Add both development and production URLs.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">2. Environment Configuration</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">Google OAuth Credentials</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Copy these values from your Google Cloud Console credentials.
+                    </p>
+                </div>
+
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <strong>Security Warning:</strong> Keep your client secret secure and never commit it to version control!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Factor Authentication -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Two-Factor Authentication (2FA)</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">TOTP (Time-based One-Time Password)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium mb-2">2FA Configuration</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_2FA_STATUS="true"</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Enable/disable 2FA feature for users.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2">Supported Apps</h4>
+                <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                    <li>• Google Authenticator</li>
+                    <li>• Microsoft Authenticator</li>
+                    <li>• Authy</li>
+                    <li>• 1Password</li>
+                    <li>• LastPass Authenticator</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mt-4">
+            <strong>Security Best Practice:</strong> Encourage all users to enable 2FA for enhanced account security.
+        </div>
+    </div>
+</div>
+
+<!-- reCAPTCHA Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">reCAPTCHA v2 Setup</h2>
+    
+    <div class="space-y-6">
+        <!-- reCAPTCHA Registration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">1. Register Your Site</h3>
+            <div class="space-y-4">
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <strong>Registration Steps:</strong>
+                    <ol class="list-decimal list-inside mt-2 space-y-1 text-sm">
+                        <li>Visit <a href="https://www.google.com/recaptcha/admin/create" target="_blank" class="text-blue-600 dark:text-blue-400 underline">Google reCAPTCHA Admin Console</a></li>
+                        <li>Enter a label for your site</li>
+                        <li>Select "reCAPTCHA v2" → "I'm not a robot" Checkbox</li>
+                        <li>Add your domains (localhost for development)</li>
+                        <li>Accept terms and submit</li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-2">Domain Configuration</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">localhost          # For development
+yourdomain.com     # Your production domain</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment Variables -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">2. Environment Configuration</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">reCAPTCHA Keys</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your-site-key"
+RECAPTCHA_SECRET_KEY="your-secret-key"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Site key is public, secret key must be kept secure.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-2">Feature Toggle</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_RECAPTCHA_STATUS="true"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Enable/disable reCAPTCHA across the platform.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Points -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">3. Integration Points</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">Forms Protected</h4>
+                    <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                        <li>• User Registration</li>
+                        <li>• Login Form</li>
+                        <li>• Password Reset</li>
+                        <li>• Contact Forms</li>
+                        <li>• Withdrawal Requests</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Verification Process</h4>
+                    <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                        <li>• Client-side validation</li>
+                        <li>• Server-side verification</li>
+                        <li>• Score-based filtering</li>
+                        <li>• Bot detection</li>
+                        <li>• Rate limiting integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Security Configuration</h2>
+    
+    <div class="space-y-6">
+        <!-- JWT Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">JWT Token Settings</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">JWT Secret</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">JWT_SECRET="your-super-secret-jwt-key-here"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Use a strong, random string. Consider using: <code>openssl rand -base64 32</code>
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-2">Token Expiration</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">JWT_EXPIRES_IN="24h"
+JWT_REFRESH_EXPIRES_IN="7d"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Access token expires in 24h, refresh token in 7 days.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rate Limiting -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Rate Limiting</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">General Rate Limits</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">RATE_LIMIT_MAX="100"
+RATE_LIMIT_WINDOW="900000"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        100 requests per 15 minutes (900,000ms).
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Authentication Limits</h4>
+                    <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                        <li>• Login: 5 attempts/15min</li>
+                        <li>• Registration: 3 attempts/hour</li>
+                        <li>• Password reset: 3 attempts/hour</li>
+                        <li>• 2FA: 10 attempts/15min</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Configuration Changes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Apply Authentication Changes</h3>
+        <div class="space-y-4">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                After configuring authentication settings, apply the changes to your production environment:
+            </p>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
+                </div>
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    Authentication changes require running the updator to take effect.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-medium mb-2">Run the updator command</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm updator</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    This will apply your new authentication configuration to the production environment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

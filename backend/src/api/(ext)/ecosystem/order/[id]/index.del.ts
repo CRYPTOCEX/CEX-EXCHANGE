@@ -140,7 +140,8 @@ export default async (data: Handler) => {
       totalAmount
     );
 
-    // Refund the leftover funds
+    // Unlock and refund the leftover funds
+    // Funds are locked in inOrder when order is created, need to unlock them and add back to balance
     await updateWalletBalance(wallet, refundAmount, "add");
 
     // Remove from orderbook and internal queues

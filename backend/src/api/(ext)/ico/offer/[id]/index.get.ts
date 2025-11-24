@@ -139,7 +139,11 @@ export default async (data: { params?: any }): Promise<any> => {
           // Ensure phases are ordered properly (e.g., by a sortOrder or createdAt column)
           order: [["sortOrder", "ASC"]],
         },
-        { model: models.icoTokenDetail, as: "tokenDetail" },
+        {
+          model: models.icoTokenDetail,
+          as: "tokenDetail",
+          include: [{ model: models.icoTokenType, as: "tokenTypeData" }]
+        },
         { model: models.icoTeamMember, as: "teamMembers" },
         { model: models.icoRoadmapItem, as: "roadmapItems" },
       ],

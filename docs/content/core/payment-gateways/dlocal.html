@@ -1,0 +1,185 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">💳</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">dLocal Payment Gateway</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide to integrating dLocal emerging markets payment solutions</p>
+        </div>
+    </div>
+</div>
+
+<!-- dLocal Overview -->
+<div class="mb-12">
+    <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center mb-4">
+            <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-white font-bold text-lg">D</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">dLocal - Emerging Markets Specialist</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Local payment solutions for global businesses</p>
+            </div>
+        </div>
+        
+        <!-- Feature Grid -->
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">🌍 Market Coverage</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• 30+ emerging markets</li>
+                    <li>• Latin America, Africa, Asia</li>
+                    <li>• 600+ local payment methods</li>
+                    <li>• Local acquiring & settlement</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="font-medium text-zinc-900 dark:text-zinc-100 text-sm">💳 Payment Methods</h4>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1">
+                    <li>• Credit & Debit Cards</li>
+                    <li>• Bank Transfers & Cash</li>
+                    <li>• Digital Wallets</li>
+                    <li>• Alternative Payment Methods</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Creation Guide -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔑 How to Create dLocal Account</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Contact dLocal Sales</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Visit <a href="https://dlocal.com/contact" target="_blank" class="text-orange-600 dark:text-orange-400 hover:underline">dLocal Contact</a> to speak with a sales representative.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Complete Onboarding</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Provide business documentation and complete the verification process.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div>
+                    <h4 class="font-medium text-zinc-900 dark:text-zinc-100">Access API Credentials</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mt-1">
+                        Receive your API credentials and access to the dLocal dashboard.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Environment Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Add these environment variables to your .env file:</p>
+        <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">APP_DLOCAL_API_KEY="your_api_key"
+APP_DLOCAL_SECRET_KEY="your_secret_key"
+APP_DLOCAL_SANDBOX="true"</code>
+        <p class="text-zinc-500 dark:text-zinc-400 text-xs mt-2">
+            Note: Set SANDBOX to "false" for production environment.
+        </p>
+    </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔌 API Endpoints</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/dlocal/</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Creates dLocal payment with document verification</p>
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded p-3">
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Request Body:</p>
+                <code class="text-xs block">
+{
+  "amount": 100.00,
+  "currency": "BRL",
+  "country": "BR",
+  "payment_method_id": "CARD",
+  "customer": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "document_id": "12345678901"
+  }
+}
+                </code>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/dlocal/verify</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Verifies dLocal payment status</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs font-medium mr-3">POST</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/dlocal/webhook</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Handles dLocal payment notifications</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded text-xs font-medium mr-3">GET</span>
+                <code class="text-sm font-mono">/api/finance/deposit/fiat/dlocal/status</code>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Checks dLocal payment status</p>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✨ Supported Features</h2>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Key Markets</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Brazil, Mexico, Argentina</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Colombia, Chile, Peru</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Turkey, India, China</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Morocco, Nigeria, Kenya</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Payment Methods</h3>
+            <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Local Credit Cards</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Bank Transfers</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Cash Payments</li>
+                <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Digital Wallets</li>
+            </ul>
+        </div>
+    </div>
+</div>

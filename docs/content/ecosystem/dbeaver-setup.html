@@ -1,0 +1,246 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🛢️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">DBeaver Setup for ScyllaDB</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Connect to your ScyllaDB database using the universal database tool</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide walks you through installing and configuring <strong>DBeaver</strong> (a free, universal database tool) to connect to your ScyllaDB database. Whether you're running ScyllaDB locally, on a VPS, or a container, DBeaver helps you browse tables, run queries, and manage your data more easily.
+        </p>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Requirements</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                A running ScyllaDB instance with accessible CQL interface (default port 9042)
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Install DBeaver -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Install DBeaver</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Download DBeaver</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
+                        Visit the <a href="https://dbeaver.io/download/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">official DBeaver website</a> and download the version for your operating system (Windows, Mac, Linux).
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Install DBeaver</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Follow the standard installation procedure for your OS. Once installed, launch DBeaver.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: Connection Information -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Prepare Your ScyllaDB Connection Information</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Before configuring DBeaver, gather the following details (adjust as needed for your environment):
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">📍 Host/IP Address</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    The IP or domain where ScyllaDB is running<br>
+                    <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">127.0.0.1</code> or <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">scylla.mydomain.com</code>
+                </p>
+            </div>
+            
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">🔌 Port</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Default ScyllaDB CQL interface port<br>
+                    <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">9042</code> (or custom port)
+                </p>
+            </div>
+            
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">👤 Username</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    ScyllaDB user credentials<br>
+                    <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">cassandra</code> (default) or custom
+                </p>
+            </div>
+            
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">🔑 Password</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    User's password<br>
+                    <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">cassandra</code> (default) or custom
+                </p>
+            </div>
+        </div>
+        
+        <div class="mt-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+            <p class="text-orange-800 dark:text-orange-200 text-sm">
+                <strong>Note:</strong> If you changed the <code>api_port</code> in <code>scylla.yaml</code>, ensure you use the correct <strong>CQL port</strong> for DBeaver connections.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Create Connection -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Create a New ScyllaDB Connection in DBeaver</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Open DBeaver > Database > New Connection</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        In the top menu, click <em>Database</em> > <em>New Connection</em>, or use the <em>New Connection</em> button in the main window.
+                    </p>
+                    <img src="storage/article_images/74e21077-cf7b-4d3c-a84c-a854d7743b6c.png" alt="DBeaver new connection menu" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Choose the Cassandra Driver</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        ScyllaDB is Cassandra-compatible at the CQL level. In DBeaver, select <em>Scylla</em>.
+                    </p>
+                    <img src="storage/article_images/f463e3ef-9509-489a-8f1a-22b0e269018c.png" alt="Selecting Scylla driver in DBeaver" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Connection Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">📍 Host</p>
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400">Your ScyllaDB host/IP</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">🔌 Port</p>
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400">Default is 9042 (unless changed)</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">👤 Username</p>
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400">ScyllaDB user (e.g., cassandra)</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">🔑 Password</p>
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400">The user's password</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">🗂️ Keyspace (Optional)</p>
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400">Specific keyspace to connect to, or leave blank to see all</p>
+                        </div>
+                    </div>
+                    <img src="storage/article_images/5a9ffd04-6a08-4dae-8b97-62f7a0e24033.png" alt="DBeaver connection settings for ScyllaDB" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Driver Properties & Test Connection</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
+                        If DBeaver prompts to download missing files, allow it to download the Cassandra driver libraries.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click <strong>Test Connection</strong> to verify. If successful, DBeaver displays a success message. Otherwise, check your ScyllaDB logs or firewall settings and try again.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 4: Explore Schema -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Explore Your ScyllaDB Schema</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            After a successful connection, you'll see a new database entry in DBeaver's <strong>Database Navigator</strong> pane. Expand the entry to view your <strong>Keyspaces</strong>, <strong>Tables</strong>, and <strong>Columns</strong>.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">🗂️ Keyspaces</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Each keyspace is like a schema in other SQL systems.
+                </p>
+            </div>
+            
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">📊 Tables</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Within each keyspace, you'll find your data tables. Right-click a table > <em>View Data</em> to see rows.
+                </p>
+            </div>
+            
+            <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+                <h4 class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">⚡ CQL Queries</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Double-click your connected database or keyspace, then click <em>SQL Editor</em> to run queries like <code>SELECT * FROM keyspace.table;</code>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Final Thoughts -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Final Thoughts</h2>
+    
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium text-green-900 dark:text-green-100">Success!</span>
+        </div>
+        <p class="text-green-800 dark:text-green-200">
+            <em>By configuring a </em><strong><em>Scylla </em></strong><em>connection in DBeaver, you can seamlessly browse, query, and manage your ScyllaDB keyspaces and tables. This environment simplifies day-to-day database operations, allowing you to execute CQL queries, manipulate data, and explore schemas from a friendly UI.</em>
+        </p>
+    </div>
+</div> 

@@ -1,0 +1,170 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔵</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Base Network Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating Base networks into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide shows you how to integrate Base networks (Base Mainnet and Goerli testnet) into your Bicrypto Ecosystem. Base is an EVM-compatible network, so the process is similar to Ethereum, BSC, and Polygon.
+        </p>
+        
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-indigo-900 dark:text-indigo-100">Base Network Features</span>
+            </div>
+            <p class="text-indigo-800 dark:text-indigo-200 text-sm">
+                Base Mainnet and Goerli testnet are supported. ETH on Base is used for transaction fees. Gas fees are generally lower than Ethereum mainnet.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Configure Environment Variables</h2>
+    
+    <!-- Include shared component -->
+    <div id="env-file-editing"></div>
+    
+    <!-- Base-specific variables -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Base Environment Variables</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Add the following Base-specific variables to your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file:
+        </p>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+            <pre><code class="language-bash text-sm"># Base Networks (mainnet, goerli) - using https://blastapi.io/
+BASE_EXPLORER_API_KEY="YOUR_BASE_EXPLORER_API_KEY"  # e.g., FADCSQ8K1ZDD384EE4...
+BASE_NETWORK="goerli"
+BASE_MAINNET_RPC="https://YOUR_MAINNET_RPC_PLACEHOLDER"
+BASE_MAINNET_RPC_WSS=""
+BASE_GOERLI_RPC="https://YOUR_GOERLI_RPC_PLACEHOLDER"
+BASE_GOERLI_RPC_WSS=""</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>• <strong>BASE_EXPLORER_API_KEY:</strong> Your API key for <a href="https://basescan.org/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Base block explorer</a></p>
+            <p>• <strong>BASE_NETWORK:</strong> Active network (mainnet or goerli)</p>
+            <p>• <strong>RPC/WSS URLs:</strong> HTTP and WebSocket endpoints for each network</p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: RPC Providers -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Acquire RPC Endpoints</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-purple-600 dark:text-purple-400 text-sm font-bold">BA</span>
+            </div>
+            <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">BlastAPI for Base Networks</h3>
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+            Sign up at <a href="https://blastapi.io/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">blastapi.io</a> and create a project for Base Mainnet or Goerli. They offer generous monthly call limits for Base networks.
+        </p>
+        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+            <code class="text-xs text-purple-800 dark:text-purple-200">Insert the HTTP (and possibly WSS) URLs into your .env</code>
+        </div>
+        
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <img src="https://support.mashdiv.com/storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="BlastAPI dashboard for Base" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <img src="https://support.mashdiv.com/storage/article_images/96af5364-2b3c-4abe-b55c-b629f2de026c.png" alt="Base RPC project creation" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Apply Updates -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Apply Environment Updates</h2>
+    <div id="apply-env-updates"></div>
+</div>
+
+<!-- Step 4: Master Wallet -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Master Wallet</h2>
+    <div id="master-wallet-setup"></div>
+</div>
+
+<!-- Step 5: Token Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Enable Tokens and Configure Fees</h2>
+    <div id="token-management"></div>
+</div>
+
+<!-- Base-Specific Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Base-Specific Considerations</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Lower Gas Fees</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Base gas fees are generally lower than Ethereum mainnet, but can still vary. Adjust your minimum fees accordingly and monitor network changes.
+            </p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Testnet Development</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                For testing, set <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">BASE_NETWORK="goerli"</code> and acquire test ETH from Base testnet faucets.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security & Best Practices</h2>
+    <div id="security-best-practices"></div>
+</div>
+
+<script>
+// Load shared components
+fetch('content/shared-components/env-file-editing.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('env-file-editing').innerHTML = html);
+
+fetch('content/shared-components/apply-env-updates.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('apply-env-updates').innerHTML = html);
+
+fetch('content/shared-components/master-wallet-setup.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('master-wallet-setup').innerHTML = html);
+
+fetch('content/shared-components/token-management.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('token-management').innerHTML = html);
+
+fetch('content/shared-components/security-best-practices.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('security-best-practices').innerHTML = html);
+</script> 

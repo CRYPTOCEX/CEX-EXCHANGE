@@ -1,0 +1,196 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔴</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Tron Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating Tron networks into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide shows you how to integrate Tron networks (mainnet and testnets like Shasta and Nile) into your Bicrypto Ecosystem. Tron differs from EVM and UTXO chains but follows a similar configuration pattern in Bicrypto.
+        </p>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-red-900 dark:text-red-100">Tron Network Features</span>
+            </div>
+            <p class="text-red-800 dark:text-red-200 text-sm">
+                Tron mainnet, Shasta, and Nile testnets are supported. TRX is used for transaction fees. Support for TRC-20 tokens is available.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Configure Environment Variables</h2>
+    
+    <!-- Include shared component -->
+    <div id="env-file-editing"></div>
+    
+    <!-- Tron-specific variables -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Tron Environment Variables</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Add the following Tron-specific variables to your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file:
+        </p>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+            <pre><code class="language-bash text-sm"># Tron Networks (mainnet, shasta, nile)
+TRON_API_KEY="YOUR_TRON_API_KEY"  # e.g., 7afcd010-b06b-449d-b882-902bc55f7e8e
+TRON_NETWORK="mainnet"
+TRON_MAINNET_RPC="https://YOUR_MAINNET_RPC_PLACEHOLDER"
+TRON_SHASTA_RPC="https://YOUR_SHASTA_RPC_PLACEHOLDER"
+TRON_NILE_RPC="https://YOUR_NILE_RPC_PLACEHOLDER"</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>• <strong>TRON_API_KEY:</strong> Your TronGrid (or similar) API key</p>
+            <p>• <strong>TRON_NETWORK:</strong> Active network (mainnet, shasta, or nile)</p>
+            <p>• <strong>RPC URLs:</strong> Corresponding endpoints for each Tron network</p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: RPC Providers -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Acquire TronGrid Endpoints</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-red-600 dark:text-red-400 text-sm font-bold">TG</span>
+            </div>
+            <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">TronGrid API</h3>
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+            Create an account at <a href="https://www.trongrid.io/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">TronGrid</a> or use a self-hosted node. TronGrid provides API keys for authenticated requests.
+        </p>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+            <h4 class="font-medium text-red-900 dark:text-red-100 mb-2">Common Endpoints:</h4>
+            <div class="space-y-1 text-sm text-red-800 dark:text-red-200">
+                <p>• <strong>Mainnet:</strong> <code class="bg-red-100 dark:bg-red-800 px-2 py-1 rounded text-xs">https://api.trongrid.io</code></p>
+                <p>• <strong>Shasta:</strong> <code class="bg-red-100 dark:bg-red-800 px-2 py-1 rounded text-xs">https://api.shasta.trongrid.io</code></p>
+                <p>• <strong>Nile:</strong> <code class="bg-red-100 dark:bg-red-800 px-2 py-1 rounded text-xs">https://api.nileex.io</code></p>
+            </div>
+        </div>
+        
+        <img src="https://support.mashdiv.com/storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="TronGrid dashboard" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+</div>
+
+<!-- Step 3: Apply Updates -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Apply Environment Updates</h2>
+    <div id="apply-env-updates"></div>
+</div>
+
+<!-- Step 4: Master Wallet -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Master Wallet</h2>
+    <div id="master-wallet-setup"></div>
+    
+    <div class="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium text-red-900 dark:text-red-100">Tron Master Wallet</span>
+        </div>
+        <p class="text-red-800 dark:text-red-200 text-sm">
+            Tron uses <strong>TRX</strong> as its native coin for transaction fees. The Master Wallet will manage TRX fees and any TRC-20 tokens.
+        </p>
+    </div>
+</div>
+
+<!-- Step 5: Token Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Enable Tokens and Configure Fees</h2>
+    <div id="token-management"></div>
+    
+    <div class="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <span class="font-medium text-red-900 dark:text-red-100">Tron Token Types</span>
+        </div>
+        <p class="text-red-800 dark:text-red-200 text-sm">
+            Enable <strong>TRX</strong> (native) and <strong>TRC-20 tokens</strong> (e.g., USDT on Tron) that you plan to support.
+        </p>
+    </div>
+</div>
+
+<!-- Tron-Specific Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Tron-Specific Considerations</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Low Transaction Fees</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Tron fees are typically low, but peak network usage can increase resource consumption. Adjust minimum fees accordingly.
+            </p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Testnet Development</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                For testing, set <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">TRON_NETWORK="shasta"</code> or <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">"nile"</code>. Acquire test TRX from faucets.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security & Best Practices</h2>
+    <div id="security-best-practices"></div>
+</div>
+
+<script>
+// Load shared components
+fetch('content/shared-components/env-file-editing.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('env-file-editing').innerHTML = html);
+
+fetch('content/shared-components/apply-env-updates.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('apply-env-updates').innerHTML = html);
+
+fetch('content/shared-components/master-wallet-setup.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('master-wallet-setup').innerHTML = html);
+
+fetch('content/shared-components/token-management.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('token-management').innerHTML = html);
+
+fetch('content/shared-components/security-best-practices.html')
+    .then(response => response.text())
+    .then(html => document.getElementById('security-best-practices').innerHTML = html);
+</script> 

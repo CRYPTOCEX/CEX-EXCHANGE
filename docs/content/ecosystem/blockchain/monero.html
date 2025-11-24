@@ -1,0 +1,690 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔐</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Monero (XMR) Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating Monero with wallet RPC into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide covers the Monero (XMR) integration in Bicrypto Ecosystem. Monero is a privacy-focused cryptocurrency that uses ring signatures, stealth addresses, and RingCT for anonymous transactions. The integration uses the wallet RPC service to manage wallets, monitor deposits, and handle withdrawals.
+        </p>
+        
+        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-orange-900 dark:text-orange-100">Key Features</span>
+            </div>
+            <ul class="text-orange-800 dark:text-orange-200 text-sm space-y-1">
+                <li>• Privacy-focused blockchain with untraceable transactions</li>
+                <li>• Wallet RPC integration for managing multiple wallets</li>
+                <li>• Automatic deposit monitoring with confirmations</li>
+                <li>• Queue-based withdrawal processing</li>
+                <li>• Redis caching for transaction processing</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- System Requirements -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ System Requirements</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Minimum Requirements</h3>
+            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                <li>• <strong>OS:</strong> Ubuntu 20.04 LTS or higher</li>
+                <li>• <strong>CPU:</strong> 2+ cores (x86-64)</li>
+                <li>• <strong>RAM:</strong> 4GB minimum</li>
+                <li>• <strong>Storage:</strong> 150GB+ SSD (blockchain size)</li>
+                <li>• <strong>Network:</strong> Stable internet connection</li>
+                <li>• <strong>Ports:</strong> 18081 (Daemon RPC), 18083 (Wallet RPC)</li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Recommended Requirements</h3>
+            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                <li>• <strong>OS:</strong> Ubuntu 22.04 LTS</li>
+                <li>• <strong>CPU:</strong> 4+ cores (x86-64)</li>
+                <li>• <strong>RAM:</strong> 8GB or more</li>
+                <li>• <strong>Storage:</strong> 200GB+ NVMe SSD</li>
+                <li>• <strong>Network:</strong> High-speed broadband</li>
+                <li>• <strong>Firewall:</strong> Configure for RPC access</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Install Monero Daemon and Wallet RPC -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Install Monero Daemon and Wallet RPC</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Using Official Binaries (Recommended)</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Install required dependencies
+sudo apt install -y wget bzip2
+
+# Create directory for Monero
+mkdir -p ~/monero && cd ~/monero
+
+# Download latest Monero release
+MONERO_VERSION="0.18.3.1"
+wget https://downloads.getmonero.org/cli/monero-linux-x64-v$MONERO_VERSION.tar.bz2
+
+# Extract the archive
+tar -xvf monero-linux-x64-v$MONERO_VERSION.tar.bz2
+
+# Move to system directory
+sudo mv monero-x86_64-linux-gnu-v$MONERO_VERSION /opt/monero
+
+# Create symbolic links for easy access
+sudo ln -sf /opt/monero/monerod /usr/local/bin/monerod
+sudo ln -sf /opt/monero/monero-wallet-rpc /usr/local/bin/monero-wallet-rpc
+sudo ln -sf /opt/monero/monero-wallet-cli /usr/local/bin/monero-wallet-cli
+
+# Verify installation
+monerod --version
+monero-wallet-rpc --version</code></pre>
+        </div>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Version Note</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                Always check <a href="https://www.getmonero.org/downloads/" target="_blank" class="underline">getmonero.org</a> for the latest stable version.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: Configure Monero Daemon -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Configure Monero Daemon</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Create Configuration File</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Create Monero data directory
+mkdir -p ~/.bitmonero
+
+# Create configuration file
+cat > ~/.bitmonero/bitmonero.conf << EOF
+# Monero Daemon Configuration
+
+# Network settings
+data-dir=/home/$USER/.bitmonero
+log-file=/home/$USER/.bitmonero/monero.log
+log-level=0
+
+# P2P network settings
+p2p-bind-ip=0.0.0.0
+p2p-bind-port=18080
+
+# RPC settings for daemon
+rpc-bind-ip=127.0.0.1
+rpc-bind-port=18081
+restricted-rpc=false
+confirm-external-bind=true
+
+# RPC authentication (CHANGE THESE!)
+rpc-login=monero_rpc:your_secure_password_here
+
+# Performance settings
+db-sync-mode=safe
+max-concurrency=4
+block-sync-size=10
+
+# Security settings
+no-igd=true
+
+# Use mainnet (default)
+# For testnet, uncomment: testnet=true
+# For stagenet, uncomment: stagenet=true
+EOF
+
+# Set proper permissions
+chmod 600 ~/.bitmonero/bitmonero.conf</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p><strong>Important configuration options:</strong></p>
+            <ul class="space-y-1 ml-4">
+                <li>• <code>rpc-login</code>: Set secure username and password for RPC access</li>
+                <li>• <code>rpc-bind-ip</code>: Use 127.0.0.1 for local access only</li>
+                <li>• <code>db-sync-mode</code>: Use "safe" for data integrity</li>
+                <li>• <code>restricted-rpc</code>: Set to false for wallet operations</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Step 3: Create Systemd Services -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Create Systemd Services</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Monero Daemon Service</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Create systemd service file for daemon
+sudo tee /etc/systemd/system/monerod.service > /dev/null << EOF
+[Unit]
+Description=Monero Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=$USER
+Group=$USER
+ExecStart=/usr/local/bin/monerod --config-file=/home/$USER/.bitmonero/bitmonero.conf --non-interactive
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start daemon
+sudo systemctl daemon-reload
+sudo systemctl enable monerod.service
+sudo systemctl start monerod.service
+
+# Check daemon status
+sudo systemctl status monerod.service</code></pre>
+        </div>
+
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100 mt-6">Wallet RPC Service</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Create wallet directory
+mkdir -p ~/monero-wallets
+
+# Create wallet RPC service file
+sudo tee /etc/systemd/system/monero-wallet-rpc.service > /dev/null << EOF
+[Unit]
+Description=Monero Wallet RPC
+After=network.target monerod.service
+Requires=monerod.service
+
+[Service]
+Type=simple
+User=$USER
+Group=$USER
+ExecStart=/usr/local/bin/monero-wallet-rpc \
+    --rpc-bind-ip 127.0.0.1 \
+    --rpc-bind-port 18083 \
+    --daemon-address 127.0.0.1:18081 \
+    --rpc-login wallet_rpc:your_wallet_rpc_password \
+    --wallet-dir /home/$USER/monero-wallets \
+    --log-level 2 \
+    --confirm-external-bind \
+    --trusted-daemon
+
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start wallet RPC
+sudo systemctl daemon-reload
+sudo systemctl enable monero-wallet-rpc.service
+sudo systemctl start monero-wallet-rpc.service
+
+# Check wallet RPC status
+sudo systemctl status monero-wallet-rpc.service</code></pre>
+        </div>
+        
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="font-medium text-yellow-900 dark:text-yellow-100">Initial Sync Time</span>
+            </div>
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                The initial blockchain sync can take 24-48 hours. Monitor progress with: <code>sudo journalctl -u monerod.service -f</code>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 4: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Bicrypto Environment Variables</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Add to .env File</h3>
+
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Monero RPC Configuration
+XMR_RPC_USER="wallet_rpc"
+XMR_RPC_PASSWORD="your_wallet_rpc_password"
+
+# Optional: Custom RPC URLs (if using non-standard ports)
+# These override the default ports if set
+XMR_DAEMON_RPC_URL=""  # Example: "http://127.0.0.1:18081/json_rpc"
+XMR_WALLET_RPC_URL=""  # Example: "http://127.0.0.1:28083/json_rpc"
+
+# Optional: Wallet password if you want to encrypt wallets
+# XMR_WALLET_PASSWORD="your_wallet_encryption_password"</code></pre>
+        </div>
+
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p><strong>Environment variable descriptions:</strong></p>
+            <ul class="space-y-1 ml-4">
+                <li>• <code>XMR_RPC_USER</code>: Username for wallet RPC authentication</li>
+                <li>• <code>XMR_RPC_PASSWORD</code>: Password for wallet RPC authentication</li>
+                <li>• <code>XMR_DAEMON_RPC_URL</code>: Full URL for daemon RPC (optional, uses default port 18081 if not set)</li>
+                <li>• <code>XMR_WALLET_RPC_URL</code>: Full URL for wallet RPC (optional, uses default port 18083 if not set)</li>
+                <li>• <code>XMR_WALLET_PASSWORD</code>: Optional password to encrypt wallet files</li>
+            </ul>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Custom Port Configuration</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                If your Monero RPC services are running on non-standard ports (e.g., wallet RPC on port 28083 instead of 18083),
+                use the <code>XMR_DAEMON_RPC_URL</code> and <code>XMR_WALLET_RPC_URL</code> variables to specify the full URLs including the custom ports.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 5: How It Works in Bicrypto -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ How Monero Works in Bicrypto Ecosystem</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Integration Architecture</h3>
+        
+        <div class="space-y-4">
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔄 Wallet Management</h4>
+                <ul class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Each user gets a unique Monero wallet file created via RPC</li>
+                    <li>• Wallets are stored in <code>~/monero-wallets/</code> directory</li>
+                    <li>• Wallet names use the user's wallet ID for identification</li>
+                    <li>• Master wallet is created as "master_wallet" for ecosystem operations</li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">📥 Deposit Monitoring</h4>
+                <ul class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• MoneroService monitors incoming transactions for each wallet</li>
+                    <li>• Requires minimum 6 confirmations before crediting</li>
+                    <li>• Uses queue system to prevent concurrent wallet access</li>
+                    <li>• Transactions are cached in Redis to prevent duplicate processing</li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">📤 Withdrawal Processing</h4>
+                <ul class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Withdrawals are queued and processed sequentially per wallet</li>
+                    <li>• Checks for sufficient unlocked balance before sending</li>
+                    <li>• Automatically handles locked funds by requeuing transactions</li>
+                    <li>• Updates transaction status in database upon completion</li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🔧 Service Features</h4>
+                <ul class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Automatic chain synchronization checking</li>
+                    <li>• Queue-based operations to prevent race conditions</li>
+                    <li>• Retry mechanism with maximum 60 attempts</li>
+                    <li>• Transaction processing expiry after 30 minutes</li>
+                    <li>• Fee estimation based on network conditions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 6: Testing RPC Connections -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Testing RPC Connections</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Test Daemon RPC</h3>
+
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Check daemon sync status (default port)
+curl -X POST http://127.0.0.1:18081/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' \
+    -H 'Content-Type: application/json' \
+    -u monero_rpc:your_secure_password_here
+
+# Get current block height
+curl -X POST http://127.0.0.1:18081/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"get_block_count"}' \
+    -H 'Content-Type: application/json' \
+    -u monero_rpc:your_secure_password_here</code></pre>
+        </div>
+
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100 mt-6">Test Wallet RPC</h3>
+
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Create a test wallet (default port 18083)
+curl -X POST http://127.0.0.1:18083/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"test_wallet","password":"","language":"English"}}' \
+    -H 'Content-Type: application/json' \
+    -u wallet_rpc:your_wallet_rpc_password
+
+# If using custom port (e.g., 28083)
+curl -X POST http://127.0.0.1:28083/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"create_wallet","params":{"filename":"test_wallet","password":"","language":"English"}}' \
+    -H 'Content-Type: application/json' \
+    -u wallet_rpc:your_wallet_rpc_password
+
+# Open the wallet
+curl -X POST http://127.0.0.1:18083/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"open_wallet","params":{"filename":"test_wallet","password":""}}' \
+    -H 'Content-Type: application/json' \
+    -u wallet_rpc:your_wallet_rpc_password
+
+# Get wallet address
+curl -X POST http://127.0.0.1:18083/json_rpc \
+    -d '{"jsonrpc":"2.0","id":"0","method":"get_address","params":{"account_index":0}}' \
+    -H 'Content-Type: application/json' \
+    -u wallet_rpc:your_wallet_rpc_password</code></pre>
+        </div>
+
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="font-medium text-yellow-900 dark:text-yellow-100">Port Mismatch Issues</span>
+            </div>
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                If you get "fetch failed" errors when the system tries to connect to the wallet RPC, ensure your <code>XMR_WALLET_RPC_URL</code>
+                environment variable matches your actual wallet RPC port. The system will log the configured URLs on startup for verification.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 7: Admin Panel Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">7️⃣ Configure in Bicrypto Admin Panel</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Add Monero to Ecosystem</h3>
+        
+        <ol class="space-y-4">
+            <li>
+                <strong>1. Navigate to Master Wallets:</strong>
+                <p class="text-zinc-600 dark:text-zinc-400 mt-1">Go to <code>Admin → Extensions → Ecosystem → Master Wallet</code></p>
+                <ul class="mt-2 ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Click "Create Master Wallet"</li>
+                    <li>• Select Chain: <strong>XMR</strong></li>
+                    <li>• Currency will auto-populate as XMR</li>
+                    <li>• The system will create a master wallet automatically</li>
+                </ul>
+            </li>
+            
+            <li>
+                <strong>2. Configure XMR Token:</strong>
+                <p class="text-zinc-600 dark:text-zinc-400 mt-1">Go to <code>Admin → Extensions → Ecosystem → Tokens</code></p>
+                <ul class="mt-2 ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Create new token for XMR if not exists</li>
+                    <li>• Set decimals to 12 (Monero uses 12 decimal places)</li>
+                    <li>• Configure withdrawal fees and limits</li>
+                    <li>• Enable the token for trading</li>
+                </ul>
+            </li>
+            
+            <li>
+                <strong>3. Create XMR Markets:</strong>
+                <p class="text-zinc-600 dark:text-zinc-400 mt-1">Go to <code>Admin → Extensions → Ecosystem → Markets</code></p>
+                <ul class="mt-2 ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <li>• Create trading pairs like XMR/USDT</li>
+                    <li>• Set appropriate fees and limits</li>
+                    <li>• Enable the markets for trading</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<!-- Monitoring and Maintenance -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">8️⃣ Monitoring and Maintenance</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Monitoring Commands</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Monitor daemon logs
+sudo journalctl -u monerod.service -f
+
+# Monitor wallet RPC logs
+sudo journalctl -u monero-wallet-rpc.service -f
+
+# Check blockchain sync progress
+monerod status
+
+# Check disk usage
+df -h ~/.bitmonero
+
+# Monitor system resources
+htop
+
+# Check service status
+systemctl status monerod
+systemctl status monero-wallet-rpc
+
+# Restart services if needed
+sudo systemctl restart monerod
+sudo systemctl restart monero-wallet-rpc</code></pre>
+        </div>
+        
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100 mt-6">Backup Procedures</h3>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+            <pre><code class="language-bash text-sm"># Backup wallet files
+cp -r ~/monero-wallets ~/monero-wallets-backup-$(date +%Y%m%d)
+
+# Create automated backup script
+cat > ~/backup-monero.sh << 'EOF'
+#!/bin/bash
+BACKUP_DIR="/backup/monero/$(date +%Y%m%d-%H%M%S)"
+mkdir -p $BACKUP_DIR
+cp -r ~/monero-wallets $BACKUP_DIR/
+cp ~/.bitmonero/bitmonero.conf $BACKUP_DIR/
+echo "Backup completed to $BACKUP_DIR"
+EOF
+
+chmod +x ~/backup-monero.sh
+
+# Add to crontab for daily backups
+(crontab -l 2>/dev/null; echo "0 2 * * * /home/$USER/backup-monero.sh") | crontab -</code></pre>
+        </div>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="font-medium text-red-900 dark:text-red-100">Critical: Wallet Backups</span>
+            </div>
+            <p class="text-red-800 dark:text-red-200 text-sm">
+                Always backup wallet files before system maintenance. Each wallet file contains the private keys for that specific wallet. Lost wallet files cannot be recovered without backups!
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Troubleshooting</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Common Issues</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <p class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Chain not synchronized:</p>
+                    <ul class="ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>• Check if daemon is running: <code>systemctl status monerod</code></li>
+                        <li>• Wait for full sync (can take 24-48 hours initially)</li>
+                        <li>• Check sync status: <code>monerod status</code></li>
+                        <li>• Ensure sufficient disk space (150GB+)</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <p class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Wallet RPC connection refused:</p>
+                    <ul class="ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>• Ensure wallet RPC is running: <code>systemctl status monero-wallet-rpc</code></li>
+                        <li>• Check RPC credentials in .env file</li>
+                        <li>• Verify wallet-dir path exists and has correct permissions</li>
+                        <li>• Check firewall settings if accessing remotely</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <p class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Failed to open wallet:</p>
+                    <ul class="ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>• Check if wallet file exists in wallet directory</li>
+                        <li>• Verify wallet password is correct</li>
+                        <li>• Ensure only one process is accessing the wallet</li>
+                        <li>• Check wallet RPC logs for detailed errors</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <p class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">High memory usage:</p>
+                    <ul class="ml-4 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>• Reduce <code>max-concurrency</code> in daemon config</li>
+                        <li>• Use <code>db-sync-mode=safe:sync</code> instead of fast</li>
+                        <li>• Add swap space if RAM is limited</li>
+                        <li>• Consider pruning blockchain with <code>--prune-blockchain</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <ul class="space-y-3 text-zinc-600 dark:text-zinc-400">
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Use strong RPC passwords:</strong> Generate unique passwords for daemon and wallet RPC access</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Restrict RPC access:</strong> Bind to localhost (127.0.0.1) unless remote access is required</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Regular backups:</strong> Backup wallet files daily to secure locations</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Monitor logs:</strong> Regularly check daemon and wallet logs for suspicious activity</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Keep updated:</strong> Regularly update Monero software to latest stable version</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Firewall configuration:</strong> Only open required ports and restrict access by IP if possible</span>
+            </li>
+            <li class="flex items-start">
+                <span class="text-green-500 mr-2">✓</span>
+                <span><strong>Wallet encryption:</strong> Consider using wallet passwords for additional security</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Additional Resources -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📚 Additional Resources</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Official Documentation</h3>
+            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                <li>• <a href="https://www.getmonero.org/resources/developer-guides/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Monero Developer Guides</a></li>
+                <li>• <a href="https://www.getmonero.org/resources/developer-guides/wallet-rpc.html" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Wallet RPC Documentation</a></li>
+                <li>• <a href="https://www.getmonero.org/resources/developer-guides/daemon-rpc.html" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Daemon RPC Documentation</a></li>
+            </ul>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Implementation Files</h3>
+            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                <li>• <code>backend/src/blockchains/xmr.ts</code> - Monero service implementation</li>
+                <li>• <code>backend/src/api/(ext)/ecosystem/utils/wallet.ts</code> - Wallet integration</li>
+                <li>• <code>backend/src/api/(ext)/ecosystem/utils/withdrawalQueue.ts</code> - Withdrawal handling</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="mb-12">
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-green-900 dark:text-green-100">Setup Complete!</h3>
+        </div>
+        <p class="text-green-800 dark:text-green-200 mb-4">
+            You've successfully set up Monero integration for your Bicrypto Ecosystem. The system now supports:
+        </p>
+        <ul class="space-y-1 text-green-700 dark:text-green-300 ml-6">
+            <li>✓ Private cryptocurrency transactions with full anonymity</li>
+            <li>✓ Automatic wallet creation for users</li>
+            <li>✓ Deposit monitoring with confirmation tracking</li>
+            <li>✓ Queue-based withdrawal processing</li>
+            <li>✓ Integration with Bicrypto's ecosystem trading</li>
+        </ul>
+        <p class="text-green-800 dark:text-green-200 mt-4">
+            Remember to monitor system resources, maintain regular backups, and keep the Monero software updated for optimal security and performance.
+        </p>
+    </div>
+</div>

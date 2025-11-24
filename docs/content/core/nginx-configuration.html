@@ -1,0 +1,435 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🌐</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Nginx Configuration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure Nginx reverse proxy for V5 Exchange Provider</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            <strong>After completing the V5 Exchange Provider setup steps above, you'll need to configure Nginx if your server uses it instead of Apache.</strong> This configuration provides reverse proxying, WebSocket support, compression, and various connection optimizations.
+        </p>
+        
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-indigo-900 dark:text-indigo-100">When to Use This Guide</span>
+            </div>
+            <p class="text-indigo-800 dark:text-indigo-200 text-sm">
+                Use this configuration if you're running Nginx instead of Apache. This guide assumes you've completed the basic V5 setup process.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Virtualmin Method -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Method 1: Virtualmin Configuration</h2>
+    
+    <div class="space-y-6">
+        <!-- Step 1: Access Virtualmin -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Access Virtualmin Nginx Settings</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Click the <strong>Virtualmin</strong> tab in your hosting control panel.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Select Domain -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Select Virtual Server</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Select the virtual server (domain) you want to configure.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Navigate to Services -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Navigate to Nginx Configuration</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Navigate to <strong>Services</strong> and then open <strong>Configure Nginx Website</strong> in a new tab.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Edit Directives -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Edit Nginx Directives</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Click <strong>Edit Nginx Directives</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Add Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Add Proxy Configuration</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        In the editor, add the proxy and configuration lines after the existing <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">location</code> blocks or wherever appropriate.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual SSH Method -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💻 Method 2: Manual SSH Configuration</h2>
+    
+    <div class="space-y-6">
+        <!-- Locate Config File -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Locate Nginx Configuration File</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        If you prefer manual editing, SSH into your VPS and open the Nginx configuration file. The location varies based on your OS:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                            <h4 class="font-medium text-green-900 dark:text-green-100 mb-2">🐧 Debian/Ubuntu</h4>
+                            <code class="block bg-green-100 dark:bg-green-800 p-2 rounded text-sm overflow-x-auto">sudo nano /etc/nginx/sites-available/example.com.conf</code>
+                        </div>
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                            <h4 class="font-medium text-red-900 dark:text-red-100 mb-2">🎯 CentOS/RHEL</h4>
+                            <code class="block bg-red-100 dark:bg-red-800 p-2 rounded text-sm overflow-x-auto">sudo nano /etc/nginx/conf.d/example.com.conf</code>
+                        </div>
+                    </div>
+                    
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Replace <code class="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">example.com</code> with your actual domain name.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Server Block -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Edit the Server Block</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Locate the <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">server { ... }</code> block for your domain. This block typically handles both HTTP and HTTPS traffic.
+                    </p>
+                    
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Add the following lines inside the <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">server</code> block after your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">root</code> and <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">index</code> directives (adjusting paths and domain as needed):
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nginx Configuration Code -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚙️ Nginx Configuration Code</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">📝</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Complete Nginx Configuration</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Add this configuration inside your server block for V5 Exchange Provider:
+                </p>
+                
+                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4 overflow-x-auto">
+                    <pre class="whitespace-pre-wrap"><code class="language-nginx text-sm"># Essential proxy headers
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port $server_port;
+proxy_http_version 1.1;
+
+# Buffer settings for large responses with [id] data
+proxy_buffer_size 8k;
+proxy_buffers 16 8k;
+proxy_busy_buffers_size 16k;
+
+# Enhanced timeouts for [id] parameter queries
+keepalive_timeout 30s;
+keepalive_requests 1000;
+proxy_connect_timeout 300s;
+proxy_read_timeout 300s;
+proxy_send_timeout 300s;
+
+# Header size limits for i18n locales (prevents 502 errors)
+large_client_header_buffers 8 64k;
+client_header_buffer_size 64k;
+
+# Gzip compression (like DEFLATE)
+gzip on;
+gzip_types text/plain text/html text/xml text/css 
+           application/xml application/xhtml+xml 
+           application/rss+xml application/javascript 
+           application/x-javascript application/json;
+
+# Proxy to backend for /api/docs
+location /api/docs {
+    proxy_pass http://localhost:4000/api/docs;
+}
+
+# Proxy to backend for /api with WebSocket upgrade
+location /api {
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_pass http://localhost:4000/api;
+}
+
+# Frontend proxy
+location / {
+    proxy_pass http://localhost:3000/;
+}</code></pre>
+                </div>
+                
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span class="font-medium text-amber-900 dark:text-amber-100">Configuration Notes</span>
+                    </div>
+                    <ul class="text-amber-800 dark:text-amber-200 text-sm space-y-1">
+                        <li>• You can adjust timeouts and maximum concurrent connections based on your server's performance and expected load</li>
+                        <li>• If you need SSL, ensure you have <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs break-all">listen 443 ssl http2;</code> and <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs break-all">ssl_certificate</code> directives properly set</li>
+                        <li>• Make sure your application is running on the specified backend ports (e.g., 3000 for frontend, 4000 for API) before applying these changes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Validation and Restart -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✅ Validate and Restart Nginx</h2>
+    
+    <div class="space-y-6">
+        <!-- Validate Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Test Configuration</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        After editing, save the changes and exit the text editor. Run the following command to validate your Nginx configuration:
+                    </p>
+                    
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-4 overflow-x-auto">sudo nginx -t</code>
+                    
+                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium text-green-900 dark:text-green-100">Expected Output</span>
+                        </div>
+                        <p class="text-green-800 dark:text-green-200 text-sm">
+                            If successful, you should see: <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs break-all">nginx: configuration file /etc/nginx/nginx.conf test is successful</code>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restart Nginx -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Restart Nginx Service</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Once the configuration test passes, restart Nginx to apply the changes:
+                    </p>
+                    
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-4 overflow-x-auto">sudo systemctl restart nginx</code>
+                    
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        You can also use <code class="bg-zinc-100 dark:bg-zinc-800 px-1 rounded text-xs">sudo service nginx restart</code> on older systems.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- WHM Alternative -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔧 Method 3: WHM Nginx Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 bg-cyan-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">WHM</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">WHM Nginx Config Location</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    For WHM (Web Host Manager) users, follow these steps:
+                </p>
+                
+                <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2 mb-4">
+                    <li>Go to <strong>Service Configuration</strong></li>
+                    <li>Open <strong>Nginx Configuration</strong></li>
+                    <li>Select the appropriate Include Editor</li>
+                    <li>Add the Nginx config lines as shown above</li>
+                    <li>Save and reload Nginx</li>
+                </ol>
+                
+                <div class="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-cyan-600 dark:text-cyan-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium text-cyan-900 dark:text-cyan-100">WHM Tip</span>
+                    </div>
+                    <p class="text-cyan-800 dark:text-cyan-200 text-sm">
+                        WHM provides a user-friendly interface for managing Nginx configurations without direct file editing.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Troubleshooting</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <h3 class="font-semibold text-red-900 dark:text-red-100 mb-3">❌ Common Issues</h3>
+            <ul class="text-red-800 dark:text-red-200 text-sm space-y-2">
+                <li>• <strong>502 Bad Gateway:</strong> Check if ports 3000 and 4000 are running</li>
+                <li>• <strong>Configuration Error:</strong> Verify syntax with <code class="bg-red-100 dark:bg-red-800 px-1 rounded text-xs">nginx -t</code></li>
+                <li>• <strong>Permission Denied:</strong> Check file permissions and ownership</li>
+                <li>• <strong>SSL Issues:</strong> Ensure certificates are properly configured</li>
+            </ul>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-3">🔧 Useful Commands</h3>
+            <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-2">
+                <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">sudo nginx -s reload</code> - Reload configuration</li>
+                <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">sudo systemctl status nginx</code> - Check service status</li>
+                <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">sudo tail -f /var/log/nginx/error.log</code> - View error logs</li>
+                <li>• <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded text-xs">netstat -tlnp | grep :3000</code> - Check if app is running</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- i18n Locale Optimization -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🌍 Optimizing i18n Locales for Header Size</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">🌐</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Reducing Language Headers</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    If you're still experiencing 502 errors after applying the nginx configuration, your application may have too many languages configured. Next.js generates alternate language headers for every page, and with many languages, these headers can exceed size limits.
+                </p>
+                
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+                    <h4 class="font-medium text-yellow-900 dark:text-yellow-100 mb-2">Recommended Essential Languages:</h4>
+                    <code class="block bg-yellow-100 dark:bg-yellow-800 p-3 rounded text-sm mb-3">NEXT_PUBLIC_LANGUAGES="en,es,fr,de,it,pt,ru,ar,ja,ko,hi,tr"</code>
+                    <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                        These 12 languages cover major global markets (~4.5B people) while keeping header sizes manageable.
+                    </p>
+                </div>
+                
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <h4 class="font-medium text-green-900 dark:text-green-100 mb-2">How to Update:</h4>
+                    <ol class="list-decimal list-inside text-green-800 dark:text-green-200 text-sm space-y-1">
+                        <li>Edit <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">frontend/next.config.js</code></li>
+                        <li>Update <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">NEXT_PUBLIC_LANGUAGES</code> to essential languages only</li>
+                        <li>Rebuild frontend: <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">npm run build</code></li>
+                        <li>Restart application: <code class="bg-green-100 dark:bg-green-800 px-1 rounded text-xs">pm2 restart frontend</code></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Message -->
+<div class="mb-12">
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-green-900 dark:text-green-100">🎉 Configuration Complete!</h3>
+        </div>
+        <p class="text-green-800 dark:text-green-200 mb-4">
+            <strong>Congratulations!</strong> You've successfully updated the Nginx configuration. Your V5 Exchange Provider application should now serve requests via the configured reverse proxy, handle WebSockets, and apply performance optimizations.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="#virtualmin-setup" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                Back to Installation Guide
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            <a href="#app-configuration" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Next: App Configuration
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,208 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⚡</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Binance Smart Chain Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating BSC networks into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide shows you how to integrate Binance Smart Chain (BSC) networks into your Bicrypto Ecosystem. You'll add BSC credentials in <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code>, acquire API and RPC endpoints, then set up wallets and tokens in the admin panel—much like you would for Ethereum.
+        </p>
+        
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-yellow-900 dark:text-yellow-100">Supported Networks</span>
+            </div>
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                BSC Mainnet and Testnet are supported. BNB is used for transaction fees on BSC networks.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Configure Environment Variables</h2>
+    
+    <!-- Include shared component -->
+    <div id="env-file-editing"></div>
+    
+    <!-- BSC-specific variables -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">BSC Environment Variables</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Add the following BSC-specific variables to your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file:
+        </p>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+            <pre><code class="language-bash text-sm"># Binance Smart Chain Networks (mainnet, testnet)
+BSC_EXPLORER_API_KEY="YOUR_BSCSCAN_API_KEY"  # e.g., AI9Z3MDWUB8K...
+BSC_NETWORK="mainnet"
+BSC_MAINNET_RPC="https://bscrpc.com"
+BSC_MAINNET_RPC_WSS="wss://YOUR_MAINNET_WSS_PLACEHOLDER"
+BSC_TESTNET_RPC="https://YOUR_TESTNET_RPC_PLACEHOLDER"
+BSC_TESTNET_RPC_WSS="wss://YOUR_TESTNET_WSS_PLACEHOLDER"</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>• <strong>BSC_EXPLORER_API_KEY:</strong> Your BscScan API key for blockchain data</p>
+            <p>• <strong>BSC_NETWORK:</strong> Active network (mainnet or testnet)</p>
+            <p>• <strong>RPC/WSS URLs:</strong> HTTP and WebSocket endpoints for each network</p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: API Providers -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Acquire API Keys and RPC Endpoints</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-yellow-600 dark:text-yellow-400 text-sm font-bold">BS</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">BscScan API</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Create an account at <a href="https://bscscan.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">bscscan.com</a> and generate an API key for blockchain data access.
+            </p>
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                <code class="text-xs text-yellow-800 dark:text-yellow-200">BSC_EXPLORER_API_KEY="your_key_here"</code>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-purple-600 dark:text-purple-400 text-sm font-bold">RPC</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">RPC Providers</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Sign up for RPC services like GetBlock, BlastAPI, or others offering BSC endpoints with reliable uptime and generous limits.
+            </p>
+            <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                <code class="text-xs text-purple-800 dark:text-purple-200">BSC_MAINNET_RPC="https://your-endpoint"</code>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <img src="https://support.mashdiv.com/storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="BscScan API key creation" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <img src="https://support.mashdiv.com/storage/article_images/ccd40ab8-67fd-446b-82db-8f3fe29520fe.png" alt="RPC provider configuration" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+</div>
+
+<!-- Step 3: Apply Updates -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Apply Environment Updates</h2>
+    <div id="apply-env-updates"></div>
+</div>
+
+<!-- Step 4: Master Wallet -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Master Wallet</h2>
+    <div id="master-wallet-setup"></div>
+</div>
+
+<!-- Step 5: Token Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Enable Tokens and Configure Fees</h2>
+    <div id="token-management"></div>
+</div>
+
+<!-- Step 6: Custodial Wallets -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Custodial Wallets (For Non-Permit Tokens)</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-orange-900 dark:text-orange-100">When Custodial Wallets Are Needed</span>
+            </div>
+            <p class="text-orange-800 dark:text-orange-200 text-sm">
+                Some tokens don't support the PERMIT feature for fee delegation. For these tokens, you'll need to deploy custodial wallets.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Fund Master Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Ensure your master wallet has sufficient BNB to cover gas fees for custodial wallet deployments and transactions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Deploy Custodial Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
+                        Go to <strong>Admin → Extensions → Ecosystem → Custodial Wallets</strong> and deploy a new custodial wallet for BSC.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        The platform will handle user deposits/withdrawals through this wallet, with the master wallet paying BNB gas fees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BSC-Specific Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 BSC-Specific Considerations</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Lower Gas Fees</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                BSC typically has much lower gas fees than Ethereum, making it cost-effective for frequent transactions. Monitor BNB prices for optimal fee settings.
+            </p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Testnet Development</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Use BSC Testnet for development. Set <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">BSC_NETWORK="testnet"</code> and acquire test BNB from faucets.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Best Practices</h2>
+    <div id="security-best-practices"></div>
+</div> 

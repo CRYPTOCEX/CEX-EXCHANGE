@@ -1,0 +1,264 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🏠</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">App Configuration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure core application settings, database, and features</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Basic App Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Basic App Settings</h2>
+    
+    <div class="space-y-6">
+        <!-- Site URL -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Site URL Configuration</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">NEXT_PUBLIC_SITE_URL</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">
+                        NEXT_PUBLIC_SITE_URL="http://localhost"
+                    </code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Base URL of your application. Change to your domain in production.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Port Configuration</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_FRONTEND_PORT="3000"
+NEXT_PUBLIC_BACKEND_PORT="4000"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Frontend runs on port 3000, backend API on port 4000.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+                <strong>Production:</strong> Set NEXT_PUBLIC_SITE_URL to your actual domain (e.g., "https://yourdomain.com")
+            </div>
+        </div>
+
+        <!-- Site Information -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Site Information</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">Site Name & Description</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">NEXT_PUBLIC_SITE_NAME="Bicrypto"
+NEXT_PUBLIC_SITE_DESCRIPTION="Bicrypto is a cryptocurrency exchange platform, where you can trade Bitcoin, Ethereum, Litecoin, and other cryptocurrencies."</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Used for SEO meta tags, page titles, and social sharing.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment & Status -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Environment & Status</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">Environment Mode</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NODE_ENV="development"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Set to "production" for live deployment.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">System Status</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_DEMO_STATUS="false"
+NEXT_PUBLIC_MAINTENANCE_STATUS="false"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Control demo mode and maintenance status.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Database Configuration</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">MySQL Database Settings</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium mb-2">Database Connection</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">DB_NAME="v5"
+DB_USER="root"
+DB_PASSWORD=""
+DB_HOST="localhost"
+DB_PORT="3306"</code>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2">Configuration Guide</h4>
+                <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
+                    <li><strong>DB_NAME:</strong> Your database name</li>
+                    <li><strong>DB_USER:</strong> MySQL username</li>
+                    <li><strong>DB_PASSWORD:</strong> MySQL password</li>
+                    <li><strong>DB_HOST:</strong> Database server host</li>
+                    <li><strong>DB_PORT:</strong> MySQL port (default: 3306)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+            <strong>Security:</strong> Always use strong passwords and secure database access in production!
+        </div>
+    </div>
+</div>
+
+<!-- Localization -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Localization Settings</h2>
+    
+    <div class="space-y-6">
+        <!-- Language Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Language Configuration</h3>
+            <div>
+                <h4 class="font-medium mb-2">Default Language</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_DEFAULT_LANGUAGE="en"</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                    Default language for the application (English).
+                </p>
+
+                <h4 class="font-medium mb-2">Supported Languages</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_LANGUAGES="af, sq, am, ar, hy, as, az, bn, bs, bg, yue, ca, hr, cs, da, dv, nl, en, et, fj, fil, fi, fr, gl, ka, de, el, gu, ht, hi, hu, is, id, ga, it, ja, kn, kk, km, ko, lv, lt, mk, ms, ml, mt, mr, nb, fa, pl, pt, pa, ro, ru, sk, sl, es, sw, sv, ta, te, th, tr, uk, ur, vi, cy, zu"</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Comma-separated list of supported language codes.
+                </p>
+            </div>
+        </div>
+
+        <!-- Theme Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Theme & Layout</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">Default Theme</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_DEFAULT_THEME="dark"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Options: "dark", "light", "system"
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Layout Style</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_DEFAULT_LAYOUT="top-navigation"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Options: "top-navigation", "sidebar-panel", "sidebar-panel-float"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Toggles -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Feature Configuration</h2>
+    
+    <div class="space-y-6">
+        <!-- Core Features -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Core Features</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-2">Frontend & User Settings</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_FRONTEND="true"
+NEXT_PUBLIC_DEFAULT_USER_PATH="/user"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Enable frontend and set default user dashboard path.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Security & Performance</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_BYPASS_SSL="true"
+NEXT_PUBLIC_BACKEND_THREADS="2"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        SSL bypass for development, backend thread count.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Features -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Platform Features</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">Binary Trading</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_BINARY_STATUS="true"
+NEXT_PUBLIC_BINARY_PRACTICE_STATUS="true"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Enable binary trading feature and practice mode.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-2">Blog System</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm mb-2">NEXT_PUBLIC_BLOG_STATUS="true"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                        Enable blog/news system for your platform.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Configuration Changes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h3>
+        <div class="space-y-4">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                After making changes to your environment variables, apply the changes to your production environment:
+            </p>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
+                </div>
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    Environment variable changes require running the updator to take effect.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-medium mb-2">Run the updator command</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm updator</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    This will apply your new configuration to the production environment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,591 @@
+@import "tailwindcss";
+
+@plugin 'tailwindcss-animate';
+
+/* Import the variables CSS file */
+@import "../styles/variables.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+  .avatarGroup > span {
+    @apply hover:-translate-y-1 hover:relative hover:z-10 transition-transform;
+  }
+}
+
+/* Utility: Container */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 15px;
+  @media (min-width: 640px) {
+    max-width: 640px;
+    padding-inline: 15px;
+  }
+  @media (min-width: 768px) {
+    max-width: 768px;
+  }
+  @media (min-width: 1024px) {
+    max-width: 1024px;
+    padding-inline: 15px;
+  }
+  @media (min-width: 1280px) {
+    max-width: 1280px;
+    padding-inline: 0;
+  }
+  @media (min-width: 1392px) {
+    max-width: 1392px;
+    padding-inline: 0;
+  }
+}
+
+/* Mobile viewport and safe area utilities */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@utility pb-safe-or-2 {
+  padding-bottom: max(env(safe-area-inset-bottom, 0), 0.5rem);
+}
+
+@utility h-screen-safe {
+  height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
+}
+
+@utility min-h-screen-safe {
+  min-height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
+}
+
+/* Mobile viewport height using CSS custom property */
+@utility h-screen-mobile {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+@utility min-h-screen-mobile {
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+@keyframes slideDownAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideLeftAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes slideUpAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideRightAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Import all modular CSS files */
+@import "../styles/animations.css";
+@import "../styles/chart.css";
+@import "../styles/panels.css";
+@import "../styles/trading.css";
+@import "../styles/mobile.css";
+@import "../styles/theme.css";
+@import "../styles/utilities.css";
+@import "../styles/builder.css";
+
+/* Sticky header background */
+.has-sticky-header::after {
+  position: absolute;
+  z-index: -10;
+  --tw-backdrop-blur: blur(12px);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+    var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+    var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+    var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+    var(--tw-backdrop-sepia);
+  content: "";
+  background: linear-gradient(
+    180deg,
+    rgba(var(--v-theme-background), 70%) 44%,
+    rgba(var(--v-theme-background), 43%) 73%,
+    rgba(var(--v-theme-background), 0%)
+  );
+  background-repeat: repeat;
+  block-size: 5.5rem;
+  inset-block-start: -1.5rem;
+  inset-inline: 0;
+  -webkit-mask: linear-gradient(black, black 18%, transparent 100%);
+  mask: linear-gradient(black, black 18%, transparent 100%);
+}
+
+/* Collapsible content animations */
+.CollapsibleContent {
+  overflow: hidden;
+}
+.CollapsibleContent[data-state="open"] {
+  animation: slideDown 300ms ease-out;
+}
+.CollapsibleContent[data-state="closed"] {
+  animation: slideUp 300ms ease-out;
+}
+
+/* Input group styling */
+.input-group :not(:first-child) input {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.input-group.merged :not(:first-child) input {
+  border-left-width: 0 !important;
+  padding-left: 0 !important;
+}
+.input-group :not(:last-child) input {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.input-group.merged :not(:last-child) input {
+  border-right-width: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* CKEditor adjustments */
+.ck .ck-editor__editable {
+  min-height: 245px !important;
+}
+
+/* Authentication page styles */
+.loginwrapper {
+  min-height: calc(var(--vh, 1vh) * 100);
+  flex-basis: 100%;
+}
+.loginwrapper .lg-inner-column {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Progress bar animation */
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+.animate-stripes {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Page minimum height adjustments */
+.page-min-height {
+  min-height: calc(var(--vh, 1vh) * 100 - 117px);
+}
+.page-min-height-semibox {
+  min-height: calc(var(--vh, 1vh) * 100 - 200px);
+}
+.page-min-height-horizontal {
+  min-height: calc(var(--vh, 1vh) * 100 - 170px);
+}
+
+/* App height utility */
+.app-height {
+  height: calc(var(--vh, 1vh) * 100 - 11.1rem) !important;
+}
+@media (max-width: 768px) {
+  .app-height {
+    height: calc(var(--vh, 1vh) * 100 - 10.5rem) !important;
+  }
+}
+
+/* Semibox content wrapper adjustments */
+@media (min-width: 1280px) {
+  .semibox-content-wrapper {
+    margin-left: 56px;
+    margin-right: 56px;
+  }
+}
+
+/* Layout padding for bottom spacing */
+.layout-padding {
+  padding-bottom: 112px;
+}
+@media (min-width: 768px) {
+  .layout-padding {
+    padding-bottom: 37px;
+  }
+}
+
+/* Scrollbar styles */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+}
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+/* RTL adjustments for react-select */
+html[dir="rtl"] .react-select .select__loading-indicator {
+  flex-direction: row-reverse;
+}
+
+/* Medium image zoom overlay */
+.react-medium-image-zoom-overlay {
+  z-index: 1000;
+}
+.react-medium-image-zoom-zoom-image {
+  cursor: zoom-out;
+}
+
+/* Thin scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* Documentation section hover effects */
+.documentation-section {
+  @apply transition-all duration-300 ease-in-out;
+}
+.documentation-section:hover {
+  @apply bg-accent/10;
+}
+.documentation-subsection {
+  @apply transition-all duration-300 ease-in-out;
+}
+.documentation-subsection:hover {
+  @apply bg-accent/5;
+}
+
+/* Base scrollbar styles for light mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background-color: #f4f4f5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #d4d4d8;
+  border: 2px solid #f4f4f5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1aa;
+}
+
+/* Dark mode scrollbar adjustments */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: #18181b;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #09090b;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #27272a;
+  border: 2px solid #09090b;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #3f3f46;
+}
+
+/* React Quill editor adjustments */
+.quillEditor .ql-toolbar.ql-snow,
+.quillEditor .ql-container.ql-snow {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.bg-grid-white {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+}
+
+/* Support Drawer Styles */
+.support-drawer-content {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  min-width: 90vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Target the Sheet component by data attribute */
+[data-sheet="true"] .support-drawer-content {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  min-width: 90vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Ensure the Sheet overlay and content take full height */
+[data-radix-dialog-overlay] {
+  height: 100vh !important;
+}
+
+[data-radix-dialog-content].support-drawer-content {
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Unauthorized Access Page Styles */
+.unauthorized-access-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: hsl(var(--background));
+}
+
+/* Reown AppKit Modal Z-Index Fix */
+/* Ensure wallet modal appears above auth modal and other UI elements */
+
+/* Reown AppKit uses appkit- prefix instead of w3m/wcm */
+appkit-modal,
+appkit-modal-overlay,
+[data-appkit-modal],
+[data-testid*="appkit-modal"] {
+  z-index: 2147483647 !important; /* Maximum z-index value */
+  position: fixed !important;
+}
+
+/* Legacy selectors for compatibility */
+w3m-modal,
+wcm-modal,
+[data-w3m-modal],
+[data-wcm-modal] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+}
+
+/* Reown AppKit specific components */
+appkit-w3m-modal,
+appkit-w3m-modal-overlay,
+appkit-w3m-modal-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* Web Components used by Reown */
+wui-flex,
+wui-modal,
+wui-overlay,
+wui-backdrop {
+  z-index: 2147483645 !important;
+}
+
+/* Shadow DOM host elements */
+:host(appkit-modal),
+:host(wui-modal) {
+  z-index: 2147483647 !important;
+}
+
+/* Ensure proper stacking for all modal-related elements */
+[class*="appkit-"],
+[class*="wui-"],
+[class*="w3m-"],
+[class*="wcm-"] {
+  position: relative;
+}
+
+/* Override any inline styles with maximum specificity */
+body > appkit-modal,
+body > w3m-modal,
+body > [data-testid*="modal"] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}

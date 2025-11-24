@@ -1,0 +1,288 @@
+/* Chart specific styles */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--chart-bg);
+  z-index: 0;
+  touch-action: none;
+  -webkit-overflow-scrolling: touch;
+  border: none !important;
+}
+
+.chart-container canvas {
+  border: none !important;
+  display: block;
+}
+
+.chart-controls {
+  z-index: 10;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 1s linear;
+}
+
+/* Profit/loss value change animation */
+.value-change {
+  transition: color 0.3s ease;
+}
+
+/* Trading buttons glow effect */
+.trading-button-rise {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
+}
+
+.trading-button-rise:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+}
+
+.trading-button-fall {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transition: all 0.2s ease;
+}
+
+.trading-button-fall:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Ensure the chart panel expands when siblings are collapsed */
+.panel-group [data-panel-id="chart"] {
+  transition:
+    height 0.3s ease-in-out,
+    flex-grow 0.3s ease-in-out;
+}
+
+/* When a sibling is collapsed, allow the chart to grow */
+.panel-group:has(.panel-collapsed) [data-panel-id="chart"] {
+  flex-grow: 1;
+}
+
+/* Ensure no default margins or borders on canvas elements */
+canvas {
+  display: block;
+  border: none !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Chart Canvas Styles */
+.chart-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Touch Optimizations */
+@media (max-width: 768px) {
+  .chart-canvas {
+    /* Allow pinch-to-zoom gestures on mobile */
+    touch-action: none;
+    /* Enable hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    /* Improve scrolling performance */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hardware acceleration during touch dragging */
+  .touch-dragging {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    /* Improve rendering performance during drag */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* Reduce paint overhead */
+    contain: layout style paint;
+  }
+
+  /* Hardware acceleration during pinch zoom */
+  .touch-pinching {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    /* Improve rendering performance during pinch */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Optimize canvas rendering on mobile */
+  .chart-canvas.touch-dragging {
+    /* Force GPU compositing */
+    transform: translateZ(0);
+    /* Improve rendering quality */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Crosshair styles */
+.chart-crosshair {
+  pointer-events: none;
+  position: absolute;
+  z-index: 10;
+}
+
+.chart-crosshair-line {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.chart-crosshair-horizontal {
+  width: 100%;
+  height: 1px;
+}
+
+.chart-crosshair-vertical {
+  width: 1px;
+  height: 100%;
+}
+
+/* Price line styles */
+.chart-price-line {
+  stroke: #ffff00;
+  stroke-width: 1;
+  stroke-dasharray: 5, 5;
+  opacity: 0.8;
+}
+
+/* Volume bar styles */
+.chart-volume-bar {
+  opacity: 0.6;
+}
+
+.chart-volume-bar.positive {
+  fill: #26a69a;
+}
+
+.chart-volume-bar.negative {
+  fill: #ef5350;
+}
+
+/* Candle styles */
+.chart-candle-body {
+  stroke-width: 1;
+}
+
+.chart-candle-body.bullish {
+  fill: #26a69a;
+  stroke: #26a69a;
+}
+
+.chart-candle-body.bearish {
+  fill: #ef5350;
+  stroke: #ef5350;
+}
+
+.chart-candle-wick {
+  stroke-width: 1;
+}
+
+.chart-candle-wick.bullish {
+  stroke: #26a69a;
+}
+
+.chart-candle-wick.bearish {
+  stroke: #ef5350;
+}
+
+/* Loading animation */
+.chart-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+}
+
+.chart-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: chart-spin 1s linear infinite;
+}
+
+@keyframes chart-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Chart tooltip */
+.chart-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 15;
+  white-space: nowrap;
+}
+
+/* Dark theme adjustments */
+.dark .chart-container {
+  --chart-bg: #131722;
+}
+
+.dark .chart-tooltip {
+  background: rgba(255, 255, 255, 0.9);
+  color: #131722;
+}
+
+/* Prevent text selection during drag */
+.dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Smooth transitions for zoom operations */
+.chart-zoom-transition {
+  transition: transform 0.1s ease-out;
+}
+
+/* Hide scrollbars on chart container */
+.chart-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chart-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  .chart-canvas {
+    /* Reduce rendering complexity on mobile */
+    image-rendering: optimizeSpeed;
+    /* Optimize for touch interactions */
+    -webkit-user-drag: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  /* Reduce opacity during drag for better performance */
+  .touch-dragging {
+    opacity: 0.95;
+  }
+}

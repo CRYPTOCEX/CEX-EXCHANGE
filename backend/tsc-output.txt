@@ -1,0 +1,13 @@
+__tests__/api/nft/contract-deployment.test.ts(1,56): error TS2307: Cannot find module '@jest/globals' or its corresponding type declarations.
+__tests__/api/nft/contract-deployment.test.ts(13,25): error TS2307: Cannot find module '../../../utils/encrypt' or its corresponding type declarations.
+__tests__/api/nft/token.test.ts(1,61): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+__tests__/api/nft/token.test.ts(4,8): error TS1192: Module '"C:/xampp/htdocs/v5/backend/src/index"' has no default export.
+__tests__/api/nft/token.test.ts(428,41): error TS2304: Cannot find name 'vi'.
+__tests__/api/nft/token.test.ts(455,21): error TS2345: Argument of type '{ tokenId: string; name: string; description: string; image: string; collectionId: any; ownerId: any; creatorId: any; status: string; rarity: string; }' is not assignable to parameter of type 'never'.
+src/api/(ext)/admin/nft/activity/index.get.ts(69,9): error TS2353: Object literal may only specify known properties, and 'include' does not exist in type 'includeModel'.
+src/api/(ext)/nft/offer/index.post.ts(218,9): error TS2353: Object literal may only specify known properties, and 'transaction' does not exist in type '{ model: string; data: Record<string, any>; relations?: { model: string; data: any[]; method: string; fields: { source: string; target: string; }; }[] | undefined; returnResponse?: boolean | undefined; }'.
+src/api/admin/finance/wallet/[id]/index.put.ts(42,38): error TS2339: Property 'type' does not exist on type '{}'.
+src/api/admin/finance/wallet/[id]/index.put.ts(43,42): error TS2339: Property 'currency' does not exist on type '{}'.
+src/api/admin/finance/wallet/[id]/index.put.ts(44,41): error TS2339: Property 'balance' does not exist on type '{}'.
+src/api/admin/finance/wallet/[id]/index.put.ts(45,41): error TS2339: Property 'inOrder' does not exist on type '{}'.
+src/api/admin/finance/wallet/[id]/index.put.ts(46,40): error TS2339: Property 'status' does not exist on type '{}'.

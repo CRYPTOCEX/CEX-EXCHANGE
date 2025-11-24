@@ -1,0 +1,70 @@
+<!-- Shared Component: Token Management -->
+<div class="space-y-6">
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Navigate to Token Management</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Go to <strong>Admin → Extensions → Ecosystem → Tokens</strong> and enable the tokens you plan to use for your blockchain network.
+                </p>
+            </div>
+        </div>
+        <img src="https://support.mashdiv.com/storage/article_images/c8b015f9-e872-48a8-8f50-bb8220369aee.png" alt="List of tokens in Bicrypto Ecosystem" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Configure Token Settings</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Click the <strong>3 dots</strong> next to a token and select <strong>Edit</strong> to configure:
+                </p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Fee Configuration</h4>
+                        <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <li>• <strong>Minimum Fee:</strong> Set a minimum fee (e.g., $5) to cover blockchain transaction costs when percentage fees are too low</li>
+                            <li>• <strong>Percentage Fee:</strong> Standard withdrawal fee based on a percentage of the withdrawn amount</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-2">Transaction Limits</h4>
+                        <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <li>• <strong>Deposit Limits:</strong> Minimum/maximum amount users can deposit for this token</li>
+                            <li>• <strong>Withdraw Limits:</strong> Minimum/maximum amount users can withdraw for this token</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <img src="https://support.mashdiv.com/storage/article_images/f6ecee92-81f0-4a73-be4d-592e67fcf140.png" alt="Token edit form showing fee and limit configuration" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+
+    <!-- Token Types Info -->
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h4 class="text-lg font-semibold text-purple-900 dark:text-purple-100">Token Types Overview</h4>
+        </div>
+        <div class="space-y-3 text-sm">
+            <div>
+                <span class="font-medium text-purple-900 dark:text-purple-100">• Native:</span>
+                <span class="text-purple-800 dark:text-purple-200 ml-2">The main coin of a blockchain used to pay network fees</span>
+            </div>
+            <div>
+                <span class="font-medium text-purple-900 dark:text-purple-100">• PERMIT:</span>
+                <span class="text-purple-800 dark:text-purple-200 ml-2">Advanced tokens allowing fee delegation - users don't need native coins for each transaction</span>
+            </div>
+            <div>
+                <span class="font-medium text-purple-900 dark:text-purple-100">• NO PERMIT:</span>
+                <span class="text-purple-800 dark:text-purple-200 ml-2">Tokens requiring custodial wallets - the master wallet pays gas fees for withdrawals</span>
+            </div>
+        </div>
+    </div>
+</div> 

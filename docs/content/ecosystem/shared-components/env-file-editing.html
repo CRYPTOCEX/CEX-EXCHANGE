@@ -1,0 +1,37 @@
+<!-- Shared Component: Environment File Editing -->
+<div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mb-6">
+    <div class="flex items-start mb-4">
+        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+        <div class="flex-1">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Open Environment File</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Go to the <strong>Virtualmin File Manager</strong>, locate and open your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file within <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">public_html</code> (or the project root).
+            </p>
+        </div>
+    </div>
+    <img src="https://support.mashdiv.com/storage/article_images/21a5356d-9c1b-47f3-b04b-27beb9a7c4d5.png" alt="File Manager screenshot with .env file highlighted" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+</div>
+
+<div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+    <div class="flex items-start mb-4">
+        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+        <div class="flex-1">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Add Environment Variables</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Add or update the blockchain-specific environment variables near the end of the file. Replace the placeholders with your own credentials and RPC endpoints.
+            </p>
+            
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
+                </div>
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    Replace all placeholder values with your actual API keys and RPC endpoints. Never commit real credentials to version control.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

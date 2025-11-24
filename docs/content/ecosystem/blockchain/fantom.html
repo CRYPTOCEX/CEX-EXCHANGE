@@ -1,0 +1,207 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">👻</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Fantom Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete guide for integrating Fantom (FTM) networks into your Bicrypto Ecosystem</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 Overview</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide shows you how to integrate Fantom (FTM) networks into your Bicrypto Ecosystem. You'll add FTM credentials in <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code>, acquire API/RPC endpoints, then set up wallets and tokens in the admin panel—much like you would for Ethereum, BSC, or Polygon.
+        </p>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Supported Networks</span>
+            </div>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                Fantom Mainnet and Testnet are supported. FTM is used for transaction fees on Fantom networks.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1: Environment Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">1️⃣ Configure Environment Variables</h2>
+    
+    <!-- Include shared component -->
+    <div id="env-file-editing"></div>
+    
+    <!-- Fantom-specific variables -->
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Fantom Environment Variables</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Add the following Fantom-specific variables to your <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">.env</code> file:
+        </p>
+        
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
+            <pre><code class="language-bash text-sm"># FTM Networks (mainnet, testnet)
+FTM_EXPLORER_API_KEY="YOUR_FTMSCAN_API_KEY"  # e.g., R2UMPU4MS5FMQTV5...
+FTM_NETWORK="testnet"
+FTM_MAINNET_RPC="https://YOUR_MAINNET_RPC_PLACEHOLDER"
+FTM_MAINNET_RPC_WSS=""
+FTM_TESTNET_RPC="https://YOUR_TESTNET_RPC_PLACEHOLDER"
+FTM_TESTNET_RPC_WSS=""</code></pre>
+        </div>
+        
+        <div class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <p>• <strong>FTM_EXPLORER_API_KEY:</strong> Your FtmScan (or related Fantom explorer) API key</p>
+            <p>• <strong>FTM_NETWORK:</strong> Active network (mainnet or testnet)</p>
+            <p>• <strong>RPC/WSS URLs:</strong> HTTP and WebSocket endpoints for each network</p>
+        </div>
+    </div>
+</div>
+
+<!-- Step 2: API Providers -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">2️⃣ Acquire API Keys and RPC Endpoints</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-blue-600 dark:text-blue-400 text-sm font-bold">FS</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">FtmScan API</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Create an account at <a href="https://ftmscan.com" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">ftmscan.com</a> and generate an API key for blockchain data access.
+            </p>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <code class="text-xs text-blue-800 dark:text-blue-200">FTM_EXPLORER_API_KEY="your_key_here"</code>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-purple-600 dark:text-purple-400 text-sm font-bold">RPC</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">RPC Providers</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4 text-sm">
+                Sign up for RPC services like BlastAPI or others offering Fantom endpoints with reliable uptime and generous limits.
+            </p>
+            <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                <code class="text-xs text-purple-800 dark:text-purple-200">FTM_MAINNET_RPC="https://your-endpoint"</code>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <img src="https://support.mashdiv.com/storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="FtmScan API key creation" class="w-full max-w-2xl rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+</div>
+
+<!-- Step 3: Apply Updates -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">3️⃣ Apply Environment Updates</h2>
+    <div id="apply-env-updates"></div>
+</div>
+
+<!-- Step 4: Master Wallet -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">4️⃣ Configure Master Wallet</h2>
+    <div id="master-wallet-setup"></div>
+</div>
+
+<!-- Step 5: Token Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">5️⃣ Enable Tokens and Configure Fees</h2>
+    <div id="token-management"></div>
+</div>
+
+<!-- Step 6: Custodial Wallets -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">6️⃣ Custodial Wallets (For Non-Permit Tokens)</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-6">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-orange-900 dark:text-orange-100">When Custodial Wallets Are Needed</span>
+            </div>
+            <p class="text-orange-800 dark:text-orange-200 text-sm">
+                Some tokens don't support the PERMIT feature for fee delegation. For these tokens, you'll need to deploy custodial wallets.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Fund Master Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Ensure your master wallet has sufficient FTM to cover gas fees for custodial wallet deployments and transactions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Deploy Custodial Wallet</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-2">
+                        Go to <strong>Admin → Extensions → Ecosystem → Custodial Wallets</strong> and deploy a new custodial wallet for Fantom.
+                    </p>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        The platform will handle user deposits/withdrawals through this wallet, with the master wallet paying FTM gas fees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fantom-Specific Notes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Fantom-Specific Considerations</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Low Gas Fees</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Fantom typically has very low gas fees and fast transaction times, making it ideal for DeFi applications. Monitor FTM prices for optimal fee settings.
+            </p>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Testnet Development</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                Use Fantom testnet for development. Set <code class="bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-xs">FTM_NETWORK="testnet"</code> and acquire test FTM from faucets.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔒 Security Best Practices</h2>
+    <div id="security-best-practices"></div>
+</div> 

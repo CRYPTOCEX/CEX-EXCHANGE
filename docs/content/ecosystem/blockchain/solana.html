@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Integration Guide | Bicrypto Documentation</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="docs-container">
+        <div class="blockchain-header solana-theme">
+            <div class="blockchain-icon">◎</div>
+            <div class="blockchain-info">
+                <h1>Solana Integration Guide</h1>
+                <p class="blockchain-subtitle">High-Performance • Low-Cost • Permit-like Token Support</p>
+                <div class="blockchain-badges">
+                    <span class="badge">Mainnet</span>
+                    <span class="badge">Testnet</span>
+                    <span class="badge">Devnet</span>
+                    <span class="badge">Native: SOL</span>
+                    <span class="badge">SPL Tokens</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-intro">
+            <p>
+                This guide shows you how to integrate the Solana blockchain into your Bicrypto Ecosystem. You'll set the Solana network in your environment variables, and note that Solana tokens are generally "permit"-like, meaning they can facilitate fee delegation and advanced transaction flows differently than standard EVM chains.
+            </p>
+        </div>
+
+        <div class="steps-container">
+            <!-- Step 1: Configure Environment Variables -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>Configure Environment Variables</h3>
+                </div>
+                <div class="step-content">
+                    <div id="env-file-editing"></div>
+                    
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            <span class="code-title">Add to .env file</span>
+                            <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        </div>
+                        <pre class="code-block"><code># Solana Networks (mainnet, testnet, devnet)
+SOL_NETWORK="mainnet"</code></pre>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h4>🔑 Environment Variables</h4>
+                            <ul>
+                                <li><strong>SOL_NETWORK:</strong> The active Solana network (<code>mainnet</code>, <code>testnet</code>, or <code>devnet</code>)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="network-selection">
+                        <h4>🌐 Network Options</h4>
+                        <div class="network-cards">
+                            <div class="network-card">
+                                <h5>Mainnet</h5>
+                                <p>Production network with real SOL and SPL tokens. Use for live applications.</p>
+                            </div>
+                            <div class="network-card">
+                                <h5>Testnet</h5>
+                                <p>Public testing network that mirrors mainnet functionality with test tokens.</p>
+                            </div>
+                            <div class="network-card">
+                                <h5>Devnet</h5>
+                                <p>Development network for early-stage testing and experimentation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Apply Environment Changes -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>Apply Environment Changes</h3>
+                </div>
+                <div class="step-content">
+                    <div id="apply-env-updates"></div>
+                    
+                    <div class="info-box">
+                        <p>After editing <code>.env</code>, run the updator command to ensure your Solana network choice is recognized by the platform.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Verify Configuration -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>Verify Configuration</h3>
+                </div>
+                <div class="step-content">
+                    <div class="verification-steps">
+                        <div class="verification-step">
+                            <div class="verification-number">1</div>
+                            <div class="verification-content">
+                                <h4>Check Admin Panel</h4>
+                                <p>Verify that <strong>Solana</strong> is recognized or listed among your blockchain configurations in the Bicrypto admin panel.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="verification-step">
+                            <div class="verification-number">2</div>
+                            <div class="verification-content">
+                                <h4>Test Functionality</h4>
+                                <p>Test deposit/withdraw flows (if supported). For full functionality, ensure you have a Solana keypair properly initialized in your Master Wallet or Custodial Wallet structure.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ Wallet Setup:</strong> Ensure proper keypair initialization for complete Solana functionality.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Additional Notes -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>Additional Notes & Best Practices</h3>
+                </div>
+                <div class="step-content">
+                    <div class="solana-features">
+                        <h4>🚀 Solana Advantages</h4>
+                        <div class="feature-cards">
+                            <div class="feature-card">
+                                <h5>High Performance</h5>
+                                <p>Solana can process thousands of transactions per second with sub-second finality.</p>
+                            </div>
+                            <div class="feature-card">
+                                <h5>Low Costs</h5>
+                                <p>Transaction fees are typically fractions of a cent, making micro-transactions feasible.</p>
+                            </div>
+                            <div class="feature-card">
+                                <h5>Permit-like Tokens</h5>
+                                <p>SPL tokens can function similarly to "permit" tokens due to Solana's unique architecture.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="additional-tips">
+                        <div class="tip-card">
+                            <h4>💰 Token Fees & Delegation</h4>
+                            <p>SPL tokens can function similarly to "permit" tokens, but confirm you've set up the proper accounts and have enough SOL to pay for transactions behind the scenes.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>🔗 Program Interactions</h4>
+                            <p>Solana's program-based architecture allows for complex interactions while maintaining low fees and high throughput.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>🧪 Development Testing</h4>
+                            <p>Use <code>devnet</code> for early development and <code>testnet</code> for production-ready testing before deploying to <code>mainnet</code>.</p>
+                        </div>
+                    </div>
+
+                    <div class="spl-token-info">
+                        <h4>🪙 SPL Token Characteristics</h4>
+                        <div class="token-info-cards">
+                            <div class="token-info-card">
+                                <h5>Native Integration</h5>
+                                <p>SPL tokens are natively supported by the Solana runtime, enabling efficient transfers and operations.</p>
+                            </div>
+                            <div class="token-info-card">
+                                <h5>Fee Delegation</h5>
+                                <p>Solana's architecture allows for sophisticated fee delegation mechanisms, similar to permit functionality.</p>
+                            </div>
+                            <div class="token-info-card">
+                                <h5>Account Model</h5>
+                                <p>Uses an account-based model where each token type has associated accounts for each wallet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-message">
+                        <p><em>By setting </em><code>SOL_NETWORK</code><em> to </em><code>mainnet</code>, <code>testnet</code>, <em>or </em><code>devnet</code><em>, you can support Solana's unique network and token flow. Remember that in many contexts, Solana tokens can act as "permit" because of the chain's design, simplifying fee handling for user transactions.</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/layout.js"></script>
+</body>
+</html> 

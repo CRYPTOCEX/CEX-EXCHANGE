@@ -1,0 +1,28 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#f1f5f9"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="400" fill="url(#grid)"/>
+  
+  <!-- Center icon -->
+  <g transform="translate(200,200)">
+    <!-- Image icon -->
+    <rect x="-60" y="-45" width="120" height="90" rx="8" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="-30" cy="-15" r="12" fill="#94a3b8"/>
+    <path d="M-45 15 L-15 -15 L15 15 L45 -5 L45 25 L-45 25 Z" fill="#94a3b8"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="280" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="16" font-weight="500">
+    Image Placeholder
+  </text>
+  <text x="200" y="300" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="12">
+    400 × 400
+  </text>
+</svg>

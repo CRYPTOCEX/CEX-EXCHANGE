@@ -1,0 +1,631 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🏛️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Exchange Integration</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Connect to KuCoin, Binance, XT, Kraken, and other exchanges</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- KuCoin Exchange -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">KuCoin Exchange</h2>
+    
+    <div class="space-y-6">
+        <!-- API Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">API Configuration</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">KuCoin API Credentials</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">KUCOIN_API_KEY="your_api_key"
+KUCOIN_SECRET_KEY="your_secret_key"
+KUCOIN_PASSPHRASE="your_passphrase"
+KUCOIN_ENVIRONMENT="sandbox"  # or "live"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Get these credentials by following the setup guide below.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KuCoin API Setup Guide -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">How to Create KuCoin API Keys</h3>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium text-blue-900 dark:text-blue-100">Reference</span>
+                    </div>
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">
+                        Based on official KuCoin documentation: <a href="https://www.kucoin.com/support/360015102174" target="_blank" class="underline hover:no-underline">KuCoin API Creation Guide</a>
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 1: Access API Management</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Log in to <a href="https://www.kucoin.com" target="_blank" class="text-blue-600 dark:text-blue-400 underline">www.kucoin.com</a></li>
+                        <li>Click on your avatar in the top-right corner</li>
+                        <li>Select <strong>API Management</strong> from the dropdown menu</li>
+                        <li>Click <strong>Create API</strong></li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 2: Configure API Settings</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Choose <strong>API Trading</strong> option</li>
+                        <li>Enter a descriptive <strong>API Name</strong> (e.g., "V5 Exchange Provider")</li>
+                        <li>Create a strong <strong>API Passphrase</strong> (save this securely - you'll need it later)</li>
+                        <li><strong>Enable all permissions</strong> needed for trading:</li>
+                    </ol>
+                    
+                    <div class="ml-6 mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+                        <strong>Required Permissions:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-sm">
+                            <li>✅ <strong>General</strong> - Basic account information</li>
+                            <li>✅ <strong>Spot Trading</strong> - Spot market trading</li>
+                            <li>✅ <strong>Withdrawal</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 3: Security Configuration</h4>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                            <strong class="text-red-900 dark:text-red-100">Important Security Settings:</strong>
+                            <ol class="list-decimal list-inside mt-2 space-y-1 text-sm text-red-800 dark:text-red-200">
+                                <li><strong>Whitelist your VPS IP address</strong> to secure access to the exchange APIs</li>
+                                <li>Enable IP whitelist restriction</li>
+                                <li>Save your API passphrase in a secure location</li>
+                                <li>Never share your API credentials</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 4: Complete Verification</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Enter your <strong>trading password</strong></li>
+                        <li>Complete <strong>email verification</strong> with the code sent to your email</li>
+                        <li>Complete <strong>Google 2FA verification</strong> (if enabled)</li>
+                        <li>Click <strong>Confirm</strong> to create the API</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 5: Save Your Credentials</h4>
+                    <div class="space-y-2">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Once created, you'll receive:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
+                            <li><strong>API Key</strong> - Copy and save securely</li>
+                            <li><strong>Secret Key</strong> - Copy and save securely (shown only once)</li>
+                            <li><strong>Passphrase</strong> - The one you created earlier</li>
+                        </ul>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mt-3">
+                            <strong class="text-yellow-900 dark:text-yellow-100">⚠️ Warning:</strong>
+                            <p class="text-yellow-800 dark:text-yellow-200 text-sm mt-1">
+                                The secret key is shown only once. Make sure to copy and store it securely before closing the window.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Binance Exchange -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Binance Exchange</h2>
+    
+    <div class="space-y-6">
+        <!-- API Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Binance API Configuration</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">API Keys</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">BINANCE_API_KEY="your_binance_api_key"
+BINANCE_SECRET_KEY="your_binance_secret_key"
+BINANCE_TESTNET="true"  # false for mainnet</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Get these credentials by following the setup guide below.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Binance API Setup Guide -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">How to Create Binance API Keys</h3>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium text-blue-900 dark:text-blue-100">Reference</span>
+                    </div>
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">
+                        Based on official Binance documentation: <a href="https://www.binance.com/en/support/faq/how-to-create-api-keys-on-binance-360002502072" target="_blank" class="underline hover:no-underline">Binance API Creation Guide</a>
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 1: Access API Management</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Log in to <a href="https://www.binance.com" target="_blank" class="text-blue-600 dark:text-blue-400 underline">www.binance.com</a></li>
+                        <li>Click on your profile icon in the top-right corner</li>
+                        <li>Select <strong>API Management</strong> from the dropdown menu</li>
+                        <li>Click <strong>Create API</strong></li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 2: Choose API Type & Set Label</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Select <strong>System generated</strong> API key type</li>
+                        <li>Enter a descriptive <strong>API key label</strong> (e.g., "V5 Exchange Provider")</li>
+                        <li>Click <strong>Next</strong></li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 3: Complete Security Verification</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Complete <strong>Email Verification</strong> - Enter the code sent to your email</li>
+                        <li>Complete <strong>Phone Verification</strong> - Enter the SMS code</li>
+                        <li>Complete <strong>2FA Verification</strong> - Enter your Google Authenticator code</li>
+                        <li>Click <strong>Submit</strong></li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 4: Configure API Permissions</h4>
+                    <div class="space-y-3">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                            <strong>Enable all required permissions</strong> for your trading needs:
+                        </p>
+                        
+                        <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+                            <strong>Required Permissions:</strong>
+                            <ul class="list-disc list-inside mt-2 space-y-1 text-sm">
+                                <li>✅ <strong>Enable Reading</strong> - View account data</li>
+                                <li>✅ <strong>Enable Spot & Margin Trading</strong> - Place and manage orders</li>
+                                <li>✅ <strong>Enable Withdrawals</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 5: IP Access Restriction</h4>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                            <strong class="text-red-900 dark:text-red-100">Critical Security Step:</strong>
+                            <ol class="list-decimal list-inside mt-2 space-y-1 text-sm text-red-800 dark:text-red-200">
+                                <li><strong>Enable "Restrict access to trusted IPs only"</strong></li>
+                                <li><strong>Add your VPS server IP address</strong> to the whitelist</li>
+                                <li>Enter your server's public IP address in the IP whitelist field</li>
+                                <li>This ensures only your server can access the API</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-zinc-50 dark:bg-zinc-800 p-3 rounded border">
+                            <strong class="text-sm">How to find your VPS IP:</strong>
+                            <ul class="list-disc list-inside mt-1 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <li>Run <code class="px-1 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded">curl ifconfig.me</code> on your server</li>
+                                <li>Or check your VPS provider's dashboard</li>
+                                <li>Use the public/external IP, not the private IP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 6: Save Your API Credentials</h4>
+                    <div class="space-y-2">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">After completing the setup, you'll receive:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
+                            <li><strong>API Key</strong> - Your public identifier</li>
+                            <li><strong>Secret Key</strong> - Your private key (shown only once)</li>
+                        </ul>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mt-3">
+                            <strong class="text-yellow-900 dark:text-yellow-100">⚠️ Important:</strong>
+                            <p class="text-yellow-800 dark:text-yellow-200 text-sm mt-1">
+                                Your Secret Key will be displayed only once. Make sure to copy and store it securely immediately.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- XT Exchange -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">XT Exchange</h2>
+    
+    <div class="space-y-6">
+        <!-- API Configuration -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">XT API Configuration</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium mb-2">API Keys</h4>
+                    <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">XT_API_KEY="your_xt_api_key"
+XT_SECRET_KEY="your_xt_secret_key"
+XT_ENVIRONMENT="live"</code>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                        Get these credentials by following the setup guide below.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- XT API Setup Guide -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">How to Create XT API Keys</h3>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium text-blue-900 dark:text-blue-100">Reference</span>
+                    </div>
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">
+                        Based on CryptoRobotics guide: <a href="https://global.cryptorobotics.co/2024/09/30/xt/" target="_blank" class="underline hover:no-underline">XT API Creation Guide</a>
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 1: Create XT Account</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Go to <a href="https://www.xt.com" target="_blank" class="text-blue-600 dark:text-blue-400 underline">XT.com</a></li>
+                        <li>Click the <strong>"Sign Up"</strong> button in the upper right corner</li>
+                        <li>Fill in the registration form:
+                            <ul class="list-disc list-inside ml-4 mt-1 space-y-1">
+                                <li>Enter your email address</li>
+                                <li>Create a secure password</li>
+                                <li>Click <strong>"Sign Up"</strong></li>
+                            </ul>
+                        </li>
+                        <li>Complete email verification with the confirmation code</li>
+                        <li>Complete account verification (KYC) as required</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 2: Access API Management</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Log in to your XT account</li>
+                        <li>Find your account button and select <strong>API Management</strong></li>
+                        <li>Click on the <strong>"Create API"</strong> button</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 3: Configure API Settings</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Set an optional name for the new API key in the <strong>Alias Name</strong> field (e.g., "V5 Exchange Provider")</li>
+                        <li><strong>Enable required permissions</strong> for trading:</li>
+                    </ol>
+                    
+                    <div class="ml-6 mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+                        <strong>Required Permissions:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-sm">
+                            <li>✅ <strong>Spot Trading</strong> - Essential for spot market trading</li>
+                            <li>✅ <strong>Margin Trading</strong> - Required for margin trading</li>
+                            <li>✅ <strong>Withdrawal</strong> - Required for platform functionality</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                        <strong class="text-red-900 dark:text-red-100">Important:</strong>
+                        <p class="text-red-800 dark:text-red-200 text-sm mt-1">
+                            You must enable all the required permissions above for the V5 platform to function properly.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 4: Security Configuration</h4>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                            <strong class="text-red-900 dark:text-red-100">Critical Security Steps:</strong>
+                            <ol class="list-decimal list-inside mt-2 space-y-1 text-sm text-red-800 dark:text-red-200">
+                                <li><strong>Whitelist your VPS IP address</strong> to secure access to the exchange APIs</li>
+                                <li>Enable IP whitelist restriction for API access</li>
+                                <li>Never share your API credentials with anyone</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-zinc-50 dark:bg-zinc-800 p-3 rounded border">
+                            <strong class="text-sm">How to find your VPS IP:</strong>
+                            <ul class="list-disc list-inside mt-1 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                <li>Run <code class="px-1 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded">curl ifconfig.me</code> on your server</li>
+                                <li>Or check your VPS provider's dashboard</li>
+                                <li>Use the public/external IP, not the private IP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 5: Complete Verification</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li>Enter the confirmation code sent to your email</li>
+                        <li>Click <strong>"Confirm"</strong> to create the API</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 6: Save Your API Credentials</h4>
+                    <div class="space-y-2">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">After creation, you'll receive:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400 ml-4">
+                            <li><strong>API Key</strong> - Copy and save securely</li>
+                            <li><strong>Secret Key</strong> - Copy and save securely (shown only once)</li>
+                        </ul>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mt-3">
+                            <strong class="text-yellow-900 dark:text-yellow-100">⚠️ Critical:</strong>
+                            <p class="text-yellow-800 dark:text-yellow-200 text-sm mt-1">
+                                The secret key will be shown only once. Make sure to copy and store it securely before closing the window.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium mb-3">Step 7: Fund Your Account</h4>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3">
+                        <strong class="text-blue-900 dark:text-blue-100">Important Note:</strong>
+                        <p class="text-blue-800 dark:text-blue-200 text-sm mt-1">
+                            To trade on the V5 platform, you need to have your funds in an XT exchange <strong>spot account</strong>. Make sure to transfer funds to your spot trading account after setting up the API.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Security Requirements -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Account Security Requirements</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Exchange Account Prerequisites</h3>
+        
+        <div class="space-y-6">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <h4 class="font-medium text-red-900 dark:text-red-100 mb-3">🚨 Critical Account Requirements</h4>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</div>
+                        <div>
+                            <h5 class="font-medium text-red-900 dark:text-red-100">Use Fresh Exchange Accounts Only</h5>
+                            <p class="text-sm text-red-800 dark:text-red-200 mt-1">
+                                <strong>Never use existing accounts with transaction history.</strong> Create brand new accounts on exchanges specifically for the V5 platform. This prevents any potential issues with previous trading activities or account flags.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</div>
+                        <div>
+                            <h5 class="font-medium text-red-900 dark:text-red-100">Enable Deposit Expiration Settings</h5>
+                            <p class="text-sm text-red-800 dark:text-red-200 mt-1">
+                                <strong>Configure automatic deposit expiration in your exchange settings.</strong> This adds an extra security layer by automatically expiring unused deposit addresses after a specified time period.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg border">
+                    <h4 class="font-medium mb-3 text-zinc-900 dark:text-zinc-100">✅ Account Setup Checklist</h4>
+                    <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li class="flex items-center">
+                            <input type="checkbox" class="mr-2" readonly>
+                            <span>Create new exchange account</span>
+                        </li>
+                        <li class="flex items-center">
+                            <input type="checkbox" class="mr-2" readonly>
+                            <span>Verify account fully (KYC)</span>
+                        </li>
+                        <li class="flex items-center">
+                            <input type="checkbox" class="mr-2" readonly>
+                            <span>Enable 2FA authentication</span>
+                        </li>
+                        <li class="flex items-center">
+                            <input type="checkbox" class="mr-2" readonly>
+                            <span>Configure deposit expiration</span>
+                        </li>
+                        <li class="flex items-center">
+                            <input type="checkbox" class="mr-2" readonly>
+                            <span>Set strong account passwords</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg border">
+                    <h4 class="font-medium mb-3 text-zinc-900 dark:text-zinc-100">❌ What to Avoid</h4>
+                    <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <li class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            <span>Using existing trading accounts</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            <span>Accounts with past violations</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            <span>Shared or borrowed accounts</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            <span>Accounts without 2FA enabled</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-red-500 mr-2">✗</span>
+                            <span>Using weak passwords</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 Why Fresh Accounts Matter</h4>
+                <ul class="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                    <li>• <strong>Clean slate</strong> - No previous trading patterns or flags</li>
+                    <li>• <strong>Security</strong> - No risk of compromised historical data</li>
+                    <li>• <strong>Compliance</strong> - Easier to track and audit all transactions</li>
+                    <li>• <strong>Support</strong> - Easier to get exchange support for new accounts</li>
+                    <li>• <strong>API limits</strong> - Fresh accounts often have better API rate limits</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Security Best Practices</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Essential Security Measures</h3>
+        
+        <div class="space-y-6">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <h4 class="font-medium text-red-900 dark:text-red-100 mb-3">🔒 Critical Security Requirements</h4>
+                <ul class="space-y-2 text-sm text-red-800 dark:text-red-200">
+                    <li class="flex items-start">
+                        <span class="font-bold mr-2">•</span>
+                        <span><strong>Always whitelist your VPS IP address</strong> - Never allow unrestricted IP access</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="font-bold mr-2">•</span>
+                        <span><strong>Enable all required permissions</strong> but avoid withdrawal permissions unless absolutely necessary</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="font-bold mr-2">•</span>
+                        <span><strong>Store API credentials securely</strong> - Use environment variables, never hardcode in source code</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="font-bold mr-2">•</span>
+                        <span><strong>Regular monitoring</strong> - Check API activity logs regularly for suspicious behavior</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium mb-3">API Permissions Checklist</h4>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 p-3 rounded border">
+                        <ul class="space-y-1 text-sm">
+                            <li>✅ Reading/Viewing permissions</li>
+                            <li>✅ Spot trading permissions</li>
+                            <li>✅ Withdrawal permissions</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-3">IP Security</h4>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 p-3 rounded border">
+                        <ul class="space-y-1 text-sm">
+                            <li>✅ Whitelist VPS server IP</li>
+                            <li>✅ Enable IP restrictions</li>
+                            <li>✅ Monitor access logs</li>
+                            <li>❌ Allow unrestricted access</li>
+                            <li>❌ Use dynamic IPs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <h4 class="font-medium text-amber-900 dark:text-amber-100 mb-2">⚠️ Important Notes</h4>
+                <ul class="space-y-1 text-sm text-amber-800 dark:text-amber-200">
+                    <li>• Test all API connections with small amounts first</li>
+                    <li>• Keep backup copies of your API credentials in secure storage</li>
+                    <li>• Regularly rotate API keys as a security best practice</li>
+                    <li>• Monitor your account balance and trading activity</li>
+                    <li>• Set up account alerts for suspicious activity</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apply Configuration Changes -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Apply Configuration Changes</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Apply Exchange Configuration</h3>
+        <div class="space-y-4">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                After configuring exchange integrations, apply the changes to your production environment:
+            </p>
+
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span class="font-medium text-amber-900 dark:text-amber-100">Important</span>
+                </div>
+                <p class="text-amber-800 dark:text-amber-200 text-sm">
+                    Exchange API configuration changes require running the updator to take effect.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-medium mb-2">Run the updator command</h4>
+                <code class="block bg-zinc-100 dark:bg-zinc-800 p-3 rounded text-sm">pnpm updator</code>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    This will apply your new exchange configuration to the production environment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

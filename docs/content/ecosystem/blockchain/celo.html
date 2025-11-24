@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celo Integration Guide | Bicrypto Documentation</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <div class="docs-container">
+        <div class="blockchain-header celo-theme">
+            <div class="blockchain-icon">🌱</div>
+            <div class="blockchain-info">
+                <h1>Celo Integration Guide</h1>
+                <p class="blockchain-subtitle">EVM-Compatible • Mobile-First • Carbon Negative Blockchain</p>
+                <div class="blockchain-badges">
+                    <span class="badge">Celo Mainnet</span>
+                    <span class="badge">Alfajores Testnet</span>
+                    <span class="badge">Native: CELO</span>
+                    <span class="badge">Explorer: Celoscan</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-intro">
+            <p>
+                This guide shows you how to integrate Celo networks (Celo Mainnet and Alfajores testnet) into your Bicrypto Ecosystem. You'll add Celo credentials in <code>.env</code>, acquire API/RPC endpoints, then set up wallets and tokens in the admin panel—similar to how it's done for other EVM-compatible chains like Ethereum, BSC, or Polygon.
+            </p>
+        </div>
+
+        <div class="steps-container">
+            <!-- Step 1: Configure Environment Variables -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>Configure Environment Variables</h3>
+                </div>
+                <div class="step-content">
+                    <div id="env-file-editing"></div>
+                    
+                    <div class="code-block-container">
+                        <div class="code-block-header">
+                            <span class="code-title">Add to .env file</span>
+                            <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        </div>
+                        <pre class="code-block"><code># Celo Networks (mainnet, alfajores)
+CELO_EXPLORER_API_KEY="YOUR_CELO_EXPLORER_API_KEY"  # e.g., ZZSQAPGRGS5Q2UENI...
+CELO_NETWORK="alfajores"
+CELO_MAINNET_RPC="https://YOUR_MAINNET_RPC_PLACEHOLDER"
+CELO_MAINNET_RPC_WSS=""
+CELO_ALFAJORES_RPC="https://YOUR_ALFAJORES_RPC_PLACEHOLDER"
+CELO_ALFAJORES_RPC_WSS=""</code></pre>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h4>🔑 Environment Variables</h4>
+                            <ul>
+                                <li><strong>CELO_EXPLORER_API_KEY:</strong> Your block explorer API key from <a href="https://celoscan.io/" target="_blank">Celoscan</a></li>
+                                <li><strong>CELO_NETWORK:</strong> Active chain (<code>mainnet</code> or <code>alfajores</code>)</li>
+                                <li><strong>CELO_MAINNET_RPC:</strong> Mainnet HTTP endpoint</li>
+                                <li><strong>CELO_ALFAJORES_RPC:</strong> Alfajores testnet HTTP endpoint</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Acquire API Keys and RPC Endpoints -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>Acquire API Keys and RPC Endpoints</h3>
+                </div>
+                <div class="step-content">
+                    <div class="provider-section">
+                        <h4>🔍 Celo Explorer API Key</h4>
+                        <p>If you're using a specific Celo explorer, create an account and generate an API key:</p>
+                        <ul>
+                            <li>Visit <a href="https://celoscan.io/" target="_blank">Celoscan.io</a></li>
+                            <li>Create an account and navigate to API section</li>
+                            <li>Generate a new API key</li>
+                            <li>Insert it into <code>CELO_EXPLORER_API_KEY</code></li>
+                        </ul>
+                        
+                        <div class="image-container">
+                            <img src="storage/article_images/a48c0b52-30cb-4505-a22c-d3c46772ffbf.png" alt="Celo explorer showing how to create an API key">
+                        </div>
+                    </div>
+
+                    <div class="provider-section">
+                        <h4>🌐 RPC/WSS Provider</h4>
+                        <p>By default, Celo provides:</p>
+                        <ul>
+                            <li><strong>Mainnet:</strong> <code>forno.celo.org</code></li>
+                            <li><strong>Alfajores:</strong> <code>alfajores-forno.celo-testnet.org</code></li>
+                        </ul>
+                        <p>If you use another provider (e.g., <a href="https://getblock.io/" target="_blank">GetBlock</a>), replace the placeholder URLs with your provider's endpoints.</p>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ Network Selection:</strong> Set <code>CELO_NETWORK</code> to <code>alfajores</code> for testing or <code>mainnet</code> for production use.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Apply Environment Updates -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>Apply Environment Updates</h3>
+                </div>
+                <div class="step-content">
+                    <div id="apply-env-updates"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Configure Master Wallet -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>Configure Master Wallet</h3>
+                </div>
+                <div class="step-content">
+                    <div id="master-wallet-setup"></div>
+                    
+                    <div class="info-box">
+                        <p><strong>Generate a New Master Wallet</strong> for the enabled Celo network (mainnet or Alfajores). This wallet handles native fees (CELO) and any tokens that allow "permit" features on Celo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Enable Tokens and Configure Fees -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">5</span>
+                    <h3>Enable Tokens and Configure Fees</h3>
+                </div>
+                <div class="step-content">
+                    <div id="token-management"></div>
+                    
+                    <div class="info-box">
+                        <p><strong>Enable tokens you plan to use</strong> for markets on Celo (e.g., cUSD, cEUR, etc.) and configure their fees and limits appropriately.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Custodial Wallets for Non-Permit Tokens -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">6</span>
+                    <h3>Custodial Wallets (For Non-Permit Tokens)</h3>
+                </div>
+                <div class="step-content">
+                    <p>Some tokens don't support the <strong>PERMIT</strong> feature (where fees can be deducted from the user's own wallet). In this case, the platform uses a <strong>Custodial Wallet</strong>:</p>
+                    
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-number">1</div>
+                            <div class="process-content">
+                                <h4>Deposit Balance to Master Wallet</h4>
+                                <p>Ensure the master wallet has sufficient CELO to cover gas fees and deployments.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">2</div>
+                            <div class="process-content">
+                                <h4>Deploy Custodial Wallet</h4>
+                                <p>Go to <strong>Admin → Extensions → Ecosystem → Custodial Wallets</strong> to deploy a new custodial wallet specifically for Celo.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="process-step">
+                            <div class="process-number">3</div>
+                            <div class="process-content">
+                                <h4>Process Transactions</h4>
+                                <p>Users' token deposits/withdrawals are processed via this custodial wallet, with CELO as the native fee currency.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="token-types">
+                        <h4>🪙 Token Types Overview</h4>
+                        <div class="token-type-cards">
+                            <div class="token-type-card">
+                                <h5>Native</h5>
+                                <p>The main coin on the Celo network is CELO. Required to pay network fees on standard transactions.</p>
+                            </div>
+                            <div class="token-type-card">
+                                <h5>Permit</h5>
+                                <p>A token with advanced smart contract features allowing the user's own wallet to let the platform pay fees from that same wallet. The user doesn't need CELO for each transaction.</p>
+                            </div>
+                            <div class="token-type-card">
+                                <h5>No Permit</h5>
+                                <p>Tokens lacking these features require a custodial wallet. The master wallet pays gas fees for withdrawals.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Notes & Best Practices -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-number">✅</span>
+                    <h3>Final Notes & Best Practices</h3>
+                </div>
+                <div class="step-content">
+                    <div id="security-best-practices"></div>
+                    
+                    <div class="additional-tips">
+                        <div class="tip-card">
+                            <h4>⛽ Gas Price Monitoring</h4>
+                            <p>Celo gas fees are typically low, but can still vary. Adjust your minimum fees accordingly to ensure profitable operations.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>🧪 Testnet Usage</h4>
+                            <p>For testing, set <code>CELO_NETWORK</code> to <code>alfajores</code> and provide testnet RPC endpoints. You can get test CELO from an Alfajores faucet.</p>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <h4>🔗 Future Chains</h4>
+                            <p>If adding other chains, follow a similar pattern with environment variables and network settings.</p>
+                        </div>
+                    </div>
+
+                    <div class="success-message">
+                        <p><em>By configuring Celo environment variables, generating a master wallet, and handling tokens via PERMIT or custodial wallets, you can effectively manage deposits and withdrawals on the Celo network within your Bicrypto Ecosystem.</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/layout.js"></script>
+</body>
+</html> 

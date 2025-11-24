@@ -1,0 +1,252 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🖥️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Server Requirements</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Essential prerequisites for V5 Exchange Provider setup</p>
+        </div>
+    </div>
+    
+    <!-- Support Link -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-blue-900 dark:text-blue-100 font-medium">Need Help?</span>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mt-1">
+            For additional support, visit our 
+            <a href="https://support.mashdiv.com" target="_blank" class="font-semibold underline hover:no-underline">Support Center</a>
+        </p>
+    </div>
+</div>
+
+<!-- Critical Prerequisites -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Prerequisites Checklist</h2>
+    
+    <div class="space-y-6">
+        <!-- Server Management Knowledge -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Knowledge of Server Management</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        You need a fundamental understanding of how to run a server or a hosting environment with SSH (Secure Shell) and root access. Shared servers without root permissions will not work due to permission constraints.
+                    </p>
+                    
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="font-medium text-red-900 dark:text-red-100">Critical Requirement</span>
+                        </div>
+                        <p class="text-red-800 dark:text-red-200 text-sm">
+                            <strong>SSH + Root Access Required:</strong> Shared hosting will NOT work. You must have full server control.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supported Server Software -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Supported Server Software</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        V5 Exchange Provider requires specific software versions for optimal performance:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">📦 Node.js</h4>
+                            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                                <strong>Version 18 or higher</strong><br>
+                                Required for backend processing
+                            </p>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                            <h4 class="font-medium text-green-900 dark:text-green-100 mb-2">🌐 Web Server</h4>
+                            <p class="text-green-800 dark:text-green-200 text-sm">
+                                <strong>Apache 2.4.49+</strong> or <strong>Nginx</strong><br>
+                                For reverse proxy configuration
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Server Requirements -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Server Requirements</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        You must have a server with SSH and full permissions. A VPS (Virtual Private Server) with adequate resources is essential:
+                    </p>
+                    
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium text-amber-900 dark:text-amber-100">Minimum VPS Specifications</span>
+                        </div>
+                        <ul class="text-amber-800 dark:text-amber-200 text-sm space-y-1">
+                            <li>• <strong>RAM:</strong> 6GB minimum for smooth order execution</li>
+                            <li>• <strong>Storage:</strong> SSD recommended for database performance</li>
+                            <li>• <strong>CPU:</strong> 2+ cores for concurrent processing</li>
+                            <li>• <strong>Network:</strong> Stable internet with low latency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Provider Compliance -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Provider Compliance</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        Ensure your VPS or hosting provider allows the necessary services for your trading or referral system. Additionally, confirm that the server's country aligns with your chosen trading platform provider's requirements.
+                    </p>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                            <h4 class="font-medium text-purple-900 dark:text-purple-100 text-sm mb-1">🏛️ Exchange Compatibility</h4>
+                            <p class="text-purple-800 dark:text-purple-200 text-sm">
+                                Server location must comply with Binance, KuCoin, or your chosen exchange's geographic restrictions
+                            </p>
+                        </div>
+                        <div class="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3">
+                            <h4 class="font-medium text-cyan-900 dark:text-cyan-100 text-sm mb-1">🌍 Global Alternative</h4>
+                            <p class="text-cyan-800 dark:text-cyan-200 text-sm">
+                                Use V5's native ecosystem if you need global coverage without specific provider restrictions
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Extensions -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Trading Extensions</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                        To implement trading or binary features, you will need the relevant exchange extensions for API integration:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                            <h4 class="font-medium text-yellow-900 dark:text-yellow-100 mb-2">🔗 Exchange APIs</h4>
+                            <p class="text-yellow-800 dark:text-yellow-200 text-sm mb-2">
+                                Required for external trading:
+                            </p>
+                            <ul class="text-yellow-800 dark:text-yellow-200 text-sm space-y-1">
+                                <li>• Binance API extension</li>
+                                <li>• KuCoin API extension</li>
+                                <li>• XT Exchange extension</li>
+                            </ul>
+                        </div>
+                        <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                            <h4 class="font-medium text-emerald-900 dark:text-emerald-100 mb-2">🏠 Native Option</h4>
+                            <p class="text-emerald-800 dark:text-emerald-200 text-sm mb-2">
+                                All-in-one solution:
+                            </p>
+                            <a href="https://codecanyon.net/item/ecosystem-native-trading-addon-for-bicrypto/40071914" target="_blank" class="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium text-sm">
+                                Native V5 Trading Ecosystem
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Verification Checklist -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">✅ Pre-Installation Checklist</h2>
+    
+    <div class="bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Before proceeding with installation, verify you have all requirements:
+        </p>
+        
+        <div class="space-y-3">
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">VPS with SSH and root access</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Node.js version 18+ installed</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Apache 2.4.49+ or Nginx configured</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">6GB+ RAM available</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Server location complies with exchange requirements</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500">
+                <span class="text-zinc-700 dark:text-zinc-300 text-sm">Trading extensions or native ecosystem ready</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Next Steps</h2>
+    
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Ready for Installation?</h3>
+        </div>
+        <p class="text-blue-800 dark:text-blue-200 mb-4">
+            Once you've verified all requirements above, you can proceed with the installation process using either Virtualmin or manual setup.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="#virtualmin-setup" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Virtualmin Setup Guide
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            <a href="#nginx-configuration" class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                Nginx Configuration
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div> 

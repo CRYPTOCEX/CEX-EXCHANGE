@@ -1,0 +1,39 @@
+<!-- Shared Component: Apply Environment Updates -->
+<div class="space-y-6">
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Navigate to Project Directory</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Open the <strong>User Terminal</strong> (or SSH) and navigate to <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-sm">public_html</code>:
+                </p>
+                
+                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+                    <pre><code class="language-bash text-sm">cd public_html</code></pre>
+                </div>
+            </div>
+        </div>
+        <img src="https://support.mashdiv.com/storage/article_images/614aa817-f6b1-4020-ad17-5638d4a00141.png" alt="User Terminal with cd public_html command" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700">
+    </div>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Update Backend Configuration</h3>
+                <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                    Run the updator command to apply the new environment variables to your backend:
+                </p>
+                
+                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 mb-4">
+                    <pre><code class="language-bash text-sm">pnpm updator:backend</code></pre>
+                </div>
+                
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    This command will restart your backend services with the updated configuration.
+                </p>
+            </div>
+        </div>
+    </div>
+</div> 

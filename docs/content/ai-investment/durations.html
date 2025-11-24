@@ -1,0 +1,194 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-violet-100 dark:bg-violet-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⏰</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Duration Management</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Configure Investment Timeframes</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📖 What are Investment Durations?</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Investment Durations define the timeframes available for investment plans. They specify how long users' investments will be locked and when profits will be distributed.
+        </p>
+        
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-blue-900 dark:text-blue-100">Key Features</span>
+            </div>
+            <ul class="text-blue-800 dark:text-blue-200 text-sm space-y-1 ml-4">
+                <li>• Flexible timeframe options (HOUR, DAY, WEEK, MONTH)</li>
+                <li>• Customizable duration values</li>
+                <li>• Integration with investment plans</li>
+                <li>• Automated investment lifecycle management</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Accessing Durations -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Accessing Duration Management</h2>
+    
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+            Navigate to the Duration Management interface:
+        </p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+            Admin Panel → Extensions → AI Investment → Duration Management
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Or access directly via URL:</p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+            /admin/ai/investment/duration
+        </div>
+    </div>
+</div>
+
+<!-- Duration Types -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⏱️ Available Timeframe Types</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">⏰</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">HOUR</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Short-term investments measured in hours</p>
+            <div class="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
+                Examples: 1, 6, 12, 24 hours
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📅</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">DAY</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Daily investment cycles</p>
+            <div class="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
+                Examples: 1, 3, 7, 14 days
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📆</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">WEEK</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Weekly investment periods</p>
+            <div class="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
+                Examples: 1, 2, 4, 8 weeks
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🗓️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">MONTH</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Long-term monthly investments</p>
+            <div class="mt-3 text-xs text-zinc-500 dark:text-zinc-500">
+                Examples: 1, 3, 6, 12 months
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Creating Durations -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">➕ Creating New Durations</h2>
+    
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Access Creation Form</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click "Create New Duration" or the "+" button in the duration management interface.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Select Timeframe Type</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Choose from available timeframe options:
+                    </p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-sm">HOUR</span>
+                        <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-sm">DAY</span>
+                        <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-sm">WEEK</span>
+                        <span class="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 rounded text-sm">MONTH</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Set Duration Value</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Enter the numeric value for the selected timeframe (e.g., 7 for "7 days").
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Status</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Set the duration as active to make it available for assignment to investment plans.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Save Configuration</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Save the duration to make it available for use in investment plans.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-green-900 dark:text-green-100">✅ Next Steps</h3>
+        <p class="text-green-800 dark:text-green-200 text-sm mb-4">After configuring your investment durations:</p>
+        <ul class="text-green-800 dark:text-green-200 text-sm space-y-1 ml-4 mb-4">
+            <li>• Assign durations to investment plans</li>
+            <li>• Test duration calculations with sample investments</li>
+            <li>• Monitor duration performance through analytics</li>
+            <li>• Adjust timeframes based on user feedback and market conditions</li>
+        </ul>
+        <div class="flex gap-3 flex-wrap">
+            <a href="#ai-investment-plans" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                Configure Investment Plans
+            </a>
+            <a href="#ai-investment-analytics" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                View Analytics
+            </a>
+        </div>
+    </div>
+</div> 
