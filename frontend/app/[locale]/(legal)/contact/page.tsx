@@ -4,7 +4,7 @@ export async function generateMetadata() {
   return generatePageMetadata(
     "contact",
     "Contact us",
-    "Get in touch with our support team for assistance with your account or any questions."
+    "Get in touch with our support team for assistance with your account or any questions - Cryptox-cex"
   );
 }
 
