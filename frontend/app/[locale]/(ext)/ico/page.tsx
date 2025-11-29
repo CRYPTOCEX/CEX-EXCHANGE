@@ -142,8 +142,7 @@ export default function Home() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         <span className="font-medium">
-                          / $
-                          {stats.totalRaised.toLocaleString(undefined, {
+                          ${stats.totalRaised.toLocaleString(undefined, {
                             maximumFractionDigits: 0,
                           })}
                           +

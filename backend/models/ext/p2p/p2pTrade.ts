@@ -122,9 +122,12 @@ export default class p2pTrade
           },
         },
         paymentMethod: {
-          type: DataTypes.STRING(50),
+          type: DataTypes.UUID,
           allowNull: false,
-          validate: { notEmpty: { msg: "paymentMethod must not be empty" } },
+          validate: {
+            notNull: { msg: "paymentMethod cannot be null" },
+            isUUID: { args: 4, msg: "paymentMethod must be a valid UUID" },
+          },
         },
         paymentDetails: {
           type: DataTypes.JSON,
@@ -193,6 +196,12 @@ export default class p2pTrade
     p2pTrade.hasMany(models.p2pReview, {
       as: "reviews",
       foreignKey: "tradeId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    p2pTrade.belongsTo(models.p2pPaymentMethod, {
+      as: "paymentMethodDetails",
+      foreignKey: "paymentMethod",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });

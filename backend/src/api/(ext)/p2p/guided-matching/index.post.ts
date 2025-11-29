@@ -1,5 +1,6 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
+import { parseAmountConfig, parsePriceConfig } from "@b/api/(ext)/p2p/utils/json-parser";
 import { Op } from "sequelize";
 import {
   getFiatPriceInUSD,
@@ -156,8 +157,11 @@ export default async (data: { body: any; user?: any }) => {
       };
     }
 
-    // Extract prices for savings calculation
-    const prices = offers.map((o) => o.priceConfig.finalPrice);
+    // Extract prices for savings calculation with robust parser
+    const prices = offers.map((o) => {
+      const priceConfig = parsePriceConfig(o.priceConfig);
+      return priceConfig.finalPrice;
+    });
     const bestPrice =
       body.tradeType === "buy" ? Math.min(...prices) : Math.max(...prices);
 
@@ -178,6 +182,10 @@ export default async (data: { body: any; user?: any }) => {
 
     // Transform and score offers
     const scoredOffers = offers.map((offer) => {
+      // Parse JSON configs with robust parser
+      const priceConfig = parsePriceConfig(offer.priceConfig);
+      const amountConfig = parseAmountConfig(offer.amountConfig);
+
       // Payment methods
       const paymentMethods = (offer.paymentMethods || []).map((pm) => pm.name);
 
@@ -224,14 +232,14 @@ export default async (data: { body: any; user?: any }) => {
         type: offer.type.toLowerCase(),
         coin: offer.currency,
         walletType: offer.walletType,
-        price: offer.priceConfig.finalPrice,
-        minLimit: offer.amountConfig.min,
-        maxLimit: offer.amountConfig.max,
+        price: priceConfig.finalPrice,
+        minLimit: amountConfig.min,
+        maxLimit: amountConfig.max,
         availableAmount:
-          offer.amountConfig.availableBalance || offer.amountConfig.total,
+          amountConfig.availableBalance || amountConfig.total,
         paymentMethods,
         matchScore: calculateMatchScore({
-          price: offer.priceConfig.finalPrice,
+          price: priceConfig.finalPrice,
           bestPrice,
           completionRate,
           verified,

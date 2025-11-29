@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { Op } from "sequelize";
 import { createError } from "@b/utils/error";
+import { parseAmountConfig } from "@b/api/(ext)/p2p/utils/json-parser";
 
 export const metadata = {
   summary: "Cancel Trade",
@@ -107,22 +108,37 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     }
 
     // If funds were locked (PENDING or PAYMENT_SENT status), unlock them
-    // Note: Only unlock for non-FIAT wallets, as FIAT was never locked
+    // This applies to ALL wallet types including FIAT
     if (["PENDING", "PAYMENT_SENT"].includes(trade.status)) {
-      // Only unlock crypto wallets (SPOT/ECO), not FIAT
-      if (trade.offer.walletType !== "FIAT") {
-        const sellerWallet = await getWalletSafe(
-          trade.sellerId,
-          trade.offer.walletType,
-          trade.offer.currency
-        );
+      const sellerWallet = await getWalletSafe(
+        trade.sellerId,
+        trade.offer.walletType,
+        trade.offer.currency
+      );
 
-        if (sellerWallet && sellerWallet.inOrder >= trade.amount) {
-          // Unlock seller's funds
-          await sellerWallet.update({
-            inOrder: sellerWallet.inOrder - trade.amount,
-          }, { transaction });
-        }
+      if (sellerWallet && sellerWallet.inOrder >= trade.amount) {
+        // Store old value before update for logging
+        const previousInOrder = sellerWallet.inOrder;
+
+        // Unlock seller's funds
+        await models.wallet.update({
+          inOrder: sellerWallet.inOrder - trade.amount,
+        }, {
+          where: { id: sellerWallet.id },
+          transaction
+        });
+
+        console.log('[P2P Trade Cancel] Unlocked funds:', {
+          sellerId: trade.sellerId,
+          walletType: trade.offer.walletType,
+          currency: trade.offer.currency,
+          amount: trade.amount,
+          previousInOrder: previousInOrder,
+          newInOrder: previousInOrder - trade.amount,
+          note: trade.offer.walletType === "FIAT"
+            ? "FIAT balance unlocked on platform"
+            : "Crypto balance unlocked from escrow"
+        });
       }
 
       // Restore offer amount if applicable (for both FIAT and crypto)
@@ -133,10 +149,13 @@ export default async (data: { params?: any; body: any; user?: any }) => {
         });
 
         if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
+          // Parse amountConfig with robust parser
+          const amountConfig = parseAmountConfig(offer.amountConfig);
+
           await offer.update({
             amountConfig: {
-              ...offer.amountConfig,
-              total: (offer.amountConfig.total || 0) + trade.amount,
+              ...amountConfig,
+              total: amountConfig.total + trade.amount,
             },
           }, { transaction });
         }

@@ -14,6 +14,7 @@ export function IntlProvider({ locale, messages, children }: IntlProviderProps) 
     <NextIntlClientProvider
       locale={locale}
       messages={messages || {}}
+      timeZone="UTC"
       onError={(error) => {
         const errorMsg = error.message || '';
 

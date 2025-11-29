@@ -2,6 +2,7 @@ import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 import { Op } from "sequelize";
 import { CacheManager } from "@b/utils/cache";
+import { safeParseJSON } from "@b/api/(ext)/p2p/utils/json-parser";
 
 export const metadata = {
   summary: "Updates a P2P offer",
@@ -178,20 +179,16 @@ export default async (data: { user?: any; params: any; body: any }) => {
 
   for (const field of allowedFields) {
     if (body[field] !== undefined) {
-      // Ensure JSON fields are objects, not strings (prevent double-encoding)
+      // Ensure JSON fields are objects using robust parser
       if (jsonFields.includes(field)) {
-        const value = body[field];
-        if (typeof value === 'string') {
-          try {
-            (updateData as any)[field] = JSON.parse(value);
-          } catch (e) {
-            throw createError({
-              statusCode: 400,
-              message: `Invalid JSON for field ${field}`,
-            });
-          }
-        } else if (typeof value === 'object' && value !== null) {
-          (updateData as any)[field] = value;
+        const parsed = safeParseJSON(body[field]);
+        if (parsed !== null) {
+          (updateData as any)[field] = parsed;
+        } else {
+          throw createError({
+            statusCode: 400,
+            message: `Invalid JSON for field ${field}`,
+          });
         }
       } else {
         (updateData as any)[field] = body[field];
@@ -304,10 +301,19 @@ export default async (data: { user?: any; params: any; body: any }) => {
     }
 
     // Merge with existing priceConfig and ensure finalPrice is updated
-    const mergedPriceConfig = {
-      ...existingPriceConfig,
-      ...priceConfig,
+    // Only keep essential fields to prevent "max_allowed_packet" errors
+    const mergedPriceConfig: any = {
+      model: priceConfig.model || existingPriceConfig.model || "fixed",
+      currency: priceConfig.currency || existingPriceConfig.currency,
     };
+
+    // Add only the relevant fields based on model to minimize JSON size
+    if (mergedPriceConfig.model === "fixed") {
+      mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined ? priceConfig.fixedPrice : existingPriceConfig.fixedPrice;
+    } else {
+      mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined ? priceConfig.dynamicOffset : existingPriceConfig.dynamicOffset;
+      mergedPriceConfig.marketPrice = existingPriceConfig.marketPrice;
+    }
 
     // Calculate finalPrice based on model
     if (mergedPriceConfig.model === "fixed") {

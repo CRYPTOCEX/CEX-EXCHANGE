@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• Ang ilang operasyon ay maaaring mangailangan ng system maintenance mode",
     "•_using_fallback_mode": "• Gumagamit ng fallback mode",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "Kailangan mong i-configure at i-activate ang kahit isang exchange provider upang pamahalaan ang mga merkado."
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "Ini-import..."
         }
       }
     }
@@ -6267,7 +6267,7 @@
     "your_offer_has_been_successfully_removed": "Ang Iyong Alok Ay Matagumpay Na Tinanggal",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "Ang mga bayarin sa Marketplace ay ibinabawas mula sa mga kita sa pagbebenta. Ang mga bayarin sa royalty ay napupunta sa orihinal na lumikha sa mga pangalawang benta."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {

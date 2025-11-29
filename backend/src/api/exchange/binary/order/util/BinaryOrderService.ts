@@ -104,10 +104,11 @@ export class BinaryOrderService {
     return await sequelize.transaction(async (t) => {
       let wallet;
       if (!isDemo) {
+        // Use the quote currency (pair) for wallet lookup - binary trades settle in quote currency
         wallet = await models.wallet.findOne({
           where: {
             userId: userId,
-            currency: pair,
+            currency: pair, // Use pair (quote currency like USDT) for binary trading
             type: "SPOT",
           },
           transaction: t,
@@ -115,7 +116,10 @@ export class BinaryOrderService {
         });
 
         if (!wallet) {
-          throw createError({ statusCode: 404, message: "Wallet not found" });
+          throw createError({
+            statusCode: 404,
+            message: `Wallet not found for currency ${pair}. Please ensure you have a ${pair} wallet.`
+          });
         }
 
         const newBalance = wallet.balance - amount;

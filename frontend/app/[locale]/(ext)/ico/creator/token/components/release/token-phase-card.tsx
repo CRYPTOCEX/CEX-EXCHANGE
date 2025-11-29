@@ -33,8 +33,7 @@ export function TokenPhaseCard({
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-semibold">{phase.name}</h3>
         <div className="text-sm font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
-          / $
-          {phase.tokenPrice}
+          ${phase.tokenPrice}
         </div>
       </div>
 
@@ -43,9 +42,7 @@ export function TokenPhaseCard({
           <div className="flex justify-between text-sm mb-1">
             <span className="text-muted-foreground">{t("Allocation")}</span>
             <span className="font-medium">
-              {formatNumber(soldTokens)}
-              _
-              {formatNumber(phase.allocation)} {symbol}
+              {formatNumber(soldTokens)} / {formatNumber(phase.allocation)} {symbol}
             </span>
           </div>
           <Progress value={percentageSold} className="h-2" />
@@ -59,11 +56,10 @@ export function TokenPhaseCard({
           <Clock className="h-4 w-4 text-muted-foreground" />
           <div>
             <span className="text-muted-foreground">
-              {t("time_remaining")}
+              {t("time_remaining")}:{" "}
             </span>
             <span className="font-medium">
-              {phase.endsIn}
-              {t("days")}
+              {phase.endsIn} {t("days")}
             </span>
           </div>
         </div>
@@ -73,8 +69,7 @@ export function TokenPhaseCard({
           <div className="flex justify-between text-xs text-muted-foreground mt-1">
             <span>{t("0_days")}</span>
             <span>
-              {phase.duration}
-              {t("days")}
+              {phase.duration} {t("days")}
             </span>
           </div>
         </div>

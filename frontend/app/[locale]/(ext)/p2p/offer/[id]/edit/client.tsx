@@ -294,7 +294,9 @@ export default function EditOfferClient() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{t("edit_offer")}</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {t("edit_offer")} - {offer?.type === 'BUY' ? t('Buy') : t('Sell')} {offer?.currency}
+          </h1>
           <p className="text-muted-foreground">
             {t("update_your_offer_settings_and_requirements")}
           </p>

@@ -206,8 +206,7 @@ function PortfolioChartVisualization({ chartData }: { chartData: any[] }) {
         <div className="flex items-center justify-between gap-2">
           <span className="text-muted-foreground">{t("Current")}</span>
           <span className="font-semibold">
-            / $
-            {chartData && chartData.length > 0
+            ${chartData && chartData.length > 0
               ? chartData[chartData.length - 1]?.value?.toLocaleString() || "0"
               : "0"}
           </span>

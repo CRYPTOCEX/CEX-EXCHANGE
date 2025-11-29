@@ -255,8 +255,7 @@ export default function TokenPageClient() {
                       ${(currentToken.fundsRaised || 0).toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("target_$")}
-                      {(currentToken.fundingGoal || 0).toLocaleString()}
+                      {t("target_$")} {(currentToken.fundingGoal || 0).toLocaleString()}
                     </p>
                     {currentToken.fundingGoal && (
                       <div className="mt-2 h-2 w-full bg-muted rounded-full overflow-hidden">

@@ -592,8 +592,7 @@ function ConditionDetailsModal({
                           {t("your_earnings")}
                         </span>
                         <span className="text-xl font-bold text-primary">
-                          / $
-                          {calculateEarnings()} {condition.rewardCurrency}
+                          ${calculateEarnings()} {condition.rewardCurrency}
                         </span>
                       </div>
                     </div>

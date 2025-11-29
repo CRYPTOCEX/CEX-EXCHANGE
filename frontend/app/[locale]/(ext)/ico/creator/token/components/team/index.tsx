@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Users } from "lucide-react";
 import { useLaunchPlanStore } from "@/store/ico/launch-plan-store";
 import { useTeamMemberStore } from "@/store/ico/creator/team-member-store";
 import { useCreatorStore } from "@/store/ico/creator/creator-store";
@@ -155,8 +156,11 @@ export default function TokenTeam({ tokenId }: TokenTeamProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
-            {t("team_members")}
+          <h2 className="text-2xl font-bold flex items-center gap-2 capitalize">
+            <Users className="h-6 w-6 text-primary" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70">
+              {t("team_members")}
+            </span>
           </h2>
           <p className="text-muted-foreground">
             {t("showcase_the_talented_token_project")}

@@ -19,6 +19,7 @@ interface MobileHeaderProps {
   onAddMarket?: (symbol: Symbol) => void;
   onRemoveMarket?: (symbol: Symbol) => void;
   handleMarketSelect?: (marketSymbol: string) => void;
+  onTradingModeChange?: (mode: "demo" | "real") => void;
 }
 
 export function MobileHeader({
@@ -31,6 +32,7 @@ export function MobileHeader({
   onAddMarket = () => {},
   onRemoveMarket = () => {},
   handleMarketSelect,
+  onTradingModeChange,
 }: MobileHeaderProps) {
   const t = useTranslations("binary/components/header/mobile-header");
   // Use next-themes hook properly
@@ -39,6 +41,9 @@ export function MobileHeader({
 
   // State for market selector modal
   const [showMarketSelector, setShowMarketSelector] = useState(false);
+
+  // State for account selector modal
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
 
   // Use the binary store for values not provided via props
   const storeValues = useBinaryStore();
@@ -104,6 +109,14 @@ export function MobileHeader({
     setTheme(isDarkMode ? "light" : "dark");
   };
 
+  // Handler for account switching
+  const handleAccountSwitch = (mode: "demo" | "real") => {
+    if (onTradingModeChange) {
+      onTradingModeChange(mode);
+    }
+    setShowAccountSelector(false);
+  };
+
   return (
     <>
       {/* Compact Mobile header */}
@@ -162,11 +175,14 @@ export function MobileHeader({
         </div>
 
         <div className="flex items-center space-x-1.5">
-          {/* Balance - More compact */}
-          <div className="text-xs flex items-center space-x-1">
+          {/* Balance - More compact - Clickable to switch accounts */}
+          <button
+            onClick={() => setShowAccountSelector(true)}
+            className="text-xs flex items-center space-x-1 hover:opacity-80 transition-opacity"
+          >
             <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium ${
-              effectiveTradingMode === "real" 
-                ? "bg-green-500/20 text-green-400" 
+              effectiveTradingMode === "real"
+                ? "bg-green-500/20 text-green-400"
                 : "bg-orange-500/20 text-orange-400"
             }`}>
               {effectiveTradingMode === "real" ? "REAL" : "DEMO"}
@@ -174,7 +190,8 @@ export function MobileHeader({
             <span className="font-bold">
               {(effectiveBalance ?? 0).toFixed(2)}
             </span>
-          </div>
+            <ChevronDown size={12} />
+          </button>
 
           {/* Theme Toggle - Smaller */}
           <button
@@ -192,10 +209,155 @@ export function MobileHeader({
 
       {/* Market Selector Modal */}
       {showMarketSelector && (
-        <MarketSelectorModal 
+        <MarketSelectorModal
           onClose={() => setShowMarketSelector(false)}
           handleMarketSelect={handleMarketSelect}
         />
+      )}
+
+      {/* Account Selector Modal */}
+      {showAccountSelector && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          onClick={() => setShowAccountSelector(false)}
+        >
+          <div
+            className={`w-full max-w-lg rounded-t-2xl ${
+              isDarkMode ? "bg-zinc-900" : "bg-white"
+            } p-4 pb-6 space-y-3`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3
+                className={`text-lg font-semibold ${
+                  isDarkMode ? "text-white" : "text-zinc-900"
+                }`}
+              >
+                {t("select_account")}
+              </h3>
+              <button
+                onClick={() => setShowAccountSelector(false)}
+                className={`p-1 rounded-full ${
+                  isDarkMode
+                    ? "hover:bg-zinc-800 text-zinc-400"
+                    : "hover:bg-zinc-100 text-zinc-600"
+                }`}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 5L5 15M5 5L15 15"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Real Account */}
+            <button
+              onClick={() => handleAccountSwitch("real")}
+              className={`w-full p-4 rounded-lg border-2 transition-all ${
+                effectiveTradingMode === "real"
+                  ? isDarkMode
+                    ? "border-green-500/50 bg-green-500/10"
+                    : "border-green-500 bg-green-50"
+                  : isDarkMode
+                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700"
+                    : "border-zinc-200 bg-white hover:border-zinc-300"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <div
+                    className={`text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-zinc-400" : "text-zinc-600"
+                    }`}
+                  >
+                    {t("real_account")}
+                  </div>
+                  <div className="text-xl font-bold text-green-500">
+                    {(storeValues.realBalance ?? 0).toFixed(2)}
+                  </div>
+                </div>
+                {effectiveTradingMode === "real" && (
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500">
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </button>
+
+            {/* Demo Account */}
+            <button
+              onClick={() => handleAccountSwitch("demo")}
+              className={`w-full p-4 rounded-lg border-2 transition-all ${
+                effectiveTradingMode === "demo"
+                  ? isDarkMode
+                    ? "border-orange-500/50 bg-orange-500/10"
+                    : "border-orange-500 bg-orange-50"
+                  : isDarkMode
+                    ? "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700"
+                    : "border-zinc-200 bg-white hover:border-zinc-300"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <div
+                    className={`text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-zinc-400" : "text-zinc-600"
+                    }`}
+                  >
+                    {t("demo_account")}
+                  </div>
+                  <div className="text-xl font-bold text-orange-500">
+                    {(storeValues.demoBalance ?? 10000).toFixed(2)}
+                  </div>
+                </div>
+                {effectiveTradingMode === "demo" && (
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500">
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

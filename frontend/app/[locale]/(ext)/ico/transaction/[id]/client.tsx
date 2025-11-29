@@ -183,8 +183,7 @@ export default function TransactionDetailsClient() {
                   {t("Amount")}
                 </h3>
                 <p className="text-base font-medium">
-                  / $
-                  {transaction.amount.toLocaleString()}
+                  ${transaction.amount.toLocaleString()}
                 </p>
               </div>
 
@@ -355,8 +354,7 @@ export default function TransactionDetailsClient() {
                   <div>
                     <p className="text-muted-foreground">{t("Total")}</p>
                     <p className="font-medium">
-                      / $
-                      {transaction.amount.toLocaleString()}
+                      ${transaction.amount.toLocaleString()}
                     </p>
                   </div>
                 </div>

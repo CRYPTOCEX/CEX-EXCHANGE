@@ -32,7 +32,7 @@ export function validateTradeAmount(amount: any): boolean {
     return false;
   }
   // Minimum trade amount (configurable)
-  const MIN_TRADE_AMOUNT = 0.01;
+  const MIN_TRADE_AMOUNT = 0.0001;
   // Maximum trade amount (configurable)
   const MAX_TRADE_AMOUNT = 1000000;
   

@@ -3,13 +3,23 @@
 // Dynamic ABI loading to handle ecosystem extension availability
 async function loadABIs() {
   try {
-    const [ERC721, ERC1155] = await Promise.all([
-      import("../../backend/ecosystem/smart-contracts/nft/ERC721NFT.json"),
-      import("../../backend/ecosystem/smart-contracts/nft/ERC1155NFT.json"),
+    const [ERC721Response, ERC1155Response] = await Promise.all([
+      fetch("/contracts/nft/ERC721NFT.json"),
+      fetch("/contracts/nft/ERC1155NFT.json"),
     ]);
+
+    if (!ERC721Response.ok || !ERC1155Response.ok) {
+      throw new Error("Contract ABI files not found");
+    }
+
+    const [ERC721, ERC1155] = await Promise.all([
+      ERC721Response.json(),
+      ERC1155Response.json(),
+    ]);
+
     return {
-      ERC721_ABI: ERC721.default,
-      ERC1155_ABI: ERC1155.default,
+      ERC721_ABI: ERC721,
+      ERC1155_ABI: ERC1155,
     };
   } catch (error) {
     console.error("[NFT DEPLOY] Ecosystem extension not installed or ABIs not found");

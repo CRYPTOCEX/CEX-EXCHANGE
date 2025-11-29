@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• ប្រតិបត្តិការមួយចំនួនអាចទាមទាររបៀបថែទាំប្រព័ន្ធ",
     "•_using_fallback_mode": "• ការប្រើប្រាស់របៀប fallback",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "អ្នកត្រូវកំណត់រចនាសម្ព័ន្ធ និងធ្វើឱ្យសកម្មយ៉ាងហោចណាស់អ្នកផ្តល់សេវាផ្សារប្តូរប្រាក់មួយ ដើម្បីគ្រប់គ្រងទីផ្សារ។"
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "កំពុងនាំចូល..."
         }
       }
     }
@@ -6267,7 +6267,7 @@
     "your_offer_has_been_successfully_removed": "ការផ្តល់ជូនរបស់អ្នកត្រូវបានលុបចោលដោយជោគជ័យ",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "ថ្លៃសេវាទីផ្សារត្រូវបានកាត់ចេញពីប្រាក់ចំណូលលក់។ ថ្លៃសេវាសិទ្ធិអ្នកនិពន្ធទៅអ្នកបង្កើតដើមលើការលក់បន្ទាប់បន្សំ។"
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {

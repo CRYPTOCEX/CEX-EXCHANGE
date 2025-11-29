@@ -1,6 +1,7 @@
 import { models } from "@b/db";
-import { Op, fn } from "sequelize";
+import { Op } from "sequelize";
 import { createError } from "@b/utils/error";
+import { v4 as uuidv4 } from "uuid";
 
 export const metadata = {
   summary: "Send Trade Message",
@@ -84,14 +85,29 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   }
 
   try {
-    const timeline = trade.timeline || [];
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === 'string') {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error('Failed to parse timeline JSON:', e);
+        timeline = [];
+      }
+    }
+
+    // Ensure timeline is an array
+    if (!Array.isArray(timeline)) {
+      timeline = [];
+    }
+
     const messageEntry = {
+      id: uuidv4(), // Generate unique ID for message
       event: "MESSAGE",
       message: sanitizedMessage,
       senderId: user.id,
       senderName: user.firstName || "User",
       createdAt: new Date().toISOString(),
-      id: fn('uuid_generate_v4'), // Generate unique ID for message
     };
 
     timeline.push(messageEntry);
@@ -106,12 +122,14 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     await models.p2pActivityLog.create({
       userId: user.id,
       type: "MESSAGE_SENT",
-      entityId: trade.id,
-      entityType: "TRADE",
-      metadata: {
+      action: "MESSAGE_SENT",
+      relatedEntity: "TRADE",
+      relatedEntityId: trade.id,
+      details: JSON.stringify({
         messageLength: sanitizedMessage.length,
         recipientId: user.id === trade.buyerId ? trade.sellerId : trade.buyerId,
-      },
+        timestamp: new Date().toISOString(),
+      }),
     });
 
     // Send notification to the other party (non-blocking)

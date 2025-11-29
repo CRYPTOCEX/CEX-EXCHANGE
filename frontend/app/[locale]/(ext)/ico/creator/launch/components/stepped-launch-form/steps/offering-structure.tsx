@@ -115,14 +115,11 @@ export default function OfferingStructureStep({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-base font-medium">{t("offering_phases")}</h4>
+          <h4 className="text-base font-medium capitalize">{t("offering_phases")}</h4>
           <div className="flex items-center gap-2">
             {formData.selectedPlan && (
               <span className="text-sm text-muted-foreground">
-                {formData.phases.length}
-                _
-                {maxPhases}
-                {t("phases")}
+                {formData.phases.length}/{maxPhases} {t("phases")}
               </span>
             )}
             <Button

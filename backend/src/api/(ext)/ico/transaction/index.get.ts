@@ -40,7 +40,7 @@ export const metadata = {
     500: serverErrorResponse,
   },
   requiresAuth: true,
-  permission: "access.transaction",
+  // No permission required - endpoint is filtered by userId for user's own transactions
 };
 
 export default async (data: Handler) => {

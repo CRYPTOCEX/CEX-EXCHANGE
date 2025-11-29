@@ -100,7 +100,7 @@ export const metadata: OperationObject = {
     401: { description: "Unauthorized access" },
   },
   requiresAuth: true,
-  permission: "access.admin.dashboard",
+  // No permission required - endpoint filters by userId for user's own analytics
 };
 
 export default async function handler(data: Handler) {

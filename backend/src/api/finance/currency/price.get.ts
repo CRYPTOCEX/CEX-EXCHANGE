@@ -66,12 +66,6 @@ export default async (data: Handler) => {
   if (!user?.id) throw createError(401, "Unauthorized");
 
   const { currency, type } = query;
-  console.log(`[Currency Price API] Request received:`, {
-    userId: user.id,
-    currency,
-    type,
-    timestamp: new Date().toISOString()
-  });
 
   if (!currency || !type) {
     console.error("[Currency Price API] Missing required parameters:", { currency, type });
@@ -80,20 +74,15 @@ export default async (data: Handler) => {
 
   let priceUSD: number;
   try {
-    console.log(`[Currency Price API] Fetching ${type} price for ${currency}...`);
-
     switch (type) {
       case "FIAT":
         priceUSD = await getFiatPriceInUSD(currency);
-        console.log(`[Currency Price API] FIAT price fetched:`, { currency, priceUSD });
         break;
       case "SPOT":
         priceUSD = await getSpotPriceInUSD(currency);
-        console.log(`[Currency Price API] SPOT price fetched:`, { currency, priceUSD });
         break;
       case "ECO":
         priceUSD = await getEcoPriceInUSD(currency);
-        console.log(`[Currency Price API] ECO price fetched:`, { currency, priceUSD });
         break;
       default:
         console.error(`[Currency Price API] Invalid type:`, type);
@@ -115,7 +104,6 @@ export default async (data: Handler) => {
       console.warn(`[Currency Price API] Price is 0 for ${currency} (${type}) - no trading activity or unlisted token`);
     }
 
-    console.log(`[Currency Price API] Success:`, { currency, type, priceUSD });
     return {
       status: true,
       message: "Price in USD retrieved successfully",

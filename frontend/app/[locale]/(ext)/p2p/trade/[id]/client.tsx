@@ -25,6 +25,8 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
   };
 
   const p2pEnabled = getBooleanSetting(settings?.p2pEnabled);
+  const isTradeDisputeEnabled = getBooleanSetting(settings?.isTradeDisputeEnabled);
+  const isEscrowEnabled = getBooleanSetting(settings?.isEscrowEnabled);
 
   if (settings.isMaintenanceMode) {
     return (
@@ -55,8 +57,7 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
   }
 
   // Display warning if certain features are disabled but still allow viewing the trade
-  const hasDisabledFeatures =
-    !settings.isTradeDisputeEnabled || !settings.isEscrowEnabled;
+  const hasDisabledFeatures = !isTradeDisputeEnabled || !isEscrowEnabled;
 
   return (
     <>
@@ -66,12 +67,12 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
           <AlertTitle className="text-amber-900 dark:text-amber-200">{t("limited_functionality")}</AlertTitle>
           <AlertDescription className="text-amber-800 dark:text-amber-300">
             {t("some_trade_features_are_currently_disabled")}
-            {!settings.isTradeDisputeEnabled && (
+            {!isTradeDisputeEnabled && (
               <span className="block mt-2">
                 {t("•_trade_dispute_resolution_is_unavailable")}
               </span>
             )}
-            {!settings.isEscrowEnabled && (
+            {!isEscrowEnabled && (
               <span className="block">
                 {t("•_escrow_services_are_unavailable")}
               </span>

@@ -57,6 +57,16 @@ export default async (data: { params?: any; user?: any }) => {
         { association: "buyer", attributes: ["id", "firstName", "lastName", "email", "avatar"] },
         { association: "seller", attributes: ["id", "firstName", "lastName", "email", "avatar"] },
         { association: "dispute" },
+        {
+          association: "paymentMethodDetails",
+          attributes: ["id", "name", "icon", "processingTime", "instructions"],
+          required: false
+        },
+        {
+          association: "offer",
+          attributes: ["id", "currency", "priceCurrency", "walletType", "type"],
+          required: false
+        },
       ],
     });
 

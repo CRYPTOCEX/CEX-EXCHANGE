@@ -99,13 +99,12 @@ export default function PaymentStep({
           ) : (
             <>
               <p className="text-sm">
-                <span className="font-medium">{t("wallet_balance")}</span>{" "}
+                <span className="font-medium">{t("wallet_balance")}:</span>{" "}
                 {walletBalance.toFixed(2)} {plan.currency}
               </p>
               <p className="text-sm">
-                <span className="font-medium">{t("plan_cost")}</span>
-                / $
-                {planCost} {plan.currency}
+                <span className="font-medium">{t("plan_cost")}:</span> {planCost}{" "}
+                {plan.currency}
               </p>
               {!hasSufficientBalance && (
                 <p className="text-sm text-destructive">
@@ -154,7 +153,7 @@ export default function PaymentStep({
 
       {isPaymentComplete && (
         <p className="text-sm font-medium text-green-600">
-          {t("payment_completed_successfully")}
+          {t("balance_verified_your_payment_will_be_processed_upon_submission")}
         </p>
       )}
     </div>

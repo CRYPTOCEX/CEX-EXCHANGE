@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
+import { useUserStore } from "@/store/user";
 
 interface Message {
   id: string;
@@ -55,23 +56,35 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [wasFocused, setWasFocused] = useState(false);
   const { toast } = useToast();
+  const { profile } = useUserStore();
 
-  // Mock user ID (in a real app, this would come from auth)
-  const currentUserId = "user123";
+  const currentUserId = profile?.id;
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         setFetchLoading(true);
-        const response = await fetch(`/api/trades/${tradeId}/messages`);
+        const response = await fetch(`/api/p2p/trade/${tradeId}/message`);
 
         if (!response.ok) {
           throw new Error("Failed to load messages");
         }
 
         const data = await response.json();
-        setMessages(data);
+
+        // Transform backend response to frontend format
+        const transformedMessages = data.map((msg: any) => ({
+          id: msg.id,
+          senderId: msg.senderId,
+          content: msg.message,
+          timestamp: msg.createdAt,
+          isSystem: false,
+        }));
+
+        setMessages(transformedMessages);
       } catch (error) {
         console.error("Error fetching messages:", error);
         toast({
@@ -96,7 +109,12 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+    // Restore focus if input was previously focused
+    if (wasFocused && inputRef.current && document.activeElement !== inputRef.current) {
+      inputRef.current.focus();
+      setWasFocused(false);
+    }
+  }, [messages, wasFocused]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -109,20 +127,35 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/trades/${tradeId}/messages`, {
+      const response = await fetch(`/api/p2p/trade/${tradeId}/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content: newMessage }),
+        body: JSON.stringify({ message: newMessage }),
       });
 
       if (!response.ok) {
         throw new Error("Failed to send message");
       }
 
-      const message = await response.json();
-      setMessages((prev) => [...prev, message]);
+      const result = await response.json();
+
+      // Check if response has data
+      if (!result.data) {
+        throw new Error(result.message || "Invalid response from server");
+      }
+
+      // Transform backend response to frontend format
+      const newMsg: Message = {
+        id: result.data.id,
+        senderId: result.data.senderId,
+        content: result.data.message,
+        timestamp: result.data.createdAt,
+        isSystem: false,
+      };
+
+      setMessages((prev) => [...prev, newMsg]);
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -137,8 +170,8 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col border-primary/10 dark:border-slate-700/50 dark:bg-slate-900/50">
-      <CardHeader className="pb-3 border-b dark:border-slate-700/50">
+    <Card className="h-[600px] flex flex-col border-primary/10 dark:border-zinc-700/50 dark:bg-zinc-900/50">
+      <CardHeader className="pb-3 border-b dark:border-zinc-700/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
@@ -184,7 +217,7 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
       <CardContent className="flex-1 overflow-y-auto pb-0 pt-4">
         {fetchLoading ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-sm text-muted-foreground dark:text-slate-400">
+            <p className="text-sm text-muted-foreground dark:text-zinc-400">
               {t("loading_messages")}.
             </p>
           </div>
@@ -192,7 +225,7 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex justify-center items-center h-full">
-                <p className="text-sm text-muted-foreground dark:text-slate-400">
+                <p className="text-sm text-muted-foreground dark:text-zinc-400">
                   {t("no_messages_yet")}. {t("start_the_conversation")}
                 </p>
               </div>
@@ -203,7 +236,7 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
                   className={`flex ${message.senderId === currentUserId ? "justify-end" : "justify-start"} ${message.isSystem ? "justify-center" : ""}`}
                 >
                   {message.isSystem ? (
-                    <div className="bg-muted dark:bg-slate-800/60 px-3 py-2 rounded-md text-sm text-center max-w-[80%] border border-border dark:border-slate-700/50">
+                    <div className="bg-muted dark:bg-zinc-800/60 px-3 py-2 rounded-md text-sm text-center max-w-[80%] border border-border dark:border-zinc-700/50">
                       <AlertCircle className="h-3 w-3 inline mr-1" />
                       {message.content}
                     </div>
@@ -231,7 +264,7 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
                           {counterparty.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="bg-muted dark:bg-slate-800/80 px-3 py-2 rounded-lg rounded-tl-none max-w-[80%] shadow-sm dark:shadow-slate-900/20">
+                      <div className="bg-muted dark:bg-zinc-800/80 px-3 py-2 rounded-lg rounded-tl-none max-w-[80%] shadow-sm dark:shadow-zinc-900/20">
                         <p>{message.content}</p>
                         <p className="text-xs text-muted-foreground text-right mt-1">
                           {new Date(message.timestamp).toLocaleTimeString([], {
@@ -279,9 +312,12 @@ export function TradeChat({ tradeId, counterparty }: TradeChat) {
             </Button>
           </div>
           <Input
+            ref={inputRef}
             placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onFocus={() => setWasFocused(true)}
+            onBlur={() => setWasFocused(false)}
             disabled={loading || fetchLoading}
             className="flex-1"
           />

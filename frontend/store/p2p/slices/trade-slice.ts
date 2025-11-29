@@ -171,13 +171,43 @@ export const createTradeSlice = (
         return;
       }
 
+      // Parse timeline if it's a JSON string
+      let timeline = data.timeline;
+      if (typeof timeline === 'string') {
+        try {
+          timeline = JSON.parse(timeline);
+        } catch (e) {
+          console.error('Failed to parse timeline JSON:', e);
+          timeline = [];
+        }
+      }
+
+      // Determine counterparty based on current user
+      const state = get();
+      const currentUserId = (state as any).user?.id;
+
+      // Determine if current user is buyer or seller
+      const isBuyer = data.buyerId === currentUserId;
+      const counterpartyData = isBuyer ? data.seller : data.buyer;
+
       // Convert string times to Date objects in timeline
       const processedData = {
         ...data,
-        timeline: data.timeline?.map((event: any) => ({
-          ...event,
+        type: isBuyer ? 'buy' : 'sell',
+        coin: data.currency,
+        counterparty: counterpartyData ? {
+          id: counterpartyData.id,
+          name: counterpartyData.name || `${counterpartyData.firstName || ''} ${counterpartyData.lastName || ''}`.trim(),
+          avatar: counterpartyData.avatar,
+          completedTrades: 0, // TODO: Get from backend
+          completionRate: 100, // TODO: Get from backend
+        } : undefined,
+        timeline: Array.isArray(timeline) ? timeline.map((event: any) => ({
+          title: event.event || event.title || 'Event',
+          description: event.message || event.description || '',
+          time: event.createdAt || event.time || new Date().toISOString(),
           createdAt: new Date(event.time || event.createdAt),
-        })),
+        })) : [],
       };
 
       set({ currentTrade: processedData, isLoadingTradeById: false });

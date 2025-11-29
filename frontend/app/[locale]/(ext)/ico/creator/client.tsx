@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -38,6 +38,7 @@ export default function CreatorDashboardClient() {
       ? searchParams.get("tab")!
       : "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   const { tokens, fetchTokens } = useCreatorStore();
 
@@ -60,6 +61,13 @@ export default function CreatorDashboardClient() {
     const currentTab = searchParams.get("tab");
     if (currentTab && validTabs.includes(currentTab)) {
       setActiveTab(currentTab);
+
+      // Scroll to tabs section if navigating from alert
+      if (searchParams.get("status")) {
+        setTimeout(() => {
+          tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     }
   }, [searchParams]);
 
@@ -143,22 +151,22 @@ export default function CreatorDashboardClient() {
       </div>
 
       {hasPendingTokens && (
-        <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">
-          <AlertCircle className="h-4 w-4 text-yellow-800" />
+        <Alert className="bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200">
+          <AlertCircle className="h-4 w-4 text-yellow-800 dark:text-yellow-400" />
           <AlertTitle>{t("pending_approval")}</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <span>
               {t("you_have_token_offerings_awaiting_approval")}.{" "}
               {t("our_team_is_reviewing_your_submission")}.
             </span>
-            <Button
-              variant="outline"
-              className="mt-2 sm:mt-0 border-yellow-300 text-yellow-800 hover:bg-yellow-100"
-            >
-              <Link href="/creator/tokens?status=pending">
+            <Link href="/ico/creator?tab=tokens&status=pending">
+              <Button
+                variant="outline"
+                className="mt-2 sm:mt-0 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
+              >
                 {t("view_pending_tokens")}
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -166,11 +174,12 @@ export default function CreatorDashboardClient() {
       {/* Just read stats from store; do NOT call fetchStats here */}
       <CreatorStats />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="space-y-6 pb-20"
-      >
+      <div ref={tabsRef}>
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-6 pb-20"
+        >
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="overview">{t("Overview")}</TabsTrigger>
           <TabsTrigger value="tokens">{t("my_tokens")}</TabsTrigger>
@@ -182,7 +191,7 @@ export default function CreatorDashboardClient() {
             <div className="lg:col-span-2">
               <CreatorPerformanceChart />
             </div>
-            <NotificationsCard />
+            <NotificationsCard filterType="ico" />
           </div>
         </TabsContent>
 
@@ -193,7 +202,8 @@ export default function CreatorDashboardClient() {
         <TabsContent value="investors">
           <CreatorInvestorsList />
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }

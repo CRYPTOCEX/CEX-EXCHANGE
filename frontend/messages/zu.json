@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• Eminye imisebenzi ingadinga imodi yesondlo sesistimu",
     "•_using_fallback_mode": "• Ukusebenzisa imodi yokubuyela emuva",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "Udinga ukumisa nokuvula okungenani umbhangqwana owodwa ukuze uphathele izimakethe."
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "Kufakwa..."
         }
       }
     }
@@ -6267,7 +6267,7 @@
     "your_offer_has_been_successfully_removed": "Ukunikezela Kwakho Kususiwe Ngempumelelo",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "Izimali zezimakethe zisuswa emholweni wokuthengisa. Izimali zamafa ziya kumqambi wokuqala ekuthengiseni kwesibili."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {

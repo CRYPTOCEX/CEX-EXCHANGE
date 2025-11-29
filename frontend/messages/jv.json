@@ -6285,7 +6285,8 @@
           }
         }
       }
-    }
+    },
+    "balance_verified_your_payment_will_be_processed_upon_submission": "Balance Verified Your Payment Will Be Processed Upon Submission"
   },
   "finance/deposit": {
     "Cancel": "Batal",

@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• Sesetengah operasi mungkin memerlukan mod penyelenggaraan sistem",
     "•_using_fallback_mode": "• Menggunakan mod sandaran",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "Anda perlu mengkonfigurasi dan mengaktifkan sekurang-kurangnya satu penyedia pertukaran untuk mengurus pasaran."
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "Mengimport..."
         }
       }
     }
@@ -6267,7 +6267,7 @@
     "your_offer_has_been_successfully_removed": "Tawaran Anda Telah Berjaya Dialih Keluar",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "Yuran pasaran ditolak daripada hasil jualan. Yuran royalti dibayar kepada pencipta asal untuk jualan sekunder."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {

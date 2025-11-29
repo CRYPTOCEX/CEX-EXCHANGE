@@ -65,6 +65,7 @@ interface AdminOfferStoreState {
   resumeOffering: (id: string) => Promise<void>;
   flagOffering: (id: string, notes: string) => Promise<void>;
   unflagOffering: (id: string) => Promise<void>;
+  deleteOffering: (id: string) => Promise<void>;
 }
 
 export interface IcoOfferResponse {
@@ -223,5 +224,19 @@ export const useAdminOfferStore = create<AdminOfferStoreState>((set) => ({
       set({ errorOffer: errMsg, isLoadingOffer: false });
       throw new Error(errMsg);
     }
+  },
+
+  deleteOffering: async (id: string) => {
+    set({ isLoadingOffer: true, errorOffer: null });
+    const { data, error } = await $fetch({
+      url: `/api/admin/ico/offer/${id}`,
+      method: "DELETE",
+    });
+    if (error) {
+      const errMsg = error || "Failed to delete offering";
+      set({ errorOffer: errMsg, isLoadingOffer: false });
+      throw new Error(errMsg);
+    }
+    set({ offering: null, isLoadingOffer: false });
   },
 }));

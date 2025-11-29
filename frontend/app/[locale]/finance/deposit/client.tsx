@@ -1666,7 +1666,7 @@ export function DepositForm() {
               <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = '/finance/transactions'}
+                  onClick={() => window.location.href = '/finance/history'}
                   className="flex-1"
                 >
                   View Transactions
@@ -3179,7 +3179,7 @@ export function DepositForm() {
                 <div className="flex gap-3 pt-4">
                   <Button
                     variant="outline"
-                    onClick={() => window.location.href = '/finance/transactions'}
+                    onClick={() => window.location.href = '/finance/history'}
                     className="flex-1"
                   >
                     View Transactions

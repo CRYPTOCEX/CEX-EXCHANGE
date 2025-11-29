@@ -38,6 +38,7 @@ export interface Order {
   profit?: number;
   closePrice?: number;
   mode: TradingMode;
+  profitPercentage?: number; // Profit percentage for this order's duration
 }
 
 export interface CompletedOrder {
@@ -471,7 +472,7 @@ export const useBinaryStore = create<BinaryState>()(
         },
 
         placeOrder: async (side, amount, expiryMinutes) => {
-          const { currentSymbol, currentPrice, balance, tradingMode, binaryMarkets } = get();
+          const { currentSymbol, currentPrice, balance, tradingMode, binaryMarkets, binaryDurations } = get();
 
           // Check if we have enough balance
           if (amount <= 0 || amount > balance) {
@@ -487,6 +488,10 @@ export const useBinaryStore = create<BinaryState>()(
             // Extract currency and pair from symbol using actual market data
             const currency = extractBaseCurrency(currentSymbol, binaryMarkets);
             const pair = extractQuoteCurrency(currentSymbol, binaryMarkets);
+
+            // Find the profit percentage for this duration
+            const duration = binaryDurations.find(d => d.duration === expiryMinutes);
+            const profitPercentage = duration?.profitPercentage || 87; // Default to 87% if not found
 
             // Calculate closedAt timestamp from expiryMinutes
             const closedAt = new Date(
@@ -525,6 +530,7 @@ export const useBinaryStore = create<BinaryState>()(
                   : Date.now(),
                 status: "PENDING",
                 mode: tradingMode,
+                profitPercentage, // Store the profit percentage with the order
               };
 
               // Update state only if API call was successful
@@ -807,7 +813,7 @@ export const useBinaryStore = create<BinaryState>()(
 
         fetchActiveOrders: async () => {
           try {
-            const { currentSymbol, tradingMode, binaryMarkets } = get();
+            const { currentSymbol, tradingMode, binaryMarkets, binaryDurations } = get();
             if (!currentSymbol) {
               return;
             }
@@ -824,17 +830,29 @@ export const useBinaryStore = create<BinaryState>()(
 
             if (!error && Array.isArray(data)) {
               // Transform the API response to match our Order interface
-              const activeOrders: Order[] = data.map((order: any) => ({
-                id: order.id,
-                symbol: order.symbol,
-                side: order.side,
-                amount: order.amount,
-                entryPrice: order.price,
-                expiryTime: new Date(order.closedAt).getTime(),
-                createdAt: new Date(order.createdAt).getTime(),
-                status: "PENDING", // All fetched orders should be pending
-                mode: order.isDemo ? "demo" : "real",
-              }));
+              const activeOrders: Order[] = data.map((order: any) => {
+                // Calculate duration in minutes
+                const expiryTime = new Date(order.closedAt).getTime();
+                const createdTime = new Date(order.createdAt).getTime();
+                const durationMinutes = Math.round((expiryTime - createdTime) / (60 * 1000));
+
+                // Find matching duration to get profit percentage
+                const duration = binaryDurations.find(d => d.duration === durationMinutes);
+                const profitPercentage = duration?.profitPercentage || 87; // Default to 87% if not found
+
+                return {
+                  id: order.id,
+                  symbol: order.symbol,
+                  side: order.side,
+                  amount: order.amount,
+                  entryPrice: order.price,
+                  expiryTime,
+                  createdAt: createdTime,
+                  status: "PENDING", // All fetched orders should be pending
+                  mode: order.isDemo ? "demo" : "real",
+                  profitPercentage, // Include profit percentage
+                };
+              });
 
               // Update the orders in state (replace existing ones to avoid duplicates)
               set((state) => ({
@@ -877,22 +895,27 @@ export const useBinaryStore = create<BinaryState>()(
                 (order.side === "RISE" && currentPrice > order.entryPrice) ||
                 (order.side === "FALL" && currentPrice < order.entryPrice);
 
-              const profitAmount = won ? order.amount * 0.88 : -order.amount;
+              // Use the actual profit percentage from the order, fallback to 87% if not available
+              const profitPercentageDecimal = (order.profitPercentage || 87) / 100;
+              const profitAmount = won ? order.amount * profitPercentageDecimal : -order.amount;
 
               // Update balance and P/L only if it matches current trading mode
               if (order.mode === tradingMode) {
+                // When winning: return investment + profit
+                // When losing: nothing (investment was already deducted)
+                const balanceChange = won ? order.amount + (order.amount * profitPercentageDecimal) : 0;
+
                 set({
-                  balance: get().balance + (won ? order.amount * 0.88 : 0),
+                  balance: get().balance + balanceChange,
                   netPL: get().netPL + profitAmount,
                   ...(tradingMode === "demo"
                     ? {
                         demoBalance:
-                          get().demoBalance + (won ? order.amount * 0.88 : 0),
+                          get().demoBalance + balanceChange,
                       }
                     : {
                         realBalance:
-                          (get().realBalance ?? 0) +
-                          (won ? order.amount * 0.88 : 0),
+                          (get().realBalance ?? 0) + balanceChange,
                       }),
                 });
               }

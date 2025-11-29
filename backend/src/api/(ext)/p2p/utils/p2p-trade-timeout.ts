@@ -2,6 +2,7 @@ import { models, sequelize } from "@b/db";
 import { Op } from "sequelize";
 import { getWalletSafe } from "@b/api/finance/wallet/utils";
 import { notifyTradeEvent } from "@b/api/(ext)/p2p/utils/notifications";
+import { parseAmountConfig } from "@b/api/(ext)/p2p/utils/json-parser";
 
 /**
  * P2P Trade Timeout Handler
@@ -51,6 +52,7 @@ export async function handleP2PTradeTimeouts() {
         }
 
         // If funds were locked (seller's funds), release them
+        // This applies to ALL wallet types including FIAT
         if (lockedTrade.status === "PENDING" || lockedTrade.status === "PAYMENT_SENT") {
           const sellerWallet = await getWalletSafe(
             lockedTrade.sellerId,
@@ -60,11 +62,14 @@ export async function handleP2PTradeTimeouts() {
 
           if (sellerWallet && sellerWallet.inOrder >= trade.amount) {
             // Release locked funds
-            await sellerWallet.update({
+            await models.wallet.update({
               inOrder: sellerWallet.inOrder - trade.amount,
-            }, { transaction });
+            }, {
+              where: { id: sellerWallet.id },
+              transaction
+            });
 
-            console.log(`[P2P] Released ${trade.amount} ${trade.offer.currency} for seller ${lockedTrade.sellerId}`);
+            console.log(`[P2P] Released ${trade.amount} ${trade.offer.currency} (${trade.offer.walletType}) for seller ${lockedTrade.sellerId}`);
           }
         }
 
@@ -91,10 +96,13 @@ export async function handleP2PTradeTimeouts() {
           });
 
           if (offer && offer.status === "ACTIVE") {
+            // Parse amountConfig with robust parser
+            const amountConfig = parseAmountConfig(offer.amountConfig);
+
             await offer.update({
               amountConfig: {
-                ...offer.amountConfig,
-                total: (offer.amountConfig.total || 0) + trade.amount,
+                ...amountConfig,
+                total: amountConfig.total + trade.amount,
               },
             }, { transaction });
           }

@@ -34,7 +34,20 @@ export const TABS = [
 export const FIELD_DEFINITIONS: FieldDefinition[] = [
   // General Settings
   {
-    key: "layoutSwitcher",
+    key: "siteTheme",
+    label: "Default Site Theme",
+    type: "select",
+    description: "Set the default theme for the entire site (light, dark, or follow system preference)",
+    category: "general",
+    subcategory: "UI Options",
+    options: [
+      { label: "Light", value: "light" },
+      { label: "Dark", value: "dark" },
+      { label: "System (Follow OS preference)", value: "system" },
+    ],
+  },
+  {
+    key: "themeSwitcher",
     label: "Theme Switcher",
     type: "switch",
     description: "Allow users to switch between light and dark themes",
@@ -52,15 +65,6 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
       { label: "Default", value: "DEFAULT" },
       { label: "Custom", value: "CUSTOM" },
     ],
-  },
-
-  {
-    key: "themeSwitcher",
-    label: "Theme Switcher",
-    type: "switch",
-    description: "Allow users to switch between light and dark themes",
-    category: "general",
-    subcategory: "UI Options",
   },
   {
     key: "floatingLiveChat",

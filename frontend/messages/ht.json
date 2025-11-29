@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• Kèk operasyon ka mande mòd antretyen sistèm",
     "•_using_fallback_mode": "• Itilize mòd ranplasman",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "Ou bezwen konfigire epi aktive omwen yon founisè echanj pou jere mache yo."
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "Ap enpòte..."
         }
       }
     }
@@ -6267,7 +6267,7 @@
     "your_offer_has_been_successfully_removed": "Òf Ou a te Retire ak Siksè",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "Frè mache yo dedwi nan lajan vant lan. Frè dwadotè yo ale bay kreyatè orijinal la nan vant segondè yo."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {

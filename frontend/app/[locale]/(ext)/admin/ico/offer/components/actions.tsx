@@ -10,6 +10,7 @@ import {
   PlayCircle,
   Flag,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -45,10 +46,12 @@ export function OfferingActions({
     resumeOffering,
     flagOffering,
     unflagOffering,
+    deleteOffering,
   } = useAdminOfferStore();
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
 
   const handleView = () => {
@@ -136,12 +139,30 @@ export function OfferingActions({
     }
   };
 
+  const handleDelete = async () => {
+    setProcessingId(offering.id);
+    try {
+      await deleteOffering(offering.id);
+      setDeleteDialogOpen(false);
+      // Redirect to offerings list
+      router.push("/admin/ico/offer");
+    } catch (error) {
+      console.error("Delete action failed:", error);
+      // Optionally, display a user-friendly error message.
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const isPending = offering.status === "PENDING";
   const isActive = offering.status === "ACTIVE";
+  const isRejected = offering.status === "REJECTED";
+  const isFailed = offering.status === "FAILED";
   const isCompleted =
     offering.status === "SUCCESS" || offering.status === "FAILED";
   const isPaused = offering.isPaused || false;
   const isFlagged = offering.isFlagged || false;
+  const canDelete = isPending || isRejected || isFailed;
 
   const renderActionButtons = () => {
     return (
@@ -231,6 +252,18 @@ export function OfferingActions({
             )}
           </>
         )}
+
+        {canDelete && (
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setDeleteDialogOpen(true)}
+            disabled={processingId === offering.id}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {t("Delete")}
+          </Button>
+        )}
       </div>
     );
   };
@@ -297,6 +330,29 @@ export function OfferingActions({
               disabled={!notes.trim() || processingId !== null}
             >
               {t("flag_offering")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Delete")} {t("Offering")}</DialogTitle>
+            <DialogDescription>
+              {t("Are you sure you want to delete this offering? This action cannot be undone.")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              {t("Cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={processingId !== null}
+            >
+              {t("Delete")} {t("Offering")}
             </Button>
           </DialogFooter>
         </DialogContent>

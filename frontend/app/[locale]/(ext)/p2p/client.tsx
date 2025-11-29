@@ -155,8 +155,7 @@ export default function P2PLandingClient() {
                   <>
                     <div className="flex flex-col items-center justify-center p-4 text-center">
                       <div className="text-3xl font-bold">
-                        / $
-                        {(stats.totalVolume / 1000000).toFixed(0)}
+                        ${(stats.totalVolume / 1000000).toFixed(0)}
                         {t("m+")}
                       </div>
                       <div className="text-sm text-muted-foreground">

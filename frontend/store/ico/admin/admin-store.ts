@@ -41,6 +41,7 @@ interface AdminStoreState {
   fetchCompletedOfferings: () => Promise<void>;
   fetchRejectedOfferings: () => Promise<void>;
   fetchAllOfferings: (params?: Record<string, any>) => Promise<void>;
+  deleteOffering: (id: string) => Promise<boolean>;
 }
 
 export const useAdminStore = create<AdminStoreState>((set, get) => ({
@@ -147,6 +148,32 @@ export const useAdminStore = create<AdminStoreState>((set, get) => ({
     } else {
       set({ error: error || "Failed to fetch offerings", isLoading: false });
       return [];
+    }
+  },
+
+  deleteOffering: async (id: string) => {
+    set({ isLoading: true, error: null });
+    const { data, error } = await $fetch({
+      url: `/api/admin/ico/offer/${id}`,
+      method: "DELETE",
+      silent: false,
+    });
+
+    if (!error) {
+      // Remove the offering from all local arrays
+      const state = get();
+      set({
+        pendingOfferings: state.pendingOfferings.filter((o) => o.id !== id),
+        activeOfferings: state.activeOfferings.filter((o) => o.id !== id),
+        completedOfferings: state.completedOfferings.filter((o) => o.id !== id),
+        rejectedOfferings: state.rejectedOfferings.filter((o) => o.id !== id),
+        allOfferings: state.allOfferings.filter((o) => o.id !== id),
+        isLoading: false,
+      });
+      return true;
+    } else {
+      set({ error: error || "Failed to delete offering", isLoading: false });
+      return false;
     }
   },
 }));

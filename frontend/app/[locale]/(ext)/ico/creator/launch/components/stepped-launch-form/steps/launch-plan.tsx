@@ -151,7 +151,7 @@ export default function LaunchPlanStep({
         </div>
 
         <TabsContent value="cards" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start pt-6">
             {launchPlans.map((plan, index) => {
               const isSelected = selectedPlan?.id === plan.id;
               return (
@@ -169,55 +169,57 @@ export default function LaunchPlanStep({
                     duration: 0.3,
                     delay: index * 0.1,
                   }}
-                  className="relative mt-2"
+                  className="relative"
                 >
+                  {plan.recommended && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 w-full flex justify-center px-4">
+                      <div className="flex items-center gap-2 border-2 border-amber-400 dark:border-amber-500 bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 sm:px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                        <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm font-semibold">
+                          Most Popular
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <Card
                     className={cn(
-                      "relative overflow-visible transition-all duration-300 h-full",
+                      "relative overflow-hidden transition-all duration-300 h-full rounded-xl flex flex-col",
                       isSelected
                         ? "border-primary ring-2 ring-primary ring-opacity-50 shadow-lg"
                         : "hover:border-primary/50 hover:shadow-md"
                     )}
                   >
-                    {plan.recommended && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                        <div className="flex items-center gap-2 border border-yellow-500 bg-yellow-50 text-yellow-800 px-3 py-1 rounded-full">
-                          <Sparkles className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm font-medium">
-                            Most Popular
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
                     <CardHeader
                       className={cn(
-                        "transition-colors duration-300 bg-card",
-                        isSelected ? "bg-primary/5" : ""
+                        "transition-all duration-300 relative rounded-t-xl pb-6",
+                        isSelected
+                          ? "bg-gradient-to-br from-primary/10 via-primary/5 to-card dark:from-primary/20 dark:via-primary/10"
+                          : "bg-gradient-to-br from-muted/30 to-card",
+                        plan.recommended && "pt-10 sm:pt-8"
                       )}
                     >
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-xl">{plan.name}</CardTitle>
                       </div>
-                      <CardDescription className="min-h-[40px]">
+                      <CardDescription className="min-h-[40px] text-muted-foreground">
                         {plan.description}
                       </CardDescription>
-                      <div className="mt-2">
-                        <div className="flex items-baseline">
-                          <span className="text-3xl font-bold">
+                      <div className="mt-4 pt-4 border-t border-border/50">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                             {plan.price}
                           </span>
-                          <span className="ml-1 text-sm text-muted-foreground">
+                          <span className="text-lg font-semibold text-muted-foreground">
                             {plan.currency}
                           </span>
                         </div>
                       </div>
                     </CardHeader>
 
-                    <CardContent className="h-[320px] overflow-y-auto bg-card">
+                    <CardContent className="flex-1 overflow-y-auto pt-6 pb-4">
                       <ul className="space-y-3">
                         <motion.li
-                          className="flex items-start"
+                          className="flex items-start group"
                           initial={{
                             opacity: 0,
                             x: -10,
@@ -230,8 +232,10 @@ export default function LaunchPlanStep({
                             duration: 0.2,
                           }}
                         >
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                          <span className="text-sm">
+                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
+                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          </div>
+                          <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
                             Up to{" "}
                             {plan.features.maxTeamMembers === 999
                               ? "unlimited"
@@ -240,7 +244,7 @@ export default function LaunchPlanStep({
                           </span>
                         </motion.li>
                         <motion.li
-                          className="flex items-start"
+                          className="flex items-start group"
                           initial={{
                             opacity: 0,
                             x: -10,
@@ -254,8 +258,10 @@ export default function LaunchPlanStep({
                             delay: 0.05,
                           }}
                         >
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                          <span className="text-sm">
+                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
+                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          </div>
+                          <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
                             Up to{" "}
                             {plan.features.maxRoadmapItems === 999
                               ? "unlimited"
@@ -264,7 +270,7 @@ export default function LaunchPlanStep({
                           </span>
                         </motion.li>
                         <motion.li
-                          className="flex items-start"
+                          className="flex items-start group"
                           initial={{
                             opacity: 0,
                             x: -10,
@@ -278,8 +284,10 @@ export default function LaunchPlanStep({
                             delay: 0.1,
                           }}
                         >
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                          <span className="text-sm">
+                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
+                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          </div>
+                          <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
                             {plan.features.maxOfferingPhases === 999
                               ? "Unlimited"
                               : plan.features.maxOfferingPhases}{" "}
@@ -287,7 +295,7 @@ export default function LaunchPlanStep({
                           </span>
                         </motion.li>
                         <motion.li
-                          className="flex items-start"
+                          className="flex items-start group"
                           initial={{
                             opacity: 0,
                             x: -10,
@@ -301,8 +309,10 @@ export default function LaunchPlanStep({
                             delay: 0.15,
                           }}
                         >
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                          <span className="text-sm">
+                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
+                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          </div>
+                          <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
                             {plan.features.maxUpdatePosts === 999
                               ? "Unlimited"
                               : plan.features.maxUpdatePosts}{" "}
@@ -310,7 +320,7 @@ export default function LaunchPlanStep({
                           </span>
                         </motion.li>
                         <motion.li
-                          className="flex items-start"
+                          className="flex items-start group"
                           initial={{
                             opacity: 0,
                             x: -10,
@@ -324,8 +334,10 @@ export default function LaunchPlanStep({
                             delay: 0.15,
                           }}
                         >
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mr-2" />
-                          <span className="text-sm">
+                          <div className="flex-shrink-0 mr-3 mt-0.5 rounded-full bg-primary/10 dark:bg-primary/20 p-1">
+                            <Check className="h-4 w-4 text-primary dark:text-primary-foreground" />
+                          </div>
+                          <span className="text-sm leading-relaxed group-hover:text-foreground transition-colors">
                             {plan.features.supportLevel === "basic"
                               ? "Standard support"
                               : plan.features.supportLevel === "standard"
@@ -335,7 +347,7 @@ export default function LaunchPlanStep({
                         </motion.li>
                         {plan.features.marketingSupport && (
                           <motion.li
-                            className="flex items-start"
+                            className="flex items-start group"
                             initial={{
                               opacity: 0,
                               x: -10,
@@ -357,7 +369,7 @@ export default function LaunchPlanStep({
                         )}
                         {plan.features.auditIncluded && (
                           <motion.li
-                            className="flex items-start"
+                            className="flex items-start group"
                             initial={{
                               opacity: 0,
                               x: -10,
@@ -379,7 +391,7 @@ export default function LaunchPlanStep({
                         )}
                         {plan.features.customTokenomics && (
                           <motion.li
-                            className="flex items-start"
+                            className="flex items-start group"
                             initial={{
                               opacity: 0,
                               x: -10,
@@ -399,7 +411,7 @@ export default function LaunchPlanStep({
                         )}
                         {plan.features.priorityListing && (
                           <motion.li
-                            className="flex items-start"
+                            className="flex items-start group"
                             initial={{
                               opacity: 0,
                               x: -10,
@@ -420,14 +432,10 @@ export default function LaunchPlanStep({
                       </ul>
                     </CardContent>
 
-                    <CardFooter className="bg-card border-t">
+                    <CardFooter className="mt-auto pt-4 pb-6 px-6 border-t border-border/30">
                       <Button
-                        className={cn(
-                          "w-full transition-all duration-300",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
-                        )}
+                        variant={isSelected ? "default" : "outline"}
+                        className="w-full"
                         onClick={() => handleSelectPlan(plan)}
                       >
                         {isSelected ? (
@@ -444,18 +452,18 @@ export default function LaunchPlanStep({
                               exit={{
                                 opacity: 0,
                               }}
-                              className="flex items-center"
+                              className="flex items-center justify-center"
                             >
                               <Check className="mr-2 h-4 w-4" /> Selected
                             </motion.span>
                           ) : (
-                            <span className="flex items-center">
+                            <span className="flex items-center justify-center">
                               <Check className="mr-2 h-4 w-4" /> Selected
                             </span>
                           )
                         ) : (
-                          <span className="flex items-center">
-                            Select {plan.name}{" "}
+                          <span className="flex items-center justify-center">
+                            Select {plan.name}
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </span>
                         )}

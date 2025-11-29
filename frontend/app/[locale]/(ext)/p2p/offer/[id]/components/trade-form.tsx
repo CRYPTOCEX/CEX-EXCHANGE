@@ -52,6 +52,7 @@ export function TradeForm({
   const router = useRouter();
   const { toast } = useToast();
   const [amount, setAmount] = useState<string>("");
+  const [total, setTotal] = useState<string>("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,6 +105,28 @@ export function TradeForm({
     // Allow only numbers and decimals
     if (/^\d*\.?\d*$/.test(value)) {
       setAmount(value);
+      // Update total based on amount
+      if (value && price > 0) {
+        const calculatedTotal = Number.parseFloat(value) * price;
+        setTotal(calculatedTotal.toFixed(2));
+      } else {
+        setTotal("");
+      }
+    }
+  };
+
+  const handleTotalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and decimals
+    if (/^\d*\.?\d*$/.test(value)) {
+      setTotal(value);
+      // Update amount based on total
+      if (value && price > 0) {
+        const calculatedAmount = Number.parseFloat(value) / price;
+        setAmount(calculatedAmount.toString());
+      } else {
+        setAmount("");
+      }
     }
   };
 
@@ -114,7 +137,7 @@ export function TradeForm({
   // Calculate total price in the price currency (EUR, USD, etc.)
   // Price is always: priceCurrency per crypto
   // So: totalPrice (EUR/USD) = amount (crypto) * price (EUR/USD per crypto)
-  const totalPrice = Number.parseFloat(amount || "0") * price || 0;
+  const totalPrice = total ? Number.parseFloat(total) : (Number.parseFloat(amount || "0") * price || 0);
 
   // Min/max amounts are stored in FIAT currency (EUR, USD, etc.)
   // When trading crypto, we need to convert to crypto amounts
@@ -137,6 +160,10 @@ export function TradeForm({
   // For display purposes
   const minAmountDisplay = formatAmount(minAmount, currencyCode);
   const maxAmountDisplay = formatAmount(maxAmount, currencyCode);
+
+  // Calculate min/max for total in price currency
+  const minTotal = minAmount * price;
+  const maxTotal = maxAmount * price;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +258,7 @@ export function TradeForm({
 
       // Redirect to trade page
       setTimeout(() => {
-        router.push(`/p2p/trade/${data.id}`);
+        router.push(`/p2p/trade/${data.trade.id}`);
       }, 500);
     } catch (error: any) {
       console.error("Error creating trade:", error);
@@ -279,7 +306,18 @@ export function TradeForm({
 
       if (error) {
         console.error("API returned error:", error);
-        throw new Error(typeof error === "string" ? error : "Failed to remove offer");
+        // Extract meaningful error message
+        const errorMessage = typeof error === "string"
+          ? error
+          : error?.message || JSON.stringify(error) || "Failed to remove offer";
+
+        toast({
+          title: t("error") || "Error",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 10000, // Show error for 10 seconds
+        });
+        return; // Don't throw, just return to prevent further processing
       }
 
       console.log("Offer removed successfully");
@@ -294,10 +332,12 @@ export function TradeForm({
       }, 500);
     } catch (error: any) {
       console.error("Error removing offer:", error);
+      const errorMessage = error?.message || error?.toString() || t("failed_to_remove_offer") || "Failed to remove offer";
       toast({
         title: t("error") || "Error",
-        description: error.message || t("failed_to_remove_offer") || "Failed to remove offer",
+        description: errorMessage,
         variant: "destructive",
+        duration: 10000, // Show error for 10 seconds
       });
     } finally {
       setIsDisabling(false);
@@ -508,18 +548,24 @@ export function TradeForm({
             <div className="relative">
               <Input
                 id="total"
-                value={totalPrice.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-                readOnly
-                className="bg-muted/20 pr-16"
+                placeholder={`${minTotal.toFixed(2)} - ${maxTotal.toFixed(2)}`}
+                value={total}
+                onChange={handleTotalChange}
+                className="pr-16"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <span className="text-sm font-medium text-muted-foreground">
                   {priceCurrency}
                 </span>
               </div>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">
+                min {minTotal.toFixed(2)} {priceCurrency}
+              </span>
+              <span className="text-muted-foreground">
+                {t("max")} {maxTotal.toFixed(2)} {priceCurrency}
+              </span>
             </div>
           </div>
 
@@ -608,7 +654,7 @@ export function TradeForm({
             <Timer className="h-4 w-4 mt-0.5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">
-                {t("time_limit")}: {timeLimit} {t("minutes")}
+                {t("time_limit")} {timeLimit} {t("minutes")}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t("once_you_start_the_trade_you_will_have")} {timeLimit} {t("minutes_to_complete_the_payment")}.
@@ -620,28 +666,16 @@ export function TradeForm({
             type="submit"
             className="w-full"
             disabled={(() => {
+              const amountValue = Number.parseFloat(amount || "0");
+              // Use a small epsilon for floating-point comparison to avoid precision issues
+              const epsilon = minAmount * 0.0001; // 0.01% tolerance
               const disabled =
                 isSubmitting ||
                 !amount ||
-                Number.parseFloat(amount) < minAmount ||
-                Number.parseFloat(amount) > maxAmount ||
+                amountValue < (minAmount - epsilon) ||
+                amountValue > maxAmount ||
                 settings.p2pMaintenanceMode ||
                 !selectedPaymentMethod;
-
-              if (disabled) {
-                console.log("Buy button disabled. Reasons:", {
-                  isSubmitting,
-                  noAmount: !amount,
-                  belowMin: Number.parseFloat(amount) < minAmount,
-                  aboveMax: Number.parseFloat(amount) > maxAmount,
-                  maintenanceMode: settings.p2pMaintenanceMode,
-                  noPaymentMethod: !selectedPaymentMethod,
-                  amount,
-                  minAmount,
-                  maxAmount,
-                  selectedPaymentMethod
-                });
-              }
 
               return disabled;
             })()}

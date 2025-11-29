@@ -2483,7 +2483,7 @@
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "Importando..."
         }
       }
     }
@@ -6267,13 +6267,13 @@
     "your_offer_has_been_successfully_removed": "A túa oferta foi eliminada correctamente",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "As taxas do mercado dedúcense dos ingresos da venda. As taxas de dereitos de autor van ao creador orixinal nas vendas secundarias."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {
       " Users provide IPFS URLs for their NFT assets and metadata": {
         " File size and format restrictions are enforced by IPFS, not by the platform": {
-          "": ""
+          "": "Este mercado usa IPFS para o almacenamento descentralizado de NFT. Os usuarios proporcionan URL de IPFS para os seus activos e metadatos de NFT. As restricións de tamaño e formato de ficheiros son aplicadas por IPFS, non pola plataforma."
         }
       }
     },

@@ -43,30 +43,69 @@ export default async (data: { user?: any }) => {
           status: "DISPUTED",
           [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
         },
+        include: [
+          {
+            association: "paymentMethodDetails",
+            attributes: ["id", "name", "icon"],
+            required: false
+          },
+          {
+            association: "offer",
+            attributes: ["id", "priceCurrency"],
+            required: false
+          }
+        ],
         limit: 7,
         order: [["updatedAt", "DESC"]],
-        raw: true,
       }),
       models.p2pTrade.findAll({
         where: {
           status: { [Op.in]: ["IN_PROGRESS", "PENDING", "PAYMENT_SENT"] },
           [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
         },
+        include: [
+          {
+            association: "paymentMethodDetails",
+            attributes: ["id", "name", "icon"],
+            required: false
+          },
+          {
+            association: "offer",
+            attributes: ["id", "priceCurrency"],
+            required: false
+          }
+        ],
         order: [["updatedAt", "DESC"]],
-        raw: true,
       }),
       models.p2pTrade.findAll({
         where: {
           status: "PENDING",
           [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
         },
+        include: [
+          {
+            association: "paymentMethodDetails",
+            attributes: ["id", "name", "icon"],
+            required: false
+          },
+          {
+            association: "offer",
+            attributes: ["id", "priceCurrency"],
+            required: false
+          }
+        ],
         order: [["createdAt", "DESC"]],
-        raw: true,
       }),
       // For calculating stats and volume
       models.p2pTrade.findAll({
         where: { [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
-        raw: true,
+        include: [
+          {
+            association: "offer",
+            attributes: ["id", "priceCurrency"],
+            required: false
+          }
+        ],
       }),
       models.p2pActivityLog.findAll({
         where: {
@@ -80,7 +119,7 @@ export default async (data: { user?: any }) => {
     ]);
 
     // ------ 2. Calculations ------
-    const totalVolume = trades.reduce((sum, t) => sum + (t.fiatAmount || 0), 0);
+    const totalVolume = trades.reduce((sum, t) => sum + (t.total || t.fiatAmount || 0), 0);
 
     const avgCompletionTime = (() => {
       const completed = trades.filter(
@@ -113,17 +152,30 @@ export default async (data: { user?: any }) => {
 
     // ------ 4. Format trades for frontend ------
     function formatTrade(trade) {
+      const tradeData = trade.toJSON ? trade.toJSON() : trade;
+
+      // Real-time expiration check
+      let status = tradeData.status;
+      if (status === 'PENDING' && tradeData.expiresAt) {
+        const now = new Date();
+        const expiresAt = new Date(tradeData.expiresAt);
+        if (expiresAt < now) {
+          status = 'EXPIRED';
+        }
+      }
+
       return {
-        id: trade.id,
-        type: trade.buyerId === user.id ? "BUY" : "SELL",
-        coin: trade.coin || trade.crypto || "N/A",
-        amount: trade.amount,
-        fiatAmount: trade.fiatAmount,
-        price: trade.price,
-        counterparty: getCounterparty(trade),
-        status: trade.status,
-        date: trade.updatedAt || trade.createdAt,
-        paymentMethod: trade.paymentMethod || null,
+        id: tradeData.id,
+        type: tradeData.buyerId === user.id ? "BUY" : "SELL",
+        coin: tradeData.currency || tradeData.coin || tradeData.crypto || "N/A",
+        amount: tradeData.amount,
+        fiatAmount: tradeData.total || tradeData.fiatAmount || 0,
+        price: tradeData.price,
+        counterparty: getCounterparty(tradeData),
+        status: status,
+        date: tradeData.updatedAt || tradeData.createdAt,
+        paymentMethod: tradeData.paymentMethodDetails?.name || tradeData.paymentMethod || null,
+        priceCurrency: tradeData.offer?.priceCurrency || "USD",
       };
     }
 

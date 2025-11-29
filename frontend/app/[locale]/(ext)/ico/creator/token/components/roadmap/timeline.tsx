@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-const t = useTranslations("ext");
+
 type icoRoadmapItemAttributes = {
   id: string;
   title: string;
@@ -38,6 +38,7 @@ export function RoadmapTimeline({
   onDelete,
   onToggleComplete,
 }: RoadmapTimelineProps) {
+  const t = useTranslations("ext");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     Object.keys(groupedByDate).reduce(
       (acc, key) => {

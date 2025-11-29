@@ -143,13 +143,33 @@ export default async (data: Handler) => {
 
     let activeWallets = 0;
 
+    // Get pending deposits for this user to include in estimated balance
+    const pendingDeposits = await models.transaction.findAll({
+      where: {
+        userId: user.id,
+        type: "DEPOSIT",
+        status: "PENDING"
+      },
+      attributes: ["walletId", "amount", "fee"]
+    });
+
+    // Create a map of walletId -> pending deposit amount
+    const pendingDepositMap = new Map<string, number>();
+    for (const deposit of pendingDeposits) {
+      const netAmount = (parseFloat(deposit.amount) || 0) - (parseFloat(deposit.fee) || 0);
+      const currentPending = pendingDepositMap.get(deposit.walletId) || 0;
+      pendingDepositMap.set(deposit.walletId, currentPending + netAmount);
+    }
+
     // Process each wallet with proper price fetching
     for (const wallet of wallets) {
       const balance = parseFloat(wallet.balance) || 0;
+      const pendingDeposit = pendingDepositMap.get(wallet.id) || 0;
+      const estimatedBalance = balance + pendingDeposit; // Include pending deposits in estimated balance
       const type = wallet.type || 'SPOT';
-      
-      // Count active wallets (balance > 0)
-      if (balance > 0) {
+
+      // Count active wallets (balance > 0 or has pending deposits)
+      if (estimatedBalance > 0) {
         activeWallets++;
       }
 
@@ -160,7 +180,7 @@ export default async (data: Handler) => {
 
       // Count wallets by type
       walletsByType[type].count++;
-      walletsByType[type].balance += balance;
+      walletsByType[type].balance += estimatedBalance; // Use estimated balance (includes pending deposits)
 
       // Get price for USD conversion using existing utility functions
       let price = 0;
@@ -186,7 +206,7 @@ export default async (data: Handler) => {
         }
       }
 
-      const balanceUSD = balance * price;
+      const balanceUSD = estimatedBalance * price; // Use estimated balance for USD calculation
       walletsByType[type].balanceUSD += balanceUSD;
       totalBalanceUSD += balanceUSD;
     }

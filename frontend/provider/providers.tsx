@@ -118,11 +118,18 @@ const Providers = ({
   settings,
   extensions,
 }: ProvidersProps) => {
+  // Get default theme from settings, fallback to environment variable, then 'system' as last fallback
+  const defaultTheme = (
+    settings?.siteTheme ||
+    process.env.NEXT_PUBLIC_DEFAULT_THEME ||
+    "system"
+  ) as "light" | "dark" | "system";
+
   return (
       <ThemeProvider
         attribute="class"
-        enableSystem={true}
-        defaultTheme="system"
+        enableSystem={defaultTheme === "system"}
+        defaultTheme={defaultTheme}
         disableTransitionOnChange={false}
       >
         <ConfigInitializer

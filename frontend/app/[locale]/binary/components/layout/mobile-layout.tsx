@@ -146,6 +146,7 @@ export default function MobileLayout({
         onAddMarket={addMarket}
         onRemoveMarket={removeMarket}
         handleMarketSelect={handleMarketSelect}
+        onTradingModeChange={handleTradingModeChange}
       />
 
       {/* Main content area with absolute positioning for panels */}

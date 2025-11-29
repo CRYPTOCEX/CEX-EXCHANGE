@@ -72,7 +72,7 @@ export default function LaunchPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                    1:
+                    1
                   </div>
                   <h3 className="font-medium">{t("submit_application")}</h3>
                 </div>
@@ -122,7 +122,7 @@ export default function LaunchPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                    / 5
+                    5
                   </div>
                   <h3 className="font-medium">{t("Launch")}</h3>
                 </div>

@@ -67,7 +67,7 @@ export default function TeamMembersStep({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-base font-medium">{t("team_members")}</h4>
+        <h4 className="text-base font-medium capitalize">{t("team_members")}</h4>
         <div className="flex items-center gap-2">
           {formData.selectedPlan && (
             <span className="text-sm text-muted-foreground">

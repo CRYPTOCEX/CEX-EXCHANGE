@@ -346,8 +346,7 @@ export default function DashboardClient() {
                   {t("total_sales")}
                 </p>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
-                  / $
-                  {stats?.totalRevenue?.toLocaleString("en-US", {
+                  ${stats?.totalRevenue?.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                   }) || "0.00"}
                 </p>
@@ -466,8 +465,7 @@ export default function DashboardClient() {
                         </div>
                         <div className="text-right">
                           <div className="font-medium text-gray-900 dark:text-white">
-                            / $
-                            {(order.total || 0).toFixed(2)}
+                            ${(order.total || 0).toFixed(2)}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
                             {order.customer?.name || "Guest"}
@@ -621,8 +619,7 @@ export default function DashboardClient() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            / $
-                            {product.price?.toFixed(2)}
+                            ${product.price?.toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {product.soldCount || 0} {t("sold")}

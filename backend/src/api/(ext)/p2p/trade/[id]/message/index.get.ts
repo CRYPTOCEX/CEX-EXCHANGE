@@ -40,7 +40,31 @@ export default async (data: { params?: any; user?: any }) => {
       raw: true,
     });
     if (!trade) return { error: "Trade not found" };
-    const messages = trade.timeline || [];
+
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === 'string') {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error('Failed to parse timeline JSON:', e);
+        timeline = [];
+      }
+    }
+
+    // Filter only MESSAGE events from timeline
+    const messages = Array.isArray(timeline)
+      ? timeline
+          .filter((entry: any) => entry.event === "MESSAGE")
+          .map((entry: any) => ({
+            id: entry.id || entry.createdAt,
+            message: entry.message,
+            senderId: entry.senderId,
+            senderName: entry.senderName || "User",
+            createdAt: entry.createdAt,
+          }))
+      : [];
+
     return messages;
   } catch (err: any) {
     throw new Error("Internal Server Error: " + err.message);

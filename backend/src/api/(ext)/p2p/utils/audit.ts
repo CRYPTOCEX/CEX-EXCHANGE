@@ -193,13 +193,7 @@ async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel): P
     //   timestamp: new Date().toISOString(),
     // });
     
-    // Log to security monitoring system
-    console.warn("P2P Security Alert:", {
-      eventType: log.eventType,
-      riskLevel,
-      userId: log.userId,
-      entityId: log.entityId,
-    });
+    // TODO: Send to security monitoring system
   } catch (error) {
     console.error("Failed to create security alert:", error);
   }

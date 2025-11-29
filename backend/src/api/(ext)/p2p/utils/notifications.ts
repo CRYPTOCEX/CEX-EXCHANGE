@@ -30,21 +30,27 @@ export async function notifyTradeEvent(
       return;
     }
 
-    // Log notification event
-    console.log(`P2P Trade Event: ${event}`, { tradeId, data });
-
-    // TODO: Implement actual notification sending
-    // This would integrate with your notification service
-    // For now, just log the notification details
-    
     const recipients = await getRecipientsForEvent(trade, event, data);
-    
+
+    // Create in-app notifications for each recipient
     for (const recipient of recipients) {
-      console.log(`Would send notification to user ${recipient.userId}:`, {
-        title: recipient.title,
-        message: recipient.message,
-        type: "P2P_TRADE",
-      });
+      try {
+        await models.notification.create({
+          userId: recipient.userId,
+          type: 'P2P_TRADE',
+          title: recipient.title,
+          message: recipient.message,
+          link: `/p2p/trade/${tradeId}`,
+          read: false,
+        });
+
+        // TODO: Optionally send email notifications
+        // if (recipient.sendEmail) {
+        //   await sendEmail(recipient.email, recipient.title, recipient.message);
+        // }
+      } catch (notifError) {
+        console.error(`Failed to create notification for user ${recipient.userId}:`, notifError);
+      }
     }
 
   } catch (error) {
@@ -229,10 +235,7 @@ export async function notifyAdmins(
       }],
     });
 
-    for (const admin of admins) {
-      console.log(`Would notify admin ${admin.id} about ${event}:`, data);
-      // TODO: Implement actual admin notification
-    }
+    // TODO: Implement actual admin notification for admins
   } catch (error) {
     console.error("Failed to notify admins:", error);
   }
@@ -271,10 +274,7 @@ export async function notifyOfferEvent(
         break;
     }
 
-    if (title && message) {
-      console.log(`Would notify user ${offer.user.id}:`, { title, message });
-      // TODO: Implement actual notification
-    }
+    // TODO: Implement actual notification
   } catch (error) {
     console.error("Failed to send offer notification:", error);
   }
@@ -307,10 +307,7 @@ export async function notifyReputationEvent(
         break;
     }
 
-    if (title && message) {
-      console.log(`Would notify user ${userId}:`, { title, message });
-      // TODO: Implement actual notification
-    }
+    // TODO: Implement actual notification
   } catch (error) {
     console.error("Failed to send reputation notification:", error);
   }

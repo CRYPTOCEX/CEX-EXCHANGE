@@ -1,6 +1,11 @@
 import { models, sequelize } from "@b/db";
 import { unauthorizedResponse, serverErrorResponse } from "@b/utils/query";
 import { Op } from "sequelize";
+import {
+  getFiatPriceInUSD,
+  getSpotPriceInUSD,
+  getEcoPriceInUSD,
+} from "@b/api/finance/currency/utils";
 
 export const metadata = {
   summary: "Get P2P Dashboard Data",
@@ -95,10 +100,29 @@ export default async (data: { user?: any }) => {
       const completedTrades = parseInt(tradeStats?.completedCount || "0");
       const successRate = totalTrades > 0 ? ((completedTrades / totalTrades) * 100).toFixed(1) : "0";
 
-      // Calculate total balance from wallets
-      const totalBalance = wallets.reduce((sum: number, wallet: any) => {
-        return sum + parseFloat(wallet.balance || 0);
-      }, 0);
+      // Calculate total balance from wallets in USD
+      let totalBalance = 0;
+      for (const wallet of wallets) {
+        const balance = parseFloat(wallet.balance || 0);
+        const type = wallet.type || 'SPOT';
+
+        // Get price for USD conversion
+        let price = 0;
+        try {
+          if (type === 'FIAT') {
+            price = await getFiatPriceInUSD(wallet.currency);
+          } else if (type === 'SPOT' || type === 'FUTURES') {
+            price = await getSpotPriceInUSD(wallet.currency);
+          } else if (type === 'ECO') {
+            price = await getEcoPriceInUSD(wallet.currency);
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch price for ${wallet.currency} (${type}): ${error.message}`);
+          price = 0;
+        }
+
+        totalBalance += balance * price;
+      }
 
       // Format stats as array for frontend
       statsResult = [

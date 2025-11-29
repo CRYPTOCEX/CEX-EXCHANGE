@@ -77,7 +77,7 @@ export const columns: ColumnDefinition[] = [
                 <div className="flex justify-between mb-1 text-xs">
                   <span className="font-medium">{progress}%</span>
                   <span className="text-muted-foreground">
-                    ${Number(row.currentRaised).toLocaleString()} / $
+                    ${Number(row.currentRaised).toLocaleString()} $
                     {Number(row.targetAmount).toLocaleString()}
                   </span>
                 </div>

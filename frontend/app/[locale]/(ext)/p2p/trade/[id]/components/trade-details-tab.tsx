@@ -103,9 +103,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
                 {t("escrow_fee")}
               </p>
               <p className="font-medium">
-                {trade.escrowFee || "0.1%"}
-                (
-                {(trade.total * 0.001).toFixed(2)} USD)
+                {trade.escrowFee || "0.1"} {trade.currency} ({((parseFloat(trade.escrowFee || "0.1") * trade.price).toFixed(2))} USD)
               </p>
             </div>
           </div>
@@ -137,9 +135,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
               </p>
               <p className="font-medium">{trade.counterparty.name}</p>
               <p className="text-xs text-muted-foreground">
-                {trade.counterparty.completedTrades}
-                {t("trades_•")} {trade.counterparty.completionRate}
-                {t("%_completion_rate")}
+                {trade.counterparty.completedTrades} {t("trades_•")} {trade.counterparty.completionRate}{t("%_completion_rate")}
               </p>
             </div>
           </div>

@@ -112,39 +112,47 @@ export default async (data: { params?: any; user?: any }) => {
 
     // For ESCROW_RELEASED, transfer funds to buyer
     if (targetStatus === "ESCROW_RELEASED") {
-      // Only unlock and transfer crypto for non-FIAT wallets
-      // FIAT payments happen off-platform peer-to-peer
-      if (trade.offer.walletType !== "FIAT") {
-        // Get seller's wallet and unlock funds
-        const sellerWallet = await getWalletSafe(
-          trade.sellerId,
-          trade.offer.walletType,
-          trade.offer.currency
-        );
+      // This applies to ALL wallet types including FIAT
+      // Note: For FIAT, the actual payment happens peer-to-peer externally,
+      // but we still need to update platform balances for accounting
 
-        if (!sellerWallet) {
-          await transaction.rollback();
-          throw createError({
-            statusCode: 500,
-            message: "Seller wallet not found"
-          });
-        }
+      // Get seller's wallet and unlock funds
+      const sellerWallet = await getWalletSafe(
+        trade.sellerId,
+        trade.offer.walletType,
+        trade.offer.currency
+      );
 
-        // Verify funds are still locked
-        if (sellerWallet.inOrder < trade.amount) {
-          await transaction.rollback();
-          throw createError({
-            statusCode: 400,
-            message: "Insufficient locked funds"
-          });
-        }
+      if (!sellerWallet) {
+        await transaction.rollback();
+        throw createError({
+          statusCode: 500,
+          message: "Seller wallet not found"
+        });
+      }
 
-        // Unlock funds from seller
-        await sellerWallet.update({
-          balance: sellerWallet.balance - trade.amount,
-          inOrder: sellerWallet.inOrder - trade.amount,
-        }, { transaction });
-      
+      // Verify funds are still locked
+      if (sellerWallet.inOrder < trade.amount) {
+        await transaction.rollback();
+        throw createError({
+          statusCode: 400,
+          message: "Insufficient locked funds"
+        });
+      }
+
+      // Store old values before update for logging
+      const previousBalance = sellerWallet.balance;
+      const previousInOrder = sellerWallet.inOrder;
+
+      // Unlock funds from seller and deduct balance
+      await models.wallet.update({
+        balance: sellerWallet.balance - trade.amount,
+        inOrder: sellerWallet.inOrder - trade.amount,
+      }, {
+        where: { id: sellerWallet.id },
+        transaction
+      });
+
       // Audit log for funds unlocking
       await createP2PAuditLog({
         userId: user.id,
@@ -155,10 +163,10 @@ export default async (data: { params?: any; user?: any }) => {
           tradeId: trade.id,
           amount: trade.amount,
           currency: trade.offer.currency,
-          previousBalance: sellerWallet.balance + trade.amount,
-          newBalance: sellerWallet.balance,
-          previousInOrder: sellerWallet.inOrder + trade.amount,
-          newInOrder: sellerWallet.inOrder,
+          previousBalance: previousBalance,
+          newBalance: previousBalance - trade.amount,
+          previousInOrder: previousInOrder,
+          newInOrder: previousInOrder - trade.amount,
         },
         riskLevel: P2PRiskLevel.HIGH,
       });
@@ -231,41 +239,38 @@ export default async (data: { params?: any; user?: any }) => {
         referenceId: trade.id,
       }, { transaction });
 
-        // Create fee transactions if applicable
-        const { createFeeTransactions } = await import("../../utils/fees");
-        if ((trade.buyerFee || 0) > 0 || (trade.sellerFee || 0) > 0) {
-          await createFeeTransactions(
-            trade.id,
-            trade.buyerId,
-            trade.sellerId,
-            {
-              buyerFee: trade.buyerFee || 0,
-              sellerFee: trade.sellerFee || 0,
-              totalFee: (trade.buyerFee || 0) + (trade.sellerFee || 0),
-              netAmountBuyer: buyerNetAmount,
-              netAmountSeller: sellerNetAmount,
-            },
-            trade.offer.currency,
-            transaction
-          );
-        }
-      } else {
-        // For FIAT trades, no wallet operations needed
-        // FIAT payment is confirmed off-platform, just mark trade as released
-        await createP2PAuditLog({
-          userId: user.id,
-          eventType: P2PAuditEventType.TRADE_COMPLETED,
-          entityType: "TRADE",
-          entityId: trade.id,
-          metadata: {
-            tradeId: trade.id,
-            amount: trade.amount,
-            currency: trade.offer.currency,
-            note: "FIAT trade completed - payment confirmed off-platform",
+      // Create fee transactions if applicable
+      const { createFeeTransactions } = await import("../../utils/fees");
+      if ((trade.buyerFee || 0) > 0 || (trade.sellerFee || 0) > 0) {
+        await createFeeTransactions(
+          trade.id,
+          trade.buyerId,
+          trade.sellerId,
+          {
+            buyerFee: trade.buyerFee || 0,
+            sellerFee: trade.sellerFee || 0,
+            totalFee: (trade.buyerFee || 0) + (trade.sellerFee || 0),
+            netAmountBuyer: buyerNetAmount,
+            netAmountSeller: sellerNetAmount,
           },
-          riskLevel: P2PRiskLevel.MEDIUM,
-        });
+          trade.offer.currency,
+          transaction
+        );
       }
+
+      console.log('[P2P Trade Release] Funds transferred:', {
+        tradeId: trade.id,
+        sellerId: trade.sellerId,
+        buyerId: trade.buyerId,
+        walletType: trade.offer.walletType,
+        currency: trade.offer.currency,
+        amount: trade.amount,
+        buyerNetAmount,
+        sellerNetAmount,
+        note: trade.offer.walletType === "FIAT"
+          ? "FIAT trade completed - platform balances updated, actual payment happens externally"
+          : "Crypto transferred from seller to buyer"
+      });
     }
 
     // Update trade status and timeline

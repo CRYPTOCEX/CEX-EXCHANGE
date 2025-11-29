@@ -8,12 +8,69 @@ interface FeeConfiguration {
   maximum: number; // Maximum fee amount
 }
 
+interface MinimumTradeAmounts {
+  [currency: string]: number;
+}
+
 interface TradeFees {
   buyerFee: number;
   sellerFee: number;
   totalFee: number;
   netAmountBuyer: number; // Amount buyer receives after fees
   netAmountSeller: number; // Amount seller receives after fees
+}
+
+/**
+ * Get minimum trade amounts per currency to prevent dust trades
+ * This helps avoid issues like BTC UTXO consolidation problems
+ */
+export async function getMinimumTradeAmounts(): Promise<MinimumTradeAmounts> {
+  try {
+    const settings = await models.settings.findOne({
+      where: { key: "p2pMinimumTradeAmounts" },
+    });
+
+    if (settings?.value) {
+      return JSON.parse(settings.value);
+    }
+  } catch (error) {
+    console.error("Failed to load P2P minimum trade amounts:", error);
+  }
+
+  // Default minimum trade amounts to prevent dust
+  return {
+    BTC: 0.001,      // 0.001 BTC minimum (~$40-50 at typical prices)
+    ETH: 0.01,       // 0.01 ETH minimum
+    LTC: 0.1,        // 0.1 LTC minimum
+    BCH: 0.01,       // 0.01 BCH minimum
+    DOGE: 100,       // 100 DOGE minimum
+    XRP: 10,         // 10 XRP minimum
+    ADA: 10,         // 10 ADA minimum
+    SOL: 0.1,        // 0.1 SOL minimum
+    MATIC: 1,        // 1 MATIC minimum
+    // Add more as needed
+  };
+}
+
+/**
+ * Validate if trade amount meets minimum requirements
+ */
+export async function validateMinimumTradeAmount(
+  amount: number,
+  currency: string
+): Promise<{ valid: boolean; minimum?: number; message?: string }> {
+  const minimums = await getMinimumTradeAmounts();
+  const minimum = minimums[currency.toUpperCase()];
+
+  if (minimum && amount < minimum) {
+    return {
+      valid: false,
+      minimum,
+      message: `Minimum trade amount for ${currency} is ${minimum}`,
+    };
+  }
+
+  return { valid: true };
 }
 
 /**

@@ -2478,12 +2478,12 @@
     "•_some_operations_maintenance_mode": "• ʻE fiema'u ʻe he niʻihi ʻo e ngaahi ngāue e paʻanga fakatokatokaʻi ʻo e sistemi",
     "•_using_fallback_mode": "• ʻOku ngāue ʻi he founga toe",
     "you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets": {
-      "untitled": ""
+      "untitled": "I notice this translation request has empty source texts (all 4 texts are empty strings \"\"). There's nothing to translate."
     },
     "Importing": {
       "": {
         "": {
-          "untitled": ""
+          "untitled": "If you intended to provide English texts for translation to Tongan (TO), please provide the actual text content that needs to be translated."
         }
       }
     }
@@ -6267,13 +6267,13 @@
     "your_offer_has_been_successfully_removed": "Kuo To'o Lelei Ho Fakatau'anga",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "For the context keys you mentioned:"
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {
       " Users provide IPFS URLs for their NFT assets and metadata": {
         " File size and format restrictions are enforced by IPFS, not by the platform": {
-          "": ""
+          "": "- `dashboard.you_need_to_configure_and_activate_at_least_one_exchange_provider_to_manage_markets.untitled`"
         }
       }
     },

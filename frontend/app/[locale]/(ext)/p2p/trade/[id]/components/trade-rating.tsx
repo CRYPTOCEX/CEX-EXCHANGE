@@ -45,7 +45,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/trades/${tradeId}/rating`, {
+      const response = await fetch(`/api/p2p/trade/${tradeId}/review`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

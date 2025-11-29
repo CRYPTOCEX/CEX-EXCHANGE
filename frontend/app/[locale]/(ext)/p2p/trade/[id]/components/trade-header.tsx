@@ -102,9 +102,7 @@ export function TradeHeader({
                 ))}
               </div>
               <span>
-                {counterparty.completedTrades}
-                {t("trades_•")} {counterparty.completionRate}
-                {t("%_completion")}
+                {counterparty.completedTrades} {t("trades_•")} {counterparty.completionRate} {t("%_completion")}
               </span>
             </div>
           </div>

@@ -141,9 +141,7 @@ export default async (data: Handler) => {
       );
     }
 
-    // (Optional: If you want to update balance instantly for deposits, do it here)
-    // wallet.balance += parsedAmount - taxAmount;
-    // await wallet.save({ transaction: t });
+    // Don't update balance yet - it will be updated when deposit is approved/completed
 
     return trx;
   });

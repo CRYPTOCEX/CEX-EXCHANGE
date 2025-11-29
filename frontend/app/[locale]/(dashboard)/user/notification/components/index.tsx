@@ -47,7 +47,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format, formatDistanceToNow } from "date-fns";
 import { formatDate } from "@/lib/ico/utils";
-export function NotificationsCard() {
+
+interface NotificationsCardProps {
+  filterType?: string; // Optional filter by notification type
+}
+
+export function NotificationsCard({ filterType }: NotificationsCardProps = {}) {
   const {
     notifications,
     markAsRead,
@@ -63,15 +68,20 @@ export function NotificationsCard() {
     fetchNotifications();
   }, []);
 
+  // Filter notifications by type if specified
+  const filteredNotifications = filterType
+    ? notifications.filter((n) => n.type === filterType)
+    : notifications;
+
   // Get only unread notifications
-  const unreadNotifications = notifications.filter(
+  const unreadNotifications = filteredNotifications.filter(
     (notification) => !notification.read
   );
 
   // Get the most recent notifications, prioritizing unread ones
   const recentNotifications = [
     ...unreadNotifications,
-    ...notifications.filter((n) => n.read),
+    ...filteredNotifications.filter((n) => n.read),
   ].slice(0, visibleCount);
   const getIconForType = (type: string) => {
     switch (type) {

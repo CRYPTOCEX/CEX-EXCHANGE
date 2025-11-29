@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, ArrowUpDown, Download, Eye, Plus } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,18 +26,31 @@ import {
 } from "@/components/ui/tooltip";
 import { useCreatorStore } from "@/store/ico/creator/creator-store";
 export function CreatorTokensList() {
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get("status") || "active";
+  const [activeTab, setActiveTab] = useState(statusParam);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"progress" | "raised" | "investors">(
     "progress"
   );
   const { tokens, isLoadingTokens, tokensError, fetchTokens, sortTokens } =
     useCreatorStore();
+
   useEffect(() => {
     fetchTokens();
   }, [fetchTokens]);
+
   useEffect(() => {
     sortTokens(sortBy);
   }, [sortBy, sortTokens]);
+
+  // Update active tab when status parameter changes
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status && ["active", "pending", "completed"].includes(status)) {
+      setActiveTab(status);
+    }
+  }, [searchParams]);
   const handleSort = (newSortBy: "progress" | "raised" | "investors") => {
     setSortBy(newSortBy);
     sortTokens(newSortBy);
@@ -58,7 +72,7 @@ export function CreatorTokensList() {
             <div className="h-10 w-10 bg-muted rounded" />
           </div>
         </div>
-        <Tabs defaultValue="active" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start border-b p-0 bg-transparent">
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -152,7 +166,7 @@ export function CreatorTokensList() {
         </div>
       </div>
 
-      <Tabs defaultValue="active" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start border-b p-0 bg-transparent">
           <TabsTrigger
             value="active"

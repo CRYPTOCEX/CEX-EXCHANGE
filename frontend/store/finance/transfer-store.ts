@@ -69,6 +69,7 @@ interface TransferState {
   ) => Promise<void>;
   fetchBalance: (walletType: string, currency: string) => Promise<void>;
   checkRecipient: (uuid: string) => Promise<void>;
+  fetchExchangeRateAndCalculate: () => Promise<void>;
   calculateTransferDetails: () => void;
   submitTransfer: () => Promise<void>;
   reset: () => void;
@@ -144,9 +145,14 @@ export const useTransferStore = create<TransferState>((set, get) => ({
       await state.fetchBalance(fromWalletType, currency);
     }
   },
-  setToWalletType: (type) =>
-    set({ toWalletType: type, toCurrency: null, toCurrencies: [] }),
-  setToCurrency: (currency) => set({ toCurrency: currency }),
+  setToWalletType: (type) => {
+    set({ toWalletType: type, toCurrency: null, toCurrencies: [] });
+  },
+  setToCurrency: (currency) => {
+    set({ toCurrency: currency });
+    // Recalculate transfer details when target currency changes
+    get().calculateTransferDetails();
+  },
   setRecipientUuid: (uuid) =>
     set({ recipientUuid: uuid, recipientExists: null }),
   setAmount: (amount) => {
@@ -298,6 +304,76 @@ export const useTransferStore = create<TransferState>((set, get) => ({
     }
   },
 
+  fetchExchangeRateAndCalculate: async () => {
+    const {
+      amount,
+      transferType,
+      fromCurrency,
+      toCurrency,
+      fromWalletType,
+      toWalletType
+    } = get();
+
+    // Validate required fields
+    if (!amount || amount <= 0 || !transferType || !fromCurrency || !toCurrency || !fromWalletType || !toWalletType) {
+      return;
+    }
+
+    // Skip for same currency or client transfers (they use 1:1)
+    if (fromCurrency === toCurrency || transferType === "client") {
+      return;
+    }
+
+    try {
+      const { data, error } = await $fetch({
+        url: `/api/finance/exchange-rate?fromCurrency=${fromCurrency}&fromType=${fromWalletType}&toCurrency=${toCurrency}&toType=${toWalletType}`,
+        silent: true,
+      });
+
+      if (error || !data?.rate) {
+        console.error("Error fetching exchange rate:", error);
+        // Fallback to 1:1 on error
+        const feeRate = transferType === "client" ? 0.01 : 0;
+        const fee = Math.round(amount * feeRate * 100) / 100;
+        const amountAfterFee = amount - fee;
+
+        set({
+          estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
+          transferFee: fee,
+          exchangeRate: null,
+        });
+        return;
+      }
+
+      // Calculate with real exchange rate
+      const feeRate = transferType === "client" ? 0.01 : 0;
+      const fee = Math.round(amount * feeRate * 100) / 100;
+      const amountAfterFee = amount - fee;
+      const exchangeRate = data.rate;
+
+      // Calculate estimated receive amount using exchange rate
+      const estimatedReceive = amountAfterFee * exchangeRate;
+
+      set({
+        estimatedReceiveAmount: Math.round(estimatedReceive * 100000000) / 100000000, // 8 decimal places for crypto
+        transferFee: fee,
+        exchangeRate: exchangeRate,
+      });
+    } catch (err) {
+      console.error("Error fetching exchange rate:", err);
+      // Fallback to 1:1 on error
+      const feeRate = transferType === "client" ? 0.01 : 0;
+      const fee = Math.round(amount * feeRate * 100) / 100;
+      const amountAfterFee = amount - fee;
+
+      set({
+        estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
+        transferFee: fee,
+        exchangeRate: null,
+      });
+    }
+  },
+
   calculateTransferDetails: () => {
     const { amount, transferType, fromCurrency, toCurrency, fromWalletType, toWalletType } = get();
 
@@ -323,7 +399,7 @@ export const useTransferStore = create<TransferState>((set, get) => ({
       return;
     }
 
-    // For same currency transfers or client transfers
+    // For same currency transfers or client transfers (1:1 rate)
     if (fromCurrency === toCurrency || transferType === "client") {
       set({
         estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
@@ -333,13 +409,18 @@ export const useTransferStore = create<TransferState>((set, get) => ({
       return;
     }
 
-    // For different currency transfers, we'd need to fetch exchange rates
-    // For now, set to amount after fee (actual rates will be calculated on backend)
-    set({
-      estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
-      transferFee: fee,
-      exchangeRate: null,
-    });
+    // For cross-currency transfers, fetch real exchange rates from backend
+    if (fromWalletType && toWalletType) {
+      // Fetch exchange rate asynchronously
+      get().fetchExchangeRateAndCalculate();
+    } else {
+      // If wallet types not selected yet, use placeholder
+      set({
+        estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
+        transferFee: fee,
+        exchangeRate: null,
+      });
+    }
   },
 
   submitTransfer: async () => {

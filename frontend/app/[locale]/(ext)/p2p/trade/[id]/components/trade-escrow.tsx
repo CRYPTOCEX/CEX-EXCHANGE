@@ -34,13 +34,15 @@ export function TradeEscrow({
   onDisputeTrade,
 }: TradeEscrowProps) {
   const t = useTranslations("ext");
+  // Backend uses: PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED
   const isEscrowActive = [
-    "funded",
+    "PENDING",
+    "PAYMENT_SENT",
     "waiting_payment",
     "payment_confirmed",
   ].includes(trade.status);
   const canRelease =
-    trade.status === "payment_confirmed" && trade.type === "sell";
+    (trade.status === "PAYMENT_SENT" || trade.status === "payment_confirmed") && trade.type === "sell";
 
   // Calculate escrow time
   const getEscrowTime = () => {
@@ -110,8 +112,7 @@ export function TradeEscrow({
                         {t("usd_value")}
                       </span>
                       <span className="font-medium">
-                        / $
-                        {trade.total.toLocaleString()}
+                        ${trade.total.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -119,8 +120,7 @@ export function TradeEscrow({
                         {t("escrow_fee")}
                       </span>
                       <span className="font-medium">
-                        / $
-                        {(trade.total * 0.001).toFixed(2)}
+                        ${(trade.total * 0.001).toFixed(2)}
                         (0. 1%)
                       </span>
                     </div>

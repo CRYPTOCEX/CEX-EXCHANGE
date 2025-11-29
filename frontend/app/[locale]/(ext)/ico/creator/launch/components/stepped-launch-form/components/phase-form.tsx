@@ -69,10 +69,17 @@ export default function PhaseForm({
             step="0.0001"
             min="0"
             placeholder="e.g. 0.05"
-            value={phase.tokenPrice || ""}
-            onChange={(e) =>
-              onUpdate(phase.id, "tokenPrice", e.target.value === "" ? 0 : Number.parseFloat(e.target.value) || 0)
-            }
+            value={phase.tokenPrice ?? ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow empty string or valid decimal numbers including trailing zeros
+              if (value === "") {
+                onUpdate(phase.id, "tokenPrice", 0);
+              } else {
+                const numValue = parseFloat(value);
+                onUpdate(phase.id, "tokenPrice", isNaN(numValue) ? 0 : numValue);
+              }
+            }}
           />
         </div>
 

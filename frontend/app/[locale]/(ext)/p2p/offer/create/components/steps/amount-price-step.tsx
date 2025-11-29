@@ -422,6 +422,11 @@ export function AmountPriceStep() {
   // Update the handleAmountChange function to store data in the expected format
   const handleAmountChange = useCallback(
     (value: string) => {
+      // Allow only numbers and decimals
+      if (value !== "" && !/^\d*\.?\d*$/.test(value)) {
+        return;
+      }
+
       // Allow empty string to let users clear the field
       if (value === "") {
         updateTradeData({
@@ -437,7 +442,7 @@ export function AmountPriceStep() {
         return;
       }
 
-      // Parse the value, default to 0 if invalid
+      // Parse the value for storage, but keep the original string for display
       const amountValue = Number.parseFloat(value) || 0;
 
       // Format according to the API schema
@@ -449,7 +454,7 @@ export function AmountPriceStep() {
           availableBalance: tradeData.availableBalance,
         },
         // Keep the amount field for backward compatibility
-        amount: amountValue,
+        amount: value, // Store as string to preserve trailing zeros/decimals during typing
       });
     },
     [updateTradeData, minLimit, maxLimit, tradeData.availableBalance]
@@ -841,6 +846,10 @@ export function AmountPriceStep() {
 
   // Get the amount value to display in the input
   const getAmountValue = useCallback(() => {
+    // Prefer tradeData.amount (string) to preserve decimal input like "0.0"
+    if (typeof tradeData.amount === "string") {
+      return tradeData.amount;
+    }
     if (tradeData.amountConfig && tradeData.amountConfig.total !== undefined) {
       // Return empty string if the value is 0 to allow users to type freely
       return tradeData.amountConfig.total === 0 ? "" : tradeData.amountConfig.total;

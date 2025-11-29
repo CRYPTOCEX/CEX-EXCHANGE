@@ -47,9 +47,11 @@ const InvestmentFormSchema = (minInvestment: number) =>
     walletAddress: z
       .string()
       .min(1, "Wallet address is required")
+      .min(26, "Wallet address must be at least 26 characters")
+      .max(100, "Wallet address must not exceed 100 characters")
       .regex(
-        /^(0x)?[0-9a-fA-F]{40}$|^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$|^[A-Za-z0-9]{32,44}$/,
-        "Please enter a valid wallet address (Ethereum, Bitcoin, or other blockchain address)"
+        /^(0x[0-9a-fA-F]{40}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-z0-9]{39,59}|[A-HJ-NP-Za-km-z1-9]{32,44}|T[A-Za-z1-9]{33}|[A-Za-z0-9]{26,62})$/,
+        "Please enter a valid wallet address"
       ),
   });
 

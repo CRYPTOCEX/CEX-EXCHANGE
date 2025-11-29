@@ -78,7 +78,6 @@ export default async (data: Handler) => {
     phases,
     selectedPlan,
     status = "PENDING",
-    submittedBy = user.id,
     submittedAt = new Date().toISOString(),
   } = body;
 
@@ -186,7 +185,6 @@ export default async (data: Handler) => {
         isPaused: false,
         isFlagged: false,
         submittedAt,
-        submittedBy,
         website,
       },
       { transaction }
@@ -196,7 +194,7 @@ export default async (data: Handler) => {
     await models.icoTokenDetail.create(
       {
         offeringId: offering.id,
-        tokenType,
+        tokenType: tokenTypeRecord.name, // Use the name instead of UUID
         totalSupply,
         tokensForSale: totalSupply,
         salePercentage: 0,
@@ -296,6 +294,42 @@ export default async (data: Handler) => {
     };
   } catch (err: any) {
     await transaction.rollback();
+
+    // Log the full error details for debugging
+    console.error("ICO Creation Error:", {
+      message: err.message,
+      name: err.name,
+      errors: err.errors,
+      original: err.original,
+    });
+
+    // Handle unique constraint violations
+    if (err.name === "SequelizeUniqueConstraintError") {
+      const field = err.errors?.[0]?.path || "field";
+      const value = err.errors?.[0]?.value || "";
+
+      let userMessage = "";
+      if (field === "icoTokenOfferingSymbolKey" || field === "symbol") {
+        userMessage = `Token symbol "${value}" is already in use. Please choose a different symbol.`;
+      } else {
+        userMessage = `The ${field} "${value}" is already in use.`;
+      }
+
+      throw createError({
+        statusCode: 400,
+        message: userMessage,
+      });
+    }
+
+    // If it's a Sequelize validation error, provide detailed info
+    if (err.name === "SequelizeValidationError" || err.name === "SequelizeDatabaseError") {
+      const details = err.errors?.map((e: any) => `${e.path}: ${e.message}`).join(", ") || err.message;
+      throw createError({
+        statusCode: 400,
+        message: `Validation Error: ${details}`,
+      });
+    }
+
     throw createError({
       statusCode: 500,
       message: "Internal Server Error: " + err.message,

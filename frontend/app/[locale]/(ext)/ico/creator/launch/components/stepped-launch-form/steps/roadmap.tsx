@@ -60,14 +60,11 @@ export default function RoadmapStep({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-base font-medium">{t("project_roadmap")}</h4>
+        <h4 className="text-base font-medium capitalize">{t("project_roadmap")}</h4>
         <div className="flex items-center gap-2">
           {formData.selectedPlan && (
             <span className="text-sm text-muted-foreground">
-              {formData.roadmap.length}
-              _
-              {maxRoadmapItems}
-              {t("items")}
+              {formData.roadmap.length}/{maxRoadmapItems} {t("items")}
             </span>
           )}
           <Button

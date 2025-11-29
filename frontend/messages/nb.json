@@ -6267,13 +6267,13 @@
     "your_offer_has_been_successfully_removed": "Tilbudet Ditt Har Blitt Fjernet",
     "Marketplace fees are deducted from sale proceeds": {
       " Royalty fees go to the original creator on secondary sales": {
-        "": ""
+        "": "Importerer..."
       }
     },
     "This marketplace uses IPFS for decentralized NFT storage": {
       " Users provide IPFS URLs for their NFT assets and metadata": {
         " File size and format restrictions are enforced by IPFS, not by the platform": {
-          "": ""
+          "": "Markedsplassgebyrer trekkes fra salgsinntektene. Royaltygebyrer går til den opprinnelige skaperen ved sekundærsalg."
         }
       }
     },

@@ -237,13 +237,13 @@ export function GuidedMatchingWizard() {
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-1">
                   <span>
-                    0. 01
+                    0.01
                   </span>
                   <span>
-                    0. / 5
+                    0.5
                   </span>
                   <span>
-                    1:. 0
+                    1.0
                   </span>
                 </div>
               </div>
@@ -259,8 +259,7 @@ export function GuidedMatchingWizard() {
                     </p>
                   </div>
                   <div className="text-xl font-bold">
-                    / $
-                    {formData.cryptocurrency === "bitcoin"
+                    ${formData.cryptocurrency === "bitcoin"
                       ? (
                           Number.parseFloat(formData.amount) * 42356.78
                         ).toLocaleString(undefined, {

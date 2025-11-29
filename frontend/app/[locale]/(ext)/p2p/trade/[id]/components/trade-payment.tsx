@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
+import { getCurrencySymbol } from "@/utils/currency";
 
 interface TradePaymentProps {
   trade: any;
@@ -41,9 +42,10 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
   const [proofNote, setProofNote] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const { toast } = useToast();
+  const currencySymbol = getCurrencySymbol(trade.offer?.priceCurrency || "USD");
 
   const canConfirmPayment =
-    trade.status === "waiting_payment" && trade.type === "buy";
+    (trade.status === "waiting_payment" || trade.status === "PENDING") && trade.type === "buy";
 
   const copyPaymentDetails = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -100,7 +102,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {trade.status === "waiting_payment" ? (
+        {(trade.status === "waiting_payment" || trade.status === "PENDING") ? (
           <>
             <div className="rounded-md border p-4 bg-muted/30">
               <h3 className="font-medium mb-4 flex items-center">
@@ -199,8 +201,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                       {t("amount_to_send")}
                     </p>
                     <p className="font-medium">
-                      / $
-                      {trade.total.toLocaleString()}
+                      {currencySymbol}{trade.total.toLocaleString()}
                     </p>
                   </div>
                   <Button
@@ -208,7 +209,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                     size="icon"
                     onClick={() =>
                       copyPaymentDetails(
-                        `$${trade.total.toLocaleString()}`,
+                        `${currencySymbol}${trade.total.toLocaleString()}`,
                         "amount"
                       )
                     }
@@ -331,8 +332,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("amount")}</span>
                   <span>
-                    / $
-                    {trade.total.toLocaleString()}
+                    {currencySymbol}{trade.total.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">

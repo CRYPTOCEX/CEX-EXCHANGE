@@ -182,6 +182,7 @@ export function TradeDetails({
               coin={trade.coin}
               price={trade.price}
               total={trade.total}
+              priceCurrency={trade.offer?.priceCurrency}
             />
 
             <TradeAlerts status={trade.status} type={trade.type} />
