@@ -1,0 +1,112 @@
+{
+  "name": "Mozambique",
+  "iso2": "MZ",
+  "iso3": "MOZ",
+  "phonecode": "258",
+  "states": [
+    {
+      "name": "Cabo Delgado",
+      "code": "P",
+      "cities": [
+        "Chiure",
+        "Mocímboa",
+        "Montepuez",
+        "Pemba"
+      ]
+    },
+    {
+      "name": "Gaza",
+      "code": "G",
+      "cities": [
+        "Chibuto",
+        "Chokwé",
+        "Macia",
+        "Xai-Xai"
+      ]
+    },
+    {
+      "name": "Inhambane",
+      "code": "I",
+      "cities": [
+        "Inhambane",
+        "Maxixe"
+      ]
+    },
+    {
+      "name": "Manica",
+      "code": "B",
+      "cities": [
+        "Chimoio"
+      ]
+    },
+    {
+      "name": "Maputo",
+      "code": "L",
+      "cities": [
+        "Boane",
+        "Concelho de Matola",
+        "Magude",
+        "Manhica",
+        "Marracuene",
+        "Matola",
+        "Matutiune",
+        "Moamba",
+        "Namaacha",
+        "Ressano Garcia"
+      ]
+    },
+    {
+      "name": "Maputo",
+      "code": "MPM",
+      "cities": [
+        "KaTembe",
+        "Maputo"
+      ]
+    },
+    {
+      "name": "Nampula",
+      "code": "N",
+      "cities": [
+        "António Enes",
+        "Ilha de Moçambique",
+        "Mutuáli",
+        "Nacala",
+        "Nampula"
+      ]
+    },
+    {
+      "name": "Niassa",
+      "code": "A",
+      "cities": [
+        "Cuamba",
+        "Lichinga",
+        "Mandimba"
+      ]
+    },
+    {
+      "name": "Sofala",
+      "code": "S",
+      "cities": [
+        "Beira",
+        "Dondo",
+        "Nhamatanda"
+      ]
+    },
+    {
+      "name": "Tete",
+      "code": "T",
+      "cities": [
+        "Tete"
+      ]
+    },
+    {
+      "name": "Zambezia",
+      "code": "Q",
+      "cities": [
+        "Alto Molócuè",
+        "Chinde",
+        "Quelimane"
+      ]
+    }
+  ]
+}

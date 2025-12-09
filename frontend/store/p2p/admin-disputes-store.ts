@@ -178,7 +178,7 @@ export const useAdminDisputesStore = create<AdminDisputesState>((set, get) => ({
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/dispute/${id}`,
       method: "PUT",
-      body: { status: "resolved", resolution },
+      body: { status: "RESOLVED", resolution },
     });
     if (error) {
       set({ resolvingDisputeError: error, isResolvingDispute: false });
@@ -199,7 +199,7 @@ export const useAdminDisputesStore = create<AdminDisputesState>((set, get) => ({
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/dispute/${id}`,
       method: "PUT",
-      body: { status: "in-progress" },
+      body: { status: "IN_PROGRESS" },
     });
     if (error) {
       set({ markingInProgressError: error, isMarkingInProgress: false });

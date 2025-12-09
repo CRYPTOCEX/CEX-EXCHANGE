@@ -67,6 +67,7 @@ export function parseAmountConfig(amountConfig: any): {
   min: number;
   max: number;
   availableBalance?: number;
+  originalTotal?: number;
 } {
   const parsed = safeParseJSON(amountConfig);
 
@@ -79,6 +80,7 @@ export function parseAmountConfig(amountConfig: any): {
     min: Number(parsed.min) || 0,
     max: Number(parsed.max) || 0,
     availableBalance: parsed.availableBalance ? Number(parsed.availableBalance) : undefined,
+    originalTotal: parsed.originalTotal ? Number(parsed.originalTotal) : undefined,
   };
 }
 

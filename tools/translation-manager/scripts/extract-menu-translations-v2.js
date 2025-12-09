@@ -45,17 +45,16 @@ function getNestedProperty(obj, path) {
 }
 
 // Function to recursively extract menu items
+// Returns keys WITHOUT the "menu." prefix since we'll set them under the menu namespace
 function extractFromMenuItem(item, translations = {}) {
   if (item.key && item.title) {
-    const baseKey = `menu.${item.key.replace(/-/g, '.')}`;
+    // Convert "admin-dashboard" to "admin.dashboard"
+    const baseKey = item.key.replace(/-/g, '.');
 
-    // If there's a description, we need to use .title suffix to avoid conflicts
-    // Otherwise, use the base key directly for the title
+    // Always use .title and .description suffixes for consistency
+    translations[`${baseKey}.title`] = item.title;
     if (item.description) {
-      translations[`${baseKey}.title`] = item.title;
       translations[`${baseKey}.description`] = item.description;
-    } else {
-      translations[baseKey] = item.title;
     }
   }
 
@@ -199,13 +198,20 @@ function updateLocaleFiles(translations) {
       console.warn(`⚠️  Could not read ${file}, creating new`);
     }
 
-    // Add menu translations with nested structure
+    // Ensure menu namespace exists
+    if (!localeData.menu) {
+      localeData.menu = {};
+    }
+
+    // Add menu translations with nested structure under the menu namespace
     let added = 0;
     for (const [key, value] of Object.entries(translations)) {
-      const existing = getNestedProperty(localeData, key);
+      // Check if key already exists in nested structure under menu
+      const fullPath = `menu.${key}`;
+      const existing = getNestedProperty(localeData, fullPath);
       if (existing === undefined) {
-        // For English, use the extracted value; for others, use the same as placeholder
-        setNestedProperty(localeData, key, locale === 'en' ? value : value);
+        // Set nested property under the menu namespace
+        setNestedProperty(localeData, fullPath, locale === 'en' ? value : value);
         added++;
       }
     }

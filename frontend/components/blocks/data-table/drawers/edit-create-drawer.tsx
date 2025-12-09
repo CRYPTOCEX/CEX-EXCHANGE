@@ -39,9 +39,7 @@ interface DrawerProps {
 }
 
 export function EditCreateDrawer({ columns, title }: DrawerProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/drawers/edit-create-drawer"
-  );
+  const t = useTranslations("common");
   const apiEndpoint = useTableStore((state) => state.apiEndpoint);
   const permissions = useTableStore((state) => state.permissions);
   const isCreateDrawerOpen = useTableStore((state) => state.isCreateDrawerOpen);

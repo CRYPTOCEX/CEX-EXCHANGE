@@ -61,7 +61,7 @@ interface ChartCanvasProps {
 
 // Create a component that doesn't rerender when theme changes
 const ChartCanvasInner: React.FC<ChartCanvasProps> = ({ positions }) => {
-  const t = useTranslations("components/blocks/advanced-chart/canvas/index");
+  const t = useTranslations("common");
   const context = useChart();
   const {
     candleData,

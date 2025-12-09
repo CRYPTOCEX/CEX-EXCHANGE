@@ -12,7 +12,7 @@ export default function QuickTradeButtons({
   onRiseClick,
   onFallClick,
 }: QuickTradeButtonsProps) {
-  const t = useTranslations("binary/components/trading/quick-trade-buttons");
+  const t = useTranslations("common");
   return (
     <div className="absolute bottom-4 left-0 right-0 px-4 z-40">
       <div className="flex gap-3">

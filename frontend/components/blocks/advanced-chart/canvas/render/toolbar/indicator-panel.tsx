@@ -58,9 +58,7 @@ const IndicatorItem = ({
   updateIndicator,
   forceCalculateAll,
 }: IndicatorItemProps) => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/toolbar/indicator-panel"
-  );
+  const t = useTranslations("common");
   const isAdded = indicator.visible;
   const isInAddedCategory = categoryId === "added";
   const { resolvedTheme } = useTheme();
@@ -454,9 +452,7 @@ const IndicatorItem = ({
 };
 
 export const IndicatorPanel: React.FC = () => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/toolbar/indicator-panel"
-  );
+  const t = useTranslations("common");
   const {
     indicators,
     toggleIndicator,

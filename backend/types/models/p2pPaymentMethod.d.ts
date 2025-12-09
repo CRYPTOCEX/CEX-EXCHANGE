@@ -5,6 +5,7 @@ interface p2pPaymentMethodAttributes {
   icon: string;
   description?: string;
   instructions?: string;
+  metadata?: Record<string, string>; // Flexible key-value pairs for payment details
   processingTime?: string;
   fees?: string;
   available: boolean;

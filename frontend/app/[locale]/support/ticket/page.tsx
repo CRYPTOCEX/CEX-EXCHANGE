@@ -115,7 +115,7 @@ const getImportanceColor = (importance: string) => {
   }
 };
 export default function SupportPage() {
-  const t = useTranslations("support/ticket");
+  const t = useTranslations("common");
   const { hasKyc, canAccessFeature } = useUserStore();
   const { settings } = useConfigStore();
   const [allTickets, setAllTickets] = useState<SupportTicket[]>([]);
@@ -325,7 +325,7 @@ export default function SupportPage() {
                   <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                     <Star className="h-4 w-4 fill-current" />
                     <span className="font-medium">
-                      {stats.satisfaction.toFixed(1)} {t("/5_rating")}
+                      {stats.satisfaction.toFixed(1)}/5 {t("rating")}
                     </span>
                   </div>
                 </div>
@@ -484,7 +484,7 @@ export default function SupportPage() {
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingUp className="h-4 w-4 text-blue-200" />
                     <span className="text-xs text-blue-200">
-                      {t("+12%_this_month")}
+                      +12% {t("this_month")}
                     </span>
                   </div>
                 </div>
@@ -533,7 +533,7 @@ export default function SupportPage() {
                       {stats.total > 0
                         ? Math.round((stats.closed / stats.total) * 100)
                         : 0}{" "}
-                      {t("%_success_rate")}
+                      % {t("success_rate")}
                     </span>
                   </div>
                 </div>

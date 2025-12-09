@@ -16,7 +16,7 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 const ProfileInfo = () => {
-  const t = useTranslations("components/partials/header/profile-info");
+  const t = useTranslations("common");
   const { user, logout } = useUserStore();
   const router = useRouter();
 

@@ -608,7 +608,7 @@ export default function AdminSupportPage() {
                   <Star className="h-4 w-4 fill-current" />
                   <span className="font-medium">
                     {stats.satisfaction.toFixed(1)}
-                    {t("5_rating")}
+                    {t("out_of_5_rating")}
                   </span>
                 </div>
               </div>
@@ -702,8 +702,7 @@ export default function AdminSupportPage() {
                   <span className="text-xs text-green-200">
                     {stats.total > 0
                       ? Math.round((stats.closed / stats.total) * 100)
-                      : 0}
-                    {t("%_success_rate")}
+                      : 0}% {t("success_rate")}
                   </span>
                 </div>
               </div>

@@ -27,7 +27,7 @@ export const ResizeHandle = memo(function ResizeHandle({
   id: providedId,
   panelType,
 }: ResizeHandleProps) {
-  const t = useTranslations("trade/components/panel/resize-handle");
+  const t = useTranslations("ext");
   const generatedId = useId();
   const id = providedId || generatedId;
   const { direction, startResize, resizing, resetPanelSizes } = usePanelGroup();

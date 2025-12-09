@@ -134,12 +134,40 @@ async function initializeDatabase(
       await Promise.all(
         materializedViewQueries.map((query) => client.execute(query))
       );
+
+      // Run migrations to add new columns to existing tables (safe to run multiple times)
+      if (keyspace === scyllaKeyspace) {
+        await runMigrations(keyspace);
+      }
     } catch (err) {
       console.log(err);
       logError("scylla", err, __filename);
     }
   } catch (error) {
     logError("scylla", error, __filename);
+  }
+}
+
+/**
+ * Run migrations to add new columns to existing tables
+ * These are safe to run multiple times - they check if column exists first
+ */
+async function runMigrations(keyspace: string) {
+  const migrations = [
+    // Add AI Market Maker columns to orders table for pool-based liquidity
+    `ALTER TABLE ${keyspace}.orders ADD "marketMakerId" UUID`,
+    `ALTER TABLE ${keyspace}.orders ADD "botId" UUID`,
+  ];
+
+  for (const migration of migrations) {
+    try {
+      await client.execute(migration);
+    } catch (err: any) {
+      // Ignore "already exists" errors - column was already added
+      if (!err.message?.includes("already exists") && !err.message?.includes("Invalid column name")) {
+        console.warn(`[Scylla Migration] Warning: ${err.message}`);
+      }
+    }
   }
 }
 
@@ -163,6 +191,8 @@ const tradingTableQueries = [
     status TEXT,
     "createdAt" TIMESTAMP,
     "updatedAt" TIMESTAMP,
+    "marketMakerId" UUID,
+    "botId" UUID,
     PRIMARY KEY (("userId"), "createdAt", id)
   ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
 
@@ -186,6 +216,18 @@ const tradingTableQueries = [
     side TEXT,
     PRIMARY KEY ((symbol, side), price)
   ) WITH CLUSTERING ORDER BY (price ASC);`,
+
+  // Trades table for recent trades display (includes both AI and real trades)
+  `CREATE TABLE IF NOT EXISTS ${scyllaKeyspace}.trades (
+    symbol TEXT,
+    "createdAt" TIMESTAMP,
+    id UUID,
+    price DOUBLE,
+    amount DOUBLE,
+    side TEXT,
+    "isAiTrade" BOOLEAN,
+    PRIMARY KEY ((symbol), "createdAt", id)
+  ) WITH CLUSTERING ORDER BY ("createdAt" DESC, id ASC);`,
 ];
 
 const tradingViewQueries = [

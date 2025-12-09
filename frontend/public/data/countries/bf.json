@@ -1,0 +1,403 @@
+{
+  "name": "Burkina Faso",
+  "iso2": "BF",
+  "iso3": "BFA",
+  "phonecode": "226",
+  "states": [
+    {
+      "name": "Balé",
+      "code": "BAL",
+      "cities": []
+    },
+    {
+      "name": "Bam",
+      "code": "BAM",
+      "cities": []
+    },
+    {
+      "name": "Banwa",
+      "code": "BAN",
+      "cities": []
+    },
+    {
+      "name": "Bazèga",
+      "code": "BAZ",
+      "cities": []
+    },
+    {
+      "name": "Boucle du Mouhoun",
+      "code": "01",
+      "cities": [
+        "Barani",
+        "Boromo",
+        "Dédougou",
+        "Nouna",
+        "Province de la Kossi",
+        "Province des Balé",
+        "Province des Banwa",
+        "Province du Mouhoun",
+        "Province du Nayala",
+        "Province du Sourou",
+        "Salanso",
+        "Toma",
+        "Tougan"
+      ]
+    },
+    {
+      "name": "Bougouriba",
+      "code": "BGR",
+      "cities": []
+    },
+    {
+      "name": "Boulgou",
+      "code": "BLG",
+      "cities": []
+    },
+    {
+      "name": "Boulkiemde",
+      "code": "BLK",
+      "cities": []
+    },
+    {
+      "name": "Cascades",
+      "code": "02",
+      "cities": [
+        "Banfora",
+        "Province de la Comoé",
+        "Province de la Léraba",
+        "Sindou"
+      ]
+    },
+    {
+      "name": "Centre",
+      "code": "03",
+      "cities": [
+        "Kadiogo",
+        "Ouagadougou"
+      ]
+    },
+    {
+      "name": "Centre-Est",
+      "code": "04",
+      "cities": [
+        "Garango",
+        "Koupéla",
+        "Kouritenga",
+        "Ouargaye",
+        "Province du Boulgou",
+        "Province du Koulpélogo",
+        "Tenkodogo"
+      ]
+    },
+    {
+      "name": "Centre-Nord",
+      "code": "05",
+      "cities": [
+        "Boulsa",
+        "Kaya",
+        "Kongoussi",
+        "Province du Bam",
+        "Province du Namentenga",
+        "Province du Sanmatenga"
+      ]
+    },
+    {
+      "name": "Centre-Ouest",
+      "code": "06",
+      "cities": [
+        "Goulouré",
+        "Kokologo",
+        "Koudougou",
+        "Léo",
+        "Pitmoaga",
+        "Province de la Sissili",
+        "Province du Boulkiemdé",
+        "Province du Sanguié",
+        "Province du Ziro",
+        "Réo",
+        "Sapouy"
+      ]
+    },
+    {
+      "name": "Centre-Sud",
+      "code": "07",
+      "cities": [
+        "Bazega",
+        "Kombissiri",
+        "Manga",
+        "Nahouri",
+        "Pô",
+        "Zoundweogo"
+      ]
+    },
+    {
+      "name": "Comoé",
+      "code": "COM",
+      "cities": []
+    },
+    {
+      "name": "Est",
+      "code": "08",
+      "cities": [
+        "Bogandé",
+        "Diapaga",
+        "Fada N'gourma",
+        "Gayéri",
+        "Gnagna",
+        "Pama",
+        "Province de la Komandjoari",
+        "Province de la Kompienga",
+        "Province de la Tapoa",
+        "Province du Gourma"
+      ]
+    },
+    {
+      "name": "Ganzourgou",
+      "code": "GAN",
+      "cities": []
+    },
+    {
+      "name": "Gnagna",
+      "code": "GNA",
+      "cities": []
+    },
+    {
+      "name": "Gourma",
+      "code": "GOU",
+      "cities": []
+    },
+    {
+      "name": "Hauts-Bassins",
+      "code": "09",
+      "cities": [
+        "Bobo-Dioulasso",
+        "Houndé",
+        "Province du Houet",
+        "Province du Kénédougou",
+        "Province du Tuy"
+      ]
+    },
+    {
+      "name": "Houet",
+      "code": "HOU",
+      "cities": []
+    },
+    {
+      "name": "Ioba",
+      "code": "IOB",
+      "cities": []
+    },
+    {
+      "name": "Kadiogo",
+      "code": "KAD",
+      "cities": []
+    },
+    {
+      "name": "Kénédougou",
+      "code": "KEN",
+      "cities": []
+    },
+    {
+      "name": "Komondjari",
+      "code": "KMD",
+      "cities": []
+    },
+    {
+      "name": "Kompienga",
+      "code": "KMP",
+      "cities": []
+    },
+    {
+      "name": "Kossi",
+      "code": "KOS",
+      "cities": []
+    },
+    {
+      "name": "Koulpélogo",
+      "code": "KOP",
+      "cities": []
+    },
+    {
+      "name": "Kouritenga",
+      "code": "KOT",
+      "cities": []
+    },
+    {
+      "name": "Kourwéogo",
+      "code": "KOW",
+      "cities": []
+    },
+    {
+      "name": "Léraba",
+      "code": "LER",
+      "cities": []
+    },
+    {
+      "name": "Loroum",
+      "code": "LOR",
+      "cities": []
+    },
+    {
+      "name": "Mouhoun",
+      "code": "MOU",
+      "cities": []
+    },
+    {
+      "name": "Nahouri",
+      "code": "NAO",
+      "cities": []
+    },
+    {
+      "name": "Namentenga",
+      "code": "NAM",
+      "cities": []
+    },
+    {
+      "name": "Nayala",
+      "code": "NAY",
+      "cities": []
+    },
+    {
+      "name": "Nord",
+      "code": "10",
+      "cities": [
+        "Gourcy",
+        "Ouahigouya",
+        "Province du Loroum",
+        "Province du Passoré",
+        "Province du Yatenga",
+        "Province du Zondoma",
+        "Titao",
+        "Yako"
+      ]
+    },
+    {
+      "name": "Noumbiel",
+      "code": "NOU",
+      "cities": []
+    },
+    {
+      "name": "Oubritenga",
+      "code": "OUB",
+      "cities": []
+    },
+    {
+      "name": "Oudalan",
+      "code": "OUD",
+      "cities": []
+    },
+    {
+      "name": "Passoré",
+      "code": "PAS",
+      "cities": []
+    },
+    {
+      "name": "Plateau-Central",
+      "code": "11",
+      "cities": [
+        "Boussé",
+        "Oubritenga",
+        "Province du Ganzourgou",
+        "Province du Kourwéogo",
+        "Ziniaré",
+        "Zorgo"
+      ]
+    },
+    {
+      "name": "Poni",
+      "code": "PON",
+      "cities": []
+    },
+    {
+      "name": "Sahel",
+      "code": "12",
+      "cities": [
+        "Djibo",
+        "Dori",
+        "Gorom-Gorom",
+        "Province de l’Oudalan",
+        "Province du Séno",
+        "Province du Soum",
+        "Province du Yagha"
+      ]
+    },
+    {
+      "name": "Sanguié",
+      "code": "SNG",
+      "cities": []
+    },
+    {
+      "name": "Sanmatenga",
+      "code": "SMT",
+      "cities": []
+    },
+    {
+      "name": "Séno",
+      "code": "SEN",
+      "cities": []
+    },
+    {
+      "name": "Sissili",
+      "code": "SIS",
+      "cities": []
+    },
+    {
+      "name": "Soum",
+      "code": "SOM",
+      "cities": []
+    },
+    {
+      "name": "Sourou",
+      "code": "SOR",
+      "cities": []
+    },
+    {
+      "name": "Sud-Ouest",
+      "code": "13",
+      "cities": [
+        "Batié",
+        "Dano",
+        "Diébougou",
+        "Province de la Bougouriba",
+        "Province du Ioba",
+        "Province du Noumbièl",
+        "Province du Poni"
+      ]
+    },
+    {
+      "name": "Tapoa",
+      "code": "TAP",
+      "cities": []
+    },
+    {
+      "name": "Tuy",
+      "code": "TUI",
+      "cities": []
+    },
+    {
+      "name": "Yagha",
+      "code": "YAG",
+      "cities": []
+    },
+    {
+      "name": "Yatenga",
+      "code": "YAT",
+      "cities": []
+    },
+    {
+      "name": "Ziro",
+      "code": "ZIR",
+      "cities": []
+    },
+    {
+      "name": "Zondoma",
+      "code": "ZON",
+      "cities": []
+    },
+    {
+      "name": "Zoundwéogo",
+      "code": "ZOU",
+      "cities": []
+    }
+  ]
+}

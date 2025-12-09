@@ -1,0 +1,639 @@
+{
+  "name": "Algeria",
+  "iso2": "DZ",
+  "iso3": "DZA",
+  "phonecode": "213",
+  "states": [
+    {
+      "name": "Adrar",
+      "code": "01",
+      "cities": [
+        "Adrar",
+        "Aoulef",
+        "Reggane",
+        "Timimoun"
+      ]
+    },
+    {
+      "name": "Aïn Defla",
+      "code": "44",
+      "cities": [
+        "Aïn Defla",
+        "El Abadia",
+        "El Attaf",
+        "Khemis Miliana",
+        "Theniet el Had"
+      ]
+    },
+    {
+      "name": "Aïn Témouchent",
+      "code": "46",
+      "cities": [
+        "Aïn Temouchent",
+        "Beni Saf",
+        "El Amria",
+        "El Malah",
+        "Hammam Bou Hadjar"
+      ]
+    },
+    {
+      "name": "Algiers",
+      "code": "16",
+      "cities": [
+        "Aïn Taya",
+        "Algiers",
+        "Bab Ezzouar",
+        "Birkhadem",
+        "Bordj el Kiffan",
+        "Dar el Beïda",
+        "Rouiba"
+      ]
+    },
+    {
+      "name": "Annaba",
+      "code": "23",
+      "cities": [
+        "Annaba",
+        "Berrahal",
+        "Drean",
+        "El Hadjar"
+      ]
+    },
+    {
+      "name": "Batna",
+      "code": "05",
+      "cities": [
+        "Aïn Touta",
+        "Arris",
+        "Barika",
+        "Batna",
+        "Boumagueur",
+        "Merouana",
+        "Râs el Aïoun",
+        "Tazoult-Lambese"
+      ]
+    },
+    {
+      "name": "Béchar",
+      "code": "08",
+      "cities": [
+        "Béchar"
+      ]
+    },
+    {
+      "name": "Béjaïa",
+      "code": "06",
+      "cities": [
+        "Akbou",
+        "Amizour",
+        "Barbacha",
+        "Bejaïa",
+        "el hed",
+        "El Kseur",
+        "Feraoun",
+        "Seddouk"
+      ]
+    },
+    {
+      "name": "Béni Abbès",
+      "code": "53",
+      "cities": []
+    },
+    {
+      "name": "Biskra",
+      "code": "07",
+      "cities": [
+        "Biskra",
+        "Oumache",
+        "Sidi Khaled",
+        "Sidi Okba",
+        "Tolga",
+        "Zeribet el Oued"
+      ]
+    },
+    {
+      "name": "Blida",
+      "code": "09",
+      "cities": [
+        "Beni Mered",
+        "Blida",
+        "Boû Arfa",
+        "Boufarik",
+        "Bougara",
+        "Bouinan",
+        "Chebli",
+        "Chiffa",
+        "Larbaâ",
+        "Meftah",
+        "Sidi Moussa",
+        "Souma"
+      ]
+    },
+    {
+      "name": "Bordj Baji Mokhtar",
+      "code": "52",
+      "cities": []
+    },
+    {
+      "name": "Bordj Bou Arréridj",
+      "code": "34",
+      "cities": [
+        "Bordj Bou Arreridj",
+        "Bordj Ghdir",
+        "Bordj Zemoura",
+        "El Achir",
+        "Mansourah",
+        "Melouza",
+        "Râs el Oued"
+      ]
+    },
+    {
+      "name": "Bouïra",
+      "code": "10",
+      "cities": [
+        "Aïn Bessem",
+        "Bouïra",
+        "Chorfa",
+        "Draa el Mizan",
+        "Lakhdaria",
+        "Sour el Ghozlane"
+      ]
+    },
+    {
+      "name": "Boumerdès",
+      "code": "35",
+      "cities": [
+        "Arbatache",
+        "Beni Amrane",
+        "Boudouaou",
+        "Boumerdas",
+        "Chabet el Ameur",
+        "Dellys",
+        "Khemis el Khechna",
+        "Makouda",
+        "Naciria",
+        "Ouled Moussa",
+        "Reghaïa",
+        "Tadmaït",
+        "Thenia",
+        "Tizi Gheniff"
+      ]
+    },
+    {
+      "name": "Chlef",
+      "code": "02",
+      "cities": [
+        "Abou el Hassan",
+        "Boukadir",
+        "Chlef",
+        "Ech Chettia",
+        "Oued Fodda",
+        "Oued Sly",
+        "Sidi Akkacha"
+      ]
+    },
+    {
+      "name": "Constantine",
+      "code": "25",
+      "cities": [
+        "’Aïn Abid",
+        "Aïn Smara",
+        "Constantine",
+        "Didouche Mourad",
+        "El Khroub",
+        "Hamma Bouziane"
+      ]
+    },
+    {
+      "name": "Djanet",
+      "code": "56",
+      "cities": []
+    },
+    {
+      "name": "Djelfa",
+      "code": "17",
+      "cities": [
+        "’Aïn el Bell",
+        "Aïn Oussera",
+        "Birine",
+        "Charef",
+        "Dar Chioukh",
+        "Djelfa",
+        "El Idrissia",
+        "Messaad"
+      ]
+    },
+    {
+      "name": "El Bayadh",
+      "code": "32",
+      "cities": [
+        "Brezina",
+        "El Abiodh Sidi Cheikh",
+        "El Bayadh"
+      ]
+    },
+    {
+      "name": "El M'ghair",
+      "code": "49",
+      "cities": []
+    },
+    {
+      "name": "El Menia",
+      "code": "50",
+      "cities": []
+    },
+    {
+      "name": "El Oued",
+      "code": "39",
+      "cities": [
+        "Debila",
+        "El Oued",
+        "Reguiba",
+        "Robbah"
+      ]
+    },
+    {
+      "name": "El Tarf",
+      "code": "36",
+      "cities": [
+        "Ben Mehidi",
+        "Besbes",
+        "El Kala",
+        "El Tarf"
+      ]
+    },
+    {
+      "name": "Ghardaïa",
+      "code": "47",
+      "cities": [
+        "Berriane",
+        "Ghardaïa",
+        "Metlili Chaamba"
+      ]
+    },
+    {
+      "name": "Guelma",
+      "code": "24",
+      "cities": [
+        "Boumahra Ahmed",
+        "Guelma",
+        "Héliopolis"
+      ]
+    },
+    {
+      "name": "Illizi",
+      "code": "33",
+      "cities": [
+        "Illizi"
+      ]
+    },
+    {
+      "name": "In Guezzam",
+      "code": "58",
+      "cities": []
+    },
+    {
+      "name": "In Salah",
+      "code": "57",
+      "cities": []
+    },
+    {
+      "name": "Jijel",
+      "code": "18",
+      "cities": [
+        "Jijel"
+      ]
+    },
+    {
+      "name": "Khenchela",
+      "code": "40",
+      "cities": [
+        "Khenchela"
+      ]
+    },
+    {
+      "name": "Laghouat",
+      "code": "03",
+      "cities": [
+        "Aflou",
+        "Laghouat"
+      ]
+    },
+    {
+      "name": "M'Sila",
+      "code": "28",
+      "cities": [
+        "‘Aïn el Hadjel",
+        "’Aïn el Melh",
+        "M’Sila",
+        "Sidi Aïssa"
+      ]
+    },
+    {
+      "name": "Mascara",
+      "code": "29",
+      "cities": [
+        "Bou Hanifia el Hamamat",
+        "Mascara",
+        "Oued el Abtal",
+        "Sig"
+      ]
+    },
+    {
+      "name": "Médéa",
+      "code": "26",
+      "cities": [
+        "’Aïn Boucif",
+        "Berrouaghia",
+        "Ksar el Boukhari",
+        "Médéa"
+      ]
+    },
+    {
+      "name": "Mila",
+      "code": "43",
+      "cities": [
+        "Chelghoum el Aïd",
+        "Mila",
+        "Rouached",
+        "Sidi Mérouane",
+        "Telerghma"
+      ]
+    },
+    {
+      "name": "Mostaganem",
+      "code": "27",
+      "cities": [
+        "Mostaganem"
+      ]
+    },
+    {
+      "name": "Naama",
+      "code": "45",
+      "cities": [
+        "Aïn Sefra",
+        "Naama"
+      ]
+    },
+    {
+      "name": "Oran",
+      "code": "31",
+      "cities": [
+        "’Aïn el Turk",
+        "Aïn el Bya",
+        "Bir el Djir",
+        "Bou Tlelis",
+        "Es Senia",
+        "Mers el Kebir",
+        "Oran",
+        "Sidi ech Chahmi"
+      ]
+    },
+    {
+      "name": "Ouargla",
+      "code": "30",
+      "cities": [
+        "Djamaa",
+        "El Hadjira",
+        "Hassi Messaoud",
+        "Megarine",
+        "Ouargla",
+        "Rouissat",
+        "Sidi Amrane",
+        "Tebesbest",
+        "Touggourt"
+      ]
+    },
+    {
+      "name": "Ouled Djellal",
+      "code": "51",
+      "cities": []
+    },
+    {
+      "name": "Oum El Bouaghi",
+      "code": "04",
+      "cities": [
+        "Aïn Beïda",
+        "Aïn Fakroun",
+        "Aïn Kercha",
+        "El Aouinet",
+        "Meskiana",
+        "Oum el Bouaghi"
+      ]
+    },
+    {
+      "name": "Relizane",
+      "code": "48",
+      "cities": [
+        "’Aïn Merane",
+        "Ammi Moussa",
+        "Djidiouia",
+        "Mazouna",
+        "Oued Rhiou",
+        "Relizane",
+        "Smala",
+        "Zemoura"
+      ]
+    },
+    {
+      "name": "Saïda",
+      "code": "20",
+      "cities": [
+        "’Aïn el Hadjar",
+        "Saïda"
+      ]
+    },
+    {
+      "name": "Sétif",
+      "code": "19",
+      "cities": [
+        "Aïn Arnat",
+        "Babor - Ville",
+        "Bougaa",
+        "El Eulma",
+        "Salah Bey",
+        "Sétif"
+      ]
+    },
+    {
+      "name": "Sidi Bel Abbès",
+      "code": "22",
+      "cities": [
+        "Aïn El Berd",
+        "Balidat Ameur",
+        "Belarbi",
+        "Ben Badis Sid Bel Abbés",
+        "Djamaa",
+        "El Bour",
+        "El Hadjira",
+        "Haoud El Hamra",
+        "Hassi Messaoud",
+        "Lamtar",
+        "Marhoum",
+        "Megarine",
+        "Merine",
+        "Mezaourou",
+        "Moggar",
+        "Moulay Slissen",
+        "N'Goussa",
+        "Ouargla",
+        "Rouissat",
+        "Sfissef",
+        "Sidi Ali Boussidi",
+        "Sidi Amrane",
+        "Sidi Bel Abbès",
+        "Sidi Brahim",
+        "Sidi Hamadouche",
+        "Sidi Slimane",
+        "Sidi Yacoub",
+        "Sidi Yahia",
+        "Tabia Sid Bel Abbés",
+        "Taibet",
+        "Tamellaht",
+        "Tamerna Djedida",
+        "Tebesbest",
+        "Teghalimet",
+        "Telagh",
+        "Tenezara",
+        "Tenira",
+        "Tessala",
+        "Touggourt",
+        "Zerouala"
+      ]
+    },
+    {
+      "name": "Skikda",
+      "code": "21",
+      "cities": [
+        "Azzaba",
+        "Karkira",
+        "Skikda",
+        "Tamalous"
+      ]
+    },
+    {
+      "name": "Souk Ahras",
+      "code": "41",
+      "cities": [
+        "Sedrata",
+        "Souk Ahras"
+      ]
+    },
+    {
+      "name": "Tamanghasset",
+      "code": "11",
+      "cities": [
+        "I-n-Salah",
+        "Tamanrasset"
+      ]
+    },
+    {
+      "name": "Tébessa",
+      "code": "12",
+      "cities": [
+        "Bir el Ater",
+        "Cheria",
+        "Hammamet",
+        "Tébessa"
+      ]
+    },
+    {
+      "name": "Tiaret",
+      "code": "14",
+      "cities": [
+        "’Aïn Deheb",
+        "Djebilet Rosfa",
+        "Frenda",
+        "Ksar Chellala",
+        "Mehdia daira de meghila",
+        "Sougueur",
+        "Tiaret"
+      ]
+    },
+    {
+      "name": "Timimoun",
+      "code": "54",
+      "cities": []
+    },
+    {
+      "name": "Tindouf",
+      "code": "37",
+      "cities": [
+        "Tindouf"
+      ]
+    },
+    {
+      "name": "Tipasa",
+      "code": "42",
+      "cities": [
+        "’Aïn Benian",
+        "Baraki",
+        "Bou Ismaïl",
+        "Cheraga",
+        "Douera",
+        "El Affroun",
+        "Hadjout",
+        "Kolea",
+        "Mouzaïa",
+        "Oued el Alleug",
+        "Saoula",
+        "Tipasa",
+        "Zeralda"
+      ]
+    },
+    {
+      "name": "Tissemsilt",
+      "code": "38",
+      "cities": [
+        "Lardjem",
+        "Tissemsilt"
+      ]
+    },
+    {
+      "name": "Tizi Ouzou",
+      "code": "15",
+      "cities": [
+        "’Aïn el Hammam",
+        "Arhribs",
+        "Azazga",
+        "Beni Douala",
+        "Boghni",
+        "Boudjima",
+        "Chemini",
+        "Draa Ben Khedda",
+        "Freha",
+        "Ighram",
+        "L’Arbaa Naït Irathen",
+        "Mekla",
+        "Timizart",
+        "Tirmitine",
+        "Tizi Ouzou",
+        "Tizi Rached",
+        "Tizi-n-Tleta"
+      ]
+    },
+    {
+      "name": "Tlemcen",
+      "code": "13",
+      "cities": [
+        "Beni Mester",
+        "Bensekrane",
+        "Chetouane",
+        "Hennaya",
+        "Mansoûra",
+        "Nedroma",
+        "Ouled Mimoun",
+        "Remchi",
+        "Sebdou",
+        "Sidi Abdelli",
+        "Sidi Senoussi سيدي سنوسي",
+        "Tlemcen"
+      ]
+    },
+    {
+      "name": "Touggourt",
+      "code": "55",
+      "cities": []
+    }
+  ]
+}

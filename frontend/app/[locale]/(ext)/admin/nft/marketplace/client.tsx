@@ -183,7 +183,7 @@ export default function MarketplaceManagementClient() {
               balance: balanceResponse.data?.balance,
               balanceUSD: balanceResponse.data?.balanceUSD,
               currency: balanceResponse.data?.currency,
-              isPaused: false // TODO: Add pause status to API
+              isPaused: infoResponse.data?.isPaused ?? false
             };
           } catch (error) {
             enrichedContracts[chain] = {
@@ -329,7 +329,7 @@ export default function MarketplaceManagementClient() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Marketplace Contract Management</h1>
+          <h1 className="text-3xl font-bold">{t("marketplace_contract_management")}</h1>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
@@ -353,9 +353,9 @@ export default function MarketplaceManagementClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Marketplace Contract Management</h1>
+          <h1 className="text-3xl font-bold">{t("marketplace_contract_management")}</h1>
           <p className="text-muted-foreground">
-            Deploy and manage NFT marketplace contracts across multiple blockchains
+            {t("deploy_and_manage_nft_marketplace_contracts")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -389,7 +389,7 @@ export default function MarketplaceManagementClient() {
                   ) : (
                     <Badge variant="outline" className="border-gray-400 text-gray-700 dark:border-gray-600 dark:text-gray-400">
                       <XCircle className="h-3 w-3 mr-1" />
-                      Not Deployed
+                      {t("not_deployed")}
                     </Badge>
                   )}
                 </div>
@@ -398,7 +398,7 @@ export default function MarketplaceManagementClient() {
                 {isDeployed ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Contract:</span>
+                      <span className="text-xs text-muted-foreground">{t("contract")}</span>
                       <code className="text-xs bg-muted px-1 rounded flex-1 truncate">
                         {contract.contractAddress}
                       </code>
@@ -420,7 +420,7 @@ export default function MarketplaceManagementClient() {
                     
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-muted-foreground">Balance:</span>
+                        <span className="text-muted-foreground">{t("balance")}</span>
                         <div className="font-medium">
                           {contract.balance ? `${parseFloat(contract.balance).toFixed(4)} ${contract.currency}` : "Loading..."}
                         </div>
@@ -431,19 +431,19 @@ export default function MarketplaceManagementClient() {
                         )}
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Marketplace Fee:</span>
+                        <span className="text-muted-foreground">{t("marketplace_fee")}</span>
                         <div className="font-medium">
                           {contract.feePercentage ? `${contract.feePercentage}%` : "Loading..."}
                         </div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Listing Fee:</span>
+                        <span className="text-muted-foreground">{t("listing_fee")}</span>
                         <div className="font-medium">
                           {contract.listingFee !== undefined ? `${contract.listingFee} ${contract.currency}` : "Loading..."}
                         </div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Max Royalty:</span>
+                        <span className="text-muted-foreground">{t("max_royalty")}</span>
                         <div className="font-medium">
                           {contract.maxRoyaltyPercentage !== undefined ? `${contract.maxRoyaltyPercentage}%` : "Loading..."}
                         </div>
@@ -463,7 +463,7 @@ export default function MarketplaceManagementClient() {
                   <div className="text-center py-4">
                     <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground mb-3">
-                      No marketplace deployed
+                      {t("no_marketplace_deployed")}
                     </p>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -474,38 +474,37 @@ export default function MarketplaceManagementClient() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Deploy Marketplace Contract</DialogTitle>
+                          <DialogTitle>{t("deploy_marketplace_contract")}</DialogTitle>
                           <DialogDescription>
-                            Deploy a new NFT marketplace contract to {chain}
+                            {t("deploy_a_new_nft_marketplace_contract_to")} {chain}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <Alert>
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
-                              <strong>Blockchain Deployment:</strong> Deploying a marketplace contract is a permanent blockchain operation that requires gas fees.
-                              The deployment cost varies based on network congestion. Make sure you have sufficient funds in your master wallet.
+                              <strong>{t("blockchain_deployment")}</strong> {t("deploying_a_marketplace_contract_is_a")} {t("the_deployment_cost_varies_based_on")} {t("make_sure_you_have_sufficient_funds")}
                             </AlertDescription>
                           </Alert>
 
                           <Input
                             id="feeRecipient"
-                            title="Fee Recipient Address"
+                            title={t("fee_recipient_address")}
                             placeholder="0x..."
                             value={deployForm.feeRecipient}
                             onChange={(e) => setDeployForm({ ...deployForm, feeRecipient: e.target.value })}
-                            description="Leave empty to use master wallet"
+                            description={t("leave_empty_to_use_master_wallet")}
                           />
                           <Input
                             id="feePercentage"
-                            title="Marketplace Fee (%)"
+                            title={t("marketplace_fee")}
                             type="number"
                             step="0.1"
                             min="0"
                             max="10"
                             value={deployForm.feePercentage}
                             onChange={(e) => setDeployForm({ ...deployForm, feePercentage: parseFloat(e.target.value) || 0 })}
-                            description="Percentage charged on each sale (e.g., 2.5 = 2.5%)"
+                            description={t("percentage_charged_on_each_sale_e_g_2_5_2_5")}
                           />
                           <Input
                             id="listingFee"
@@ -515,18 +514,18 @@ export default function MarketplaceManagementClient() {
                             min="0"
                             value={deployForm.listingFee}
                             onChange={(e) => setDeployForm({ ...deployForm, listingFee: parseFloat(e.target.value) || 0 })}
-                            description="Fixed fee charged when listing an NFT (0 = free listing)"
+                            description={t("fixed_fee_charged_when_listing_an")}
                           />
                           <Input
                             id="maxRoyaltyPercentage"
-                            title="Maximum Royalty (%)"
+                            title={t("maximum_royalty")}
                             type="number"
                             step="0.1"
                             min="0"
                             max="50"
                             value={deployForm.maxRoyaltyPercentage}
                             onChange={(e) => setDeployForm({ ...deployForm, maxRoyaltyPercentage: parseFloat(e.target.value) || 0 })}
-                            description="Maximum royalty percentage creators can set (e.g., 10 = 10%)"
+                            description={t("maximum_royalty_percentage_creators_can_set")}
                           />
                           <Button onClick={handleDeploy} disabled={deploying} className="w-full">
                             {deploying ? "Deploying..." : "Deploy Contract"}
@@ -546,8 +545,8 @@ export default function MarketplaceManagementClient() {
       <Tabs defaultValue="config" className="space-y-4">
         <TabsList>
           <TabsTrigger value="config">Configuration</TabsTrigger>
-          <TabsTrigger value="emergency">Emergency Controls</TabsTrigger>
-          <TabsTrigger value="withdraw">Revenue Withdrawal</TabsTrigger>
+          <TabsTrigger value="emergency">{t("emergency_controls")}</TabsTrigger>
+          <TabsTrigger value="withdraw">{t("revenue_withdrawal")}</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -557,10 +556,10 @@ export default function MarketplaceManagementClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Marketplace Configuration
+                {t("marketplace_configuration")}
               </CardTitle>
               <CardDescription>
-                Update marketplace fees and recipient wallet addresses
+                {t("update_marketplace_fees_and_recipient_wallet")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -569,13 +568,13 @@ export default function MarketplaceManagementClient() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-3">
-                      <p><strong>No marketplace contracts deployed yet!</strong></p>
-                      <p>You need to deploy at least one marketplace contract before you can configure settings.</p>
+                      <p><strong>{t("no_marketplace_contracts_deployed_yet")}</strong></p>
+                      <p>{t("you_need_to_deploy_at_least")}</p>
                       <div className="flex gap-2 mt-3">
                         <Link href="/admin/nft/onboarding">
                           <Button size="sm" variant="outline">
                             <BookOpen className="h-4 w-4 mr-2" />
-                            Follow Setup Guide
+                            {t("follow_setup_guide")}
                           </Button>
                         </Link>
                         <Button 
@@ -583,7 +582,7 @@ export default function MarketplaceManagementClient() {
                           onClick={() => setDeployForm({ chain: "ETH", feeRecipient: "", feePercentage: 2.5, listingFee: 0, maxRoyaltyPercentage: 10 })}
                         >
                           <Zap className="h-4 w-4 mr-2" />
-                          Deploy First Contract
+                          {t("deploy_first_contract")}
                         </Button>
                       </div>
                     </div>
@@ -594,8 +593,7 @@ export default function MarketplaceManagementClient() {
                   <Alert className="mb-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Blockchain Operation Warning:</strong> This action will create a transaction on the blockchain and will require gas fees.
-                      Make sure you have sufficient funds in your wallet to cover the transaction cost. The fee amount varies based on network congestion.
+                      <strong>{t("blockchain_operation_warning")}</strong> {t("this_action_will_create_a_transaction")} {t("make_sure_you_have_sufficient_funds")} {t("the_fee_amount_varies_based_on_network_congestion")}
                     </AlertDescription>
                   </Alert>
 
@@ -620,7 +618,7 @@ export default function MarketplaceManagementClient() {
                     </Select>
                     <Input
                       id="configContract"
-                      title="Contract Address"
+                      title={t("contract_address")}
                       value={configForm.contractAddress}
                       onChange={(e) => setConfigForm({ ...configForm, contractAddress: e.target.value })}
                       readOnly
@@ -630,23 +628,23 @@ export default function MarketplaceManagementClient() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <Input
                       id="configFeePercentage"
-                      title="Marketplace Fee (%)"
+                      title={t("marketplace_fee")}
                       type="number"
                       step="0.1"
                       min="0"
                       max="10"
-                      placeholder="Leave empty to keep current"
+                      placeholder={t("leave_empty_to_keep_current")}
                       value={configForm.feePercentage || ""}
                       onChange={(e) => setConfigForm({ ...configForm, feePercentage: parseFloat(e.target.value) || undefined })}
-                      description="Percentage charged on each sale"
+                      description={t("percentage_charged_on_each_sale")}
                     />
                     <Input
                       id="configFeeRecipient"
-                      title="Fee Recipient Address"
-                      placeholder="0x... (leave empty to keep current)"
+                      title={t("fee_recipient_address")}
+                      placeholder={t("0x_ellipsis_leave_empty_to_keep_current")}
                       value={configForm.feeRecipient}
                       onChange={(e) => setConfigForm({ ...configForm, feeRecipient: e.target.value })}
-                      description="Address to receive marketplace fees"
+                      description={t("address_to_receive_marketplace_fees")}
                     />
                     <Input
                       id="configListingFee"
@@ -654,22 +652,22 @@ export default function MarketplaceManagementClient() {
                       type="number"
                       step="0.001"
                       min="0"
-                      placeholder="Leave empty to keep current"
+                      placeholder={t("leave_empty_to_keep_current")}
                       value={configForm.listingFee || ""}
                       onChange={(e) => setConfigForm({ ...configForm, listingFee: parseFloat(e.target.value) || undefined })}
-                      description="Fixed fee charged when listing an NFT"
+                      description={t("fixed_fee_charged_when_listing_an_nft")}
                     />
                     <Input
                       id="configMaxRoyalty"
-                      title="Maximum Royalty (%)"
+                      title={t("maximum_royalty")}
                       type="number"
                       step="0.1"
                       min="0"
                       max="50"
-                      placeholder="Leave empty to keep current"
+                      placeholder={t("leave_empty_to_keep_current")}
                       value={configForm.maxRoyaltyPercentage || ""}
                       onChange={(e) => setConfigForm({ ...configForm, maxRoyaltyPercentage: parseFloat(e.target.value) || undefined })}
-                      description="Maximum royalty percentage creators can set"
+                      description={t("maximum_royalty_percentage_creators_can_set")}
                     />
                   </div>
 
@@ -691,10 +689,10 @@ export default function MarketplaceManagementClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Emergency Controls
+                {t("emergency_controls")}
               </CardTitle>
               <CardDescription>
-                Pause or resume marketplace trading in case of security incidents
+                {t("pause_or_resume_marketplace_trading_in")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -703,13 +701,13 @@ export default function MarketplaceManagementClient() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-3">
-                      <p><strong>No marketplace contracts to control!</strong></p>
-                      <p>Deploy marketplace contracts first to enable emergency pause/resume functionality.</p>
+                      <p><strong>{t("no_marketplace_contracts_to_control")}</strong></p>
+                      <p>{t("deploy_marketplace_contracts_first_to_enable")}</p>
                       <div className="flex gap-2 mt-3">
                         <Link href="/admin/nft/onboarding">
                           <Button size="sm" variant="outline">
                             <BookOpen className="h-4 w-4 mr-2" />
-                            Follow Setup Guide
+                            {t("follow_setup_guide")}
                           </Button>
                         </Link>
                         <Button 
@@ -717,7 +715,7 @@ export default function MarketplaceManagementClient() {
                           onClick={() => setDeployForm({ chain: "ETH", feeRecipient: "", feePercentage: 2.5, listingFee: 0, maxRoyaltyPercentage: 10 })}
                         >
                           <Zap className="h-4 w-4 mr-2" />
-                          Deploy First Contract
+                          {t("deploy_first_contract")}
                         </Button>
                       </div>
                     </div>
@@ -728,8 +726,7 @@ export default function MarketplaceManagementClient() {
                   <Alert className="mb-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Blockchain Operation Warning:</strong> Pausing or resuming the marketplace requires a blockchain transaction and will incur gas fees.
-                      This action is immediate and affects all trading activity on the selected chain.
+                      <strong>{t("blockchain_operation_warning")}</strong> {t("pausing_or_resuming_the_marketplace_requires")} {t("this_action_is_immediate_and_affects")}
                     </AlertDescription>
                   </Alert>
 
@@ -753,7 +750,7 @@ export default function MarketplaceManagementClient() {
                     </Select>
                     <Input
                       id="emergencyContract"
-                      title="Contract Address"
+                      title={t("contract_address")}
                       value={emergencyForm.contractAddress}
                       readOnly
                     />
@@ -762,7 +759,7 @@ export default function MarketplaceManagementClient() {
                   <Textarea
                     id="emergencyReason"
                     title="Reason"
-                    placeholder="Explain why you are pausing/resuming the marketplace..."
+                    placeholder={t("explain_why_you_are_pausing_resuming")}
                     value={emergencyForm.reason}
                     onChange={(e) => setEmergencyForm({ ...emergencyForm, reason: e.target.value })}
                   />
@@ -797,10 +794,10 @@ export default function MarketplaceManagementClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5" />
-                Revenue Withdrawal
+                {t("revenue_withdrawal")}
               </CardTitle>
               <CardDescription>
-                Withdraw accumulated marketplace fees to specified wallet
+                {t("withdraw_accumulated_marketplace_fees_to_specified")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -809,13 +806,13 @@ export default function MarketplaceManagementClient() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <div className="space-y-3">
-                      <p><strong>No marketplace contracts with revenue!</strong></p>
-                      <p>Deploy marketplace contracts and start earning trading fees before withdrawing revenue.</p>
+                      <p><strong>{t("no_marketplace_contracts_with_revenue")}</strong></p>
+                      <p>{t("deploy_marketplace_contracts_and_start_earning")}</p>
                       <div className="flex gap-2 mt-3">
                         <Link href="/admin/nft/onboarding">
                           <Button size="sm" variant="outline">
                             <BookOpen className="h-4 w-4 mr-2" />
-                            Follow Setup Guide
+                            {t("follow_setup_guide")}
                           </Button>
                         </Link>
                         <Button 
@@ -823,7 +820,7 @@ export default function MarketplaceManagementClient() {
                           onClick={() => setDeployForm({ chain: "ETH", feeRecipient: "", feePercentage: 2.5, listingFee: 0, maxRoyaltyPercentage: 10 })}
                         >
                           <Zap className="h-4 w-4 mr-2" />
-                          Deploy First Contract
+                          {t("deploy_first_contract")}
                         </Button>
                       </div>
                     </div>
@@ -834,8 +831,7 @@ export default function MarketplaceManagementClient() {
                   <Alert className="mb-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Blockchain Operation Warning:</strong> Withdrawing marketplace fees requires a blockchain transaction and will incur gas fees.
-                      The gas cost will be deducted from the withdrawal amount. Ensure you verify the withdrawal address before proceeding - blockchain transactions are irreversible.
+                      <strong>{t("blockchain_operation_warning")}</strong> {t("withdrawing_marketplace_fees_requires_a_blockchain")} {t("the_gas_cost_will_be_deducted")} {t("ensure_you_verify_the_withdrawal_address")}
                     </AlertDescription>
                   </Alert>
 
@@ -859,7 +855,7 @@ export default function MarketplaceManagementClient() {
                     </Select>
                     <Input
                       id="withdrawContract"
-                      title="Contract Address"
+                      title={t("contract_address")}
                       value={withdrawForm.contractAddress}
                       readOnly
                     />
@@ -869,7 +865,7 @@ export default function MarketplaceManagementClient() {
                     <Alert>
                       <DollarSign className="h-4 w-4" />
                       <AlertDescription>
-                        Available balance: {contracts[withdrawForm.chain].balance ?? "0"} {contracts[withdrawForm.chain].currency || ""}
+                        {t("available_balance")} {contracts[withdrawForm.chain].balance ?? "0"} {contracts[withdrawForm.chain].currency || ""}
                         {contracts[withdrawForm.chain].balanceUSD ? (
                           ` ($${parseFloat(contracts[withdrawForm.chain].balanceUSD!).toFixed(2)})`
                         ) : ""}
@@ -881,14 +877,14 @@ export default function MarketplaceManagementClient() {
                     <Input
                       id="withdrawAmount"
                       title="Amount"
-                      placeholder="Leave empty to withdraw all"
+                      placeholder={t("leave_empty_to_withdraw_all")}
                       value={withdrawForm.amount}
                       onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
                     />
                     <Input
                       id="withdrawAddress"
-                      title="Withdrawal Address"
-                      placeholder="0x... (leave empty to use fee recipient)"
+                      title={t("withdrawal_address")}
+                      placeholder={t("0x_ellipsis_leave_empty_to_use_fee_recipient")}
                       value={withdrawForm.withdrawalAddress}
                       onChange={(e) => setWithdrawForm({ ...withdrawForm, withdrawalAddress: e.target.value })}
                     />
@@ -897,7 +893,7 @@ export default function MarketplaceManagementClient() {
                   <Textarea
                     id="withdrawReason"
                     title="Reason"
-                    placeholder="Explain the reason for this withdrawal..."
+                    placeholder={t("explain_the_reason_for_this_withdrawal_ellipsis")}
                     value={withdrawForm.reason}
                     onChange={(e) => setWithdrawForm({ ...withdrawForm, reason: e.target.value })}
                   />
@@ -920,7 +916,7 @@ export default function MarketplaceManagementClient() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Deployed</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("total_deployed")}</CardTitle>
                 <Building2 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -935,7 +931,7 @@ export default function MarketplaceManagementClient() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("total_balance")}</CardTitle>
                 <Coins className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -947,14 +943,14 @@ export default function MarketplaceManagementClient() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  across all chains
+                  {t("across_all_chains")}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Fee Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("avg_fee_rate")}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -967,14 +963,14 @@ export default function MarketplaceManagementClient() {
                   ).toFixed(1)}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  marketplace fee
+                  {t("marketplace_fee")}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Health Status</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("health_status")}</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

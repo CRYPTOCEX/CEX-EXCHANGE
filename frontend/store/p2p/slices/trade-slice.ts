@@ -1,4 +1,5 @@
 import { $fetch } from "@/lib/api";
+import { useUserStore } from "@/store/user";
 
 export interface TradeState {
   // Trade data
@@ -182,9 +183,20 @@ export const createTradeSlice = (
         }
       }
 
+      // Parse paymentDetails if it's a JSON string
+      let paymentDetails = data.paymentDetails;
+      if (typeof paymentDetails === 'string') {
+        try {
+          paymentDetails = JSON.parse(paymentDetails);
+        } catch (e) {
+          console.error('Failed to parse paymentDetails JSON:', e);
+          paymentDetails = null;
+        }
+      }
+
       // Determine counterparty based on current user
-      const state = get();
-      const currentUserId = (state as any).user?.id;
+      // Get user from the user store (separate Zustand store)
+      const currentUserId = useUserStore.getState().user?.id;
 
       // Determine if current user is buyer or seller
       const isBuyer = data.buyerId === currentUserId;
@@ -195,12 +207,13 @@ export const createTradeSlice = (
         ...data,
         type: isBuyer ? 'buy' : 'sell',
         coin: data.currency,
+        paymentDetails, // Use the parsed paymentDetails
         counterparty: counterpartyData ? {
           id: counterpartyData.id,
           name: counterpartyData.name || `${counterpartyData.firstName || ''} ${counterpartyData.lastName || ''}`.trim(),
           avatar: counterpartyData.avatar,
-          completedTrades: 0, // TODO: Get from backend
-          completionRate: 100, // TODO: Get from backend
+          completedTrades: counterpartyData.completedTrades || 0,
+          completionRate: counterpartyData.completionRate || 100,
         } : undefined,
         timeline: Array.isArray(timeline) ? timeline.map((event: any) => ({
           title: event.event || event.title || 'Event',

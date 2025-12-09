@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 const ErrorPage = () => {
-  const t = useTranslations("error-page/419");
+  const t = useTranslations("common");
   const { theme } = useTheme();
   const lightImage = "/images/error/light-419.png";
   const darkImage = "/images/error/dark-419.png";

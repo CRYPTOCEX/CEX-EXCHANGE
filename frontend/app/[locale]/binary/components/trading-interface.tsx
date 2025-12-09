@@ -24,8 +24,9 @@ export default function TradingInterface({
   onSymbolChange: (symbol: string) => void;
 }) {
   const isMobile = useIsMobile();
-  const { theme } = useTheme();
-  const currentTheme = theme === "system" ? "dark" : theme || "dark";
+  const { theme, resolvedTheme } = useTheme();
+  // Use resolvedTheme which gives the actual theme (respects system preference)
+  const currentTheme = resolvedTheme || theme || "dark";
   const [completedPanelState, setCompletedPanelState] = useState({ isOpen: false, height: 500 });
 
   // Get all available properties and functions from the binary store

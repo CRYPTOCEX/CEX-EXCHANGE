@@ -67,11 +67,16 @@ export default async (data: Handler) => {
       throw createError({ statusCode: 404, message: "Offering not found" });
     }
 
-    // Check if offering has any non-rejected transactions
+    // Check if offering has any active (non-completed/non-rejected) transactions
+    // Only block deletion for transactions that are truly in progress
+    // COMPLETED and REJECTED transactions are historical records that don't block deletion
     const activeTransactions = await models.icoTransaction.count({
       where: {
         offeringId: id,
-        status: { [Op.in]: ["PENDING", "VERIFICATION", "RELEASED"] },
+        status: {
+          [Op.in]: ["PENDING", "VERIFICATION"],
+          // Removed "RELEASED" - released transactions are completed and shouldn't block deletion
+        },
       },
       transaction,
     });
@@ -132,7 +137,8 @@ export default async (data: Handler) => {
       transaction,
     });
 
-    // Delete any rejected transactions
+    // Delete all transactions (including rejected and completed ones)
+    // Since we already verified there are no active PENDING/VERIFICATION transactions above
     await models.icoTransaction.destroy({
       where: { offeringId: id },
       transaction,

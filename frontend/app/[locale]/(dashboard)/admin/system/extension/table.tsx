@@ -80,18 +80,18 @@ export function ExtensionTable() {
           {filteredExtensions && Array.isArray(filteredExtensions) ? filteredExtensions.map((extension) => {
             return (
               <TableRow key={extension.id} className="group cursor-pointer hover:bg-muted/50">
-                <TableCell className="py-4 w-full" onClick={() => window.location.href = `/admin/system/extension/${extension.productId}`}>
+                <TableCell className="py-4 w-full max-w-0" onClick={() => window.location.href = `/admin/system/extension/${extension.productId}`}>
                   <div className="flex items-center space-x-4">
                     <Lightbox
                       src={extension.image || "/img/placeholder.svg"}
                       alt={extension.title}
-                      className="h-24 min-w-48"
+                      className="h-24 min-w-48 shrink-0"
                     />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-semibold truncate text-foreground">
                         {extension.title}
                       </h3>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 whitespace-normal">
                         {extension.description}
                       </p>
                     </div>

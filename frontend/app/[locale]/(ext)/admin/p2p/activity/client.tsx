@@ -117,7 +117,7 @@ export function AdminActivityClient() {
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search activities..."
+                  placeholder={t("search_activities_ellipsis")}
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -126,7 +126,7 @@ export function AdminActivityClient() {
               <Select value={filter} onValueChange={setFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by type" />
+                  <SelectValue placeholder={t("filter_by_type")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("all_activities")}</SelectItem>

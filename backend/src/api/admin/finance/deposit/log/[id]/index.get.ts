@@ -59,7 +59,7 @@ export const metadata = {
     },
   },
   requiresAuth: true,
-  permission: "Access Deposit Management",
+  permission: "view.deposit",
 };
 
 export default async (data) => {

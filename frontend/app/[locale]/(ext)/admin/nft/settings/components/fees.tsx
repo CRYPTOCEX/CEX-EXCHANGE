@@ -121,7 +121,7 @@ export default function NFTFeesSettingsSection({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              {t("Marketplace fees are deducted from sale proceeds. Royalty fees go to the original creator on secondary sales.")}
+              {t("marketplace_fees_deducted_from_sale_royalty_to_creator")}
             </AlertDescription>
           </Alert>
         </CardContent>

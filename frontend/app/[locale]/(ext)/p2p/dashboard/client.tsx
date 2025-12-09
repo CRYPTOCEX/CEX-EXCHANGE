@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowRightLeft, LineChart, Users } from "lucide-react";
+import { LineChart, Users } from "lucide-react";
 import { DashboardHero } from "./components/dashboard-hero";
 import { StatsOverview } from "./components/stats-overview";
 import { PortfolioChart } from "./components/portfolio-chart";
 import { TradingActivity } from "./components/trading-activity";
-import { RecentTransactions } from "./components/recent-transactions";
 import { MyOffers } from "./components/my-offers";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { useUserStore } from "@/store/user";
@@ -29,12 +28,10 @@ export function DashboardClient() {
     isLoadingPortfolio,
     isLoadingDashboardStats,
     isLoadingTradingActivity,
-    isLoadingTransactions,
     isLoadingUserOffers,
     portfolioError,
     dashboardStatsError,
     tradingActivityError,
-    transactionsError,
     userOffersError,
     fetchDashboardData,
   } = useP2PStore();
@@ -88,25 +85,31 @@ export function DashboardClient() {
   }
 
   const formattedTradingActivity =
-    dashboardData?.tradingActivity?.map((trade) => ({
-      ...trade,
-      time: trade.timestamp || new Date(trade.createdAt).toLocaleTimeString(),
-    })) || [];
-
-  const formattedTransactions =
-    dashboardData?.transactions?.map((tx) => ({
-      ...tx,
-      time: tx.timestamp || new Date(tx.createdAt).toLocaleTimeString(),
+    dashboardData?.tradingActivity?.map((trade: any) => ({
+      id: trade.id,
+      type: trade.type || "BUY",
+      status: trade.status || "PENDING",
+      amount: `${parseFloat(trade.amount || 0).toFixed(trade.amount >= 1 ? 2 : 6)} ${trade.currency || ""}`,
+      value: `$${parseFloat(trade.total || 0).toFixed(2)}`,
+      user: trade.counterpartyName || "Unknown",
+      userRating: trade.counterpartyRating || 0,
+      avatar: trade.counterpartyAvatar,
+      paymentMethod: trade.paymentMethodName || "Unknown",
+      time: trade.timestamp
+        ? new Date(trade.timestamp).toLocaleTimeString()
+        : trade.createdAt
+          ? new Date(trade.createdAt).toLocaleTimeString()
+          : "",
+      timestamp: trade.timestamp || trade.createdAt,
     })) || [];
 
   const mappedPortfolio = portfolio
     ? {
-        ...portfolio,
-        totalValue: 0,
-        changePercentage: 0,
-        change24h: 0,
-        return30d: 0,
-        chartData: [],
+        totalValue: portfolio.totalValue || 0,
+        changePercentage: portfolio.changePercentage || 0,
+        change24h: portfolio.change24h || 0,
+        return30d: portfolio.return30d || 0,
+        chartData: portfolio.chartData || [],
       }
     : null;
 
@@ -114,8 +117,8 @@ export function DashboardClient() {
     <div className="w-full min-h-screen bg-background">
       {/* Hero section with gradient background */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-violet-600/10 to-background z-0" />
-        <div className="container relative z-10 py-12">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-violet-600/10 to-transparent pointer-events-none" />
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 relative z-10 py-12">
           <div className="flex flex-col gap-8">
             <DashboardHero
               name={`${user?.firstName} ${user?.lastName}`}
@@ -137,7 +140,7 @@ export function DashboardClient() {
         </div>
       </div>
 
-      <div className="container py-12">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12">
         {/* Main content */}
         <div className="space-y-12">
           {/* Portfolio Section */}
@@ -172,41 +175,22 @@ export function DashboardClient() {
             />
           </div>
 
-          {/* Trading Activity and Transactions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <Users className="h-7 w-7 mr-3 text-violet-500" />
-                {t("p2p_trading_activity")}
-              </h2>
-              {tradingActivityError ? (
-                <div className="p-6 border rounded-lg bg-red-50 text-red-500">
-                  {tradingActivityError}
-                </div>
-              ) : (
-                <TradingActivity
-                  trades={formattedTradingActivity}
-                  isLoading={isLoadingTradingActivity}
-                />
-              )}
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <ArrowRightLeft className="h-7 w-7 mr-3 text-emerald-500" />
-                {t("recent_transactions")}
-              </h2>
-              {transactionsError ? (
-                <div className="p-6 border rounded-lg bg-red-50 text-red-500">
-                  {transactionsError}
-                </div>
-              ) : (
-                <RecentTransactions
-                  transactions={formattedTransactions}
-                  isLoading={isLoadingTransactions}
-                />
-              )}
-            </div>
+          {/* Trading Activity - Full Width */}
+          <div>
+            <h2 className="text-2xl font-bold mb-6 flex items-center">
+              <Users className="h-7 w-7 mr-3 text-violet-500" />
+              {t("p2p_trading_activity")}
+            </h2>
+            {tradingActivityError ? (
+              <div className="p-6 border rounded-lg bg-red-50 text-red-500">
+                {tradingActivityError}
+              </div>
+            ) : (
+              <TradingActivity
+                trades={formattedTradingActivity}
+                isLoading={isLoadingTradingActivity}
+              />
+            )}
           </div>
         </div>
       </div>

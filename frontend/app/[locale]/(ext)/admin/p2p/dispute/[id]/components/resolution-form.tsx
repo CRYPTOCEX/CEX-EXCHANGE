@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,6 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -36,62 +46,121 @@ export function ResolutionForm({
   isSubmitting,
 }: ResolutionFormProps) {
   const t = useTranslations("ext");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const getOutcomeLabel = (outcome: string) => {
+    switch (outcome) {
+      case "BUYER_WINS":
+        return t("resolve_for_buyer");
+      case "SELLER_WINS":
+        return t("resolve_for_seller");
+      case "SPLIT":
+        return t("split_resolution");
+      default:
+        return outcome;
+    }
+  };
+
+  const handleSubmitClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = async () => {
+    setShowConfirmModal(false);
+    await handleResolveDispute();
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("resolve_dispute")}</CardTitle>
-        <CardDescription>
-          {t("make_a_final_decision_on_this_dispute")}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="outcome">{t("resolution_outcome")}</Label>
-            <Select
-              value={resolutionDetails.outcome}
-              onValueChange={(value) =>
-                setResolutionDetails({ ...resolutionDetails, outcome: value })
-              }
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("resolve_dispute")}</CardTitle>
+          <CardDescription>
+            {t("make_a_final_decision_on_this_dispute")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="outcome">{t("resolution_outcome")}</Label>
+              <Select
+                value={resolutionDetails.outcome}
+                onValueChange={(value) =>
+                  setResolutionDetails({ ...resolutionDetails, outcome: value })
+                }
+              >
+                <SelectTrigger id="outcome">
+                  <SelectValue placeholder={t("select_outcome")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BUYER_WINS">{t("resolve_for_buyer")}</SelectItem>
+                  <SelectItem value="SELLER_WINS">
+                    {t("resolve_for_seller")}
+                  </SelectItem>
+                  <SelectItem value="SPLIT">{t("split_resolution")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">{t("resolution_notes")}</Label>
+              <Textarea
+                id="notes"
+                placeholder={t("enter_details_about_the_resolution_ellipsis")}
+                value={resolutionDetails.notes}
+                onChange={(e) =>
+                  setResolutionDetails({
+                    ...resolutionDetails,
+                    notes: e.target.value,
+                  })
+                }
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <Button
+              onClick={handleSubmitClick}
+              disabled={isSubmitting || !resolutionDetails.outcome}
+              className="w-full"
             >
-              <SelectTrigger id="outcome">
-                <SelectValue placeholder="Select outcome" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="buyer">{t("resolve_for_buyer")}</SelectItem>
-                <SelectItem value="seller">
-                  {t("resolve_for_seller")}
-                </SelectItem>
-                <SelectItem value="split">{t("split_resolution")}</SelectItem>
-              </SelectContent>
-            </Select>
+              {isSubmitting ? t("Processing") : t("submit_resolution")}
+            </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">{t("resolution_notes")}</Label>
-            <Textarea
-              id="notes"
-              placeholder="Enter details about the resolution..."
-              value={resolutionDetails.notes}
-              onChange={(e) =>
-                setResolutionDetails({
-                  ...resolutionDetails,
-                  notes: e.target.value,
-                })
-              }
-              className="min-h-[100px]"
-            />
-          </div>
-
-          <Button
-            onClick={handleResolveDispute}
-            disabled={isSubmitting || !resolutionDetails.outcome}
-            className="w-full"
-          >
-            {isSubmitting ? "Processing..." : "Submit Resolution"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              {t("confirm_resolution")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("are_you_sure_you_want_to_resolve_this_dispute")}{" "}
+              <strong>{getOutcomeLabel(resolutionDetails.outcome)}</strong>?{" "}
+              {t("this_action_cannot_be_undone")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+              disabled={isSubmitting}
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirm}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? t("Processing") : t("Confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

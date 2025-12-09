@@ -94,8 +94,7 @@ export function GuidedMatchingWizard() {
             {totalSteps}
           </span>
           <span>
-            {Math.round(progress)}
-            {t("%_complete")}
+            {Math.round(progress)}% {t("complete")}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
@@ -189,7 +188,7 @@ export function GuidedMatchingWizard() {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select cryptocurrency" />
+                      <SelectValue placeholder={t("select_cryptocurrency")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="bitcoin">

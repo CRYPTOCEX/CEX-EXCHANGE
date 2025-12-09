@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftCollectionAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTCollectionsPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/collection"
@@ -23,7 +25,7 @@ export default function NFTCollectionsPage() {
       isParanoid={true}
       title="NFT Collections"
       itemTitle="Collection"
-      description="Manage NFT collections, verify creators, and monitor collection performance"
+      description={t("manage_nft_collections_verify_creators_and")}
       columns={columns}
       analytics={nftCollectionAnalytics}
     />

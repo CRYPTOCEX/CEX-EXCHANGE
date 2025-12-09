@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { ImageIcon, AlertCircle } from 'lucide-react';
+import { useTranslations } from "next-intl";
 
 interface OptimizedNFTImageProps {
   src: string;
@@ -30,6 +31,7 @@ export const OptimizedNFTImage = ({
   aspectRatio = 'square',
   quality = 85
 }: OptimizedNFTImageProps) => {
+  const t = useTranslations("nft");
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -89,7 +91,7 @@ export const OptimizedNFTImage = ({
       >
         <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
         <span className="text-sm text-muted-foreground text-center px-2">
-          Failed to load image
+          {t("failed_to_load_image")}
         </span>
       </div>
     );
@@ -104,7 +106,7 @@ export const OptimizedNFTImage = ({
       {isLoading && showLoadingState && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted animate-pulse">
           <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-          <span className="text-sm text-muted-foreground">Loading...</span>
+          <span className="text-sm text-muted-foreground">{t("loading_ellipsis")}</span>
         </div>
       )}
 

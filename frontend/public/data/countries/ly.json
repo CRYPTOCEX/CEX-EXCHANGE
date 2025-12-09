@@ -1,0 +1,194 @@
+{
+  "name": "Libya",
+  "iso2": "LY",
+  "iso3": "LBY",
+  "phonecode": "218",
+  "states": [
+    {
+      "name": "Al Butnan",
+      "code": "BU",
+      "cities": [
+        "Bardia",
+        "Jaghbub",
+        "Tobruk"
+      ]
+    },
+    {
+      "name": "Al Wahat",
+      "code": "WA",
+      "cities": [
+        "Ajdabiya",
+        "Al Burayqah",
+        "Awjilah",
+        "Az Zuwaytīnah",
+        "Gialo",
+        "Marādah"
+      ]
+    },
+    {
+      "name": "Benghazi",
+      "code": "BA",
+      "cities": [
+        "Benghazi",
+        "Qaryat Sulūq"
+      ]
+    },
+    {
+      "name": "Derna",
+      "code": "DR",
+      "cities": [
+        "Al Qubbah",
+        "Darnah"
+      ]
+    },
+    {
+      "name": "Ghat",
+      "code": "GT",
+      "cities": [
+        "Ghat"
+      ]
+    },
+    {
+      "name": "Jabal al Akhdar",
+      "code": "JA",
+      "cities": [
+        "Al Bayḑā’"
+      ]
+    },
+    {
+      "name": "Jabal al Gharbi",
+      "code": "JG",
+      "cities": [
+        "Gharyan",
+        "Giado",
+        "Mizdah",
+        "Yafran",
+        "Zintan"
+      ]
+    },
+    {
+      "name": "Jafara",
+      "code": "JI",
+      "cities": [
+        "Al ‘Azīzīyah"
+      ]
+    },
+    {
+      "name": "Jufra",
+      "code": "JU",
+      "cities": [
+        "Hūn",
+        "Waddān"
+      ]
+    },
+    {
+      "name": "Kufra",
+      "code": "KF",
+      "cities": [
+        "Al Jawf",
+        "At Tāj"
+      ]
+    },
+    {
+      "name": "Marj",
+      "code": "MJ",
+      "cities": [
+        "Al Abyār",
+        "Al Marj",
+        "Tūkrah"
+      ]
+    },
+    {
+      "name": "Misrata",
+      "code": "MI",
+      "cities": [
+        "Bani Walid",
+        "Mişrātah",
+        "Zliten"
+      ]
+    },
+    {
+      "name": "Murqub",
+      "code": "MB",
+      "cities": [
+        "Al Khums",
+        "Masallātah",
+        "Tarhuna"
+      ]
+    },
+    {
+      "name": "Murzuq",
+      "code": "MQ",
+      "cities": [
+        "Al Qaţrūn",
+        "Murzuq"
+      ]
+    },
+    {
+      "name": "Nalut",
+      "code": "NL",
+      "cities": [
+        "Ghadāmis",
+        "Nālūt"
+      ]
+    },
+    {
+      "name": "Nuqat al Khams",
+      "code": "NQ",
+      "cities": [
+        "Al Ajaylat",
+        "Zalţan",
+        "Zuwārah"
+      ]
+    },
+    {
+      "name": "Sabha",
+      "code": "SB",
+      "cities": [
+        "Al Jadīd",
+        "Sabhā"
+      ]
+    },
+    {
+      "name": "Sirte",
+      "code": "SR",
+      "cities": [
+        "Qasr Abu Hadi",
+        "Sirte"
+      ]
+    },
+    {
+      "name": "Tripoli",
+      "code": "TB",
+      "cities": [
+        "Tagiura",
+        "Tripoli"
+      ]
+    },
+    {
+      "name": "Wadi al Hayaa",
+      "code": "WD",
+      "cities": [
+        "Ubari"
+      ]
+    },
+    {
+      "name": "Wadi al Shatii",
+      "code": "WS",
+      "cities": [
+        "Brak",
+        "Idrī"
+      ]
+    },
+    {
+      "name": "Zawiya",
+      "code": "ZA",
+      "cities": [
+        "Az Zāwīyah",
+        "Şabrātah",
+        "Şurmān",
+        "Zawiya"
+      ]
+    }
+  ]
+}

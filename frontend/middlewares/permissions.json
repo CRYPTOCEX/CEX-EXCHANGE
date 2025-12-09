@@ -36,6 +36,34 @@
     "permission": "access.ai.investment.plan"
   },
   {
+    "path": "/admin/ai/market-maker",
+    "permission": "access.ai.market.maker"
+  },
+  {
+    "path": "/admin/ai/market-maker/analytics",
+    "permission": "access.ai.market.maker.analytics"
+  },
+  {
+    "path": "/admin/ai/market-maker/guide",
+    "permission": "access.ai.market.maker"
+  },
+  {
+    "path": "/admin/ai/market-maker/market",
+    "permission": "access.ai.market.maker"
+  },
+  {
+    "path": "/admin/ai/market-maker/market/[id]",
+    "permission": "view.ai.market.maker"
+  },
+  {
+    "path": "/admin/ai/market-maker/market/create",
+    "permission": "create.ai.market.maker"
+  },
+  {
+    "path": "/admin/ai/market-maker/settings",
+    "permission": "access.ai.market.maker.settings"
+  },
+  {
     "path": "/admin/api/key",
     "permission": "access.api.key"
   },
@@ -85,10 +113,6 @@
   },
   {
     "path": "/admin/crm/kyc/application",
-    "permission": "access.kyc.application"
-  },
-  {
-    "path": "/admin/crm/kyc/application/[id]",
     "permission": "access.kyc.application"
   },
   {
@@ -224,6 +248,14 @@
     "permission": "access.admin"
   },
   {
+    "path": "/admin/finance/binary/duration",
+    "permission": "access.binary.duration"
+  },
+  {
+    "path": "/admin/finance/binary/market",
+    "permission": "access.binary.market"
+  },
+  {
     "path": "/admin/finance/currency/fiat",
     "permission": "access.fiat.currency"
   },
@@ -250,14 +282,6 @@
   {
     "path": "/admin/finance/exchange",
     "permission": "access.exchange"
-  },
-  {
-    "path": "/admin/finance/binary/market",
-    "permission": "access.binary.market"
-  },
-  {
-    "path": "/admin/finance/binary/duration",
-    "permission": "access.binary.duration"
   },
   {
     "path": "/admin/finance/investment/duration",
@@ -424,6 +448,62 @@
     "permission": "create.mailwizard.template"
   },
   {
+    "path": "/admin/nft/activity",
+    "permission": "access.nft.activity"
+  },
+  {
+    "path": "/admin/nft/analytics",
+    "permission": "access.nft.analytics"
+  },
+  {
+    "path": "/admin/nft/auction",
+    "permission": "access.nft.auction"
+  },
+  {
+    "path": "/admin/nft/category",
+    "permission": "access.nft.category"
+  },
+  {
+    "path": "/admin/nft/collection",
+    "permission": "access.nft.collection"
+  },
+  {
+    "path": "/admin/nft/creator",
+    "permission": "access.nft.creator"
+  },
+  {
+    "path": "/admin/nft/dispute",
+    "permission": "access.nft.dispute"
+  },
+  {
+    "path": "/admin/nft/listing",
+    "permission": "access.nft.listing"
+  },
+  {
+    "path": "/admin/nft/marketplace",
+    "permission": "access.nft"
+  },
+  {
+    "path": "/admin/nft/offer",
+    "permission": "access.nft.offer"
+  },
+  {
+    "path": "/admin/nft/onboarding",
+    "permission": "access.nft"
+  },
+  {
+    "path": "/admin/nft/sale",
+    "permission": "access.nft.sale"
+  },
+  {
+    "path": "/admin/nft/settings",
+    "permission": "access.nft.settings"
+  },
+  {
+    "path": "/admin/nft/token",
+    "permission": "access.nft.token"
+  },
+  {
     "path": "/admin/p2p",
     "permission": "access.p2p"
   },
@@ -442,14 +522,6 @@
   {
     "path": "/admin/p2p/offer",
     "permission": "access.p2p.offer"
-  },
-  {
-    "path": "/admin/p2p/offer/[id]",
-    "permission": "access.p2p.offer"
-  },
-  {
-    "path": "/admin/p2p/offer/[id]/edit",
-    "permission": "edit.p2p.offer"
   },
   {
     "path": "/admin/p2p/settings",
@@ -530,81 +602,5 @@
   {
     "path": "/admin/system/update",
     "permission": "access.system.update"
-  },
-  {
-    "path": "/admin/nft",
-    "permission": "access.nft"
-  },
-  {
-    "path": "/admin/nft/category",
-    "permission": "access.nft.category"
-  },
-  {
-    "path": "/admin/nft/category/[id]",
-    "permission": "edit.nft.category"
-  },
-  {
-    "path": "/admin/nft/category/create",
-    "permission": "create.nft.category"
-  },
-  {
-    "path": "/admin/nft/collection",
-    "permission": "access.nft.collection"
-  },
-  {
-    "path": "/admin/nft/collection/[id]",
-    "permission": "edit.nft.collection"
-  },
-  {
-    "path": "/admin/nft/collection/create",
-    "permission": "create.nft.collection"
-  },
-  {
-    "path": "/admin/nft/token",
-    "permission": "access.nft.token"
-  },
-  {
-    "path": "/admin/nft/token/[id]",
-    "permission": "edit.nft.token"
-  },
-  {
-    "path": "/admin/nft/listing",
-    "permission": "access.nft.listing"
-  },
-  {
-    "path": "/admin/nft/listing/[id]",
-    "permission": "access.nft.listing"
-  },
-  {
-    "path": "/admin/nft/activity",
-    "permission": "access.nft.activity"
-  },
-  {
-    "path": "/admin/nft/sale",
-    "permission": "access.nft.sale"
-  },
-  {
-    "path": "/admin/nft/analytics",
-    "permission": "access.nft.analytics"
-  },
-  {
-    "path": "/admin/nft/settings",
-    "permission": "access.nft.settings"
-  },
-  {
-    "path": "/admin/nft/staking",
-    "permission": "access.nft.staking"
-  },
-  {
-    "path": "/admin/nft/staking/[id]",
-    "permission": "access.nft.staking"
-  },
-  {
-    "path": "/admin/nft/auction",
-    "permission": "access.nft.auction"
-  },
-  {
-    "path": "/admin/nft/auction/[id]",
-    "permission": "access.nft.auction"
   }
 ]

@@ -68,7 +68,7 @@ export function OrderPanel({
   isMobile = false,
   darkMode = true,
 }: OrderPanelProps) {
-  const t = useTranslations("binary/components/order/order-panel");
+  const t = useTranslations("common");
   // Core state - Get selectedExpiryMinutes from store
   const storeSelectedExpiryMinutes = useBinaryStore((state) => state.selectedExpiryMinutes);
   const [amount, setAmount] = useState<number>(1000);
@@ -523,6 +523,7 @@ export function OrderPanel({
         symbol={symbol}
         expiryMinutes={expiryMinutes}
         currentPrice={currentPrice}
+        profitPercentage={profitPercentage}
         className="z-[9999]"
         darkMode={darkMode}
         priceMovement={priceMovement}
@@ -563,6 +564,7 @@ export function OrderPanel({
                   isMounted={isMounted}
                   isMobile={isMobile}
                   darkMode={darkMode}
+                  symbol={symbol}
                 />
 
                 {/* Expiration section */}
@@ -587,6 +589,7 @@ export function OrderPanel({
                 profitPercentage={profitPercentage}
                 profitAmount={profitAmount}
                 amount={amount}
+                symbol={symbol}
                 darkMode={darkMode}
               />
 

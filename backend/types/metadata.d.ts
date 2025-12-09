@@ -80,6 +80,7 @@ interface OperationObject {
     windowMs: number;
     max: number;
   };
+  responseType?: "json" | "binary"; // For binary file downloads
 }
 
 // Paths Object

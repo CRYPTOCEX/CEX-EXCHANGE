@@ -5,6 +5,7 @@ import {
   toBigIntFloat,
 } from "../blockchain";
 import client from "./client";
+import { types } from "cassandra-driver";
 import { makeUuid } from "@b/utils/passwords";
 import { MatchingEngine } from "../matchingEngine";
 import { getWalletByUserIdAndCurrency, updateWalletBalance } from "../wallet";
@@ -84,6 +85,9 @@ export interface Order {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  // AI Market Maker fields - if set, this order uses pool liquidity instead of user wallets
+  marketMakerId?: string;  // AI Market Maker ID - indicates this is a bot order
+  botId?: string;          // Specific bot that placed this order
 }
 
 export interface MatchedOrder {
@@ -180,6 +184,9 @@ function mapRowToOrder(row: any): Order {
     status: row.status,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    // AI Market Maker fields - for pool-based liquidity
+    marketMakerId: row.marketMakerId,
+    botId: row.botId,
   };
 }
 
@@ -236,9 +243,13 @@ export async function cancelOrderByUuid(
       ];
     }
   } else {
-    console.warn(
-      `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`
-    );
+    // This is expected when canceling AI market maker orders - the orderbook gets rebuilt regularly
+    // Only log in development to reduce noise
+    if (process.env.NODE_ENV === "development") {
+      console.debug(
+        `No orderbook entry found for symbol: ${symbol}, price: ${priceFormatted}, side: ${orderbookSide}`
+      );
+    }
   }
 
   // Instead of deleting the order, update its status
@@ -287,9 +298,8 @@ export async function getOrderbookEntry(
       const row = result.rows[0];
       return toBigIntFloat(row["amount"]);
     } else {
-      console.warn(
-        `Orderbook entry not found for params: ${JSON.stringify(params)}`
-      );
+      // Orderbook entry may not exist for AI market maker orders - this is expected
+      // The AI rebuilds the orderbook periodically, so entries come and go
       return null;
     }
   } catch (error) {
@@ -313,6 +323,8 @@ export async function createOrder({
   side,
   fee,
   feeCurrency,
+  marketMakerId,
+  botId,
 }: {
   userId: string;
   symbol: string;
@@ -323,11 +335,14 @@ export async function createOrder({
   side: string;
   fee: bigint;
   feeCurrency: string;
+  // AI Market Maker - if provided, this order uses pool liquidity instead of user wallets
+  marketMakerId?: string;
+  botId?: string;
 }): Promise<Order> {
   const currentTimestamp = new Date();
   const query = `
-    INSERT INTO ${scyllaKeyspace}.orders (id, "userId", symbol, type, "timeInForce", side, price, amount, filled, remaining, cost, fee, "feeCurrency", status, "createdAt", "updatedAt")
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO ${scyllaKeyspace}.orders (id, "userId", symbol, type, "timeInForce", side, price, amount, filled, remaining, cost, fee, "feeCurrency", status, "createdAt", "updatedAt", "marketMakerId", "botId")
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
   const priceTolerance = removeTolerance(price);
   const amountTolerance = removeTolerance(amount);
@@ -351,6 +366,8 @@ export async function createOrder({
     "OPEN",
     currentTimestamp,
     currentTimestamp,
+    marketMakerId || null,
+    botId || null,
   ];
 
   try {
@@ -377,6 +394,9 @@ export async function createOrder({
       status: "OPEN",
       createdAt: currentTimestamp,
       updatedAt: currentTimestamp,
+      // AI Market Maker metadata - passed through for matching engine
+      marketMakerId,
+      botId,
     };
 
     const matchingEngine = await MatchingEngine.getInstance();
@@ -452,17 +472,57 @@ export async function getOrderBook(
 
 /**
  * Retrieves all orders with status 'OPEN'.
+ *
+ * NOTE: We query from the base orders table instead of open_orders materialized view
+ * because the view may not include marketMakerId and botId columns if it was created
+ * before those columns were added via migrations. This is a Scylla/Cassandra limitation -
+ * materialized views don't auto-update when base table schema changes.
+ *
  * @returns A Promise that resolves with an array of open orders.
  */
 export async function getAllOpenOrders(): Promise<any[]> {
-  const query = `
-    SELECT * FROM ${scyllaKeyspace}.open_orders
-    WHERE status = 'OPEN' ALLOW FILTERING;
+  // The orderbook table has a composite partition key (symbol, side), so we need to
+  // include both columns in SELECT DISTINCT to comply with Scylla/Cassandra requirements.
+  // We query both BIDS and ASKS sides and extract unique symbols.
+  const symbolsQuery = `
+    SELECT DISTINCT symbol, side FROM ${scyllaKeyspace}.orderbook;
   `;
 
   try {
-    const result = await client.execute(query, [], { prepare: true });
-    return result.rows;
+    const symbolsResult = await client.execute(symbolsQuery, [], { prepare: true });
+    // Extract unique symbols from the results (since we get symbol,side pairs)
+    const uniqueSymbols = new Set<string>();
+    symbolsResult.rows.forEach(row => {
+      if (row.symbol) {
+        uniqueSymbols.add(row.symbol);
+      }
+    });
+    const symbols = Array.from(uniqueSymbols);
+
+    if (symbols.length === 0) {
+      return [];
+    }
+
+    // Query orders table directly for each symbol to get all columns including marketMakerId, botId
+    const allOrders: any[] = [];
+
+    for (const symbol of symbols) {
+      const query = `
+        SELECT * FROM ${scyllaKeyspace}.orders
+        WHERE status = 'OPEN' AND symbol = ?
+        ALLOW FILTERING;
+      `;
+
+      try {
+        const result = await client.execute(query, [symbol], { prepare: true });
+        allOrders.push(...result.rows);
+      } catch (err) {
+        // Skip errors for individual symbols
+        console.warn(`Failed to fetch open orders for symbol ${symbol}:`, err.message);
+      }
+    }
+
+    return allOrders;
   } catch (error) {
     console.error(`Failed to fetch all open orders: ${error.message}`);
     throw new Error(`Failed to fetch all open orders: ${error.message}`);
@@ -848,4 +908,190 @@ export async function rollbackOrderCreation(
   `;
   const params = [userId, createdAt, orderId];
   await client.execute(query, params, { prepare: true });
+}
+
+/**
+ * Retrieves recent trades for a given symbol by extracting them from filled/closed orders
+ * @param symbol - The trading pair symbol (e.g., "BTC/USDT")
+ * @param limit - Maximum number of trades to return (default: 50)
+ * @returns A Promise that resolves with an array of trade objects
+ */
+export async function getRecentTrades(
+  symbol: string,
+  limit: number = 50
+): Promise<any[]> {
+  try {
+    // Query orders that have trades (filled or closed orders)
+    // Note: orders_by_symbol has partition key (symbol, userId), so we need ALLOW FILTERING
+    // to query by symbol alone. This is acceptable for trade history queries with LIMIT.
+    const query = `
+      SELECT id, "userId", symbol, side, price, filled, trades, "updatedAt"
+      FROM ${scyllaKeyspace}.orders_by_symbol
+      WHERE symbol = ?
+      LIMIT ?
+      ALLOW FILTERING;
+    `;
+    const params = [symbol, limit * 2]; // Fetch more to ensure we get enough trades
+
+    const result = await client.execute(query, params, { prepare: true });
+
+    // Extract and parse trades from orders
+    const allTrades: any[] = [];
+
+    for (const row of result.rows) {
+      if (!row.trades || row.trades === '' || row.trades === '[]') {
+        continue;
+      }
+
+      try {
+        let trades;
+        if (typeof row.trades === 'string') {
+          trades = JSON.parse(row.trades);
+          // Handle double-encoded JSON
+          if (!Array.isArray(trades) && typeof trades === 'string') {
+            trades = JSON.parse(trades);
+          }
+        } else if (Array.isArray(row.trades)) {
+          trades = row.trades;
+        } else {
+          continue;
+        }
+
+        if (!Array.isArray(trades) || trades.length === 0) {
+          continue;
+        }
+
+        // Add trades with proper formatting
+        for (const trade of trades) {
+          allTrades.push({
+            id: trade.id || `${row.id}_${trade.timestamp}`,
+            price: typeof trade.price === 'bigint' ? fromBigInt(trade.price) : trade.price,
+            amount: typeof trade.amount === 'bigint' ? fromBigInt(trade.amount) : trade.amount,
+            side: row.side.toLowerCase(), // 'buy' or 'sell'
+            timestamp: trade.timestamp || row.updatedAt.getTime(),
+          });
+        }
+      } catch (parseError) {
+        console.error(`Failed to parse trades for order ${row.id}:`, parseError);
+        continue;
+      }
+    }
+
+    // Sort by timestamp descending (most recent first) and limit
+    const sortedTrades = allTrades
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit);
+
+    // Also fetch from dedicated trades table (includes AI trades)
+    try {
+      const tradesQuery = `
+        SELECT id, price, amount, side, "createdAt", "isAiTrade"
+        FROM ${scyllaKeyspace}.trades
+        WHERE symbol = ?
+        LIMIT ?
+      `;
+      const tradesResult = await client.execute(tradesQuery, [symbol, limit], { prepare: true });
+
+      for (const row of tradesResult.rows) {
+        sortedTrades.push({
+          id: row.id?.toString() || `trade_${row.createdAt?.getTime()}`,
+          price: row.price,
+          amount: row.amount,
+          side: row.side?.toLowerCase() || 'buy',
+          timestamp: row.createdAt?.getTime() || Date.now(),
+          isAiTrade: row.isAiTrade || false,
+        });
+      }
+
+      // Re-sort after adding trades from dedicated table
+      sortedTrades.sort((a, b) => b.timestamp - a.timestamp);
+    } catch (tradesTableError) {
+      // Trades table might not exist yet, ignore error
+      console.debug(`Trades table query failed (may not exist yet): ${tradesTableError.message}`);
+    }
+
+    return sortedTrades.slice(0, limit);
+  } catch (error) {
+    console.error(`Failed to fetch recent trades for ${symbol}:`, error.message);
+    throw new Error(`Failed to fetch recent trades: ${error.message}`);
+  }
+}
+
+/**
+ * Insert a trade record into the trades table
+ * Used for both AI trades and real trades to display in recent trades
+ *
+ * @param symbol - Trading pair symbol
+ * @param price - Trade price
+ * @param amount - Trade amount
+ * @param side - Trade side ('BUY' or 'SELL')
+ * @param isAiTrade - Whether this is an AI trade
+ */
+export async function insertTrade(
+  symbol: string,
+  price: number,
+  amount: number,
+  side: "BUY" | "SELL",
+  isAiTrade: boolean = false
+): Promise<void> {
+  try {
+    const query = `
+      INSERT INTO ${scyllaKeyspace}.trades (symbol, "createdAt", id, price, amount, side, "isAiTrade")
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const tradeId = types.Uuid.random();
+    const now = new Date();
+
+    await client.execute(
+      query,
+      [symbol, now, tradeId, price, amount, side.toUpperCase(), isAiTrade],
+      { prepare: true }
+    );
+  } catch (error) {
+    console.error(`Failed to insert trade for ${symbol}:`, error.message);
+    // Don't throw - trade recording is not critical
+  }
+}
+
+/**
+ * Retrieves OHLCV (Open, High, Low, Close, Volume) data for a given symbol and interval
+ * @param symbol - The trading pair symbol (e.g., "BTC/USDT")
+ * @param interval - The candle interval (e.g., "1m", "5m", "1h", "1d")
+ * @param limit - Maximum number of candles to return (default: 100)
+ * @returns A Promise that resolves with an array of OHLCV arrays [timestamp, open, high, low, close, volume]
+ */
+export async function getOHLCV(
+  symbol: string,
+  interval: string,
+  limit: number = 100
+): Promise<number[][]> {
+  try {
+    const query = `
+      SELECT open, high, low, close, volume, "createdAt"
+      FROM ${scyllaKeyspace}.candles
+      WHERE symbol = ? AND interval = ?
+      ORDER BY "createdAt" DESC
+      LIMIT ?;
+    `;
+    const params = [symbol, interval, limit];
+
+    const result = await client.execute(query, params, { prepare: true });
+
+    // Map to OHLCV format and reverse to get chronological order
+    const ohlcv: number[][] = result.rows
+      .map((row) => [
+        row.createdAt.getTime(), // timestamp
+        row.open,                 // open
+        row.high,                 // high
+        row.low,                  // low
+        row.close,                // close
+        row.volume,               // volume
+      ])
+      .reverse(); // Reverse to get oldest to newest
+
+    return ohlcv;
+  } catch (error) {
+    console.error(`Failed to fetch OHLCV for ${symbol} ${interval}:`, error.message);
+    throw new Error(`Failed to fetch OHLCV: ${error.message}`);
+  }
 }

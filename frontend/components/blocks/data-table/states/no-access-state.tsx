@@ -8,9 +8,7 @@ interface NoAccessStateProps {
 }
 
 export function NoAccessState({ children, title }: NoAccessStateProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/states/no-access-state"
-  );
+  const t = useTranslations("common");
   return (
     <div className="relative p-2 -m-2">
       {/* Changed backdrop-blur-xs -> backdrop-blur-xs */}

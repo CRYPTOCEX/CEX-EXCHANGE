@@ -58,6 +58,9 @@ export default async (data: { params?: any }) => {
     const plain = offer.get({ plain: true });
     const sellerId = plain.user.id;
 
+    // Note: View count is incremented when a trade is initiated (in initiate-trade.post.ts)
+    // This ensures only serious interest is counted and prevents owner inflation
+
     // Extract priceCurrency from priceConfig if not set at top level
     if (!plain.priceCurrency && plain.priceConfig) {
       plain.priceCurrency = plain.priceConfig.currency || "USD";

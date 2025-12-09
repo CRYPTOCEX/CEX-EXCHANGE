@@ -49,7 +49,7 @@ export const metadata = {
               type: "object",
               properties: {
                 autoCancel: { type: "number" },
-                kycRequired: { type: "boolean" },
+                kycRequired: { type: "boolean", default: false },
                 visibility: {
                   type: "string",
                   enum: ["PUBLIC", "PRIVATE"],
@@ -57,7 +57,7 @@ export const metadata = {
                 termsOfTrade: { type: "string", minLength: 1 },
                 additionalNotes: { type: "string" },
               },
-              required: ["autoCancel", "kycRequired", "visibility", "termsOfTrade"],
+              required: ["autoCancel", "visibility", "termsOfTrade"],
             },
             locationSettings: {
               type: "object",
@@ -143,8 +143,9 @@ export default async function handler(data: { body: any; user?: any }) {
     });
   }
 
-  // For SELL offers, validate user has sufficient balance and prepare to lock it
-  let sellerWalletId: string | null = null;
+  // For SELL offers, check balance and lock funds at creation time
+  // This ensures sellers can only create offers they can fulfill
+  let sellerWallet: any = null;
   let requiredAmount = 0;
 
   if (body.type === "SELL") {
@@ -156,35 +157,21 @@ export default async function handler(data: { body: any; user?: any }) {
       });
     }
 
-    try {
-      const wallet = await getWalletSafe(user.id, body.walletType, body.currency);
-
-      if (!wallet) {
-        throw createError({
-          statusCode: 400,
-          message: `No ${body.walletType} wallet found for ${body.currency}. Please deposit ${body.currency} to your ${body.walletType} wallet first.`,
-        });
-      }
-
-      const availableBalance = wallet.balance - wallet.inOrder;
-      if (availableBalance < requiredAmount) {
-        throw createError({
-          statusCode: 400,
-          message: `Insufficient balance. Available: ${availableBalance} ${body.currency}, Required: ${requiredAmount} ${body.currency}. Please deposit more funds to your ${body.walletType} wallet.`,
-        });
-      }
-
-      // Store wallet ID for locking funds in transaction
-      sellerWalletId = wallet.id;
-    } catch (error: any) {
-      // If it's already a createError, rethrow it
-      if (error.statusCode) {
-        throw error;
-      }
-      // Otherwise, wrap it in a generic error
+    // Get wallet and verify balance
+    sellerWallet = await getWalletSafe(user.id, body.walletType, body.currency);
+    if (!sellerWallet) {
       throw createError({
         statusCode: 400,
-        message: `Unable to verify wallet balance: ${error.message}`,
+        message: `You don't have a ${body.currency} ${body.walletType} wallet. Please create one first.`,
+      });
+    }
+
+    // Check available balance (balance - already locked in orders)
+    const availableBalance = sellerWallet.balance - sellerWallet.inOrder;
+    if (availableBalance < requiredAmount) {
+      throw createError({
+        statusCode: 400,
+        message: `Insufficient balance. Available: ${availableBalance} ${body.currency}, Required: ${requiredAmount} ${body.currency}. Please deposit more funds to your ${body.walletType} wallet.`,
       });
     }
   }
@@ -219,8 +206,51 @@ export default async function handler(data: { body: any; user?: any }) {
     }
   }
 
+  // Set default kycRequired to false if not provided
+  if (preparedData.tradeSettings && preparedData.tradeSettings.kycRequired === undefined) {
+    preparedData.tradeSettings.kycRequired = false;
+  }
+
   // Extract priceCurrency from priceConfig for convenience
   const priceCurrency = preparedData.priceConfig?.currency || "USD";
+
+  // Validate min/max trade amounts against global settings
+  const minTradeAmount = await cacheManager.getSetting("p2pMinimumTradeAmount");
+  const maxTradeAmount = await cacheManager.getSetting("p2pMaximumTradeAmount");
+
+  const offerMin = preparedData.amountConfig?.min || 0;
+  const offerMax = preparedData.amountConfig?.max || preparedData.amountConfig?.total || 0;
+
+  if (minTradeAmount && offerMin < minTradeAmount) {
+    throw createError({
+      statusCode: 400,
+      message: `Minimum trade amount cannot be less than platform minimum of ${minTradeAmount} ${priceCurrency}`,
+    });
+  }
+
+  if (maxTradeAmount && offerMax > maxTradeAmount) {
+    throw createError({
+      statusCode: 400,
+      message: `Maximum trade amount cannot exceed platform maximum of ${maxTradeAmount} ${priceCurrency}`,
+    });
+  }
+
+  // Validate currency-specific minimum trade amounts (for crypto dust prevention)
+  const { validateMinimumTradeAmount } = await import("../utils/fees");
+
+  // For crypto currencies, validate against currency-specific minimums
+  // Min amount is in price currency (USD/EUR), need to convert to crypto
+  if (preparedData.amountConfig?.min && preparedData.priceConfig?.finalPrice) {
+    const cryptoMinAmount = preparedData.amountConfig.min / preparedData.priceConfig.finalPrice;
+    const minimumValidation = await validateMinimumTradeAmount(cryptoMinAmount, body.currency);
+
+    if (!minimumValidation.valid && minimumValidation.minimum) {
+      throw createError({
+        statusCode: 400,
+        message: `Minimum trade amount for ${body.currency} is ${minimumValidation.minimum} ${body.currency}. Current minimum converts to ${cryptoMinAmount.toFixed(8)} ${body.currency}.`,
+      });
+    }
+  }
 
   // start a transaction so creation + associations roll back together
   const t = await sequelize.transaction();
@@ -246,44 +276,21 @@ export default async function handler(data: { body: any; user?: any }) {
       { transaction: t }
     );
 
-    // 2. For SELL offers, lock the balance in the seller's wallet
-    // This applies to ALL wallet types including FIAT to prevent:
-    // - Double spending the same funds on multiple offers
-    // - Withdrawing funds before completing trades
-    // - Using funds elsewhere on the platform
-    if (body.type === "SELL" && sellerWalletId && requiredAmount > 0) {
-      const wallet = await models.wallet.findByPk(sellerWalletId, {
-        lock: true,
-        transaction: t,
-      });
-
-      if (!wallet) {
-        throw createError({
-          statusCode: 500,
-          message: "Wallet not found for locking funds",
-        });
-      }
-
-      // Store old value before update for logging
-      const previousInOrder = wallet.inOrder;
-
-      // Lock the funds by increasing inOrder
-      await wallet.update(
-        {
-          inOrder: wallet.inOrder + requiredAmount,
-        },
-        { transaction: t }
+    // 2. For SELL offers, lock funds at offer creation
+    // This ensures the seller cannot spend these funds elsewhere while the offer is active
+    if (body.type === "SELL" && sellerWallet && requiredAmount > 0) {
+      await models.wallet.update(
+        { inOrder: sellerWallet.inOrder + requiredAmount },
+        { where: { id: sellerWallet.id }, transaction: t }
       );
-
-      console.log('[P2P Offer Create] Locked funds:', {
+      console.log('[P2P Offer Create] SELL offer - funds locked:', {
         userId: user.id,
-        walletId: sellerWalletId,
+        walletId: sellerWallet.id,
         walletType: body.walletType,
         currency: body.currency,
         amount: requiredAmount,
-        previousInOrder: previousInOrder,
-        newInOrder: previousInOrder + requiredAmount,
-        note: body.walletType === "FIAT" ? "FIAT locked - payment happens externally but balance reserved" : "Crypto locked in escrow"
+        previousInOrder: sellerWallet.inOrder,
+        newInOrder: sellerWallet.inOrder + requiredAmount,
       });
     }
 

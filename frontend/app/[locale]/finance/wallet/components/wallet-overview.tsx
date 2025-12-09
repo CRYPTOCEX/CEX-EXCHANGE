@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export function WalletOverview() {
-  const t = useTranslations("finance/wallet/components/wallet-overview");
+  const t = useTranslations("common");
   const {
     fiatWallets = [],
     spotWallets = [],

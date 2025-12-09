@@ -55,6 +55,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   // Import validation utilities
   const { validateMessage } = await import("../../../utils/validation");
   const { notifyTradeEvent } = await import("../../../utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("../index.ws");
 
   // Validate and sanitize message
   const sanitizedMessage = validateMessage(message);
@@ -140,6 +141,18 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       currency: trade.offer.currency,
       senderId: user.id,
     }).catch(console.error);
+
+    // Broadcast WebSocket event for real-time message updates
+    broadcastP2PTradeEvent(trade.id, {
+      type: "MESSAGE",
+      data: {
+        id: messageEntry.id,
+        message: sanitizedMessage,
+        senderId: user.id,
+        senderName: messageEntry.senderName,
+        createdAt: messageEntry.createdAt,
+      },
+    });
 
     return { 
       message: "Message sent successfully.",

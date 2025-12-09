@@ -31,6 +31,7 @@ export const metadata = {
             icon: { type: "string" },
             description: { type: "string" },
             instructions: { type: "string" },
+            metadata: { type: "object", description: "Flexible key-value pairs for payment details" },
             processingTime: { type: "string" },
             fees: { type: "string" },
             available: { type: "boolean" },
@@ -99,6 +100,21 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
     if (body.isGlobal !== undefined) updateData.isGlobal = body.isGlobal;
     if (body.popularityRank !== undefined) updateData.popularityRank = body.popularityRank;
 
+    // Handle metadata - sanitize and store only string key-value pairs
+    if (body.metadata !== undefined) {
+      if (body.metadata === null) {
+        updateData.metadata = null;
+      } else if (typeof body.metadata === "object") {
+        const sanitizedMetadata: Record<string, string> = {};
+        for (const [key, value] of Object.entries(body.metadata)) {
+          if (typeof key === "string" && key.trim()) {
+            sanitizedMetadata[key.trim()] = String(value);
+          }
+        }
+        updateData.metadata = Object.keys(sanitizedMetadata).length > 0 ? sanitizedMetadata : null;
+      }
+    }
+
     // Update the payment method
     await paymentMethod.update(updateData);
     
@@ -129,6 +145,7 @@ export default async (data: { params: { id: string }; body: any; user?: any }) =
         icon: paymentMethod.icon,
         description: paymentMethod.description,
         instructions: paymentMethod.instructions,
+        metadata: paymentMethod.metadata,
         processingTime: paymentMethod.processingTime,
         fees: paymentMethod.fees,
         available: paymentMethod.available,

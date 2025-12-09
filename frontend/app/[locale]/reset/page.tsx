@@ -10,7 +10,7 @@ import { AlertTriangle, Key } from "lucide-react";
 import { useRouter, Link } from "@/i18n/routing";
 
 export default function ResetPasswordPage() {
-  const t = useTranslations("auth/reset");
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);

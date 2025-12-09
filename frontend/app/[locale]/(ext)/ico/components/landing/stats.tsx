@@ -53,7 +53,7 @@ export function Stats() {
           </div>
           <p className="text-xs text-muted-foreground">
             +{stats.raisedGrowth}
-            {t("%_from_last_month")}
+            % {t("from_last_month")}
           </p>
         </CardContent>
       </Card>
@@ -67,7 +67,7 @@ export function Stats() {
           <div className="text-2xl font-bold">{stats.successfulOfferings}</div>
           <p className="text-xs text-muted-foreground">
             +{stats.offeringsGrowth}
-            {t("%_from_last_month")}
+            % {t("from_last_month")}
           </p>
         </CardContent>
       </Card>
@@ -83,7 +83,7 @@ export function Stats() {
           </div>
           <p className="text-xs text-muted-foreground">
             +{stats.investorsGrowth}
-            {t("%_from_last_month")}
+            % {t("from_last_month")}
           </p>
         </CardContent>
       </Card>
@@ -97,7 +97,7 @@ export function Stats() {
           <div className="text-2xl font-bold">{stats.averageROI}%</div>
           <p className="text-xs text-muted-foreground">
             +{stats.roiGrowth}
-            {t("%_from_last_month")}
+            % {t("from_last_month")}
           </p>
         </CardContent>
       </Card>

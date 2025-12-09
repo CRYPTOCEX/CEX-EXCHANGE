@@ -50,8 +50,9 @@ export function applyUpdatesToOrderBook(
       return;
     }
     for (const [price, updatedAmountStr] of Object.entries(updates[side])) {
-      if (typeof updatedAmountStr === "undefined") {
-        console.error(`Undefined amount for price ${price} in ${side}`);
+      if (updatedAmountStr === undefined || updatedAmountStr === null) {
+        // Skip undefined entries - they shouldn't be in the updates
+        // This can happen when orderbook sync is out of sync with orders
         continue;
       }
       try {

@@ -8,6 +8,7 @@ import { ChevronDown, Inbox } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface ActivityListProps {
   activities: any[];
@@ -26,6 +27,7 @@ export function ActivityList({
   onView,
   onDelete,
 }: ActivityListProps) {
+  const t = useTranslations("ext");
   const [visibleCount, setVisibleCount] = useState(20);
   const [ref, inView] = useInView();
 
@@ -113,9 +115,9 @@ export function ActivityList({
         <div className="rounded-full bg-muted p-6 mb-4">
           <Inbox className="h-12 w-12 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">No Activity Found</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("no_activity_found")}</h3>
         <p className="text-muted-foreground max-w-sm">
-          There are no activities matching your filters. Try adjusting your filters or check back later.
+          {t("there_are_no_activities_matching_your_filters")} {t("try_adjusting_your_filters_or_check_back_later")}
         </p>
       </div>
     );
@@ -182,7 +184,7 @@ export function ActivityList({
             onClick={onLoadMore}
             className="gap-2 group relative overflow-hidden"
           >
-            <span className="relative z-10">Load More Activity</span>
+            <span className="relative z-10">{t("load_more_activity")}</span>
             <ChevronDown className="h-4 w-4 relative z-10" />
             <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
           </Button>
@@ -192,7 +194,7 @@ export function ActivityList({
       {/* End of list message */}
       {!hasMore && activities.length > 0 && (
         <div className="text-center py-8 text-sm text-muted-foreground">
-          You've reached the end of the activity feed
+          {t("youve_reached_the_end_of_the_activity_feed")}
         </div>
       )}
     </div>

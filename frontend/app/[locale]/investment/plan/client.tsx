@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export default function InvestmentPlansClient() {
-  const t = useTranslations("investment/plan/client");
+  const t = useTranslations("common");
   const { plans, plansLoading, fetchPlans, hasFetchedPlans } = useInvestmentStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");

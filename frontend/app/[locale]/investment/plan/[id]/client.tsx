@@ -30,7 +30,7 @@ interface InvestmentPlanClientProps {
 export default function InvestmentPlanClient({
   planId,
 }: InvestmentPlanClientProps) {
-  const t = useTranslations("investment/plan/[id]/client");
+  const t = useTranslations("common");
   const {
     plans,
     plansLoading,

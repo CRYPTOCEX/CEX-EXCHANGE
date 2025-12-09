@@ -6,9 +6,7 @@ import { useChart } from "../../../context/chart-context";
 import { useTranslations } from "next-intl";
 
 const LoadingIndicator: React.FC = () => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/footer/loading-indicator"
-  );
+  const t = useTranslations("common");
   const { loading, apiStatus, wsStatus, candleData } = useChart();
 
   // Only show the full-screen loading indicator if we're loading and have no data yet

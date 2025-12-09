@@ -59,9 +59,30 @@ const GatewayImage: React.FC<{
 };
 
 function getNestedValue(obj: any, path: string): any {
+  if (!path) return undefined;
   return path
     .split(".")
     .reduce((acc, part) => (acc ? acc[part] : undefined), obj);
+}
+
+// Helper to try getting value from nested object, stripping prefix if needed
+function getValueWithFallback(obj: any, path: string, row: any): any {
+  // First try direct nested lookup
+  let result = getNestedValue(obj, path);
+  if (result !== undefined) return result;
+
+  // If obj is a nested object and path has dots, try stripping the first segment
+  // e.g., if obj is row.reportedBy and path is "reportedBy.avatar", try just "avatar"
+  if (path.includes(".")) {
+    const parts = path.split(".");
+    // Try with first segment stripped
+    const strippedPath = parts.slice(1).join(".");
+    result = getNestedValue(obj, strippedPath);
+    if (result !== undefined) return result;
+  }
+
+  // Finally try on the full row object
+  return getNestedValue(row, path);
 }
 
 const colorVariants: Record<BadgeVariant, string> = {
@@ -82,18 +103,19 @@ export function CompoundCell({ value, row, config }: CompoundCellProps) {
   const dataToUse = value && typeof value === "object" ? value : row || {};
 
   const imageKey = config.image?.key;
-  const imageValue = imageKey ? dataToUse[imageKey] : null;
+  const imageValue = imageKey ? getValueWithFallback(dataToUse, imageKey, row) : null;
 
   const primaryValue = config.primary
     ? Array.isArray(config.primary.key)
       ? config.primary.key
-          .map((k: string) => getNestedValue(dataToUse, k) ?? "")
+          .map((k: string) => getValueWithFallback(dataToUse, k, row) ?? "")
+          .filter(Boolean)
           .join(" ")
-      : (getNestedValue(dataToUse, config.primary.key) ?? "")
+      : (getValueWithFallback(dataToUse, config.primary.key, row) ?? "")
     : "";
 
   const secondaryValue = config.secondary
-    ? getNestedValue(dataToUse, config.secondary.key)
+    ? getValueWithFallback(dataToUse, config.secondary.key, row)
     : null;
 
   const PrimaryIcon = config.primary?.icon;
@@ -146,7 +168,7 @@ export function CompoundCell({ value, row, config }: CompoundCellProps) {
           <div className="flex flex-wrap gap-2 mt-1">
             {config.metadata.map((item: MetadataItem, index: number) => {
               const MetadataIcon = item.icon;
-              const val = getNestedValue(dataToUse, item.key);
+              const val = getValueWithFallback(dataToUse, item.key, row);
               let renderedContent: React.ReactNode;
               if (val == null) {
                 renderedContent = "N/A";

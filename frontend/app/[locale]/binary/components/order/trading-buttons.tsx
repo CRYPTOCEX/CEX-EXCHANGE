@@ -19,7 +19,7 @@ export default function TradingButtons({
   isMobile = false,
   darkMode = true,
 }: TradingButtonsProps) {
-  const t = useTranslations("binary/components/order/trading-buttons");
+  const t = useTranslations("common");
   return (
     <div
       className={`p-4 space-y-3 border-t ${darkMode ? "border-zinc-800" : "border-zinc-200"}`}

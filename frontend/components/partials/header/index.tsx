@@ -89,7 +89,7 @@ const NavTools = ({
   isMobile: boolean;
   excludeMobileToggle?: boolean;
 }) => {
-  const t = useTranslations("components/partials/header/index");
+  const t = useTranslations("common");
   const { user, hasPermission } = useUserStore();
   const pathname = usePathname();
   const normalizedPath = getPathAfterLocale(pathname);

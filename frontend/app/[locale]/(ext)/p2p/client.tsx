@@ -194,7 +194,7 @@ export default function P2PLandingClient() {
           </section>
         )}
 
-      {/* Why Choose CryptoP2P Section */}
+      {/* Why Choose P2P Section */}
       <section className="py-20 md:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.1),transparent_50%)]"></div>
         <div className="container mx-auto max-w-6xl relative z-10">
@@ -242,7 +242,7 @@ export default function P2PLandingClient() {
                   <p className="text-muted-foreground leading-relaxed">
                     {t("join_our_thriving_traders_across")}{" "}
                     {stats?.countries || "100+"}
-                    {t("+_countries")}{" "}
+                    + {t("countries")}{" "}
                     {t("our_reputation_system_track_records")}
                   </p>
                   <div className="h-1 w-12 bg-primary/50 mt-6 rounded-full transition-all duration-300 group-hover:w-20"></div>
@@ -293,9 +293,9 @@ export default function P2PLandingClient() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(var(--primary-rgb),0.1),transparent_70%)]"></div>
         </div>
 
-        <div className="container mx-auto max-w-7xl relative z-10">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8 relative z-10">
           {/* Enhanced Header */}
-          <div className="text-center mb-24">
+          <div className="text-center mb-16 md:mb-24">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <span className="text-sm font-medium text-primary">{t("simple_process")}</span>
             </div>
@@ -322,33 +322,33 @@ export default function P2PLandingClient() {
             <div className="flex flex-col lg:flex-row items-center mb-24 lg:mb-32">
               <div className="lg:w-1/2 lg:pr-16 order-2 lg:order-1">
                 <div className="group relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-400/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                   <div className="relative bg-card/50 dark:bg-card border border-border/50 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-2 backdrop-blur-sm">
                     <div className="flex items-start mb-6">
-                      <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg mr-6">
+                      <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg mr-6">
                         01
                       </div>
                       <div>
                         <h3 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">
                           {t("browse_offers")}
                         </h3>
-                        <div className="w-16 h-1 bg-gradient-to-r from-primary to-primary/50 rounded-full mb-4"></div>
+                        <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full mb-4"></div>
                       </div>
                     </div>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                       {t("find_the_best_filtering_system")}
                     </p>
                     <div className="space-y-3">
-                      <div className="flex items-center text-sm font-medium text-primary">
-                        <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                      <div className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                         <span>{t("filter_by_payment_method_price_and_location")}</span>
                       </div>
-                      <div className="flex items-center text-sm font-medium text-primary">
-                        <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                      <div className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                         <span>{t("compare_trader_ratings_and_reviews")}</span>
                       </div>
-                      <div className="flex items-center text-sm font-medium text-primary">
-                        <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                      <div className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                         <span>{t("real-time_price_updates_and_market_data")}</span>
                       </div>
                     </div>
@@ -357,9 +357,9 @@ export default function P2PLandingClient() {
               </div>
               <div className="lg:w-1/2 flex justify-center mb-12 lg:mb-0 order-1 lg:order-2">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-primary/10 rounded-full blur-2xl opacity-50 group-hover:opacity-75 transition-all duration-500 animate-pulse"></div>
-                  <div className="relative w-48 h-48 md:w-56 md:h-56 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500">
-                    <div className="w-32 h-32 md:w-36 md:h-36 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-purple-400/10 rounded-full blur-2xl opacity-50 group-hover:opacity-75 transition-all duration-500 animate-pulse"></div>
+                  <div className="relative w-48 h-48 md:w-56 md:h-56 bg-gradient-to-br from-purple-500/20 to-purple-400/5 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500">
+                    <div className="w-32 h-32 md:w-36 md:h-36 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
                       <Search className="h-16 w-16 md:h-20 md:w-20 text-white" />
                     </div>
                   </div>

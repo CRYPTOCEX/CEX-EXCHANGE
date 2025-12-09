@@ -23,7 +23,7 @@ import { walletAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 
 export function WalletDashboard() {
-  const t = useTranslations("finance/wallet/client");
+  const t = useTranslations("common");
   const { hasKyc, canAccessFeature, user } = useUserStore();
   const { settings } = useConfigStore();
   const router = useRouter();

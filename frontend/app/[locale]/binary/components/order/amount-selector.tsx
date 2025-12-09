@@ -3,7 +3,7 @@
 import type { RefObject } from "react";
 import { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { DollarSign, Minus, Plus, Check } from "lucide-react";
+import { Minus, Plus, Check } from "lucide-react";
 
 // Update the ref type to accept HTMLDivElement | null
 interface AmountSelectorProps {
@@ -22,6 +22,7 @@ interface AmountSelectorProps {
   isMounted?: boolean;
   isMobile?: boolean;
   darkMode?: boolean;
+  symbol: string;
 }
 export default function AmountSelector({
   amount,
@@ -34,11 +35,17 @@ export default function AmountSelector({
   amountButtonRef,
   isMobile = false,
   darkMode = true,
+  symbol,
 }: AmountSelectorProps) {
   const presetAmounts = [100, 500, 1000, 2000, 5000, 10000];
-  const availableBalance = balance;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
+  const getCurrency = (symbol: string) => {
+    const parts = symbol.split("/");
+    return parts[1] || "USDT"; // Default to USDT if parsing fails
+  };
 
   // Mount check for portal rendering
   useEffect(() => {
@@ -102,14 +109,10 @@ export default function AmountSelector({
           </div>
         </div>
         <div className="flex items-center mt-1">
-          <DollarSign
-            size={16}
-            className={`${darkMode ? "text-gray-400" : "text-gray-500"}`}
-          />
           <span
             className={`${darkMode ? "text-white" : "text-gray-800"} text-base font-bold`}
           >
-            {amount.toLocaleString()}
+            {amount.toLocaleString()} {getCurrency(symbol)}
           </span>
         </div>
         <div
@@ -171,7 +174,7 @@ export default function AmountSelector({
                           <Check size={12} className="mr-1" />
                         )}
                         <span className="text-[12px]">
-                          ${presetAmount.toLocaleString()}
+                          {presetAmount.toLocaleString()}
                         </span>
                       </div>
                     </button>
@@ -218,10 +221,11 @@ export default function AmountSelector({
               <div
                 className={`flex items-center ${darkMode ? "bg-[#2A2E39]" : "bg-gray-100"} rounded p-1`}
               >
-                <DollarSign
-                  size={14}
-                  className={`${darkMode ? "text-gray-400" : "text-gray-500"} ml-1`}
-                />
+                <span
+                  className={`${darkMode ? "text-gray-400" : "text-gray-500"} ml-1 text-sm`}
+                >
+                  {getCurrency(symbol)}
+                </span>
                 <input
                   type="number"
                   className={`${darkMode ? "bg-transparent text-white" : "bg-transparent text-gray-800"} w-full text-sm outline-none px-1`}
@@ -229,14 +233,14 @@ export default function AmountSelector({
                   onChange={(e) => {
                     const value = Number.parseInt(e.target.value);
                     if (!isNaN(value)) {
-                      setAmount(Math.min(Math.max(value, 0), availableBalance));
+                      setAmount(Math.min(Math.max(value, 0), balance));
                     }
                   }}
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
               <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Available: ${availableBalance.toLocaleString()}</span>
+                <span>Available: {balance.toLocaleString()} {getCurrency(symbol)}</span>
                 <button
                   className="bg-[#00C896] hover:bg-[#00B085] text-white px-2 py-1 rounded text-[11px]"
                   onClick={() => setShowAmountDropdown(false)}

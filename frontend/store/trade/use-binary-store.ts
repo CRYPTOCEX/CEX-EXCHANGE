@@ -489,9 +489,15 @@ export const useBinaryStore = create<BinaryState>()(
             const currency = extractBaseCurrency(currentSymbol, binaryMarkets);
             const pair = extractQuoteCurrency(currentSymbol, binaryMarkets);
 
-            // Find the profit percentage for this duration
+            // Find the duration for this expiry time
             const duration = binaryDurations.find(d => d.duration === expiryMinutes);
-            const profitPercentage = duration?.profitPercentage || 87; // Default to 87% if not found
+
+            if (!duration) {
+              console.error(`No duration found for ${expiryMinutes} minutes`);
+              return false;
+            }
+
+            const profitPercentage = duration.profitPercentage;
 
             // Calculate closedAt timestamp from expiryMinutes
             const closedAt = new Date(
@@ -508,6 +514,7 @@ export const useBinaryStore = create<BinaryState>()(
                 amount,
                 side,
                 closedAt,
+                durationId: duration.id, // Send duration ID
                 type: "RISE_FALL",
                 isDemo: tradingMode === "demo",
               },
@@ -803,6 +810,9 @@ export const useBinaryStore = create<BinaryState>()(
               }));
 
               set({ completedOrders });
+
+              // Fetch wallet data to sync balance after orders complete
+              get().fetchWalletData();
             } else {
               console.error("Failed to fetch completed orders:", error);
             }
@@ -867,6 +877,9 @@ export const useBinaryStore = create<BinaryState>()(
                   ...activeOrders,
                 ],
               }));
+
+              // Fetch wallet data to sync balance after fetching orders
+              get().fetchWalletData();
             } else {
               console.error("Failed to fetch active orders:", error);
             }

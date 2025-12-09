@@ -54,9 +54,7 @@ export function SelectFormControl({
   control,
   searchable = true,
 }: SelectFormControlProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/drawers/form-controls/select"
-  );
+  const t = useTranslations("common");
   // 1. Determine the effective endpoint (dynamic or static).
   let effectiveEndpoint: ApiEndpoint | null = null;
 

@@ -9,9 +9,7 @@ interface ConnectionStatusIndicatorProps {
 export function ConnectionStatusIndicator({
   status,
 }: ConnectionStatusIndicatorProps) {
-  const t = useTranslations(
-    "trade/components/markets/connection-status-indicator"
-  );
+  const t = useTranslations("ext");
   if (status === ConnectionStatus.CONNECTED) {
     return null;
   }

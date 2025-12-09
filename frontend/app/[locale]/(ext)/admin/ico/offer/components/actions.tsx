@@ -340,7 +340,7 @@ export function OfferingActions({
           <DialogHeader>
             <DialogTitle>{t("Delete")} {t("Offering")}</DialogTitle>
             <DialogDescription>
-              {t("Are you sure you want to delete this offering? This action cannot be undone.")}
+              {t("are_you_sure_delete_offering_cannot_undone")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

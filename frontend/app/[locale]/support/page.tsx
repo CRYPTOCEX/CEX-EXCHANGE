@@ -71,10 +71,10 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                <li>{t("•_track_your_issues_with_unique_ticket_ids")}</li>
-                <li>{t("•_set_priority_levels_(low_medium_high)")}</li>
-                <li>{t("•_real-time_updates_via_websocket")}</li>
-                <li>{t("•_full_conversation_history")}</li>
+                <li>• {t("track_your_issues_with_unique_ticket_ids")}</li>
+                <li>• {t("set_priority_levels_low_medium_high")}</li>
+                <li>• {t("real_time_updates_via_websocket")}</li>
+                <li>• {t("full_conversation_history")}</li>
               </ul>
               <Link href="/support/ticket">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
@@ -96,10 +96,10 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-zinc-400 mb-4">
-                <li>{t("•_direct_connection_with_support_agents")}</li>
-                <li>{t("•_real-time_messaging")}</li>
-                <li>{t("•_queue_position_tracking")}</li>
-                <li>{t("•_file_sharing_capabilities")}</li>
+                <li>• {t("direct_connection_with_support_agents")}</li>
+                <li>• {t("real_time_messaging")}</li>
+                <li>• {t("queue_position_tracking")}</li>
+                <li>• {t("file_sharing_capabilities")}</li>
               </ul>
               <Button
                 variant="outline"

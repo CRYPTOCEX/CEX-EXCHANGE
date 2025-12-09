@@ -418,6 +418,9 @@ export function AmountPriceStep() {
 
   // Initialize with default values
   const isInitialized = useRef(false);
+  const previousCurrencyRef = useRef<string | null>(null);
+  // Track if we're waiting for price after currency change
+  const pendingCurrencyChangeRef = useRef<string | null>(null);
 
   // Update the handleAmountChange function to store data in the expected format
   const handleAmountChange = useCallback(
@@ -637,6 +640,8 @@ export function AmountPriceStep() {
     // Only run this initialization once and when price is loaded
     if (!isInitialized.current && !isLoadingPrice) {
       isInitialized.current = true;
+      // Store the initial currency to detect future changes
+      previousCurrencyRef.current = tradeData.currency;
 
       // Set default values
       const updates: Record<string, any> = {};
@@ -796,7 +801,146 @@ export function AmountPriceStep() {
     }
   }, [isInitializing, isValidated, validateAndMarkComplete]);
 
+  // Detect currency changes and mark as pending
+  useEffect(() => {
+    if (!isInitialized.current || isInitializing) {
+      return;
+    }
 
+    const currentCurrency = tradeData.currency;
+
+    // If currency changed, mark it as pending
+    if (previousCurrencyRef.current !== null && previousCurrencyRef.current !== currentCurrency) {
+      pendingCurrencyChangeRef.current = currentCurrency;
+    }
+
+    // Update the previous currency ref immediately
+    previousCurrencyRef.current = currentCurrency;
+  }, [tradeData.currency, isInitializing]);
+
+  // Handle pending currency change when price loads
+  useEffect(() => {
+    // Skip if not initialized, still loading, or no pending change
+    if (!isInitialized.current || isLoadingPrice || isInitializing) {
+      return;
+    }
+
+    // Check if we have a pending currency change that matches current currency
+    if (pendingCurrencyChangeRef.current !== null && pendingCurrencyChangeRef.current === tradeData.currency) {
+      // Clear the pending flag
+      pendingCurrencyChangeRef.current = null;
+
+      // Currency changed and new price is loaded - update price with new market price
+      // Calculate final price based on price model (use marketPrice even if 0 to reset the field)
+      let finalPrice = marketPrice;
+      if (priceModel === "MARGIN" && marketPrice > 0) {
+        const margin = Number.parseFloat(marginValue || "0");
+        if (marginType === "percentage") {
+          const multiplier = tradeData.tradeType === "BUY" ? 1 + margin / 100 : 1 - margin / 100;
+          finalPrice = marketPrice * multiplier;
+        } else {
+          finalPrice = tradeData.tradeType === "BUY" ? marketPrice + margin : marketPrice - margin;
+        }
+      }
+
+      const updates: Record<string, any> = {
+        priceConfig: {
+          model: priceModel,
+          value: priceModel === "FIXED" ? marketPrice : (priceModel === "MARKET" ? marketPrice : Number.parseFloat(marginValue) || 0),
+          marketPrice: marketPrice,
+          finalPrice: finalPrice,
+          currency: priceCurrency,
+          marginType: marginType,
+        },
+        price: finalPrice,
+      };
+
+      // Recalculate amount to meet minimum limit if in sell mode
+      if (tradeData.tradeType === "SELL" && tradeData.availableBalance) {
+        const sellAmount = tradeData.availableBalance * 0.1;
+        updates.amountConfig = {
+          total: sellAmount,
+          min: Number.parseFloat(minLimit) || 0,
+          max: Number.parseFloat(maxLimit) || 0,
+          availableBalance: tradeData.availableBalance,
+        };
+        updates.amount = sellAmount;
+      } else {
+        // Reset amount for buy mode when currency changes
+        updates.amountConfig = {
+          total: 0,
+          min: Number.parseFloat(minLimit) || 0,
+          max: Number.parseFloat(maxLimit) || 0,
+          availableBalance: tradeData.availableBalance,
+        };
+        updates.amount = 0;
+      }
+
+      updateTradeData(updates);
+    }
+  }, [
+    tradeData.currency,
+    marketPrice,
+    isLoadingPrice,
+    isInitializing,
+    priceModel,
+    priceCurrency,
+    marginType,
+    marginValue,
+    updateTradeData,
+    tradeData.tradeType,
+    tradeData.availableBalance,
+    minLimit,
+    maxLimit,
+  ]);
+
+  // Auto-update price when market price loads and current price is 0
+  // This handles the case where we switch from a currency with no price to one with a price
+  useEffect(() => {
+    if (!isInitialized.current || isLoadingPrice || isInitializing) {
+      return;
+    }
+
+    // Get current price value
+    const currentPrice = Number(tradeData.price) || 0;
+
+    // If current price is 0 and we have a valid market price, auto-fill it
+    if (currentPrice === 0 && marketPrice > 0) {
+      let finalPrice = marketPrice;
+      if (priceModel === "MARGIN") {
+        const margin = Number.parseFloat(marginValue || "0");
+        if (marginType === "percentage") {
+          const multiplier = tradeData.tradeType === "BUY" ? 1 + margin / 100 : 1 - margin / 100;
+          finalPrice = marketPrice * multiplier;
+        } else {
+          finalPrice = tradeData.tradeType === "BUY" ? marketPrice + margin : marketPrice - margin;
+        }
+      }
+
+      updateTradeData({
+        priceConfig: {
+          model: priceModel,
+          value: priceModel === "FIXED" ? marketPrice : (priceModel === "MARKET" ? marketPrice : Number.parseFloat(marginValue) || 0),
+          marketPrice: marketPrice,
+          finalPrice: finalPrice,
+          currency: priceCurrency,
+          marginType: marginType,
+        },
+        price: finalPrice,
+      });
+    }
+  }, [
+    marketPrice,
+    isLoadingPrice,
+    isInitializing,
+    tradeData.price,
+    priceModel,
+    priceCurrency,
+    marginType,
+    marginValue,
+    updateTradeData,
+    tradeData.tradeType,
+  ]);
 
   // Helper to adjust amount to meet minimum limit
   const adjustAmountToMeetMinimum = useCallback(() => {

@@ -22,7 +22,7 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { sanitizeHTML } from "@/lib/sanitize";
-import { ErrorBoundary } from "@/components/faq/error-boundary";
+import { ErrorBoundary } from "@/app/[locale]/(ext)/faq/components/error-boundary";
 
 // FAQAccordionProps interface is now imported from global types
 

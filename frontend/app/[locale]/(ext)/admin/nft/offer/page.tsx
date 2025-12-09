@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftOfferAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTOffersPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/offer"
@@ -23,7 +25,7 @@ export default function NFTOffersPage() {
       isParanoid={true}
       title="NFT Offers & Bids"
       itemTitle="Offer"
-      description="Monitor and manage NFT offers, bids, and marketplace negotiations"
+      description={t("monitor_and_manage_nft_offers_bids")}
       columns={columns}
       analytics={nftOfferAnalytics}
     />

@@ -11,7 +11,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminDashboardStore } from "@/store/p2p/admin-dashboard-store";
+import { useTranslations } from "next-intl";
 export function AdminRecentActivity() {
+  const t = useTranslations("ext");
   const {
     recentActivity,
     isLoadingRecentActivity,
@@ -50,10 +52,10 @@ export function AdminRecentActivity() {
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-red-800">
-              Error loading recent activity
+              {t("error_loading_recent_activity")}
             </h3>
             <div className="mt-2 text-sm text-red-700">
-              <p>Please try refreshing the page.</p>
+              <p>{t("please_try_refreshing_the_page")}</p>
             </div>
           </div>
         </div>
@@ -61,7 +63,7 @@ export function AdminRecentActivity() {
     );
   }
   if (!recentActivity || recentActivity.length === 0) {
-    return <p className="text-muted-foreground">No recent activity found.</p>;
+    return <p className="text-muted-foreground">{t("no_recent_activity_found")}</p>;
   }
   return (
     <div className="space-y-8">
@@ -82,7 +84,7 @@ export function AdminRecentActivity() {
                 <span className="font-medium">{activity.title}</span>
                 {activity.priority === "high" && (
                   <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-                    High Priority
+                    {t("high_priority")}
                   </span>
                 )}
               </div>

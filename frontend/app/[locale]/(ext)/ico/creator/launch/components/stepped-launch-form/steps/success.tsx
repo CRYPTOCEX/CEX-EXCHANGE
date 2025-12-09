@@ -21,11 +21,7 @@ export default function SuccessStep({ name, symbol }: SuccessStepProps) {
           {t("application_submitted_successfully")}
         </h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          {t("your_token_launch_application_for")}
-          {name}
-          (
-          {symbol}
-          {t(")_has_been_submitted_and_is_now_pending_review")}.
+          {t("your_token_launch_application_for")} {name} ({symbol}) {t("has_been_submitted_and_is_now_pending_review")}.
         </p>
       </div>
 

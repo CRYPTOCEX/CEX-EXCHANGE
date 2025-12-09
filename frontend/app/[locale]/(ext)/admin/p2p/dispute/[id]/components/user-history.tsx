@@ -3,14 +3,59 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 interface UserHistoryProps {
   dispute: any;
 }
 
+function getUserName(user: any): string {
+  if (!user) return "Unknown User";
+  if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+  if (user.firstName) return user.firstName;
+  if (user.email) return user.email.split("@")[0];
+  return "Unknown User";
+}
+
+function getStatusBadge(status: string | undefined) {
+  const t = useTranslations("ext");
+  if (!status) {
+    return (
+      <Badge variant="outline" className="border-gray-200 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        N/A
+      </Badge>
+    );
+  }
+
+  const normalizedStatus = status.toLowerCase();
+  if (normalizedStatus === "verified" || normalizedStatus === "active") {
+    return (
+      <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900/50 dark:text-green-300">
+        {status}
+      </Badge>
+    );
+  }
+  if (normalizedStatus === "suspended" || normalizedStatus === "banned") {
+    return (
+      <Badge variant="outline" className="border-red-200 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900/50 dark:text-red-300">
+        {status}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline">
+      {status}
+    </Badge>
+  );
+}
+
 export function UserHistory({ dispute }: UserHistoryProps) {
   const t = useTranslations("ext");
+
+  const reportedBy = dispute?.reportedBy || {};
+  const against = dispute?.against || {};
+
   return (
     <Card>
       <CardHeader>
@@ -18,51 +63,65 @@ export function UserHistory({ dispute }: UserHistoryProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Reporter */}
           <div>
-            <h3 className="mb-1 text-sm font-medium">
-              {dispute.reportedBy.name}
+            <h3 className="mb-2 text-sm font-medium flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+              {getUserName(reportedBy)}
             </h3>
-            <div className="space-y-2 text-sm">
-              <p>
-                <span className="font-medium">{t("previous_disputes")}</span>
-                1:
-              </p>
-              <p>
-                <span className="font-medium">{t("successful_trades")}</span>
-                15
-              </p>
-              <p>
-                <span className="font-medium">{t("account_status")}</span>{" "}
-                <Badge
-                  variant="outline"
-                  className="border-green-200 bg-green-100 text-green-800"
+            <div className="space-y-1.5 text-sm pl-4">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Disputes:</span>
+                <span>{reportedBy.disputeCount ?? "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Trades:</span>
+                <span>{reportedBy.tradeCount ?? "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                {getStatusBadge(reportedBy.status)}
+              </div>
+              {reportedBy.id && (
+                <Link
+                  href={`/admin/crm/user/${reportedBy.id}`}
+                  className="text-xs text-primary hover:underline block pt-1"
                 >
-                  {t("Verified")}
-                </Badge>
-              </p>
+                  View Full Profile →
+                </Link>
+              )}
             </div>
           </div>
+
           <Separator />
+
+          {/* Against */}
           <div>
-            <h3 className="mb-1 text-sm font-medium">{dispute.against.name}</h3>
-            <div className="space-y-2 text-sm">
-              <p>
-                <span className="font-medium">{t("previous_disputes")}</span>
-                2
-              </p>
-              <p>
-                <span className="font-medium">{t("successful_trades")}</span>
-                28
-              </p>
-              <p>
-                <span className="font-medium">{t("account_status")}</span>{" "}
-                <Badge
-                  variant="outline"
-                  className="border-green-200 bg-green-100 text-green-800"
+            <h3 className="mb-2 text-sm font-medium flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-orange-500" />
+              {getUserName(against)}
+            </h3>
+            <div className="space-y-1.5 text-sm pl-4">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Disputes:</span>
+                <span>{against.disputeCount ?? "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Trades:</span>
+                <span>{against.tradeCount ?? "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                {getStatusBadge(against.status)}
+              </div>
+              {against.id && (
+                <Link
+                  href={`/admin/crm/user/${against.id}`}
+                  className="text-xs text-primary hover:underline block pt-1"
                 >
-                  {t("Verified")}
-                </Badge>
-              </p>
+                  View Full Profile →
+                </Link>
+              )}
             </div>
           </div>
         </div>

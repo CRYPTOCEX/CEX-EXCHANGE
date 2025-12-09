@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 import { $fetch } from "@/lib/api";
 import { toast } from "sonner";
 import { imageUploader } from "@/utils/upload";
+import { useTranslations } from "next-intl";
 
 interface PaymentMethodDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export default function PaymentMethodDialog({
   onClose,
   method,
 }: PaymentMethodDialogProps) {
+  const t = useTranslations("ext");
   const [formData, setFormData] = useState({
     name: "",
     icon: "",
@@ -168,30 +170,30 @@ export default function PaymentMethodDialog({
           {/* Basic Information */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">{t("name")}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="e.g. PayPal, Wise, Cash"
+                placeholder={t("e_g_paypal_wise_cash")}
                 required
               />
             </div>
 
             {/* Icon Upload */}
             <div className="space-y-2">
-              <Label>Icon *</Label>
+              <Label>{t("icon")}</Label>
               <ImageUpload
                 onChange={(file) => setIconFile(file)}
                 value={iconFile}
-                title="Payment Method Icon"
+                title={t("payment_method_icon")}
                 size="sm"
                 aspectRatio="square"
                 maxSize={1}
                 acceptedFormats={["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]}
               />
               <p className="text-sm text-muted-foreground">
-                Upload an icon for this payment method (max 1MB, recommended 128x128px)
+                {t("upload_an_icon_for_this_payment")}
               </p>
             </div>
           </div>
@@ -203,7 +205,7 @@ export default function PaymentMethodDialog({
               id="description"
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Brief description of this payment method"
+              placeholder={t("brief_description_of_this_payment_method")}
               rows={2}
             />
           </div>
@@ -215,7 +217,7 @@ export default function PaymentMethodDialog({
               id="instructions"
               value={formData.instructions}
               onChange={(e) => handleChange("instructions", e.target.value)}
-              placeholder="Detailed instructions for users on how to use this payment method"
+              placeholder={t("detailed_instructions_for_users_on_how")}
               rows={3}
             />
           </div>
@@ -223,12 +225,12 @@ export default function PaymentMethodDialog({
           {/* Processing Time and Fees */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="processingTime">Processing Time</Label>
+              <Label htmlFor="processingTime">{t("processing_time")}</Label>
               <Input
                 id="processingTime"
                 value={formData.processingTime}
                 onChange={(e) => handleChange("processingTime", e.target.value)}
-                placeholder="e.g. 5-10 minutes, Instant"
+                placeholder={t("e_g_5_10_minutes_instant")}
               />
             </div>
             <div className="space-y-2">
@@ -237,7 +239,7 @@ export default function PaymentMethodDialog({
                 id="fees"
                 value={formData.fees}
                 onChange={(e) => handleChange("fees", e.target.value)}
-                placeholder="e.g. Free, 1-2%"
+                placeholder={t("e_g_free_1")}
               />
             </div>
           </div>
@@ -248,7 +250,7 @@ export default function PaymentMethodDialog({
               <div>
                 <Label>Available</Label>
                 <p className="text-sm text-muted-foreground">
-                  Users can select this payment method
+                  {t("users_can_select_this_payment_method")}
                 </p>
               </div>
               <Switch
@@ -261,7 +263,7 @@ export default function PaymentMethodDialog({
               <div>
                 <Label>Global</Label>
                 <p className="text-sm text-muted-foreground">
-                  Available to all users (admin-managed)
+                  {t("available_to_all_users_admin_managed")}
                 </p>
               </div>
               <Switch
@@ -271,7 +273,7 @@ export default function PaymentMethodDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="popularityRank">Sort Order</Label>
+              <Label htmlFor="popularityRank">{t("sort_order")}</Label>
               <Input
                 id="popularityRank"
                 type="number"
@@ -281,7 +283,7 @@ export default function PaymentMethodDialog({
                 min="0"
               />
               <p className="text-sm text-muted-foreground">
-                Lower numbers appear first in the list
+                {t("lower_numbers_appear_first_in_the_list")}
               </p>
             </div>
           </div>

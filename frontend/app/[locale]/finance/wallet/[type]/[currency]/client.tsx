@@ -38,7 +38,7 @@ interface walletAttributes {
 }
 
 export default function WalletDetailClient() {
-  const t = useTranslations("finance/wallet/[type]/[currency]/client");
+  const t = useTranslations("common");
   const { currency, type } = useParams() as {
     currency: string;
     type: string;

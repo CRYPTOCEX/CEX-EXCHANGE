@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/routing";
-import { Plus, Wallet, CheckCircle2, Star } from "lucide-react";
+import { Plus, Wallet, CheckCircle2, Star, AlertTriangle, XCircle, RefreshCw } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -11,14 +11,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
+import { formatDistanceToNow } from "date-fns";
 
 // Constants
 const ACTIVITY_TYPE = {
   TRADE_CREATED: "TRADE_CREATED",
   PAYMENT_CONFIRMED: "PAYMENT_CONFIRMED",
   TRADE_COMPLETED: "TRADE_COMPLETED",
+  TRADE_DISPUTED: "TRADE_DISPUTED",
+  TRADE_CANCELLED: "TRADE_CANCELLED",
+  TRADE_UPDATE: "TRADE_UPDATE",
   FEEDBACK_RECEIVED: "FEEDBACK_RECEIVED",
 };
+
+// Format time to relative string
+function formatTime(time: string | Date): string {
+  try {
+    const date = typeof time === "string" ? new Date(time) : time;
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return String(time);
+  }
+}
 
 interface RecentActivityProps {
   recentActivity: any[];
@@ -35,18 +49,24 @@ export function RecentActivity({ recentActivity }: RecentActivityProps) {
       <CardContent>
         {recentActivity && recentActivity.length > 0 ? (
           <div className="space-y-4">
-            {recentActivity.map((activity) => (
+            {recentActivity.map((activity, index) => (
               <div key={activity.id} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div
                     className={`h-8 w-8 rounded-full flex items-center justify-center ${
                       activity.type === ACTIVITY_TYPE.TRADE_CREATED
-                        ? "bg-blue-100 text-blue-600"
+                        ? "bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
                         : activity.type === ACTIVITY_TYPE.PAYMENT_CONFIRMED
-                          ? "bg-yellow-100 text-yellow-600"
+                          ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-950 dark:text-yellow-400"
                           : activity.type === ACTIVITY_TYPE.TRADE_COMPLETED
-                            ? "bg-green-100 text-green-600"
-                            : "bg-purple-100 text-purple-600"
+                            ? "bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400"
+                            : activity.type === ACTIVITY_TYPE.TRADE_DISPUTED
+                              ? "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400"
+                              : activity.type === ACTIVITY_TYPE.TRADE_CANCELLED
+                                ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                : activity.type === ACTIVITY_TYPE.TRADE_UPDATE
+                                  ? "bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400"
+                                  : "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400"
                     }`}
                   >
                     {activity.type === ACTIVITY_TYPE.TRADE_CREATED ? (
@@ -55,23 +75,30 @@ export function RecentActivity({ recentActivity }: RecentActivityProps) {
                       <Wallet className="h-4 w-4" />
                     ) : activity.type === ACTIVITY_TYPE.TRADE_COMPLETED ? (
                       <CheckCircle2 className="h-4 w-4" />
+                    ) : activity.type === ACTIVITY_TYPE.TRADE_DISPUTED ? (
+                      <AlertTriangle className="h-4 w-4" />
+                    ) : activity.type === ACTIVITY_TYPE.TRADE_CANCELLED ? (
+                      <XCircle className="h-4 w-4" />
+                    ) : activity.type === ACTIVITY_TYPE.TRADE_UPDATE ? (
+                      <RefreshCw className="h-4 w-4" />
                     ) : (
                       <Star className="h-4 w-4" />
                     )}
                   </div>
-                  {activity.id !==
-                    recentActivity[recentActivity.length - 1].id && (
+                  {index !== recentActivity.length - 1 && (
                     <div className="w-0.5 h-full bg-border" />
                   )}
                 </div>
                 <div className="space-y-1 pb-4">
                   <p className="text-sm font-medium">{activity.message}</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {activity.tradeId}
-                    </Badge>
+                    <Link href={`/p2p/trade/${activity.tradeId}`}>
+                      <Badge variant="outline" className="text-xs hover:bg-muted cursor-pointer">
+                        {activity.tradeId?.slice(0, 8)}...
+                      </Badge>
+                    </Link>
                     <p className="text-xs text-muted-foreground">
-                      {activity.time}
+                      {formatTime(activity.time)}
                     </p>
                   </div>
                 </div>

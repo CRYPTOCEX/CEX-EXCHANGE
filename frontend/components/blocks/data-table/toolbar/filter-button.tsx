@@ -14,9 +14,7 @@ export function FilterButton({
   showFilters,
   setShowFilters,
 }: FilterButtonProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/filter-button"
-  );
+  const t = useTranslations("common");
   return (
     <motion.div whileTap={{ scale: 0.95 }}>
       <Button

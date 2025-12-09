@@ -12,61 +12,128 @@ export const metadata = {
     200: { description: "Payment methods retrieved successfully." },
     500: serverErrorResponse,
   },
-  requiresAuth: false,
+  requiresAuth: true,
 };
 
 export default async (data: { user?: any }) => {
   const { user } = data;
-  
+
   try {
-    // Build where clause to include global, system, and user's custom methods
-    const whereClause: any = {};
-    
-    if (user?.id) {
-      // If user is authenticated, show:
-      // 1. Global payment methods (isGlobal = true)
-      // 2. System payment methods (userId = null and isGlobal = false/null)
-      // 3. User's own custom payment methods
-      whereClause[Op.or] = [
-        { isGlobal: true }, // Global payment methods created by admin
-        { userId: null }, // System payment methods
-        { userId: user.id } // User's custom payment methods
-      ];
-    } else {
-      // If not authenticated, only show global and system methods
-      whereClause[Op.or] = [
-        { isGlobal: true }, // Global payment methods
-        { userId: null } // System payment methods
-      ];
-    }
-    
-    // Only show available payment methods
-    whereClause.available = true;
-    
-    const methods = await models.p2pPaymentMethod.findAll({
-      where: whereClause,
+    // Fetch global/system methods
+    const globalMethods = await models.p2pPaymentMethod.findAll({
+      where: {
+        available: true,
+        [Op.or]: [
+          { isGlobal: true },
+          { userId: null }
+        ]
+      },
       order: [
-        ["isGlobal", "DESC"], // Show global methods first
-        ["userId", "ASC"], // Then system methods (null), then user methods
+        ["isGlobal", "DESC"],
         ["popularityRank", "ASC"],
         ["name", "ASC"]
       ],
       raw: true,
     });
-    
-    // Add metadata to indicate ownership and allow users to distinguish their custom methods
-    const methodsWithMetadata = methods.map(method => ({
+
+    // Fetch user's custom methods if authenticated
+    let userMethods: any[] = [];
+    if (user?.id) {
+      userMethods = await models.p2pPaymentMethod.findAll({
+        where: {
+          userId: user.id,
+          available: true,
+        },
+        order: [
+          ["popularityRank", "ASC"],
+          ["name", "ASC"]
+        ],
+        raw: true,
+      });
+
+      // Check which user methods have active trades or active offers (can't be edited/deleted)
+      const userMethodIds = userMethods.map(m => m.id);
+
+      if (userMethodIds.length > 0) {
+        // Find methods that are used in active trades
+        const activeTradesWithMethods = await models.p2pTrade.findAll({
+          where: {
+            status: { [Op.in]: ["PENDING", "PAYMENT_SENT", "DISPUTED"] },
+            paymentMethod: { [Op.in]: userMethodIds }
+          },
+          attributes: ["paymentMethod"],
+          raw: true,
+        });
+
+        const lockedByTradeIds = new Set(activeTradesWithMethods.map((t: any) => t.paymentMethod));
+
+        // Find methods that are used in active offers
+        const activeOffersWithMethods = await models.p2pOffer.findAll({
+          include: [
+            {
+              model: models.p2pPaymentMethod,
+              as: "paymentMethods",
+              where: { id: { [Op.in]: userMethodIds } },
+              attributes: ["id"],
+              through: { attributes: [] },
+            },
+          ],
+          where: {
+            status: { [Op.in]: ["ACTIVE", "PENDING_APPROVAL", "PAUSED"] },
+          },
+          attributes: ["id"],
+        });
+
+        // Collect method IDs that are used in active offers
+        const lockedByOfferIds = new Set<string>();
+        for (const offer of activeOffersWithMethods) {
+          const paymentMethods = (offer as any).paymentMethods || [];
+          for (const pm of paymentMethods) {
+            lockedByOfferIds.add(pm.id);
+          }
+        }
+
+        // Add metadata to user methods
+        userMethods = userMethods.map(method => {
+          const hasActiveTrade = lockedByTradeIds.has(method.id);
+          const hasActiveOffer = lockedByOfferIds.has(method.id);
+          return {
+            ...method,
+            icon: null, // Don't show icon for custom methods
+            isCustom: true,
+            isGlobal: false,
+            isSystem: false,
+            canEdit: !hasActiveTrade,
+            canDelete: !hasActiveTrade && !hasActiveOffer,
+            hasActiveTrade,
+            hasActiveOffer,
+            usageInfo: hasActiveTrade || hasActiveOffer ? {
+              inActiveTrade: hasActiveTrade,
+              inActiveOffer: hasActiveOffer,
+            } : null,
+          };
+        });
+      }
+    }
+
+    // Add metadata to global/system methods
+    const globalMethodsWithMetadata = globalMethods.map(method => ({
       ...method,
-      isCustom: method.userId === user?.id, // User's own custom method
-      isGlobal: method.isGlobal === true, // Admin-created global method
-      isSystem: method.userId === null && !method.isGlobal, // Built-in system method
-      canEdit: method.userId === user?.id, // User can only edit their own methods
-      canDelete: method.userId === user?.id, // User can only delete their own methods
+      isCustom: false,
+      isGlobal: method.isGlobal === true || method.isGlobal === 1,
+      isSystem: method.userId === null && !method.isGlobal,
+      canEdit: false,
+      canDelete: false,
+      hasActiveTrade: false,
     }));
-    
-    console.log(`[P2P Payment Methods] Found ${methods.length} payment methods for user ${user?.id || 'anonymous'}`);
-    
-    return methodsWithMetadata;
+
+    console.log(`[P2P Payment Methods] Found ${globalMethods.length} global/system and ${userMethods.length} custom methods for user ${user?.id || 'anonymous'}`);
+
+    // Return separated lists
+    return {
+      global: globalMethodsWithMetadata,
+      custom: userMethods,
+    };
   } catch (err: any) {
     console.error('[P2P Payment Methods] Error:', err);
     throw new Error("Internal Server Error: " + err.message);

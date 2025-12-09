@@ -19,9 +19,7 @@ export function PermanentDeleteAction({
   row,
   onSelect,
 }: PermanentDeleteActionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/actions/permanent-delete"
-  );
+  const t = useTranslations("common");
   const permissions = useTableStore((state) => state.permissions);
   const user = useUserStore((state) => state.user);
   const handlePermanentDelete = useTableStore(

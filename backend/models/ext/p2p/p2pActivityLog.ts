@@ -6,7 +6,7 @@ export default class p2pActivityLog
   implements p2pActivityLogAttributes
 {
   id!: string;
-  userId!: string;
+  userId?: string | null;
   type!: string;
   action!: string;
   details?: string;
@@ -29,9 +29,8 @@ export default class p2pActivityLog
         },
         userId: {
           type: DataTypes.UUID,
-          allowNull: false,
+          allowNull: true,
           validate: {
-            notNull: { msg: "userId cannot be null" },
             isUUID: { args: 4, msg: "Invalid UUID" },
           },
         },

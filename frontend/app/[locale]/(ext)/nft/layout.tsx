@@ -1,12 +1,14 @@
 "use client";
 
-import NFTNavbar from "@/components/nft/navigation/NFTNavbar";
+import NFTNavbar from "@/app/[locale]/(ext)/nft/components/navigation/NFTNavbar";
+import { useTranslations } from "next-intl";
 
 export default function NFTLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("ext");
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Custom NFT Navigation - No top navbar */}
@@ -19,7 +21,7 @@ export default function NFTLayout({
       <footer className="border-t border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© 2025 NFT Market. All rights reserved.</p>
+            <p>{t("2025_nft_market_all_rights_reserved")}</p>
             <div className="flex gap-6">
               <a href="/terms" className="hover:text-foreground transition">Terms</a>
               <a href="/privacy" className="hover:text-foreground transition">Privacy</a>

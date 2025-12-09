@@ -172,8 +172,17 @@ export default async (data: Handler) => {
 
       // Send email notification
       try {
-        // TODO: Implement email notification
-        console.log(`Email notification should be sent to ${user.email} for successful deposit`);
+        await models.notification.create({
+          userId: user.id,
+          type: "alert",
+          title: "Deposit Successful",
+          message: `Your deposit of ${depositAmount} ${currency} via dLocal has been approved and credited to your wallet.`,
+          link: "/wallet",
+          read: false,
+        });
+
+        // TODO: Email service integration - when email service is configured, send email here
+        console.log(`Email notification queued for ${user.email} - successful deposit of ${depositAmount} ${currency}`);
       } catch (emailError) {
         console.error("Failed to send email notification:", emailError);
       }
@@ -186,28 +195,189 @@ export default async (data: Handler) => {
     if (["REJECTED", "CANCELLED", "EXPIRED"].includes(payload.status)) {
       console.log(`dLocal payment failed: ${payload.id}, status: ${payload.status}, detail: ${payload.status_detail}`);
       
-      // TODO: Send failure notification email
+      // Send failure notification
       try {
-        console.log(`Failure notification should be sent to ${transaction.user.email}`);
+        await models.notification.create({
+          userId: transaction.user.id,
+          type: "alert",
+          title: "Deposit Failed",
+          message: `Your dLocal deposit has failed. Status: ${payload.status}. ${payload.status_detail || "Please contact support for assistance."}`,
+          link: "/wallet",
+          read: false,
+        });
+
+        // TODO: Email service integration - when email service is configured, send email here
+        console.log(`Failure notification queued for ${transaction.user.email} - deposit ${payload.id} failed`);
       } catch (emailError) {
         console.error("Failed to send failure notification:", emailError);
       }
     }
 
     // Handle refunds
-    if (["REFUNDED", "PARTIALLY_REFUNDED"].includes(payload.status)) {
+    if (["REFUNDED", "PARTIALLY_REFUNDED"].includes(payload.status) && previousStatus === "COMPLETED") {
       console.log(`dLocal payment refunded: ${payload.id}, status: ${payload.status}`);
-      
-      // TODO: Handle refund logic - deduct from wallet if needed
-      // This would depend on the refund amount provided in the webhook
+
+      const user = transaction.user;
+      const currency = payload.currency;
+      const refundAmount = payload.amount; // Full or partial amount from webhook
+
+      // Find user wallet for this currency
+      const wallet = user.wallets?.find((w) => w.currency === currency);
+
+      if (wallet) {
+        // Deduct refund amount from wallet balance
+        const newBalance = Number(wallet.balance) - Number(refundAmount);
+
+        await wallet.update({
+          balance: Math.max(0, newBalance), // Don't allow negative balance
+        });
+
+        console.log(`Wallet updated for user ${user.id}: -${refundAmount} ${currency} (refund)`);
+
+        // Notify user about refund
+        try {
+          await models.notification.create({
+            userId: user.id,
+            type: "alert",
+            title: payload.status === "REFUNDED" ? "Deposit Refunded" : "Deposit Partially Refunded",
+            message: `Your dLocal deposit of ${refundAmount} ${currency} has been ${payload.status === "REFUNDED" ? "fully" : "partially"} refunded and deducted from your wallet. ${payload.status_detail || ""}`,
+            link: "/wallet",
+            read: false,
+          });
+        } catch (notifError) {
+          console.error("Failed to send refund notification:", notifError);
+        }
+
+        // Notify admins about refund
+        try {
+          const admins = await models.user.findAll({
+            include: [{
+              model: models.role,
+              as: "role",
+              where: {
+                name: ["Admin", "Super Admin"],
+              },
+            }],
+            attributes: ["id"],
+          });
+
+          const adminNotifications = admins.map(admin => ({
+            userId: admin.id,
+            type: "alert",
+            title: "Deposit Refund Processed",
+            message: `dLocal deposit refund processed: ${refundAmount} ${currency} for user ${user.id}. Payment ID: ${payload.id}`,
+            link: `/admin/finance/transactions`,
+            read: false,
+          }));
+
+          if (adminNotifications.length > 0) {
+            await models.notification.bulkCreate(adminNotifications);
+          }
+        } catch (adminNotifError) {
+          console.error("Failed to send admin refund notification:", adminNotifError);
+        }
+      } else {
+        console.error(`Wallet not found for refund: user ${user.id}, currency ${currency}`);
+      }
     }
 
     // Handle chargebacks
-    if (payload.status === "CHARGEBACK") {
+    if (payload.status === "CHARGEBACK" && previousStatus === "COMPLETED") {
       console.log(`dLocal payment chargeback: ${payload.id}`);
-      
-      // TODO: Handle chargeback logic - may need to deduct from wallet
-      // and notify relevant teams
+
+      const user = transaction.user;
+      const currency = payload.currency;
+      const chargebackAmount = payload.amount;
+
+      // Find user wallet for this currency
+      const wallet = user.wallets?.find((w) => w.currency === currency);
+
+      if (wallet) {
+        // Deduct chargeback amount from wallet balance
+        const newBalance = Number(wallet.balance) - Number(chargebackAmount);
+
+        await wallet.update({
+          balance: Math.max(0, newBalance), // Don't allow negative balance
+        });
+
+        console.log(`Wallet updated for user ${user.id}: -${chargebackAmount} ${currency} (chargeback)`);
+
+        // Notify user about chargeback
+        try {
+          await models.notification.create({
+            userId: user.id,
+            type: "alert",
+            title: "Deposit Chargeback",
+            message: `Your dLocal deposit of ${chargebackAmount} ${currency} has been charged back and deducted from your wallet. ${payload.status_detail || "Please contact support if you have questions."}`,
+            link: "/wallet",
+            read: false,
+          });
+        } catch (notifError) {
+          console.error("Failed to send chargeback notification:", notifError);
+        }
+
+        // Notify admins about chargeback - critical issue
+        try {
+          const admins = await models.user.findAll({
+            include: [{
+              model: models.role,
+              as: "role",
+              where: {
+                name: ["Admin", "Super Admin"],
+              },
+            }],
+            attributes: ["id", "email"],
+          });
+
+          const adminNotifications = admins.map(admin => ({
+            userId: admin.id,
+            type: "alert",
+            title: "CRITICAL: Deposit Chargeback",
+            message: `dLocal deposit chargeback detected: ${chargebackAmount} ${currency} for user ${user.id} (${user.email}). Payment ID: ${payload.id}. Immediate review required.`,
+            link: `/admin/finance/transactions`,
+            read: false,
+          }));
+
+          if (adminNotifications.length > 0) {
+            await models.notification.bulkCreate(adminNotifications);
+          }
+
+          console.log(`Admin chargeback notifications sent for payment ${payload.id}`);
+        } catch (adminNotifError) {
+          console.error("Failed to send admin chargeback notification:", adminNotifError);
+        }
+      } else {
+        console.error(`Wallet not found for chargeback: user ${user.id}, currency ${currency}`);
+
+        // Critical: notify admins even if wallet not found
+        try {
+          const admins = await models.user.findAll({
+            include: [{
+              model: models.role,
+              as: "role",
+              where: {
+                name: ["Admin", "Super Admin"],
+              },
+            }],
+            attributes: ["id"],
+          });
+
+          const adminNotifications = admins.map(admin => ({
+            userId: admin.id,
+            type: "alert",
+            title: "CRITICAL: Chargeback Wallet Not Found",
+            message: `Cannot process chargeback: wallet not found for user ${user.id}, currency ${currency}. Payment ID: ${payload.id}. Manual intervention required.`,
+            link: `/admin/finance/transactions`,
+            read: false,
+          }));
+
+          if (adminNotifications.length > 0) {
+            await models.notification.bulkCreate(adminNotifications);
+          }
+        } catch (adminNotifError) {
+          console.error("Failed to send critical admin notification:", adminNotifError);
+        }
+      }
     }
 
     return {

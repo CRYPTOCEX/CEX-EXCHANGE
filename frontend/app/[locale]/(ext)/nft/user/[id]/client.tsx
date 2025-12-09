@@ -37,7 +37,7 @@ interface UserPortfolioClientProps {
 }
 
 export default function UserPortfolioClient({ initialUser }: UserPortfolioClientProps) {
-  const t = useTranslations("nft/user/profile");
+  const t = useTranslations("ext");
   const { user: currentUser } = useUserStore();
 
   // Helper function for time formatting

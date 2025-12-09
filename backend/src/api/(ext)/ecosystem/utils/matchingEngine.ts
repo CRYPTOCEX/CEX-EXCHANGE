@@ -7,7 +7,7 @@ import {
   generateOrderBookUpdateQueries,
   updateSingleOrderBook,
 } from "./orderbook";
-import client from "./scylla/client";
+import client, { scyllaKeyspace } from "./scylla/client";
 import {
   fetchOrderBooks,
   generateOrderUpdateQueries,
@@ -29,12 +29,91 @@ import { getEcoSystemMarkets } from "./markets";
 import { logError } from "@b/utils/logger";
 import { stringify as uuidStringify } from "uuid";
 
+// Cache for AI market maker symbols - refreshed periodically
+let aiMarketMakerSymbolsCache: Set<string> = new Set();
+let aiMarketMakerCacheLastRefresh: number = 0;
+const AI_MARKET_MAKER_CACHE_TTL = 60000; // 1 minute cache
+
+/**
+ * Get symbols that have active AI market makers
+ * These symbols should be skipped in orderbook sync since AI market maker
+ * manages orderbook entries without creating real orders
+ *
+ * @param forceRefresh - If true, bypass cache and fetch fresh data
+ */
+async function getAiMarketMakerSymbols(forceRefresh: boolean = false): Promise<Set<string>> {
+  const now = Date.now();
+
+  // Return cached symbols if still valid (unless forced refresh)
+  if (!forceRefresh && aiMarketMakerSymbolsCache.size > 0 && now - aiMarketMakerCacheLastRefresh < AI_MARKET_MAKER_CACHE_TTL) {
+    return aiMarketMakerSymbolsCache;
+  }
+
+  try {
+    // Dynamic import to avoid circular dependencies
+    const { models } = await import("@b/db");
+
+    // Get all active AI market makers with their associated markets
+    const activeMarketMakers = await models.aiMarketMaker.findAll({
+      where: { status: "ACTIVE" },
+      include: [{
+        model: models.ecosystemMarket,
+        as: "market",
+        attributes: ["currency", "pair"],
+      }],
+    });
+
+    const symbols = new Set<string>();
+    for (const maker of activeMarketMakers) {
+      if (maker.market) {
+        const symbol = `${maker.market.currency}/${maker.market.pair}`;
+        symbols.add(symbol);
+      }
+    }
+
+    aiMarketMakerSymbolsCache = symbols;
+    aiMarketMakerCacheLastRefresh = now;
+
+    if (symbols.size > 0) {
+      console.info(`[MatchingEngine] Found ${symbols.size} AI market maker symbols: ${Array.from(symbols).join(", ")}`);
+    }
+
+    return symbols;
+  } catch (error) {
+    // If we can't fetch AI market maker symbols, return empty set
+    // This allows normal operation if AI market maker module is not available
+    logError("get_ai_market_maker_symbols", error, __filename);
+    return new Set();
+  }
+}
+
 interface Uuid {
   buffer: Buffer;
 }
 
 function uuidToString(uuid: Uuid): string {
-  return uuidStringify(uuid.buffer);
+  try {
+    // Handle case where uuid might already be a string
+    if (typeof uuid === "string") {
+      return uuid;
+    }
+
+    // Prefer cassandra-driver's toString method - it handles all UUID formats correctly
+    // The uuid library's uuidStringify only accepts v4 UUIDs and fails on v1 or arbitrary UUIDs
+    if (uuid && typeof (uuid as any).toString === "function") {
+      return (uuid as any).toString();
+    }
+
+    // Fallback to buffer-based conversion using uuid library (only works for v4 UUIDs)
+    if (uuid?.buffer) {
+      return uuidStringify(uuid.buffer);
+    }
+
+    throw new Error("Invalid UUID format");
+  } catch (error) {
+    // Return fallback - the order will be skipped if userId is all zeros
+    return "00000000-0000-0000-0000-000000000000";
+  }
 }
 
 export class MatchingEngine {
@@ -59,7 +138,8 @@ export class MatchingEngine {
   public async init() {
     await this.initializeMarkets();
     await this.initializeOrders();
-    await this.validateAndCleanOrderbook(); // NEW: Validate orderbook integrity on startup
+    // DISABLED: Orderbook validation was interfering with AI market maker orderbook entries
+    // await this.validateAndCleanOrderbook();
     await this.initializeLastCandles();
     await this.initializeYesterdayCandles();
   }
@@ -97,6 +177,19 @@ export class MatchingEngine {
           return;
         }
 
+        const userId = uuidToString(order.userId);
+        const orderId = uuidToString(order.id);
+
+        // Skip orders with invalid user IDs (all zeros from legacy/invalid data)
+        if (userId === "00000000-0000-0000-0000-000000000000") {
+          // Silently skip invalid orders - these are legacy broken data
+          return;
+        }
+
+        // Convert marketMakerId and botId from UUID objects to strings if present
+        const marketMakerId = order.marketMakerId ? uuidToString(order.marketMakerId) : undefined;
+        const botId = order.botId ? uuidToString(order.botId) : undefined;
+
         const normalizedOrder = {
           ...order,
           amount: BigInt(order.amount ?? 0),
@@ -107,8 +200,11 @@ export class MatchingEngine {
           filled: BigInt(order.filled ?? 0),
           createdAt,
           updatedAt,
-          userId: uuidToString(order.userId),
-          id: uuidToString(order.id),
+          userId,
+          id: orderId,
+          // AI Market Maker metadata - must be converted from UUID objects to strings
+          marketMakerId: marketMakerId !== "00000000-0000-0000-0000-000000000000" ? marketMakerId : undefined,
+          botId: botId !== "00000000-0000-0000-0000-000000000000" ? botId : undefined,
         };
 
         if (!this.orderQueue[normalizedOrder.symbol]) {
@@ -129,9 +225,14 @@ export class MatchingEngine {
   /**
    * Syncs orderbook with actual order states from Scylla
    * Removes "ghost" orderbook entries for orders that are CLOSED/CANCELLED
+   * IMPORTANT: Skips symbols with active AI market maker since AI manages orderbook entries
    */
   private async syncOrderbookWithOrders() {
     try {
+      // Get symbols with active AI market maker - FORCE refresh to get latest status
+      // This is critical on startup to avoid deleting AI market maker orderbook entries
+      const aiMarketMakerSymbols = await getAiMarketMakerSymbols(true);
+
       // Fetch all orderbook entries
       const allOrderBookEntries = await fetchOrderBooks();
 
@@ -152,6 +253,11 @@ export class MatchingEngine {
 
       // For each symbol, check if orderbook entries match actual OPEN orders
       for (const symbol in orderbookBySymbol) {
+        // Skip symbols with active AI market maker - AI manages the orderbook for these
+        if (aiMarketMakerSymbols.has(symbol)) {
+          continue;
+        }
+
         const orderbookEntries = orderbookBySymbol[symbol];
 
         // Get all OPEN orders for this symbol
@@ -189,7 +295,7 @@ export class MatchingEngine {
               // Ghost entry: orderbook has amount but no open orders exist
               try {
                 // Remove ghost entry from orderbook
-                const deleteQuery = `DELETE FROM ${client.keyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`;
+                const deleteQuery = `DELETE FROM ${scyllaKeyspace}.orderbook WHERE symbol = ? AND price = ? AND side = ?`;
                 await client.execute(deleteQuery, [symbol, priceStr, side], { prepare: true });
                 ghostEntriesRemoved++;
               } catch (deleteError) {
@@ -199,7 +305,7 @@ export class MatchingEngine {
               // Amount mismatch: orderbook amount doesn't match sum of open orders
               try {
                 // Update orderbook with correct amount
-                const updateQuery = `UPDATE ${client.keyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`;
+                const updateQuery = `UPDATE ${scyllaKeyspace}.orderbook SET amount = ? WHERE symbol = ? AND price = ? AND side = ?`;
                 await client.execute(
                   updateQuery,
                   [fromBigInt(openAmount), symbol, priceStr, side],
@@ -225,7 +331,7 @@ export class MatchingEngine {
 
             if (!existingEntry) {
               try {
-                const insertQuery = `INSERT INTO ${client.keyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
+                const insertQuery = `INSERT INTO ${scyllaKeyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
                 await client.execute(
                   insertQuery,
                   [symbol, priceStr, "BIDS", fromBigInt(amounts.bids)],
@@ -246,7 +352,7 @@ export class MatchingEngine {
 
             if (!existingEntry) {
               try {
-                const insertQuery = `INSERT INTO ${client.keyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
+                const insertQuery = `INSERT INTO ${scyllaKeyspace}.orderbook (symbol, price, side, amount) VALUES (?, ?, ?, ?)`;
                 await client.execute(
                   insertQuery,
                   [symbol, priceStr, "ASKS", fromBigInt(amounts.asks)],
@@ -303,6 +409,11 @@ export class MatchingEngine {
           totalOrdersChecked++;
 
           try {
+            // Skip validation for bot orders - they use pool liquidity, not user wallets
+            if (order.marketMakerId) {
+              continue;
+            }
+
             const orderAmount = fromBigInt(removeTolerance(order.remaining));
             const orderCost = fromBigInt(removeTolerance(
               (order.remaining * order.price) / BigInt(10 ** 18)
@@ -589,8 +700,9 @@ export class MatchingEngine {
 
     const finalOrderBooks: Record<string, any> = {};
     for (const symbol in orderBookUpdates) {
+      const currentOrderBook = mappedOrderBook[symbol] || { bids: {}, asks: {} };
       finalOrderBooks[symbol] = applyUpdatesToOrderBook(
-        mappedOrderBook[symbol],
+        currentOrderBook,
         orderBookUpdates[symbol]
       );
     }

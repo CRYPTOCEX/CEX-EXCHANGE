@@ -1,7 +1,11 @@
-"use client";
+import OfferEditClient from "./client";
+import { use } from "react";
 
-import { AdminOfferDetailsClient } from "./client";
-
-export default function OfferDetailsPage() {
-  return <AdminOfferDetailsClient />;
+export default function OfferEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  return <OfferEditClient id={id} />;
 }

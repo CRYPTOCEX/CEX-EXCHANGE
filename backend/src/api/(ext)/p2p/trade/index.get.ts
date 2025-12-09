@@ -2,6 +2,55 @@ import { models } from "@b/db";
 import { unauthorizedResponse, serverErrorResponse } from "@b/utils/query";
 import { Op } from "sequelize";
 
+// Map timeline events to activity types
+function mapEventToActivityType(event: string): string {
+  const eventUpper = (event || '').toUpperCase().replace(/\s+/g, '_');
+  if (eventUpper.includes('INITIATED') || eventUpper.includes('CREATED') || eventUpper.includes('STARTED')) {
+    return 'TRADE_CREATED';
+  }
+  if (eventUpper.includes('PAYMENT') && eventUpper.includes('SENT')) {
+    return 'PAYMENT_CONFIRMED';
+  }
+  if (eventUpper.includes('COMPLETED') || eventUpper.includes('RELEASED')) {
+    return 'TRADE_COMPLETED';
+  }
+  if (eventUpper.includes('DISPUTED')) {
+    return 'TRADE_DISPUTED';
+  }
+  if (eventUpper.includes('CANCELLED')) {
+    return 'TRADE_CANCELLED';
+  }
+  return 'TRADE_UPDATE';
+}
+
+// Format activity message
+function formatActivityMessage(event: string, currency: string, amount: number): string {
+  const eventUpper = (event || '').toUpperCase().replace(/\s+/g, '_');
+  const amountStr = `${amount || 0} ${currency || 'N/A'}`;
+
+  if (eventUpper.includes('INITIATED') || eventUpper.includes('CREATED') || eventUpper.includes('STARTED')) {
+    return `Trade initiated for ${amountStr}`;
+  }
+  if (eventUpper.includes('PAYMENT') && eventUpper.includes('SENT')) {
+    return `Payment confirmed for ${amountStr}`;
+  }
+  if (eventUpper.includes('COMPLETED')) {
+    return `Trade completed for ${amountStr}`;
+  }
+  if (eventUpper.includes('RELEASED')) {
+    return `Funds released for ${amountStr}`;
+  }
+  if (eventUpper.includes('DISPUTED')) {
+    return `Trade disputed for ${amountStr}`;
+  }
+  if (eventUpper.includes('CANCELLED')) {
+    return `Trade cancelled for ${amountStr}`;
+  }
+  // Format event name nicely as fallback
+  const formattedEvent = event.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+  return `${formattedEvent} - ${amountStr}`;
+}
+
 export const metadata = {
   summary: "Get Trade Dashboard Data",
   description: "Retrieves aggregated trade data for the authenticated user.",
@@ -27,7 +76,6 @@ export default async (data: { user?: any }) => {
       activeTrades,
       pendingTrades,
       trades,
-      recentActivity,
     ] = await Promise.all([
       models.p2pTrade.count({
         where: { [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
@@ -60,7 +108,9 @@ export default async (data: { user?: any }) => {
       }),
       models.p2pTrade.findAll({
         where: {
-          status: { [Op.in]: ["IN_PROGRESS", "PENDING", "PAYMENT_SENT"] },
+          status: {
+            [Op.in]: ["IN_PROGRESS", "PENDING", "PAYMENT_SENT", "ESCROW_RELEASED"],
+          },
           [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
         },
         include: [
@@ -106,17 +156,52 @@ export default async (data: { user?: any }) => {
             required: false
           }
         ],
-      }),
-      models.p2pActivityLog.findAll({
-        where: {
-          userId: user.id,
-          relatedEntity: "TRADE" // Only fetch trade-related activities
-        },
-        order: [["createdAt", "DESC"]],
-        limit: 5,
-        raw: true,
+        order: [["updatedAt", "DESC"]],
       }),
     ]);
+
+    // ------ Generate recent activity from trade timelines ------
+    const recentActivity: any[] = [];
+
+    // Get recent trades for activity extraction
+    const recentTrades = trades.slice(0, 10);
+
+    for (const trade of recentTrades) {
+      const tradeData = trade.toJSON ? trade.toJSON() : trade;
+      let timeline = tradeData.timeline || [];
+
+      // Parse timeline if it's a string
+      if (typeof timeline === 'string') {
+        try {
+          timeline = JSON.parse(timeline);
+        } catch (e) {
+          timeline = [];
+        }
+      }
+
+      if (!Array.isArray(timeline)) timeline = [];
+
+      // Extract recent events from timeline (skip MESSAGE events)
+      for (const event of timeline) {
+        if (event.event === 'MESSAGE') continue;
+
+        const eventTime = event.timestamp || event.createdAt || event.time;
+        if (!eventTime) continue;
+
+        recentActivity.push({
+          id: `${tradeData.id}-${eventTime}`,
+          tradeId: tradeData.id,
+          type: mapEventToActivityType(event.event),
+          message: formatActivityMessage(event.event, tradeData.currency, tradeData.amount),
+          time: eventTime,
+          createdAt: new Date(eventTime),
+        });
+      }
+    }
+
+    // Sort by time and take most recent 5
+    recentActivity.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const limitedActivity = recentActivity.slice(0, 5);
 
     // ------ 2. Calculations ------
     const totalVolume = trades.reduce((sum, t) => sum + (t.total || t.fiatAmount || 0), 0);
@@ -179,45 +264,12 @@ export default async (data: { user?: any }) => {
       };
     }
 
-    // ------ 5. Format activity log ------
-    function formatActivity(act) {
-      let message = act.message || act.details;
-
-      // Try to parse JSON message and format it
-      if (typeof message === 'string') {
-        try {
-          const parsed = JSON.parse(message);
-
-          // Format based on the data structure
-          if (parsed.offerType && parsed.currency) {
-            const action = parsed.statusChange ? `Status changed from ${parsed.statusChange}` : 'Offer updated';
-            const updater = parsed.updatedBy || 'System';
-            message = `${action} for ${parsed.offerType} ${parsed.currency} by ${updater}`;
-          } else if (parsed.action) {
-            message = parsed.action;
-          } else if (parsed.description) {
-            message = parsed.description;
-          } else {
-            // If we can't format it nicely, use a generic message
-            message = 'Activity recorded';
-          }
-        } catch (e) {
-          // If it's not JSON or parsing fails, use the original message
-          // But if it starts with { or [, it's likely broken JSON - use generic message
-          if (message.trim().startsWith('{') || message.trim().startsWith('[')) {
-            message = 'Activity recorded';
-          }
-        }
-      }
-
-      return {
-        id: act.id,
-        type: act.type || act.activityType,
-        tradeId: act.tradeId,
-        message: message,
-        time: act.createdAt,
-      };
-    }
+    // ------ 5. Get available currencies from trades ------
+    const availableCurrencies = [...new Set(
+      trades
+        .map((t) => t.currency)
+        .filter((c) => c)
+    )].sort();
 
     // ------ 6. Prepare response ------
     return {
@@ -228,7 +280,7 @@ export default async (data: { user?: any }) => {
         avgCompletionTime,
         successRate,
       },
-      recentActivity: recentActivity.map(formatActivity),
+      recentActivity: limitedActivity,
       activeTrades: activeTrades.map(formatTrade),
       pendingTrades: pendingTrades.map(formatTrade),
       completedTrades: trades
@@ -240,6 +292,7 @@ export default async (data: { user?: any }) => {
         .slice(0, 7)
         .map(formatTrade),
       disputedTrades: disputedTrades.map(formatTrade),
+      availableCurrencies,
     };
   } catch (err) {
     throw new Error("Internal Server Error: " + err.message);

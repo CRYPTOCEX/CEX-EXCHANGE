@@ -13,21 +13,54 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, AlertTriangle, Info } from "lucide-react";
+import { ArrowLeft, Save, AlertTriangle, Info, Pencil, Plus, Trash2, Lock, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Link } from "@/i18n/routing";
 import { useToast } from "@/hooks/use-toast";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { $fetch } from "@/lib/api";
 import { useTranslations } from "next-intl";
+import { CountrySelect } from "@/components/ui/country-select";
+import { StateSelect } from "@/components/ui/state-select";
+import { CitySelect } from "@/components/ui/city-select";
 
-// Helper function to parse JSON safely
-const safeJsonParse = (jsonString, defaultValue = {}) => {
-  try {
-    return jsonString ? JSON.parse(jsonString) : defaultValue;
-  } catch (error) {
-    console.error("Error parsing JSON:", error);
-    return defaultValue;
+// Helper function to parse JSON safely - handles both objects and JSON strings
+const safeJsonParse = (value: any, defaultValue = {}) => {
+  // If value is null/undefined, return default
+  if (value == null) return defaultValue;
+
+  // If value is already an object, return it directly
+  if (typeof value === "object") return value;
+
+  // If value is a string, try to parse it as JSON
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return defaultValue;
+    }
   }
+
+  return defaultValue;
 };
 
 export default function EditOfferClient() {
@@ -42,8 +75,33 @@ export default function EditOfferClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [globalPaymentMethods, setGlobalPaymentMethods] = useState<any[]>([]);
+  const [customPaymentMethods, setCustomPaymentMethods] = useState<any[]>([]);
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([]);
+  const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Edit payment method dialog state
+  const [editingMethod, setEditingMethod] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+    instructions: "",
+    processingTime: "",
+    metadata: {} as Record<string, string>,
+  });
+  const [savingMethod, setSavingMethod] = useState(false);
+  const [newFieldKey, setNewFieldKey] = useState("");
+  const [newFieldValue, setNewFieldValue] = useState("");
+
+  // Delete payment method state
+  const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
+
+  // Ensure consistent hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -88,10 +146,19 @@ export default function EditOfferClient() {
         const { data, error } = await $fetch({
           url: "/api/p2p/payment-method",
           method: "GET",
+          silentSuccess: true
         });
 
         if (!error && data) {
-          setPaymentMethods(data);
+          // Handle new API response format: { global: [...], custom: [...] }
+          if (typeof data === "object" && "global" in data) {
+            setGlobalPaymentMethods(data.global || []);
+            setCustomPaymentMethods(data.custom || []);
+          } else if (Array.isArray(data)) {
+            // Legacy format: flat array - separate by isCustom flag
+            setGlobalPaymentMethods(data.filter((m: any) => !m.isCustom && !m.userId));
+            setCustomPaymentMethods(data.filter((m: any) => m.isCustom || m.userId));
+          }
         }
       } catch (err) {
         console.error("Error loading payment methods:", err);
@@ -100,6 +167,182 @@ export default function EditOfferClient() {
 
     loadPaymentMethods();
   }, []);
+
+  // Get all payment methods combined
+  const allPaymentMethods = [...globalPaymentMethods, ...customPaymentMethods];
+
+  // Toggle method expansion to view details
+  const toggleMethodExpansion = (methodId: string) => {
+    setExpandedMethod(expandedMethod === methodId ? null : methodId);
+  };
+
+  // Parse metadata safely
+  const parseMetadata = (metadata: any): Record<string, string> | null => {
+    if (!metadata) return null;
+    if (typeof metadata === "string") {
+      try {
+        return JSON.parse(metadata);
+      } catch {
+        return null;
+      }
+    }
+    if (typeof metadata === "object" && !Array.isArray(metadata)) {
+      return metadata;
+    }
+    return null;
+  };
+
+  // Open edit dialog for a payment method
+  const openEditDialog = (method: any) => {
+    const metadata = parseMetadata(method.metadata) || {};
+    setEditingMethod(method);
+    setEditFormData({
+      name: method.name || "",
+      description: method.description || "",
+      instructions: method.instructions || "",
+      processingTime: method.processingTime || "",
+      metadata: { ...metadata },
+    });
+    setNewFieldKey("");
+    setNewFieldValue("");
+    setEditDialogOpen(true);
+  };
+
+  // Add a new metadata field
+  const addMetadataField = () => {
+    if (!newFieldKey.trim() || !newFieldValue.trim()) return;
+    setEditFormData((prev) => ({
+      ...prev,
+      metadata: {
+        ...prev.metadata,
+        [newFieldKey.trim()]: newFieldValue.trim(),
+      },
+    }));
+    setNewFieldKey("");
+    setNewFieldValue("");
+  };
+
+  // Remove a metadata field
+  const removeMetadataField = (key: string) => {
+    setEditFormData((prev) => {
+      const newMetadata = { ...prev.metadata };
+      delete newMetadata[key];
+      return { ...prev, metadata: newMetadata };
+    });
+  };
+
+  // Update a metadata field value
+  const updateMetadataField = (key: string, value: string) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      metadata: {
+        ...prev.metadata,
+        [key]: value,
+      },
+    }));
+  };
+
+  // Save payment method changes
+  const savePaymentMethod = async () => {
+    if (!editingMethod) return;
+
+    setSavingMethod(true);
+    try {
+      const { data, error } = await $fetch({
+        url: `/api/p2p/payment-method/${editingMethod.id}`,
+        method: "PUT",
+        body: {
+          name: editFormData.name,
+          description: editFormData.description,
+          instructions: editFormData.instructions,
+          processingTime: editFormData.processingTime,
+          metadata: Object.keys(editFormData.metadata).length > 0 ? editFormData.metadata : null,
+        },
+      });
+
+      if (error) {
+        toast({
+          title: t("Error"),
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update the local state with the new data
+      setCustomPaymentMethods((prev) =>
+        prev.map((m) =>
+          m.id === editingMethod.id
+            ? {
+                ...m,
+                name: editFormData.name,
+                description: editFormData.description,
+                instructions: editFormData.instructions,
+                processingTime: editFormData.processingTime,
+                metadata: editFormData.metadata,
+              }
+            : m
+        )
+      );
+
+      toast({
+        title: t("Success"),
+        description: t("payment_method_updated_successfully"),
+      });
+
+      setEditDialogOpen(false);
+      setEditingMethod(null);
+    } catch (err) {
+      console.error("Error saving payment method:", err);
+      toast({
+        title: t("Error"),
+        description: t("failed_to_save_payment_method"),
+        variant: "destructive",
+      });
+    } finally {
+      setSavingMethod(false);
+    }
+  };
+
+  // Delete payment method
+  const deletePaymentMethod = async (methodId: string) => {
+    setDeletingMethodId(methodId);
+    try {
+      const { error } = await $fetch({
+        url: `/api/p2p/payment-method/${methodId}`,
+        method: "DELETE",
+      });
+
+      if (error) {
+        toast({
+          title: t("Error"),
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Remove from selected methods if it was selected
+      setSelectedPaymentMethods((prev) => prev.filter((id) => id !== methodId));
+
+      // Remove from custom methods list
+      setCustomPaymentMethods((prev) => prev.filter((m) => m.id !== methodId));
+
+      toast({
+        title: t("Success"),
+        description: t("payment_method_deleted_successfully"),
+      });
+    } catch (err) {
+      console.error("Error deleting payment method:", err);
+      toast({
+        title: t("Error"),
+        description: t("failed_to_delete_payment_method"),
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingMethodId(null);
+    }
+  };
 
   // Load offer data
   useEffect(() => {
@@ -133,7 +376,7 @@ export default function EditOfferClient() {
 
         setFormData({
           priceConfig: {
-            model: (priceConfig?.model || "fixed") as "fixed" | "dynamic",
+            model: ((priceConfig?.model || "fixed").toLowerCase()) as "fixed" | "dynamic",
             fixedPrice: Number(priceConfig?.fixedPrice || priceConfig?.value || 0),
             dynamicOffset: Number(priceConfig?.dynamicOffset || 0),
             currency: String(offerData?.priceCurrency || priceConfig?.currency || "USD"),
@@ -257,7 +500,8 @@ export default function EditOfferClient() {
     });
   };
 
-  if (loading) {
+  // Show loading state - wait for mount to avoid hydration mismatch
+  if (!mounted || loading) {
     return (
       <div className="container mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
         <div className="flex items-center justify-center h-64">
@@ -313,7 +557,7 @@ export default function EditOfferClient() {
       <Alert className="mb-6">
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>{t("note")}:</strong>{" "}
+          <strong>{t("Note")}</strong>{" "}
           {t("changes_to_price_and_amount_settings_may_require_admin_approval_before_taking_effect")}.
         </AlertDescription>
       </Alert>
@@ -431,10 +675,10 @@ export default function EditOfferClient() {
                       step="0.1"
                       value={formData?.priceConfig?.dynamicOffset || 0}
                       onChange={(e) => updateFormData("priceConfig", "dynamicOffset", parseFloat(e.target.value) || 0)}
-                      placeholder={t("e.g.,_2.5_for_2.5%_above_market")}
+                      placeholder={t("dynamic_offset_example")}
                     />
                     <p className="text-sm text-muted-foreground">
-                      {t("positive_=_above_market,_negative_=_below_market")}
+                      {t("dynamic_offset_hint")}
                     </p>
                   </div>
                 )}
@@ -587,60 +831,252 @@ export default function EditOfferClient() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
-                {paymentMethods.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {paymentMethods.map((method) => (
-                      <div
-                        key={method.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                          selectedPaymentMethods.includes(method.id)
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
-                        }`}
-                        onClick={() => handlePaymentMethodToggle(method.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-medium">
-                                {method?.name?.charAt?.(0) || "?"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {method?.name || "Unknown"}
-                            </p>
-                            {method?.processingTime && (
-                              <p className="text-xs text-muted-foreground">
-                                {method.processingTime}
-                              </p>
-                            )}
-                          </div>
-                          {selectedPaymentMethods.includes(method.id) && (
-                            <div className="flex-shrink-0">
-                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                <span className="text-xs text-primary-foreground">✓</span>
+                {/* Global Payment Methods */}
+                {globalPaymentMethods.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">{t("Global")} {t("payment_methods")}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {globalPaymentMethods.map((method) => (
+                        <div
+                          key={method.id}
+                          className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                            selectedPaymentMethods.includes(method.id)
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => handlePaymentMethodToggle(method.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-sm font-medium">
+                                  {method?.name?.charAt?.(0) || "?"}
+                                </span>
                               </div>
                             </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {method?.name || "Unknown"}
+                              </p>
+                              {method?.processingTime && (
+                                <p className="text-xs text-muted-foreground">
+                                  {method.processingTime}
+                                </p>
+                              )}
+                            </div>
+                            {selectedPaymentMethods.includes(method.id) && (
+                              <div className="shrink-0">
+                                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                  <span className="text-xs text-primary-foreground">✓</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          {method.description && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {method.description}
+                            </p>
                           )}
                         </div>
-                        {method.description && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {method.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                ) : (
+                )}
+
+                {/* Custom Payment Methods */}
+                {customPaymentMethods.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">{t("your_custom_payment_methods")}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {customPaymentMethods.map((method) => {
+                        const isSelected = selectedPaymentMethods.includes(method.id);
+                        const isExpanded = expandedMethod === method.id;
+                        const metadata = parseMetadata(method.metadata);
+                        const canEdit = method.canEdit !== false;
+                        const canDelete = method.canDelete !== false;
+                        const hasActiveTrade = method.hasActiveTrade === true;
+                        const hasActiveOffer = method.hasActiveOffer === true;
+
+                        return (
+                          <div
+                            key={method.id}
+                            className={`border rounded-lg transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <div
+                              className="p-4 cursor-pointer"
+                              onClick={() => handlePaymentMethodToggle(method.id)}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="shrink-0">
+                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                                    <span className="text-sm font-medium">
+                                      {method?.name?.charAt?.(0) || "?"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="text-sm font-medium truncate">
+                                      {method?.name || "Unknown"}
+                                    </p>
+                                    <Badge variant="outline" className="text-xs shrink-0">
+                                      {t("Custom")}
+                                    </Badge>
+                                    {hasActiveTrade && (
+                                      <Badge variant="secondary" className="text-xs shrink-0 gap-1">
+                                        <Lock className="h-3 w-3" />
+                                        {t("in_trade")}
+                                      </Badge>
+                                    )}
+                                    {hasActiveOffer && !hasActiveTrade && (
+                                      <Badge variant="outline" className="text-xs shrink-0 gap-1 border-amber-500 text-amber-600">
+                                        {t("in_offer")}
+                                      </Badge>
+                                    )}
+                                    {canDelete && (
+                                      <Badge variant="outline" className="text-xs shrink-0 gap-1 border-green-500 text-green-600">
+                                        {t("can_delete")}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {method?.processingTime && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {method.processingTime}
+                                    </p>
+                                  )}
+                                </div>
+                                {isSelected && (
+                                  <div className="shrink-0">
+                                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                      <span className="text-xs text-primary-foreground">✓</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              {method.description && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {method.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex border-t">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleMethodExpansion(method.id);
+                                }}
+                                className="flex-1 px-4 py-2 text-xs text-muted-foreground hover:bg-muted/50 flex items-center justify-center gap-1"
+                              >
+                                {isExpanded ? t("hide_details") : t("view_details")}
+                                <span className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}>▼</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (canEdit) {
+                                    openEditDialog(method);
+                                  }
+                                }}
+                                disabled={!canEdit}
+                                className={`flex-1 px-4 py-2 text-xs flex items-center justify-center gap-1 border-l ${
+                                  canEdit
+                                    ? "text-primary hover:bg-primary/10"
+                                    : "text-muted-foreground cursor-not-allowed"
+                                }`}
+                                title={!canEdit ? t("cannot_edit_active_trade") : t("edit_payment_method")}
+                              >
+                                <Pencil className="h-3 w-3" />
+                                {t("Edit")}
+                              </button>
+                              {canDelete && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => e.stopPropagation()}
+                                      disabled={deletingMethodId === method.id}
+                                      className="flex-1 px-4 py-2 text-xs flex items-center justify-center gap-1 border-l text-destructive hover:bg-destructive/10"
+                                    >
+                                      {deletingMethodId === method.id ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-3 w-3" />
+                                      )}
+                                      {t("Delete")}
+                                    </button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>{t("delete_payment_method")}</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {t("are_you_sure_delete_payment_method")} <strong>{method.name}</strong>? {t("this_action_cannot_be_undone")}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deletePaymentMethod(method.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        {t("Delete")}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+
+                            {isExpanded && (
+                              <div className="px-4 pb-4 space-y-3 border-t bg-muted/30">
+                                {/* Payment Details (Metadata) */}
+                                {metadata && Object.keys(metadata).length > 0 && (
+                                  <div className="pt-3">
+                                    <p className="text-xs font-medium text-muted-foreground mb-2">{t("payment_details")}</p>
+                                    <div className="space-y-1.5">
+                                      {Object.entries(metadata).map(([key, value]) => (
+                                        <div key={key} className="flex justify-between text-sm bg-background rounded px-2 py-1">
+                                          <span className="text-muted-foreground">{key}</span>
+                                          <span className="font-medium">{value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Instructions */}
+                                {method.instructions && (
+                                  <div className="pt-2">
+                                    <p className="text-xs font-medium text-muted-foreground mb-1">{t("Instructions")}</p>
+                                    <p className="text-sm text-foreground bg-background rounded p-2 whitespace-pre-wrap">
+                                      {method.instructions}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {allPaymentMethods.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
                       {t("no_payment_methods_available")}
                     </p>
                   </div>
                 )}
-                
+
                 {selectedPaymentMethods.length === 0 && (
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
@@ -649,7 +1085,7 @@ export default function EditOfferClient() {
                     </AlertDescription>
                   </Alert>
                 )}
-                
+
                 <div className="text-sm text-muted-foreground">
                   <p>{t("selected")}: {selectedPaymentMethods.length} {t("payment_methods")}</p>
                 </div>
@@ -666,35 +1102,53 @@ export default function EditOfferClient() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="country">{t("Country")}</Label>
-                    <Input
-                      id="country"
-                      placeholder={t("enter_country")}
+                    <Label>{t("Country")}</Label>
+                    <CountrySelect
                       value={formData?.locationSettings?.country || ""}
-                      onChange={(e) => updateFormData("locationSettings", "country", e.target.value)}
-                      maxLength={100}
+                      onValueChange={(value) => {
+                        // When country changes, reset region and city
+                        setFormData(prev => ({
+                          ...prev,
+                          locationSettings: {
+                            ...prev.locationSettings,
+                            country: value,
+                            region: "",
+                            city: "",
+                          }
+                        }));
+                      }}
+                      placeholder={t("select_country")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="region">{t("region/state")}</Label>
-                    <Input
-                      id="region"
-                      placeholder={t("enter_region_or_state")}
+                    <Label>{t("region/state")}</Label>
+                    <StateSelect
                       value={formData?.locationSettings?.region || ""}
-                      onChange={(e) => updateFormData("locationSettings", "region", e.target.value)}
-                      maxLength={100}
+                      onValueChange={(value) => {
+                        // When region changes, reset city
+                        setFormData(prev => ({
+                          ...prev,
+                          locationSettings: {
+                            ...prev.locationSettings,
+                            region: value,
+                            city: "",
+                          }
+                        }));
+                      }}
+                      countryCode={formData?.locationSettings?.country || ""}
+                      placeholder={t("select_state")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="city">{t("City")}</Label>
-                    <Input
-                      id="city"
-                      placeholder={t("enter_city")}
+                    <Label>{t("City")}</Label>
+                    <CitySelect
                       value={formData?.locationSettings?.city || ""}
-                      onChange={(e) => updateFormData("locationSettings", "city", e.target.value)}
-                      maxLength={100}
+                      onValueChange={(value) => updateFormData("locationSettings", "city", value)}
+                      countryCode={formData?.locationSettings?.country || ""}
+                      stateName={formData?.locationSettings?.region || ""}
+                      placeholder={t("select_city")}
                     />
                   </div>
                 </div>
@@ -815,6 +1269,171 @@ export default function EditOfferClient() {
           </Button>
         </div>
       </form>
+
+      {/* Edit Payment Method Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent size="3xl" className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("edit_payment_method")}</DialogTitle>
+            <DialogDescription>
+              {t("update_your_payment_method_details")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">{t("Name")}</Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder={t("payment_method_name")}
+                maxLength={100}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">{t("Description")}</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder={t("optional_description")}
+                maxLength={500}
+                rows={2}
+              />
+            </div>
+
+            {/* Processing Time */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-processingTime">{t("processing_time")}</Label>
+              <Input
+                id="edit-processingTime"
+                value={editFormData.processingTime}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, processingTime: e.target.value }))}
+                placeholder="e.g., Instant, 1-3 days"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Instructions */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-instructions">{t("Instructions")}</Label>
+              <Textarea
+                id="edit-instructions"
+                value={editFormData.instructions}
+                onChange={(e) => setEditFormData((prev) => ({ ...prev, instructions: e.target.value }))}
+                placeholder={t("payment_instructions_for_buyer")}
+                maxLength={1000}
+                rows={3}
+              />
+            </div>
+
+            {/* Payment Details (Metadata) */}
+            <div className="space-y-3">
+              <Label>{t("payment_details")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("add_custom_fields_like_account_number_email_etc")}
+              </p>
+
+              {/* Existing Fields */}
+              {Object.entries(editFormData.metadata).length > 0 && (
+                <div className="space-y-3 border rounded-lg p-3 bg-muted/30">
+                  {Object.entries(editFormData.metadata).map(([key, value]) => (
+                    <div key={key} className="flex items-start gap-2">
+                      <div className="grid grid-cols-2 gap-2 flex-1">
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("field_name")}</Label>
+                          <Input
+                            value={key}
+                            disabled
+                            className="h-9 bg-muted"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("field_value")}</Label>
+                          <Input
+                            value={value}
+                            onChange={(e) => updateMetadataField(key, e.target.value)}
+                            className="h-9"
+                            maxLength={500}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 text-destructive hover:text-destructive mt-6"
+                        onClick={() => removeMetadataField(key)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add New Field */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t("field_name")}
+                  value={newFieldKey}
+                  onChange={(e) => setNewFieldKey(e.target.value)}
+                  className="flex-1"
+                  maxLength={100}
+                />
+                <Input
+                  placeholder={t("field_value")}
+                  value={newFieldValue}
+                  onChange={(e) => setNewFieldValue(e.target.value)}
+                  className="flex-1"
+                  maxLength={500}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={addMetadataField}
+                  disabled={!newFieldKey.trim() || !newFieldValue.trim()}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={savingMethod}
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={savePaymentMethod}
+              disabled={savingMethod || !editFormData.name.trim()}
+            >
+              {savingMethod ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {t("Saving")}...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {t("save_changes")}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

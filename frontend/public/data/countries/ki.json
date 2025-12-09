@@ -1,0 +1,63 @@
+{
+  "name": "Kiribati",
+  "iso2": "KI",
+  "iso3": "KIR",
+  "phonecode": "686",
+  "states": [
+    {
+      "name": "Gilbert",
+      "code": "G",
+      "cities": [
+        "Abaiang",
+        "Abemama",
+        "Ambo Village",
+        "Aranuka",
+        "Arorae",
+        "Bairiki Village",
+        "Banaba",
+        "Banraeaba Village",
+        "Beru",
+        "Betio Village",
+        "Bikenibeu Village",
+        "Bonriki Village",
+        "Buota Village",
+        "Butaritari",
+        "Eita Village",
+        "Kuria",
+        "Maiana",
+        "Makin",
+        "Marakei",
+        "Nawerewere Village",
+        "Nikunau",
+        "Nonouti",
+        "Onotoa",
+        "Rawannawi Village",
+        "Tabiteuea",
+        "Tamana",
+        "Tarawa",
+        "Teaoraereke Village",
+        "Temaiku Village"
+      ]
+    },
+    {
+      "name": "Line",
+      "code": "L",
+      "cities": [
+        "Banana Village",
+        "Kiritimati",
+        "London Village",
+        "Napari Village",
+        "Tabuaeran",
+        "Tabwakea Village",
+        "Teraina"
+      ]
+    },
+    {
+      "name": "Phoenix",
+      "code": "P",
+      "cities": [
+        "Kanton"
+      ]
+    }
+  ]
+}

@@ -258,7 +258,46 @@ export const handleEvmWithdrawal = async (
         }
       } catch (error) {
         console.error(`Failed to check transaction status: ${error.message}`);
-        // TODO: Inform admin about this
+
+        // Inform admin about withdrawal issue
+        try {
+          await models.notification.create({
+            userId: "system", // System notification for admins
+            type: "alert",
+            title: "Ecosystem Withdrawal Issue",
+            message: `Failed to check withdrawal transaction status: ${transaction.hash}. Error: ${error.message}`,
+            link: `/admin/ecosystem/wallet/custodial`,
+            read: false,
+          });
+
+          // Also notify all admin users
+          const admins = await models.user.findAll({
+            include: [{
+              model: models.role,
+              as: "role",
+              where: {
+                name: ["Admin", "Super Admin"],
+              },
+            }],
+            attributes: ["id"],
+          });
+
+          const adminNotifications = admins.map(admin => ({
+            userId: admin.id,
+            type: "alert",
+            title: "Ecosystem Withdrawal Issue",
+            message: `Failed to verify withdrawal transaction ${transaction.hash}. Manual review required.`,
+            link: `/admin/ecosystem/wallet/custodial`,
+            read: false,
+          }));
+
+          if (adminNotifications.length > 0) {
+            await models.notification.bulkCreate(adminNotifications);
+          }
+        } catch (notifError) {
+          console.error("Failed to send admin notification:", notifError);
+        }
+
         attempts += 1;
         await delay(5000);
       }

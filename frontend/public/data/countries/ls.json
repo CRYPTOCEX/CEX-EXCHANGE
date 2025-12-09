@@ -1,0 +1,80 @@
+{
+  "name": "Lesotho",
+  "iso2": "LS",
+  "iso3": "LSO",
+  "phonecode": "266",
+  "states": [
+    {
+      "name": "Berea",
+      "code": "D",
+      "cities": [
+        "Teyateyaneng"
+      ]
+    },
+    {
+      "name": "Butha-Buthe",
+      "code": "B",
+      "cities": [
+        "Butha-Buthe"
+      ]
+    },
+    {
+      "name": "Leribe",
+      "code": "C",
+      "cities": [
+        "Leribe",
+        "Maputsoe"
+      ]
+    },
+    {
+      "name": "Mafeteng",
+      "code": "E",
+      "cities": [
+        "Mafeteng"
+      ]
+    },
+    {
+      "name": "Maseru",
+      "code": "A",
+      "cities": [
+        "Maseru",
+        "Nako"
+      ]
+    },
+    {
+      "name": "Mohale's Hoek",
+      "code": "F",
+      "cities": [
+        "Mohale’s Hoek"
+      ]
+    },
+    {
+      "name": "Mokhotlong",
+      "code": "J",
+      "cities": [
+        "Mokhotlong"
+      ]
+    },
+    {
+      "name": "Qacha's Nek",
+      "code": "H",
+      "cities": [
+        "Qacha’s Nek"
+      ]
+    },
+    {
+      "name": "Quthing",
+      "code": "G",
+      "cities": [
+        "Quthing"
+      ]
+    },
+    {
+      "name": "Thaba-Tseka",
+      "code": "K",
+      "cities": [
+        "Thaba-Tseka"
+      ]
+    }
+  ]
+}

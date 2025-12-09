@@ -157,15 +157,11 @@ export default class nftCollection
           allowNull: false,
           validate: {
             notNull: { msg: "creatorId: Creator ID cannot be null" },
-            isUUID: { args: 4, msg: "creatorId: Creator ID must be a valid UUID" },
           },
         },
         categoryId: {
           type: DataTypes.UUID,
           allowNull: true,
-          validate: {
-            isUUID: { args: 4, msg: "categoryId: Category ID must be a valid UUID" },
-          },
         },
         bannerImage: {
           type: DataTypes.STRING(1000),

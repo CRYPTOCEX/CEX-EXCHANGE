@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
-
 export const columns: ColumnDefinition[] = [
   {
     key: "id",
@@ -137,11 +135,23 @@ export const columns: ColumnDefinition[] = [
     render: {
       type: "custom",
       render: (value: any) => {
-        if (!value || typeof value !== 'object') {
+        if (!value) {
           return <span>-</span>;
         }
-        const finalPrice = value.finalPrice || value.value || 0;
-        const model = value.model || 'FIXED';
+        // Parse JSON string if needed
+        let config = value;
+        if (typeof value === 'string') {
+          try {
+            config = JSON.parse(value);
+          } catch (e) {
+            return <span>-</span>;
+          }
+        }
+        if (typeof config !== 'object') {
+          return <span>-</span>;
+        }
+        const finalPrice = config.finalPrice || config.value || 0;
+        const model = config.model || 'FIXED';
         return (
           <div className="text-sm">
             <div className="font-medium">{finalPrice.toLocaleString()}</div>
@@ -165,9 +175,8 @@ export const columns: ColumnDefinition[] = [
     render: {
       type: "custom",
       render: (value: any) => {
-        const t = useTranslations("ext");
         if (!value || !Array.isArray(value) || value.length === 0) {
-          return <span>{t("no_methods")}</span>;
+          return <span>No methods</span>;
         }
         return (
           <div className="flex flex-wrap gap-1">
@@ -198,20 +207,24 @@ export const columns: ColumnDefinition[] = [
       config: {
         withDot: true,
         variant: (value: string) => {
-          const status = value?.toLowerCase().replace('_', '');
+          const status = value?.toLowerCase().replace(/_/g, '');
           switch (status) {
             case "active":
-              return "default";
+              return "success";
             case "pending":
             case "pendingapproval":
-              return "outline";
+              return "warning";
             case "flagged":
-              return "secondary";
+              return "warning";
+            case "paused":
+              return "muted";
+            case "completed":
+              return "primary";
             case "disabled":
             case "rejected":
               return "destructive";
             default:
-              return "outline";
+              return "muted";
           }
         },
       },
@@ -219,7 +232,9 @@ export const columns: ColumnDefinition[] = [
     options: [
       { value: "ACTIVE", label: "Active" },
       { value: "PENDING_APPROVAL", label: "Pending Approval" },
+      { value: "PAUSED", label: "Paused" },
       { value: "FLAGGED", label: "Flagged" },
+      { value: "COMPLETED", label: "Completed" },
       { value: "DISABLED", label: "Disabled" },
       { value: "REJECTED", label: "Rejected" },
     ],

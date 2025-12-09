@@ -103,25 +103,34 @@ export default async (data: { user?: any }) => {
       // Calculate total balance from wallets in USD
       let totalBalance = 0;
       for (const wallet of wallets) {
-        const balance = parseFloat(wallet.balance || 0);
-        const type = wallet.type || 'SPOT';
-
-        // Get price for USD conversion
-        let price = 0;
         try {
-          if (type === 'FIAT') {
-            price = await getFiatPriceInUSD(wallet.currency);
-          } else if (type === 'SPOT' || type === 'FUTURES') {
-            price = await getSpotPriceInUSD(wallet.currency);
-          } else if (type === 'ECO') {
-            price = await getEcoPriceInUSD(wallet.currency);
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch price for ${wallet.currency} (${type}): ${error.message}`);
-          price = 0;
-        }
+          const balance = parseFloat(wallet.balance || "0") || 0;
+          const type = wallet.type || 'SPOT';
 
-        totalBalance += balance * price;
+          // Skip if balance is zero
+          if (balance <= 0) continue;
+
+          // Get price for USD conversion
+          let price = 1; // Default to 1 for USD or unknown
+          try {
+            if (wallet.currency === 'USD') {
+              price = 1;
+            } else if (type === 'FIAT') {
+              price = await getFiatPriceInUSD(wallet.currency) || 1;
+            } else if (type === 'SPOT' || type === 'FUTURES') {
+              price = await getSpotPriceInUSD(wallet.currency) || 0;
+            } else if (type === 'ECO') {
+              price = await getEcoPriceInUSD(wallet.currency) || 0;
+            }
+          } catch (priceError: any) {
+            console.warn(`Failed to fetch price for ${wallet.currency} (${type}): ${priceError.message || priceError}`);
+            price = wallet.currency === 'USD' ? 1 : 0;
+          }
+
+          totalBalance += balance * price;
+        } catch (walletCalcError: any) {
+          console.warn(`Error calculating wallet balance: ${walletCalcError.message || walletCalcError}`);
+        }
       }
 
       // Format stats as array for frontend
@@ -165,16 +174,76 @@ export default async (data: { user?: any }) => {
     }
 
     try {
-      // Trading Activity: recent activity logs (only trade-related)
-      activity = await models.p2pActivityLog.findAll({
+      // Trading Activity: recent trades for the user (not activity logs which may be empty)
+      const trades = await models.p2pTrade.findAll({
         where: {
-          userId: user.id,
-          relatedEntity: "TRADE" // Only fetch trade-related activities, not offer activities
+          [Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
         },
-        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: models.p2pOffer,
+            as: "offer",
+            attributes: ["currency"],
+          },
+          {
+            model: models.p2pPaymentMethod,
+            as: "paymentMethodDetails",
+            attributes: ["name"],
+          },
+          {
+            model: models.user,
+            as: "buyer",
+            attributes: ["id", "firstName", "lastName", "avatar"],
+          },
+          {
+            model: models.user,
+            as: "seller",
+            attributes: ["id", "firstName", "lastName", "avatar"],
+          },
+        ],
+        order: [["updatedAt", "DESC"]],
         limit: 10,
-        raw: true,
       });
+
+      // Transform trades into activity format
+      activity = await Promise.all(trades.map(async (trade: any) => {
+        const tradeData = trade.get({ plain: true });
+        const isBuyer = tradeData.buyerId === user.id;
+        const actionType = isBuyer ? "BUY" : "SELL";
+        const counterparty = isBuyer ? tradeData.seller : tradeData.buyer;
+
+        // Get counterparty's average rating from reviews
+        let avgRating = 0;
+        try {
+          const reviews = await models.p2pReview.findAll({
+            where: { reviewedId: counterparty?.id },
+            attributes: ["rating"],
+            raw: true,
+          });
+          if (reviews.length > 0) {
+            const totalRating = reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0);
+            avgRating = Math.round((totalRating / reviews.length) * 10) / 10;
+          }
+        } catch (e) {
+          // If reviews fetch fails, keep avgRating at 0
+        }
+
+        return {
+          id: tradeData.id,
+          type: actionType,
+          status: tradeData.status,
+          amount: tradeData.amount,
+          currency: tradeData.currency || tradeData.offer?.currency || "Unknown",
+          total: tradeData.total,
+          paymentMethodName: tradeData.paymentMethodDetails?.name || "Unknown",
+          counterpartyId: counterparty?.id,
+          counterpartyName: counterparty ? `${counterparty.firstName || ""} ${counterparty.lastName || ""}`.trim() || "Unknown" : "Unknown",
+          counterpartyAvatar: counterparty?.avatar,
+          counterpartyRating: avgRating,
+          timestamp: tradeData.updatedAt,
+          createdAt: tradeData.createdAt,
+        };
+      }));
     } catch (activityError) {
       console.error("Error fetching activity data:", activityError);
       activity = [];

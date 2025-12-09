@@ -1,0 +1,127 @@
+{
+  "name": "Niger",
+  "iso2": "NE",
+  "iso3": "NER",
+  "phonecode": "227",
+  "states": [
+    {
+      "name": "Agadez",
+      "code": "1",
+      "cities": [
+        "Agadez",
+        "Alaghsas",
+        "Arlit",
+        "Bilma",
+        "Département de Bilma",
+        "Département de Tchirozérine"
+      ]
+    },
+    {
+      "name": "Diffa",
+      "code": "2",
+      "cities": [
+        "Département de Diffa",
+        "Département de Maïné-Soroa",
+        "Département de Nguigmi",
+        "Diffa",
+        "Maïné Soroa",
+        "Nguigmi"
+      ]
+    },
+    {
+      "name": "Dosso",
+      "code": "3",
+      "cities": [
+        "Boboye Department",
+        "Département de Dogondoutchi",
+        "Département de Dosso",
+        "Département de Gaya",
+        "Département de Loga",
+        "Dogondoutchi",
+        "Dosso",
+        "Gaya"
+      ]
+    },
+    {
+      "name": "Maradi",
+      "code": "4",
+      "cities": [
+        "Aguié",
+        "Dakoro",
+        "Département d’Aguié",
+        "Département de Dakoro",
+        "Département de Mayahi",
+        "Département de Tessaoua",
+        "Guidan Roumdji Department",
+        "Madarounfa",
+        "Maradi",
+        "Mayahi",
+        "Tessaoua",
+        "Tibiri"
+      ]
+    },
+    {
+      "name": "Niamey",
+      "code": "8",
+      "cities": [
+        "Niamey"
+      ]
+    },
+    {
+      "name": "Tahoua",
+      "code": "5",
+      "cities": [
+        "Abalak",
+        "Birni N Konni",
+        "Bouza",
+        "Département d' Illéla",
+        "Département de Birni Nkonni",
+        "Département de Bouza",
+        "Département de Keïta",
+        "Département de Madaoua",
+        "Département de Tahoua",
+        "Département de Tchin-Tabaraden",
+        "Illéla",
+        "Keïta",
+        "Madaoua",
+        "Tahoua",
+        "Tchintabaraden"
+      ]
+    },
+    {
+      "name": "Tillabéri",
+      "code": "6",
+      "cities": [
+        "Ayorou",
+        "Balleyara",
+        "Département de Filingué",
+        "Département de Ouallam",
+        "Département de Say",
+        "Filingué",
+        "Kollo",
+        "Kollo Department",
+        "Ouallam",
+        "Say",
+        "Téra",
+        "Tera Department",
+        "Tillabéri",
+        "Tillaberi Department"
+      ]
+    },
+    {
+      "name": "Zinder",
+      "code": "7",
+      "cities": [
+        "Département de Gouré",
+        "Département de Kantché",
+        "Département de Tânout",
+        "Gouré",
+        "Magaria",
+        "Matamey",
+        "Mirriah",
+        "Tanout",
+        "Zinder"
+      ]
+    }
+  ]
+}

@@ -80,7 +80,7 @@ export default function OfferDetailsClient() {
   // Error state from store
   if (offerByIdError) {
     return (
-      <ErrorState title="Error Loading Offer" description={offerByIdError} />
+      <ErrorState title={t("error_loading_offer")} description={offerByIdError} />
     );
   }
 
@@ -90,7 +90,11 @@ export default function OfferDetailsClient() {
       ? JSON.parse(offer.tradeSettings)
       : offer.tradeSettings || {};
 
-  const actionText = offer.type === "BUY" ? "Sell" : "Buy";
+  // If owner is viewing their own offer, show what THEY are doing
+  // Otherwise show what the OTHER person would do
+  const actionText = isOwner
+    ? offer.type === "BUY" ? "Buy" : "Sell"  // Owner sees their own action
+    : offer.type === "BUY" ? "Sell" : "Buy"; // Others see opposite action
   const timeLimit =
     tradeSettings.autoCancel || settings.p2pDefaultPaymentWindow || 15;
 
@@ -130,7 +134,7 @@ export default function OfferDetailsClient() {
               <OfferDetailsTabs offer={offer} timeLimit={timeLimit} />
 
               {/* Seller Information Card */}
-              <SellerInformation seller={offer.user} />
+              <SellerInformation seller={offer.user} currency={offer.currency} />
             </div>
 
             {/* Right column - Trade form and help */}

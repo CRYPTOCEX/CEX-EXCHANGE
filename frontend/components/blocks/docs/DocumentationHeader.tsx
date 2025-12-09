@@ -18,7 +18,7 @@ export function DocumentationHeader({
   toggleSidebar,
   isMobile,
 }: DocumentationHeaderProps) {
-  const t = useTranslations("components/blocks/docs/DocumentationHeader");
+  const t = useTranslations("common");
   return (
     <>
       <div className="rounded-t-md sticky top-0 z-10 flex items-center justify-between border-b bg-background px-6 py-3">
@@ -30,7 +30,7 @@ export function DocumentationHeader({
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {Math.round(progress)} {t("%_complete")}
+            {Math.round(progress)}% {t("complete")}
           </span>
           <Button variant="ghost" size="icon" onClick={toggleSidebar}>
             <SidebarClose

@@ -61,17 +61,17 @@ export function TradeSettingsStep() {
       if (!tradeData.tradeSettings) {
         updates.tradeSettings = {
           autoCancel: 60,
-          kycRequired: true, // Add kycRequired with default value true
+          kycRequired: false, // Default to false - users can manually enable if needed
           visibility: "PUBLIC",
           termsOfTrade: "",
           additionalNotes: "",
         };
         shouldUpdate = true;
-      } else if (!tradeData.tradeSettings.kycRequired) {
+      } else if (tradeData.tradeSettings.kycRequired === undefined) {
         // Ensure kycRequired is set if tradeSettings exists but kycRequired is missing
         if (!updates.tradeSettings)
           updates.tradeSettings = { ...(tradeData.tradeSettings || {}) };
-        updates.tradeSettings.kycRequired = true;
+        updates.tradeSettings.kycRequired = false;
         shouldUpdate = true;
       }
 
@@ -153,7 +153,7 @@ export function TradeSettingsStep() {
     const tradeSettings = {
       ...(tradeData.tradeSettings || {}),
       autoCancel: checked ? Number(autoCancelDuration) : 0,
-      kycRequired: tradeData.tradeSettings?.kycRequired || true, // Ensure kycRequired is set
+      kycRequired: tradeData.tradeSettings?.kycRequired ?? false, // Default false, preserve existing value
     };
 
     updateTradeData({
@@ -174,7 +174,7 @@ export function TradeSettingsStep() {
     const tradeSettings = {
       ...(tradeData.tradeSettings || {}),
       autoCancel: Number(value),
-      kycRequired: tradeData.tradeSettings?.kycRequired || true, // Ensure kycRequired is set
+      kycRequired: tradeData.tradeSettings?.kycRequired ?? false, // Default false, preserve existing value
     };
 
     updateTradeData({
@@ -195,7 +195,7 @@ export function TradeSettingsStep() {
     const tradeSettings = {
       ...(tradeData.tradeSettings || {}),
       visibility: isHidden ? "PRIVATE" : "PUBLIC", // Use PRIVATE instead of HIDDEN
-      kycRequired: tradeData.tradeSettings?.kycRequired || true, // Ensure kycRequired is set
+      kycRequired: tradeData.tradeSettings?.kycRequired ?? false, // Default false, preserve existing value
     };
 
     updateTradeData({
@@ -218,7 +218,7 @@ export function TradeSettingsStep() {
     const tradeSettings = {
       ...(tradeData.tradeSettings || {}),
       termsOfTrade: e.target.value,
-      kycRequired: tradeData.tradeSettings?.kycRequired || true, // Ensure kycRequired is set
+      kycRequired: tradeData.tradeSettings?.kycRequired ?? false, // Default false, preserve existing value
     };
 
     updateTradeData({
@@ -240,7 +240,7 @@ export function TradeSettingsStep() {
     const tradeSettings = {
       ...(tradeData.tradeSettings || {}),
       additionalNotes: e.target.value,
-      kycRequired: tradeData.tradeSettings?.kycRequired || true, // Ensure kycRequired is set
+      kycRequired: tradeData.tradeSettings?.kycRequired ?? false, // Default false, preserve existing value
     };
 
     updateTradeData({
@@ -318,7 +318,7 @@ export function TradeSettingsStep() {
                   onValueChange={handleAutoCancelDurationChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
+                    <SelectValue placeholder={t("select_duration")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="15">{t("15_minutes")}</SelectItem>
@@ -423,7 +423,7 @@ export function TradeSettingsStep() {
               </Label>
               <Textarea
                 id="trade-terms"
-                placeholder="Specify terms and conditions for this trade (required)..."
+                placeholder={t("specify_terms_and_conditions_for_this")}
                 value={tradeTerms}
                 onChange={handleTradeTermsChange}
                 rows={3}
@@ -440,7 +440,7 @@ export function TradeSettingsStep() {
               </Label>
               <Textarea
                 id="trade-instructions"
-                placeholder="Add any additional notes or requirements for this trade..."
+                placeholder={t("add_any_additional_notes_or_requirements")}
                 value={tradeInstructions}
                 onChange={handleTradeNotesChange}
                 rows={3}

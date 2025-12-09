@@ -1,0 +1,91 @@
+{
+  "name": "Samoa",
+  "iso2": "WS",
+  "iso3": "WSM",
+  "phonecode": "685",
+  "states": [
+    {
+      "name": "A'ana",
+      "code": "AA",
+      "cities": [
+        "Fasito‘outa",
+        "Leulumoega",
+        "Nofoali‘i",
+        "Satapuala"
+      ]
+    },
+    {
+      "name": "Aiga-i-le-Tai",
+      "code": "AL",
+      "cities": [
+        "Mulifanua"
+      ]
+    },
+    {
+      "name": "Atua",
+      "code": "AT",
+      "cities": [
+        "Falefa",
+        "Lotofagā",
+        "Lufilufi",
+        "Solosolo"
+      ]
+    },
+    {
+      "name": "Fa'asaleleaga",
+      "code": "FA",
+      "cities": []
+    },
+    {
+      "name": "Gaga'emauga",
+      "code": "GE",
+      "cities": []
+    },
+    {
+      "name": "Gaga'ifomauga",
+      "code": "GI",
+      "cities": [
+        "Matavai",
+        "Safotu"
+      ]
+    },
+    {
+      "name": "Palauli",
+      "code": "PA",
+      "cities": [
+        "Gataivai",
+        "Vailoa"
+      ]
+    },
+    {
+      "name": "Satupa'itea",
+      "code": "SA",
+      "cities": []
+    },
+    {
+      "name": "Tuamasaga",
+      "code": "TU",
+      "cities": [
+        "Afega",
+        "Apia",
+        "Malie",
+        "Vailima",
+        "Vaiusu"
+      ]
+    },
+    {
+      "name": "Va'a-o-Fonoti",
+      "code": "VF",
+      "cities": [
+        "Samamea"
+      ]
+    },
+    {
+      "name": "Vaisigano",
+      "code": "VS",
+      "cities": [
+        "Asau"
+      ]
+    }
+  ]
+}

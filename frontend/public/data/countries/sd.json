@@ -1,0 +1,187 @@
+{
+  "name": "Sudan",
+  "iso2": "SD",
+  "iso3": "SDN",
+  "phonecode": "249",
+  "states": [
+    {
+      "name": "Al Jazirah",
+      "code": "GZ",
+      "cities": [
+        "Al Hasaheisa",
+        "Al Hilāliyya",
+        "Al Kiremit al ‘Arakiyyīn",
+        "Al Manāqil",
+        "Al Masallamiyya",
+        "Wad Medani",
+        "Wad Rāwah"
+      ]
+    },
+    {
+      "name": "Al Qadarif",
+      "code": "GD",
+      "cities": [
+        "Al Ḩawātah",
+        "Al Qadarif",
+        "Doka"
+      ]
+    },
+    {
+      "name": "Blue Nile",
+      "code": "NB",
+      "cities": [
+        "Ad-Damazin",
+        "Ar Ruseris",
+        "Kurmuk"
+      ]
+    },
+    {
+      "name": "Central Darfur",
+      "code": "DC",
+      "cities": [
+        "Zalingei"
+      ]
+    },
+    {
+      "name": "East Darfur",
+      "code": "DE",
+      "cities": [
+        "El Daein"
+      ]
+    },
+    {
+      "name": "Kassala",
+      "code": "KA",
+      "cities": [
+        "Aroma",
+        "Kassala",
+        "Wagar"
+      ]
+    },
+    {
+      "name": "Khartoum",
+      "code": "KH",
+      "cities": [
+        "Khartoum",
+        "Omdurman"
+      ]
+    },
+    {
+      "name": "North Darfur",
+      "code": "DN",
+      "cities": [
+        "El Fasher",
+        "Kutum",
+        "Umm Kaddadah"
+      ]
+    },
+    {
+      "name": "North Kordofan",
+      "code": "KN",
+      "cities": [
+        "Ar Rahad",
+        "Bārah",
+        "El Obeid",
+        "Umm Ruwaba"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "NO",
+      "cities": [
+        "Ad Dabbah",
+        "Argo",
+        "Dongola",
+        "Karmah an Nuzul",
+        "Kuraymah",
+        "Merowe"
+      ]
+    },
+    {
+      "name": "Red Sea",
+      "code": "RS",
+      "cities": [
+        "Gebeit",
+        "Port Sudan",
+        "Sawākin",
+        "Tokār"
+      ]
+    },
+    {
+      "name": "River Nile",
+      "code": "NR",
+      "cities": [
+        "Atbara",
+        "Berber",
+        "Ed Damer",
+        "El Bauga",
+        "El Matama",
+        "Shendi"
+      ]
+    },
+    {
+      "name": "Sennar",
+      "code": "SI",
+      "cities": [
+        "Ad Dindar",
+        "As Sūkī",
+        "Jalqani",
+        "Kināna",
+        "Maiurno",
+        "Singa",
+        "Sinnar"
+      ]
+    },
+    {
+      "name": "South Darfur",
+      "code": "DS",
+      "cities": [
+        "Gereida",
+        "Nyala"
+      ]
+    },
+    {
+      "name": "South Kordofan",
+      "code": "KS",
+      "cities": [
+        "Abu Jibeha",
+        "Al Fūlah",
+        "Dilling",
+        "Kadugli",
+        "Talodi"
+      ]
+    },
+    {
+      "name": "West Darfur",
+      "code": "DW",
+      "cities": [
+        "Geneina"
+      ]
+    },
+    {
+      "name": "West Kordofan",
+      "code": "GK",
+      "cities": [
+        "Abū Zabad",
+        "Al Lagowa",
+        "Al Mijlad",
+        "An Nuhūd"
+      ]
+    },
+    {
+      "name": "White Nile",
+      "code": "NW",
+      "cities": [
+        "Ad Douiem",
+        "Al Kawa",
+        "Al Qiţena",
+        "Kosti",
+        "Marabba",
+        "Rabak",
+        "Tandaltī",
+        "Um Jar Al Gharbiyya",
+        "Wad az Zāki"
+      ]
+    }
+  ]
+}

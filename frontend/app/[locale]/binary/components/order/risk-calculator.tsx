@@ -19,7 +19,7 @@ export default function RiskCalculator({
   onSetAmount,
   darkMode = true,
 }: RiskCalculatorProps) {
-  const t = useTranslations("binary/components/order/risk-calculator");
+  const t = useTranslations("common");
   const [isOpen, setIsOpen] = useState(false);
   const [riskPercent, setRiskPercent] = useState(2);
   const [riskAmount, setRiskAmount] = useState(0);

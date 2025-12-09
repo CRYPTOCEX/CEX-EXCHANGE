@@ -22,7 +22,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ onStatsLoaded }: HeroSectionProps) {
-  const t = useTranslations("investment/components/hero-section");
+  const t = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   useEffect(() => {

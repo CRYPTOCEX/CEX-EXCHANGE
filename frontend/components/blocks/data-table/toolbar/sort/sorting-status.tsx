@@ -17,9 +17,7 @@ export function SortingStatus({
   sortableFields,
   onClear,
 }: SortingStatusProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/sort/sorting-status"
-  );
+  const t = useTranslations("common");
   if (!selectedField) return null;
 
   const currentField = sortableFields.find((f) => f.id === selectedField);

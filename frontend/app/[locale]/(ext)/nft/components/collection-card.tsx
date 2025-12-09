@@ -32,7 +32,7 @@ export default function CollectionCard({
   showActions = true, 
   size = "md" 
 }: CollectionCardProps) {
-  const t = useTranslations("nft/components/collection-card");
+  const t = useTranslations("ext");
   const { addToFavorites, removeFromFavorites } = useNftStore();
   const [isLiked, setIsLiked] = useState((collection as any).isFavorited || false);
 

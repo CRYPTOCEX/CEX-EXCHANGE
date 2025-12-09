@@ -41,7 +41,7 @@ export const metadata = {
     404: { description: "Offer not found." },
     500: { description: "Internal Server Error." },
   },
-  permission: "Access P2P Management",
+  permission: "edit.p2p.offer",
 };
 
 export default async (data) => {

@@ -33,7 +33,7 @@ export function ChartContainer({
   isMobile = false,
   onPriceUpdate,
 }: ChartContainerProps) {
-  const t = useTranslations("binary/components/chart/chart-container");
+  const t = useTranslations("common");
   
   // State management with proper initialization
   const [currentPrice, setCurrentPrice] = useState<number>(0);

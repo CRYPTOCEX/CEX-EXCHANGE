@@ -45,7 +45,7 @@ export default function TradingHeader({
   onSymbolChange?: (symbol: Symbol) => void;
   marketType?: "spot" | "futures" | "eco";
 }) {
-  const t = useTranslations("trade/components/header/trading-header");
+  const t = useTranslations("ext");
   const router = useRouter();
   const [price, setPrice] = useState("Loading...");
   const [priceChange, setPriceChange] = useState("0.00%");

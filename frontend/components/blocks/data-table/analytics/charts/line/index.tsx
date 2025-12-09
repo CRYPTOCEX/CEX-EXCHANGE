@@ -28,9 +28,7 @@ export const ChartCard: React.FC<ChartCardProps> = React.memo(
     loading,
     timeframe,
   }) => {
-    const t = useTranslations(
-      "components/blocks/data-table/analytics/charts/line/index"
-    );
+    const t = useTranslations("common");
     const hasData = Array.isArray(data) && data.length > 0;
 
     return (

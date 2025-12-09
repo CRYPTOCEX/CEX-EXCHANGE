@@ -286,7 +286,7 @@
     }
 
     async function syncTranslations() {
-        if (!confirm('Sync all translations? This will add missing keys from English to all enabled locales.')) {
+        if (!confirm('Sync all translations? This will add missing keys from English to all enabled locales and remove orphaned keys.')) {
             return;
         }
 
@@ -294,12 +294,23 @@
             UIUtils.showInfo('Syncing translations...');
 
             const result = await apiClient.syncTranslations(Array.from(enabledLocales));
-            
-            UIUtils.showSuccess(`Synced ${result.keysAdded || 0} keys across ${result.localesUpdated || 0} locales`);
-            
+
+            const added = result.keysAdded || 0;
+            const removed = result.keysRemoved || 0;
+            const updated = result.localesUpdated || 0;
+
+            let message = `Synced ${updated} locales: `;
+            const parts = [];
+            if (added > 0) parts.push(`${added} keys added`);
+            if (removed > 0) parts.push(`${removed} orphaned keys removed`);
+            if (parts.length === 0) parts.push('no changes needed');
+            message += parts.join(', ');
+
+            UIUtils.showSuccess(message);
+
             // Reload data to show updated stats
             await loadLocalesData();
-            
+
         } catch (error) {
             console.error('Error syncing translations:', error);
             UIUtils.showError('Failed to sync translations');

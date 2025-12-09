@@ -21,9 +21,7 @@ function CenterContentImpl({
   loading,
   isFirstLoad,
 }: CenterContentProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/analytics/charts/donut/center-content"
-  );
+  const t = useTranslations("common");
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <AnimatePresence mode="wait">

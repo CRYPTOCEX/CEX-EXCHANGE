@@ -21,6 +21,11 @@ export const metadata = {
             icon: { type: "string" },
             description: { type: "string" },
             instructions: { type: "string" },
+            metadata: {
+              type: "object",
+              description: "Flexible key-value pairs for payment details (e.g., { 'PayPal Email': 'user@example.com' })",
+              additionalProperties: { type: "string" },
+            },
             processingTime: { type: "string" },
             available: { type: "boolean" },
           },
@@ -83,10 +88,34 @@ export default async (data: { body: any; user?: any }) => {
       });
     }
 
+    // Sanitize and validate metadata if provided
+    let sanitizedMetadata: Record<string, string> | null = null;
+    if (body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)) {
+      const tempMetadata: Record<string, string> = {};
+      const MAX_FIELDS = 20;
+      let fieldCount = 0;
+      for (const [key, value] of Object.entries(body.metadata)) {
+        if (fieldCount >= MAX_FIELDS) break;
+        if (typeof key === "string" && typeof value === "string") {
+          const sanitizedKey = key.trim().substring(0, 100);
+          const sanitizedValue = value.trim().substring(0, 500);
+          if (sanitizedKey && sanitizedValue) {
+            tempMetadata[sanitizedKey] = sanitizedValue;
+            fieldCount++;
+          }
+        }
+      }
+      // Only keep metadata if it has at least one field
+      if (Object.keys(tempMetadata).length > 0) {
+        sanitizedMetadata = tempMetadata;
+      }
+    }
+
     // Create the payment method
     const paymentMethod = await models.p2pPaymentMethod.create({
       userId: user.id,
       ...validatedData,
+      metadata: sanitizedMetadata,
       available: typeof body.available === "boolean" ? body.available : true,
       isGlobal: false, // User-created methods are never global
       popularityRank: 999, // Set high rank for custom methods so they appear after system methods
@@ -116,6 +145,7 @@ export default async (data: { body: any; user?: any }) => {
         icon: paymentMethod.icon,
         description: paymentMethod.description,
         instructions: paymentMethod.instructions,
+        metadata: paymentMethod.metadata,
         processingTime: paymentMethod.processingTime,
         available: paymentMethod.available,
         popularityRank: paymentMethod.popularityRank,

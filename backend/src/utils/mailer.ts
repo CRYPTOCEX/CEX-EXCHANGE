@@ -254,24 +254,38 @@ export async function emailWithNodemailerSmtp(
     });
 
   try {
-    const transportConfig = {
+    const portNum = parseInt(port);
+
+    // Port 465 = implicit SSL (secure: true)
+    // Port 587 = STARTTLS (secure: false, but uses TLS after STARTTLS command)
+    // Port 25 = no encryption (secure: false)
+    const useSecure = portNum === 465 || smtpEncryption;
+
+    const transportConfig: any = {
       host: host,
-      port: parseInt(port),
+      port: portNum,
       pool: true,
-      secure: smtpEncryption,
+      secure: useSecure,
       auth: {
         user: sender,
         pass: password,
       },
       tls: {
         rejectUnauthorized: false,
+        // For port 587, we need to allow the connection to start unencrypted
+        // then upgrade via STARTTLS
+        minVersion: "TLSv1.2",
       },
     };
+
+    // Debug logging
+    console.log(`[SMTP] Connecting to ${host}:${portNum}, secure: ${useSecure}`);
 
     const transporter = await nodemailer.createTransport(transportConfig);
     await transporter.verify();
     await transporter.sendMail(emailOptions);
   } catch (error) {
+    console.error(`[SMTP] Error sending email:`, error);
     logError("email", error, __filename);
     throw error;
   }

@@ -266,7 +266,11 @@ export const useNftStore = create<NFTStore>((set, get) => ({
 
     if (listingsData && !listingsData.error) {
       const responseData = listingsData.data || listingsData;
-      set({ listings: Array.isArray(responseData) ? responseData : responseData.data || [], loading: false });
+      // Backend returns { items: [...], pagination: {...} }
+      const items = Array.isArray(responseData)
+        ? responseData
+        : responseData.items || responseData.data || [];
+      set({ listings: items, loading: false });
     } else {
       set({ error: listingsData?.error || "Failed to fetch listings", loading: false });
     }

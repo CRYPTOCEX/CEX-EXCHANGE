@@ -14,7 +14,7 @@ interface Alert {
 }
 
 export default function AlertsPanel() {
-  const t = useTranslations("trade/components/alerts/alerts-panel");
+  const t = useTranslations("ext");
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftSaleAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTSalesPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/sale"
@@ -23,7 +25,7 @@ export default function NFTSalesPage() {
       isParanoid={true}
       title="NFT Sales"
       itemTitle="Sale"
-      description="Monitor completed sales transactions and marketplace revenue"
+      description={t("monitor_completed_sales_transactions_and_marketplace")}
       columns={columns}
       analytics={nftSaleAnalytics}
     />

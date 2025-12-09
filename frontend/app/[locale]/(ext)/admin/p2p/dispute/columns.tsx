@@ -1,6 +1,6 @@
 // src/config/disputeColumns.ts
 
-import { AlertTriangle, User } from "lucide-react";
+import { User } from "lucide-react";
 import { Mail } from "lucide-react";
 export const disputeColumns: ColumnDefinition[] = [
   {
@@ -24,6 +24,47 @@ export const disputeColumns: ColumnDefinition[] = [
       type: "custom",
       render: (_: any, row: any) => row.trade?.id || "-",
     },
+  },
+  {
+    key: "status",
+    title: "Status",
+    type: "select",
+    sortable: true,
+    searchable: true,
+    filterable: true,
+    description: "Dispute status",
+    render: {
+      type: "badge",
+      config: {
+        withDot: true,
+        variant: (value: string) => {
+          switch (value) {
+            case "PENDING":
+              return "warning";
+            case "IN_PROGRESS":
+              return "info";
+            case "RESOLVED":
+              return "success";
+            default:
+              return "secondary";
+          }
+        },
+      },
+    },
+    options: [
+      {
+        value: "PENDING",
+        label: "Pending",
+      },
+      {
+        value: "IN_PROGRESS",
+        label: "In Progress",
+      },
+      {
+        value: "RESOLVED",
+        label: "Resolved",
+      },
+    ],
   },
   {
     key: "reportedBy",
@@ -124,47 +165,6 @@ export const disputeColumns: ColumnDefinition[] = [
       type: "date",
       format: "PPP",
     },
-  },
-  {
-    key: "status",
-    title: "Status",
-    type: "select",
-    sortable: true,
-    searchable: true,
-    filterable: true,
-    description: "Dispute status",
-    render: {
-      type: "badge",
-      config: {
-        withDot: true,
-        variant: (value: string) => {
-          switch (value) {
-            case "PENDING":
-              return "outline";
-            case "IN_PROGRESS":
-              return "info";
-            case "RESOLVED":
-              return "default";
-            default:
-              return "default";
-          }
-        },
-      },
-    },
-    options: [
-      {
-        value: "PENDING",
-        label: "Pending",
-      },
-      {
-        value: "IN_PROGRESS",
-        label: "In Progress",
-      },
-      {
-        value: "RESOLVED",
-        label: "Resolved",
-      },
-    ],
   },
   {
     key: "priority",

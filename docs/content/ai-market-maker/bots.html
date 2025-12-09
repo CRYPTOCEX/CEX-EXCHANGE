@@ -1,0 +1,540 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🤖</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">AI Market Maker Bots</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Bot Configuration Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            AI Market Maker Bots are autonomous traders with unique personalities that execute trades on AI Markets. Each bot type has distinct behavior patterns, trade frequencies, and risk profiles designed to simulate realistic human trading activity.
+        </p>
+    </div>
+</div>
+
+<!-- Accessing Bots -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Accessing AI Bots</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+            Navigate to the AI Market Maker Bots management:
+        </p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+            Admin Panel → Extensions → AI Market Maker → Bots
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Or directly access via URL:</p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+            /admin/ai/market-maker/bot
+        </div>
+    </div>
+</div>
+
+<!-- Bot Personalities -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎭 Bot Personality Types</h2>
+
+    <div class="space-y-6">
+        <!-- Scalper -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">⚡</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Scalper</h3>
+                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs">SCALPER</span>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        High-frequency traders that make many small trades throughout the day. They capture tiny price movements and maintain constant order book activity.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Frequency</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Very High</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Size</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Small</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Direction Bias</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Neutral</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Best For</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Volume</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swing Trader -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">📊</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Swing Trader</h3>
+                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">SWING</span>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Medium-term traders that hold positions for longer periods, capitalizing on price swings. They trade less frequently but with larger sizes.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Frequency</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Medium</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Size</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Medium-Large</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Direction Bias</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Trend Following</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Best For</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Price Movement</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Maker -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">🏦</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Market Maker</h3>
+                        <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-xs">MARKET_MAKER</span>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Provides liquidity by placing both buy and sell orders. Maintains tight spreads and balanced order books for efficient price discovery.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Frequency</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">High</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Size</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Variable</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Direction Bias</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Balanced (50/50)</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Best For</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Liquidity</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accumulator -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">📈</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Accumulator</h3>
+                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">ACCUMULATOR</span>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Steadily buys over time to accumulate a position. Creates consistent buying pressure that gradually pushes prices upward.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Frequency</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Low-Medium</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Size</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Medium</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Direction Bias</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">BUY Heavy (80%)</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Best For</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Price Increase</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distributor -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">📉</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Distributor</h3>
+                        <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded text-xs">DISTRIBUTOR</span>
+                    </div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Steadily sells over time to distribute holdings. Creates consistent selling pressure for controlled price reduction.
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Frequency</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Low-Medium</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Trade Size</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Medium</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Direction Bias</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">SELL Heavy (80%)</div>
+                        </div>
+                        <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                            <div class="text-xs text-zinc-500 mb-1">Best For</div>
+                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">Price Decrease</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Creating Bots -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">➕ Creating a New Bot</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Click "Create New Bot"</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click the "+" button in the bots management interface to open the creation dialog.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Select Market and Bot Type</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Choose which AI Market this bot will trade on, and select its personality type.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Trading Parameters</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Set minimum/maximum trade amounts, risk tolerance, and other trading parameters.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Save and Activate</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Save the bot configuration. The bot starts INACTIVE - activate it when the market is ready.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Fields -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📝 Bot Configuration Fields</h2>
+
+    <div class="space-y-8">
+        <!-- Basic Information -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Bot Name</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Text (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Unique identifier for this bot. Use descriptive names like "ETH-Scalper-01" or "BTC-MarketMaker-Main".</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">AI Market</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Select (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">The AI Market this bot will trade on. One bot can only trade on one market.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Bot Type</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Select (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">The personality type that determines trading behavior:</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs">SCALPER</span>
+                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">SWING</span>
+                        <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-xs">MARKET_MAKER</span>
+                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">ACCUMULATOR</span>
+                        <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded text-xs">DISTRIBUTOR</span>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Status</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Select</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Current operational status:</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">ACTIVE</span>
+                        <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 rounded text-xs">INACTIVE</span>
+                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs">PAUSED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Parameters -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Trading Parameters</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Min Trade Amount</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Minimum amount per trade in base currency. Prevents dust trades.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Max Trade Amount</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum amount per trade. Limits single-trade exposure.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Risk Tolerance</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal 0-1 (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">How aggressive the bot trades. 0 = conservative, 1 = aggressive. Affects trade size and frequency.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Base Balance</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Bot's current balance in base currency. Tracked automatically.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Quote Balance</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Bot's current balance in quote currency. Tracked automatically.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Total PnL</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Cumulative profit/loss since bot creation. Updated after each trade.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tracking -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Performance Tracking</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Total Trades</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Integer (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Total number of trades executed by this bot.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Last Trade At</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">DateTime (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Timestamp of the most recent trade executed by this bot.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Human-Like Behavior -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🧠 Human-Like Trading Behavior</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            AI bots are programmed to simulate realistic human trading patterns:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">⏱️ Variable Timing</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Random delays between trades prevent predictable patterns</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">📊 Size Variation</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Trade sizes vary naturally within min/max bounds</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">🎯 Price Slippage</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Small price variations simulate market impact</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">💤 Activity Cycles</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Bots may have periods of higher and lower activity</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bot Combinations -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Recommended Bot Combinations</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">📈 Balanced Market Activity</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">For neutral markets with natural activity:</p>
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-sm">2x Market Makers</span>
+                <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-sm">3x Scalpers</span>
+                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-sm">1x Swing</span>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">🚀 Bullish Pressure</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">For gradual price increase:</p>
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-sm">2x Accumulators</span>
+                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-sm">1x Market Maker</span>
+                <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-sm">2x Scalpers</span>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">📉 Bearish Pressure</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">For controlled price decrease:</p>
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded text-sm">2x Distributors</span>
+                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-sm">1x Market Maker</span>
+                <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-sm">2x Scalpers</span>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">💧 High Liquidity</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">For deep order books and tight spreads:</p>
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-sm">4x Market Makers</span>
+                <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-sm">5x Scalpers</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Bot Naming</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• Use descriptive names: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">ETH-USDT-Scalper-01</code></li>
+                <li>• Include market pair in name for easy identification</li>
+                <li>• Number bots of the same type sequentially</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Risk Management</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• Start with low risk tolerance (0.3-0.5) and adjust based on performance</li>
+                <li>• Set conservative max trade amounts initially</li>
+                <li>• Monitor PnL regularly and adjust parameters</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Bot Diversity</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• Mix different bot types for realistic market dynamics</li>
+                <li>• Vary risk tolerance across bots of the same type</li>
+                <li>• Don't rely on a single bot type for all activity</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Important Notes -->
+<div class="mb-12">
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-amber-900 dark:text-amber-100">⚠️ Important Notes</h3>
+        <ul class="text-amber-800 dark:text-amber-200 text-sm space-y-1 ml-4">
+            <li>• <strong>Market Must Be Active</strong> - Bots only trade when their assigned market is ACTIVE</li>
+            <li>• <strong>Balance Requirements</strong> - Bots need sufficient balance to execute trades</li>
+            <li>• <strong>Cron Dependency</strong> - Bot trading is triggered by the system cron job</li>
+            <li>• <strong>One Market Per Bot</strong> - Each bot can only be assigned to one market</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-green-900 dark:text-green-100">✅ Next Steps</h3>
+        <p class="text-green-800 dark:text-green-200 text-sm mb-4">After creating your bots:</p>
+        <ul class="text-green-800 dark:text-green-200 text-sm space-y-1 ml-4 mb-4">
+            <li>• Configure global settings for trading intervals</li>
+            <li>• Activate the market and bots</li>
+            <li>• Monitor performance through the dashboard</li>
+            <li>• Review trade history for insights</li>
+        </ul>
+        <div class="flex gap-3 flex-wrap">
+            <a href="#ai-market-maker-settings" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                Configure Settings
+            </a>
+            <a href="#ai-market-maker-troubleshooting" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Troubleshooting
+            </a>
+        </div>
+    </div>
+</div>

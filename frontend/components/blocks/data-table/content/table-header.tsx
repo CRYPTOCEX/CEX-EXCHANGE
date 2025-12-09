@@ -16,9 +16,7 @@ interface TableHeaderProps {
 
 export const TableHeaderComponent = React.memo(
   ({ columns, showActions }: TableHeaderProps) => {
-    const t = useTranslations(
-      "components/blocks/data-table/content/table-header"
-    );
+    const t = useTranslations("common");
     const visibleColumns = useTableStore((state) => state.visibleColumns);
     const sorting = useTableStore((state) => state.sorting);
     const handleSort = useTableStore((state) => state.handleSort);

@@ -30,7 +30,7 @@ export function Pagination({
   onPageSizeChange,
   showPageSizeSelector = true,
 }: PaginationProps) {
-  const t = useTranslations("support/ticket/components/pagination");
+  const t = useTranslations("common");
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 

@@ -136,7 +136,7 @@ export function ProjectionTab({
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">{t("%_released")}</span>
+              <span className="text-muted-foreground">% {t("released")}</span>
               <span className="font-medium">
                 {formatPercentage(data.percentReleased)}
               </span>

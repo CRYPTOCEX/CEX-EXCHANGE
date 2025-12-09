@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CreateOfferClient from "./client";
 
 export const metadata: Metadata = {
-  title: "CryptoP2P - Create Offer",
+  title: "Create P2P Offer",
   description: "Step-by-step guide to create your trade offer",
 };
 

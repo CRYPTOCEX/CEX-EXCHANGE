@@ -122,7 +122,7 @@ class WebSocketManager {
       const data = JSON.parse(event.data);
       // Handle different message formats
       let streamKey = data.stream || "default";
-      
+
       // Special handling for support ticket messages
       if (data.method === "reply" && data.payload?.id) {
         streamKey = `ticket-${data.payload.id}`;

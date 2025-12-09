@@ -241,7 +241,7 @@ export default function StakingGuidePage() {
                   {t("the_basic_formula_for_calculating_rewards_is")}
                 </p>
                 <div className="p-4 bg-muted rounded-lg font-mono text-sm">
-                  {t("rewards_=_staked_365)")}
+                  {t("rewards_formula_staked_amount_apr_365")}
                 </div>
 
                 <h3 className="text-lg font-semibold mt-6">
@@ -478,7 +478,7 @@ export default function StakingGuidePage() {
                         </h3>
                         <p className="text-muted-foreground">
                           {t("staking_rewards_are_your_stake")}.{" "}
-                          {t("the_basic_formula_365)")}.{" "}
+                          {t("the_basic_formula_rewards_staked_apr_365")}.{" "}
                           {t("for_pools_with_compound_effect")}.
                         </p>
                       </div>

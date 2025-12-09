@@ -73,7 +73,7 @@ export default function Header({
 }: HeaderProps) {
   // Get binary markets from store for proper symbol parsing
   const { binaryMarkets } = useBinaryStore();
-  const t = useTranslations("binary/components/header/header");
+  const t = useTranslations("common");
   const [showBalanceMenu, setShowBalanceMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mounted, setMounted] = useState(false);

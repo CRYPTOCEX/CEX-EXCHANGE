@@ -14,9 +14,7 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function ColumnToggle() {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/column-toggle"
-  );
+  const t = useTranslations("common");
   const canView = useTableStore((state) => state.tableConfig.canView);
   const visibleColumns = useTableStore((state) => state.visibleColumns);
   const toggleColumnVisibility = useTableStore(

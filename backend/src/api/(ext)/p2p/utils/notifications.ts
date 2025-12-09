@@ -1,4 +1,5 @@
 import { models } from "@b/db";
+import { messageBroker } from "@b/handler/Websocket";
 
 interface TradeEventData {
   buyerId: string;
@@ -35,19 +36,24 @@ export async function notifyTradeEvent(
     // Create in-app notifications for each recipient
     for (const recipient of recipients) {
       try {
-        await models.notification.create({
+        const notification = await models.notification.create({
           userId: recipient.userId,
-          type: 'P2P_TRADE',
+          type: 'alert',
           title: recipient.title,
           message: recipient.message,
           link: `/p2p/trade/${tradeId}`,
           read: false,
         });
 
-        // TODO: Optionally send email notifications
-        // if (recipient.sendEmail) {
-        //   await sendEmail(recipient.email, recipient.title, recipient.message);
-        // }
+        // Push notification via WebSocket to user's notification dropdown
+        const plainRecord = notification.get({ plain: true });
+        messageBroker.sendToClientOnRoute("/api/user", recipient.userId, {
+          type: "notification",
+          method: "create",
+          payload: plainRecord,
+        });
+
+        // TODO: Email service integration - when email service is configured, send email notifications
       } catch (notifError) {
         console.error(`Failed to create notification for user ${recipient.userId}:`, notifError);
       }
@@ -181,14 +187,15 @@ async function getRecipientsForEvent(
       });
       break;
 
+    case "TRADE_MESSAGE":
     case "NEW_MESSAGE":
       const messageRecipient = data.senderId === trade.buyerId ? trade.seller : trade.buyer;
       recipients.push({
         userId: messageRecipient.id,
         email: messageRecipient.email,
         userName: `${messageRecipient.firstName} ${messageRecipient.lastName}`,
-        title: "New Message",
-        message: `You have a new message in trade #${trade.id}`,
+        title: "New Message in P2P Trade",
+        message: `You have a new message in your trade for ${data.amount} ${data.currency}`,
         sendEmail: false,
       });
       break;
@@ -211,6 +218,26 @@ async function getRecipientsForEvent(
         sendEmail: true,
       });
       break;
+
+    case "ADMIN_MESSAGE":
+      // Notify both buyer and seller about admin message
+      recipients.push({
+        userId: trade.buyer.id,
+        email: trade.buyer.email,
+        userName: `${trade.buyer.firstName} ${trade.buyer.lastName}`,
+        title: "Message from Admin",
+        message: data.message || `Admin has sent a message regarding your trade for ${data.amount} ${data.currency}`,
+        sendEmail: true,
+      });
+      recipients.push({
+        userId: trade.seller.id,
+        email: trade.seller.email,
+        userName: `${trade.seller.firstName} ${trade.seller.lastName}`,
+        title: "Message from Admin",
+        message: data.message || `Admin has sent a message regarding your trade for ${data.amount} ${data.currency}`,
+        sendEmail: true,
+      });
+      break;
   }
 
   return recipients;
@@ -230,12 +257,78 @@ export async function notifyAdmins(
         model: models.role,
         as: "role",
         where: {
-          name: ["admin", "super_admin"],
+          name: ["Admin", "Super Admin"],
         },
       }],
+      attributes: ["id", "email", "firstName", "lastName"],
     });
 
-    // TODO: Implement actual admin notification for admins
+    if (!admins || admins.length === 0) {
+      console.warn("No admin users found for P2P notifications");
+      return;
+    }
+
+    // Determine notification content based on event type
+    let title = "";
+    let message = "";
+    let link = "";
+
+    switch (event) {
+      case "TRADE_DISPUTED":
+        title = "P2P Trade Disputed";
+        message = `Trade #${data.tradeId} has been disputed. Reason: ${data.reason || "Not specified"}. Amount: ${data.amount} ${data.currency}`;
+        link = `/admin/p2p/trade/${data.tradeId}`;
+        break;
+
+      case "P2P_SECURITY_ALERT":
+        title = `P2P Security Alert - ${data.riskLevel}`;
+        message = `${data.eventType} detected for ${data.entityType} #${data.entityId}. User: ${data.userId}`;
+        link = `/admin/p2p/${data.entityType.toLowerCase()}/${data.entityId}`;
+        break;
+
+      case "HIGH_VALUE_TRADE":
+        title = "High Value P2P Trade";
+        message = `Large trade initiated: ${data.amount} ${data.currency}. Trade ID: ${data.tradeId}`;
+        link = `/admin/p2p/trade/${data.tradeId}`;
+        break;
+
+      case "SUSPICIOUS_ACTIVITY":
+        title = "Suspicious P2P Activity";
+        message = `Suspicious activity detected for user ${data.userId}. ${data.description || ""}`;
+        link = `/admin/p2p/activity-log`;
+        break;
+
+      default:
+        title = "P2P Admin Notification";
+        message = `Event: ${event}`;
+        link = "/admin/p2p";
+    }
+
+    // Create notifications for all admins and push via WebSocket
+    for (const admin of admins) {
+      try {
+        const notification = await models.notification.create({
+          userId: admin.id,
+          type: "alert",
+          title,
+          message,
+          link,
+          read: false,
+        });
+
+        // Push notification via WebSocket to admin's notification dropdown
+        const plainRecord = notification.get({ plain: true });
+        messageBroker.sendToClientOnRoute("/api/user", admin.id, {
+          type: "notification",
+          method: "create",
+          payload: plainRecord,
+        });
+      } catch (adminNotifError) {
+        console.error(`Failed to create admin notification for ${admin.id}:`, adminNotifError);
+      }
+    }
+
+    console.log(`Sent P2P admin notifications (${event}) to ${admins.length} admin(s)`);
   } catch (error) {
     console.error("Failed to notify admins:", error);
   }
@@ -251,30 +344,74 @@ export async function notifyOfferEvent(
 ): Promise<void> {
   try {
     const offer = await models.p2pOffer.findByPk(offerId, {
-      include: [{ model: models.user, as: "user" }],
+      include: [{
+        model: models.user,
+        as: "user",
+        attributes: ["id", "email", "firstName", "lastName"]
+      }],
     });
 
-    if (!offer) return;
+    if (!offer || !offer.user) {
+      console.error(`Offer ${offerId} or owner not found for notification`);
+      return;
+    }
 
     let title = "";
     let message = "";
+    let link = `/p2p/offer/${offerId}`;
 
     switch (event) {
       case "OFFER_APPROVED":
         title = "Offer Approved";
-        message = `Your P2P offer has been approved by admin.`;
+        message = `Your P2P ${offer.type} offer for ${offer.currency} has been approved and is now active.`;
         break;
+
       case "OFFER_REJECTED":
         title = "Offer Rejected";
-        message = `Your P2P offer has been rejected. Reason: ${data.reason}`;
+        message = `Your P2P ${offer.type} offer for ${offer.currency} has been rejected. ${data.reason ? `Reason: ${data.reason}` : "Please contact support for details."}`;
         break;
+
       case "OFFER_EXPIRED":
         title = "Offer Expired";
-        message = `Your P2P offer has expired and is no longer active.`;
+        message = `Your P2P ${offer.type} offer for ${offer.currency} has expired and is no longer active.`;
         break;
+
+      case "OFFER_LOW_BALANCE":
+        title = "Offer Low Balance";
+        message = `Your P2P SELL offer for ${offer.currency} has insufficient balance to fulfill new trades.`;
+        link = `/p2p/offer/${offerId}/edit`;
+        break;
+
+      case "OFFER_TRADE_INITIATED":
+        title = "New Trade on Your Offer";
+        message = `Someone wants to trade ${data.amount} ${offer.currency} on your ${offer.type} offer.`;
+        link = `/p2p/trade/${data.tradeId}`;
+        break;
+
+      default:
+        title = "Offer Update";
+        message = `Your P2P offer has been updated.`;
     }
 
-    // TODO: Implement actual notification
+    // Create notification for offer owner
+    const notification = await models.notification.create({
+      userId: offer.user.id,
+      type: "alert",
+      title,
+      message,
+      link,
+      read: false,
+    });
+
+    // Push notification via WebSocket to user's notification dropdown
+    const plainRecord = notification.get({ plain: true });
+    messageBroker.sendToClientOnRoute("/api/user", offer.user.id, {
+      type: "notification",
+      method: "create",
+      payload: plainRecord,
+    });
+
+    console.log(`Sent offer notification (${event}) to user ${offer.user.id}`);
   } catch (error) {
     console.error("Failed to send offer notification:", error);
   }
@@ -291,23 +428,73 @@ export async function notifyReputationEvent(
   try {
     let title = "";
     let message = "";
+    let link = "/p2p/profile";
+    let notifType: "alert" | "system" = "system";
 
     switch (event) {
       case "REPUTATION_INCREASED":
         title = "Reputation Increased";
-        message = `Your P2P reputation has increased! You now have ${data.newRating} stars.`;
+        message = `Your P2P reputation has increased! You now have ${data.newRating || data.rating} stars.`;
+        notifType = "system";
         break;
+
       case "REPUTATION_DECREASED":
         title = "Reputation Decreased";
-        message = `Your P2P reputation has decreased due to ${data.reason}.`;
+        message = `Your P2P reputation has decreased${data.reason ? ` due to ${data.reason}` : ""}.${data.newRating ? ` Current rating: ${data.newRating} stars.` : ""}`;
+        notifType = "alert";
         break;
+
       case "MILESTONE_REACHED":
         title = "Milestone Reached!";
-        message = `Congratulations! You've completed ${data.trades} trades.`;
+        message = `Congratulations! You've completed ${data.trades} P2P trade${data.trades > 1 ? "s" : ""}.${data.milestone ? ` ${data.milestone}` : ""}`;
+        notifType = "system";
         break;
+
+      case "POSITIVE_REVIEW":
+        title = "New Positive Review";
+        message = `You received a positive review from a trading partner!${data.comment ? ` "${data.comment}"` : ""}`;
+        link = "/p2p/reviews";
+        notifType = "system";
+        break;
+
+      case "NEGATIVE_REVIEW":
+        title = "New Review Received";
+        message = `You received a review from a trading partner.${data.rating ? ` Rating: ${data.rating} stars.` : ""}`;
+        link = "/p2p/reviews";
+        notifType = "alert";
+        break;
+
+      case "TRUSTED_STATUS":
+        title = "Trusted Trader Status";
+        message = `Congratulations! You've earned Trusted Trader status with ${data.completedTrades} completed trades and ${data.rating}+ rating.`;
+        notifType = "system";
+        break;
+
+      default:
+        title = "Reputation Update";
+        message = `Your P2P reputation has been updated.`;
+        notifType = "system";
     }
 
-    // TODO: Implement actual notification
+    // Create notification for user
+    const notification = await models.notification.create({
+      userId,
+      type: notifType,
+      title,
+      message,
+      link,
+      read: false,
+    });
+
+    // Push notification via WebSocket to user's notification dropdown
+    const plainRecord = notification.get({ plain: true });
+    messageBroker.sendToClientOnRoute("/api/user", userId, {
+      type: "notification",
+      method: "create",
+      payload: plainRecord,
+    });
+
+    console.log(`Sent reputation notification (${event}) to user ${userId}`);
   } catch (error) {
     console.error("Failed to send reputation notification:", error);
   }

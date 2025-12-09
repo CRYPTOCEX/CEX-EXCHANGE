@@ -18,7 +18,8 @@ export default class icoTokenOffering
     | "FAILED"
     | "UPCOMING"
     | "PENDING"
-    | "REJECTED";
+    | "REJECTED"
+    | "DISABLED";
   purchaseWalletCurrency!: string;
   purchaseWalletType!: string;
   tokenPrice!: number;
@@ -112,7 +113,8 @@ export default class icoTokenOffering
             "FAILED",
             "UPCOMING",
             "PENDING",
-            "REJECTED"
+            "REJECTED",
+            "DISABLED"
           ),
           allowNull: false,
           validate: {
@@ -125,6 +127,7 @@ export default class icoTokenOffering
                   "UPCOMING",
                   "PENDING",
                   "REJECTED",
+                  "DISABLED",
                 ],
               ],
               msg: "status: Invalid status value",

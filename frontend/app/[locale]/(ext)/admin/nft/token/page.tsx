@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftTokenAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTsPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/token"
@@ -23,7 +25,7 @@ export default function NFTsPage() {
       isParanoid={true}
       title="NFTs"
       itemTitle="NFT"
-      description="Manage individual NFTs, review content, and moderate listings"
+      description={t("manage_individual_nfts_review_content_and")}
       columns={columns}
       analytics={nftTokenAnalytics}
     />

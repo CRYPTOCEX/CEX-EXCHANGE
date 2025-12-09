@@ -16,11 +16,13 @@ import {
   Globe,
 } from "lucide-react";
 import { PaymentMethodIcon } from "./payment-method-icon";
+import { useTranslations } from "next-intl";
 interface OfferDetailsTabsProps {
   offer: any;
   timeLimit: number;
 }
 export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
+  const t = useTranslations("ext");
   // Parse JSON strings if they haven't been parsed already
   const amountConfig =
     typeof offer.amountConfig === "string"
@@ -55,7 +57,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="details" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Offer Details</h3>
+              <h3 className="text-xl font-semibold">{t("offer_details")}</h3>
               <Badge variant="outline" className="text-xs">
                 {priceConfig.model || "Fixed Price"}
               </Badge>
@@ -65,26 +67,26 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    Price Information
+                    {t("price_information")}
                   </h4>
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="flex justify-between mb-2">
                       <span className="text-sm">
-                        Price per {offer.currency}
+                        {t("price_per")} {offer.currency}
                       </span>
                       <span className="font-medium">
                         {priceConfig.finalPrice.toLocaleString()} {offer.priceCurrency || priceConfig.currency || "USD"}
                       </span>
                     </div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm">Price Type</span>
+                      <span className="text-sm">{t("price_type")}</span>
                       <span className="font-medium">
                         {priceConfig.model || "Fixed"}
                       </span>
                     </div>
                     {priceConfig.marketPrice && (
                       <div className="flex justify-between">
-                        <span className="text-sm">Market Price</span>
+                        <span className="text-sm">{t("market_price")}</span>
                         <span className="font-medium">
                           {priceConfig.marketPrice.toLocaleString()} USD
                         </span>
@@ -92,7 +94,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     )}
                     {priceConfig.marketPrice && priceConfig.finalPrice && (
                       <div className="flex justify-between mt-2">
-                        <span className="text-sm">Market Difference</span>
+                        <span className="text-sm">{t("market_difference")}</span>
                         <span
                           className={`font-medium ${((priceConfig.finalPrice - priceConfig.marketPrice) / priceConfig.marketPrice) * 100 <= 0 ? "text-green-600" : "text-red-600"}`}
                         >
@@ -113,11 +115,11 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    Trade Settings
+                    {t("trade_settings")}
                   </h4>
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm">Time Limit</span>
+                      <span className="text-sm">{t("time_limit")}</span>
                       <span className="font-medium">{timeLimit} minutes</span>
                     </div>
                     <div className="flex justify-between mb-2">
@@ -129,7 +131,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                       </span>
                     </div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm">Wallet Type</span>
+                      <span className="text-sm">{t("wallet_type")}</span>
                       <span className="font-medium">{offer.walletType}</span>
                     </div>
                     <div className="flex justify-between">
@@ -149,13 +151,13 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               locationSettings.restrictions.length > 0 && (
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    Location Restrictions
+                    {t("location_restrictions")}
                   </h4>
                   <div className="bg-muted/30 p-4 rounded-lg">
                     <div className="flex items-start">
                       <Globe className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="font-medium">Restricted Countries</p>
+                        <p className="font-medium">{t("restricted_countries")}</p>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {locationSettings.restrictions.map(
                             (country, index) => (
@@ -174,7 +176,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="terms" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Terms & Conditions</h3>
+              <h3 className="text-xl font-semibold">{t("terms_conditions")}</h3>
               <Badge variant="outline" className="text-xs">
                 Required
               </Badge>
@@ -183,7 +185,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
             <div className="bg-muted/30 p-5 rounded-lg">
               <h4 className="font-medium mb-3 flex items-center">
                 <Info className="h-4 w-4 mr-1.5 text-primary" />
-                Trade Terms
+                {t("trade_terms")}
               </h4>
               <div className="text-sm whitespace-pre-line">
                 {tradeSettings.termsOfTrade ||
@@ -198,7 +200,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="bg-muted/30 p-5 rounded-lg">
                 <h4 className="font-medium mb-3 flex items-center">
                   <Info className="h-4 w-4 mr-1.5 text-primary" />
-                  Additional Notes
+                  {t("additional_notes")}
                 </h4>
                 <div className="text-sm whitespace-pre-line">
                   {tradeSettings.additionalNotes}
@@ -207,18 +209,16 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
             )}
 
             <div className="space-y-4">
-              <h4 className="font-medium">Security Features</h4>
+              <h4 className="font-medium">{t("security_features")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-start p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
                   <Shield className="h-5 w-5 mr-3 text-green-600 mt-0.5" />
                   <div>
                     <p className="font-medium text-green-800 dark:text-green-400">
-                      Escrow Protection
+                      {t("escrow_protection")}
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-500 mt-1">
-                      Funds are held in secure escrow until the trade is
-                      completed successfully. This protects both buyer and
-                      seller.
+                      {t("funds_are_held_in_secure_escrow")} {t("this_protects_both_buyer_and_seller")}
                     </p>
                   </div>
                 </div>
@@ -227,11 +227,10 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                   <Timer className="h-5 w-5 mr-3 text-blue-600 mt-0.5" />
                   <div>
                     <p className="font-medium text-blue-800 dark:text-blue-400">
-                      Time Protection
+                      {t("time_protection")}
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
-                      {timeLimit} minute window to complete payment safely. The
-                      timer starts once you initiate the trade.
+                      {timeLimit} {t("minute_window_to_complete_payment_safely")} {t("the_timer_starts_once_you_initiate_the_trade")}
                     </p>
                   </div>
                 </div>
@@ -240,11 +239,10 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                   <Lock className="h-5 w-5 mr-3 text-purple-600 mt-0.5" />
                   <div>
                     <p className="font-medium text-purple-800 dark:text-purple-400">
-                      Secure Chat
+                      {t("secure_chat")}
                     </p>
                     <p className="text-sm text-purple-700 dark:text-purple-500 mt-1">
-                      End-to-end encrypted chat for secure communication between
-                      buyer and seller during the trade.
+                      {t("end_to_end_encrypted_chat_for")}
                     </p>
                   </div>
                 </div>
@@ -253,11 +251,10 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                   <Zap className="h-5 w-5 mr-3 text-amber-600 mt-0.5" />
                   <div>
                     <p className="font-medium text-amber-800 dark:text-amber-400">
-                      Dispute Resolution
+                      {t("dispute_resolution")}
                     </p>
                     <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
-                      Our dedicated support team is available to resolve any
-                      disputes that may arise during the trade.
+                      {t("our_dedicated_support_team_is_available")}
                     </p>
                   </div>
                 </div>
@@ -267,7 +264,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
           <TabsContent value="payment" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Payment Methods</h3>
+              <h3 className="text-xl font-semibold">{t("payment_methods")}</h3>
               <Badge variant="outline" className="text-xs">
                 {offer.paymentMethods?.length || 0} Available
               </Badge>
@@ -292,7 +289,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                         <div className="flex items-center text-xs text-muted-foreground mt-1">
                           <Clock className="h-3 w-3 mr-1" />
                           <span>
-                            Processing time: {method.processingTime || "5-15"}{" "}
+                            {t("processing_time")} {method.processingTime || "5-15"}{" "}
                             minutes
                           </span>
                         </div>
@@ -304,40 +301,37 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
 
             <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-400">
               <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertTitle>Important Payment Information</AlertTitle>
+              <AlertTitle>{t("important_payment_information")}</AlertTitle>
               <AlertDescription className="text-amber-700 dark:text-amber-500">
-                Always use the payment methods listed above. Never accept
-                requests to use alternative payment methods or to send payments
-                outside the platform. This ensures your transaction remains
-                protected.
+                {t("always_use_the_payment_methods_listed_above")} {t("never_accept_requests_to_use_alternative")} {t("this_ensures_your_transaction_remains_protected")}
               </AlertDescription>
             </Alert>
 
             <div className="bg-muted/30 p-4 rounded-lg">
-              <h4 className="font-medium mb-3">Payment Instructions</h4>
+              <h4 className="font-medium mb-3">{t("payment_instructions")}</h4>
               <ol className="list-decimal list-inside space-y-2 text-sm">
                 <li>
-                  Select your preferred payment method when initiating the trade
+                  {t("select_your_preferred_payment_method_when")}
                 </li>
                 <li>
-                  You'll receive detailed payment instructions on the trade page
+                  {t("youll_receive_detailed_payment_instructions_on")}
                 </li>
                 <li>
-                  Complete the payment within the {timeLimit}-minute time limit
+                  {t("complete_the_payment_within_the")} {timeLimit}{t("minute_time_limit")}
                 </li>
                 <li>
-                  Include the trade reference number in your payment description
+                  {t("include_the_trade_reference_number_in")}
                 </li>
-                <li>Mark payment as completed once you've sent the funds</li>
+                <li>{t("mark_payment_as_completed_once_youve")}</li>
               </ol>
             </div>
           </TabsContent>
 
           <TabsContent value="requirements" className="p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">User Requirements</h3>
+              <h3 className="text-xl font-semibold">{t("user_requirements")}</h3>
               <Badge variant="outline" className="text-xs">
-                Eligibility Criteria
+                {t("eligibility_criteria")}
               </Badge>
             </div>
 
@@ -345,11 +339,11 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="bg-muted/30 p-5 rounded-lg">
                 <h4 className="font-medium mb-4 flex items-center">
                   <User className="h-4 w-4 mr-1.5 text-primary" />
-                  Trade History Requirements
+                  {t("trade_history_requirements")}
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-muted">
-                    <span className="text-sm">Minimum Completed Trades</span>
+                    <span className="text-sm">{t("minimum_completed_trades")}</span>
                     <Badge
                       variant={
                         userRequirements.minCompletedTrades > 0
@@ -361,7 +355,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b border-muted">
-                    <span className="text-sm">Minimum Success Rate</span>
+                    <span className="text-sm">{t("minimum_success_rate")}</span>
                     <Badge
                       variant={
                         userRequirements.minSuccessRate > 0
@@ -375,7 +369,7 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Trusted Users Only</span>
+                    <span className="text-sm">{t("trusted_users_only")}</span>
                     <Badge
                       variant={
                         userRequirements.trustedOnly ? "default" : "outline"
@@ -390,11 +384,11 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               <div className="bg-muted/30 p-5 rounded-lg">
                 <h4 className="font-medium mb-4 flex items-center">
                   <Calendar className="h-4 w-4 mr-1.5 text-primary" />
-                  Account Requirements
+                  {t("account_requirements")}
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-muted">
-                    <span className="text-sm">Minimum Account Age</span>
+                    <span className="text-sm">{t("minimum_account_age")}</span>
                     <Badge
                       variant={
                         userRequirements.minAccountAge > 0
@@ -415,13 +409,9 @@ export function OfferDetailsTabs({ offer, timeLimit }: OfferDetailsTabsProps) {
               userRequirements.minSuccessRate > 0 ||
               userRequirements.minAccountAge > 0) && (
               <div className="bg-muted/20 p-4 rounded-lg border border-muted">
-                <h4 className="font-medium mb-2">Why These Requirements?</h4>
+                <h4 className="font-medium mb-2">{t("why_these_requirements")}</h4>
                 <p className="text-sm text-muted-foreground">
-                  These requirements help ensure safe and reliable trading.
-                  Traders set these criteria based on their risk tolerance and
-                  trading preferences. If you don't meet these requirements yet,
-                  you can build your trading history with other offers that have
-                  lower requirements.
+                  {t("these_requirements_help_ensure_safe_and")} {t("traders_set_these_criteria_based_on")} {t("if_you_dont_meet_these_requirements")}
                 </p>
               </div>
             )}

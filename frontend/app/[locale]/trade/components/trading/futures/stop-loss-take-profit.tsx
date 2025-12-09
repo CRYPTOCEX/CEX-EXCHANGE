@@ -17,9 +17,7 @@ export default function StopLossTakeProfit({
   takeProfit,
   setTakeProfit,
 }: StopLossTakeProfitProps) {
-  const t = useTranslations(
-    "trade/components/trading/futures/stop-loss-take-profit"
-  );
+  const t = useTranslations("ext");
   // Handle stop loss change
   const handleStopLossChange = (value: string) => {
     const numValue = Number.parseFloat(value);

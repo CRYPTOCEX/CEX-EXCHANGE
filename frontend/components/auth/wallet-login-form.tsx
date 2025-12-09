@@ -326,7 +326,7 @@ export default function WalletLoginForm({
   onSuccess,
   onCancel,
 }: WalletLoginFormProps) {
-  const t = useTranslations("components/auth/wallet-login-form");
+  const t = useTranslations("common");
   const [error, setError] = useState<string | null>(null);
   const account = useAppKitAccount();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);

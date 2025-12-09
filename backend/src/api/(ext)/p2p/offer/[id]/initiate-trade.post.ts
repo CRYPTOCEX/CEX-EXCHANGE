@@ -166,6 +166,29 @@ export default async function handler(data: {
       });
     }
 
+    // 2c. Validate against platform global min/max trade amounts
+    const { CacheManager } = await import("@b/utils/cache");
+    const cacheManager = CacheManager.getInstance();
+    const platformMinTradeAmount = await cacheManager.getSetting("p2pMinimumTradeAmount");
+    const platformMaxTradeAmount = await cacheManager.getSetting("p2pMaximumTradeAmount");
+
+    // Calculate the trade value in price currency (USD/EUR) for comparison
+    const tradeValueInPriceCurrency = isOfferFiatCurrency ? amount : amount * price;
+
+    if (platformMinTradeAmount && tradeValueInPriceCurrency < platformMinTradeAmount) {
+      throw createError({
+        statusCode: 400,
+        message: `Trade amount (${tradeValueInPriceCurrency.toFixed(2)} ${priceConfig.currency || 'USD'}) is below platform minimum of ${platformMinTradeAmount}`,
+      });
+    }
+
+    if (platformMaxTradeAmount && tradeValueInPriceCurrency > platformMaxTradeAmount) {
+      throw createError({
+        statusCode: 400,
+        message: `Trade amount (${tradeValueInPriceCurrency.toFixed(2)} ${priceConfig.currency || 'USD'}) exceeds platform maximum of ${platformMaxTradeAmount}`,
+      });
+    }
+
     // 3. Verify payment method is allowed for this offer
     const allowedPaymentMethodIds = offer.paymentMethods.map((pm: any) => pm.id);
     if (!allowedPaymentMethodIds.includes(paymentMethodId)) {
@@ -198,57 +221,54 @@ export default async function handler(data: {
     const buyerId = isBuyOffer ? offer.userId : user.id;
     const sellerId = isBuyOffer ? user.id : offer.userId;
 
-    // 6. Handle seller's balance locking
-    // - For SELL offers: Balance was already locked when offer was created, just verify
-    // - For BUY offers: Responder is the seller, need to lock their balance NOW
-    // This applies to ALL wallet types including FIAT to prevent:
-    // - Double spending the same funds on multiple offers
-    // - Withdrawing funds before completing trades
-    // - Using funds elsewhere on the platform
-    // Note: FIAT transfers happen peer-to-peer off-platform, but balance is still reserved on platform
+    // 6. Handle seller's balance verification and locking
+    // - For SELL offers: Balance was already locked when offer was created, no additional locking needed
+    // - For BUY offers: Responder is the seller, need to check balance and lock their funds NOW
     let sellerWallet = await getWalletSafe(
       sellerId,
       offer.walletType,
       offer.currency
     );
 
-    // Create seller wallet if it doesn't exist
-    if (!sellerWallet) {
-      if (offer.walletType === "ECO") {
-        // For ECO wallets, use the ecosystem wallet creation function
-        const ecosystemUtils = await getEcosystemWalletUtils();
-        if (!isServiceAvailable(ecosystemUtils)) {
-          throw createError({
-            statusCode: 503,
-            message: "Ecosystem wallet service is not available"
-          });
-        }
-        const { getWalletByUserIdAndCurrency } = ecosystemUtils;
-        const seller = await models.user.findByPk(sellerId, { transaction });
-        sellerWallet = await getWalletByUserIdAndCurrency(seller, offer.currency);
-      } else {
-        // For SPOT, FIAT, and other wallet types, create a simple wallet
-        const newWallet = await models.wallet.create({
-          userId: sellerId,
-          currency: offer.currency,
-          type: offer.walletType,
-          balance: 0,
-          inOrder: 0,
-          status: true,
-        }, { transaction });
-        sellerWallet = newWallet.get({ plain: true });
-      }
-    }
-
-    if (!sellerWallet) {
-      throw createError({
-        statusCode: 500,
-        message: "Failed to create or retrieve seller wallet"
-      });
-    }
-
+    // For BUY offers, the responder is the seller and needs a wallet with funds
     if (isBuyOffer) {
-      // For BUY offers: Responder (user) is the seller, need to lock their balance now
+      // Create seller wallet if it doesn't exist
+      if (!sellerWallet) {
+        if (offer.walletType === "ECO") {
+          // For ECO wallets, use the ecosystem wallet creation function
+          const ecosystemUtils = await getEcosystemWalletUtils();
+          if (!isServiceAvailable(ecosystemUtils)) {
+            throw createError({
+              statusCode: 503,
+              message: "Ecosystem wallet service is not available"
+            });
+          }
+          const { getWalletByUserIdAndCurrency } = ecosystemUtils;
+          const seller = await models.user.findByPk(sellerId, { transaction });
+          sellerWallet = await getWalletByUserIdAndCurrency(seller, offer.currency);
+        } else {
+          // For SPOT, FIAT, and other wallet types, create a simple wallet
+          const newWallet = await models.wallet.create({
+            userId: sellerId,
+            currency: offer.currency,
+            type: offer.walletType,
+            balance: 0,
+            inOrder: 0,
+            status: true,
+          }, { transaction });
+          sellerWallet = newWallet.get({ plain: true });
+        }
+      }
+
+      if (!sellerWallet) {
+        throw createError({
+          statusCode: 500,
+          message: "Failed to create or retrieve seller wallet"
+        });
+      }
+
+      // For BUY offers: Check available balance and lock funds
+      // The responder (seller) needs to have funds to sell
       const availableBalance = sellerWallet.balance - sellerWallet.inOrder;
       if (availableBalance < amount) {
         throw createError({
@@ -257,22 +277,29 @@ export default async function handler(data: {
         });
       }
 
-      // Lock the seller's funds
+      // Lock the seller's funds for BUY offers
       await models.wallet.update({
         inOrder: sellerWallet.inOrder + amount,
       }, {
         where: { id: sellerWallet.id },
         transaction
       });
-
     } else {
-      // For SELL offers: Funds already locked when offer was created, just verify
+      // For SELL offers: Funds were already locked at offer creation
+      // Just verify the seller's wallet exists and has sufficient locked funds
+      if (!sellerWallet) {
+        throw createError({
+          statusCode: 500,
+          message: "Seller wallet not found. The offer may be invalid."
+        });
+      }
 
-      // Verify seller has the locked funds
+      // Verify the seller still has enough locked funds (inOrder) for this trade
+      // The funds should have been locked when the offer was created
       if (sellerWallet.inOrder < amount) {
         throw createError({
           statusCode: 409,
-          message: `Seller funds not properly locked. This offer may be invalid. Locked: ${sellerWallet.inOrder} ${offer.currency}, Required: ${amount} ${offer.currency}`
+          message: `This offer is currently unavailable. The seller does not have sufficient ${offer.currency} balance to complete this trade.`
         });
       }
     }
@@ -291,7 +318,7 @@ export default async function handler(data: {
         walletInOrder: sellerWallet.inOrder,
         note: offer.walletType === "FIAT"
           ? "FIAT trade - balance locked on platform, payment happens peer-to-peer"
-          : "Trade initiated - funds locked in escrow from offer creation",
+          : "Trade initiated - funds locked in escrow at trade initiation",
         initiatedBy: user.id,
       },
       riskLevel: P2PRiskLevel.HIGH,
@@ -299,11 +326,42 @@ export default async function handler(data: {
 
     // 7. Calculate fees
     const { calculateTradeFees, calculateEscrowFee } = await import("../../utils/fees");
-    const isMakerBuyer = offer.type === "BUY";
-    const fees = await calculateTradeFees(amount, offer.currency, isMakerBuyer);
+    // Maker = offer owner, Taker = trade initiator
+    const fees = await calculateTradeFees(
+      amount,
+      offer.currency,
+      offer.userId, // maker (offer owner)
+      user.id,      // taker (trade initiator)
+      buyerId,
+      sellerId
+    );
     const escrowFee = await calculateEscrowFee(amount, offer.currency);
 
-    // 8. Create the trade
+    // 8. Create the trade with fees stored
+    // Copy seller's payment method details to trade for display during payment
+    // Parse metadata properly - it may come as string from database
+    let parsedMetadata: Record<string, string> = {};
+    if (selectedPaymentMethod.metadata) {
+      if (typeof selectedPaymentMethod.metadata === "string") {
+        try {
+          parsedMetadata = JSON.parse(selectedPaymentMethod.metadata);
+        } catch {
+          parsedMetadata = {};
+        }
+      } else if (typeof selectedPaymentMethod.metadata === "object") {
+        parsedMetadata = selectedPaymentMethod.metadata;
+      }
+    }
+
+    const paymentDetails = {
+      name: selectedPaymentMethod.name,
+      icon: selectedPaymentMethod.icon,
+      instructions: selectedPaymentMethod.instructions || null,
+      processingTime: selectedPaymentMethod.processingTime || null,
+      // Copy the flexible metadata (contains actual payment details like account numbers, emails, etc.)
+      ...parsedMetadata,
+    };
+
     const trade = await models.p2pTrade.create({
       offerId: offer.id,
       buyerId,
@@ -314,8 +372,11 @@ export default async function handler(data: {
       total: amount * priceConfig.finalPrice,
       currency: offer.currency,
       paymentMethod: paymentMethodId,
+      paymentDetails, // Store seller's payment details at time of trade initiation
       status: "PENDING",
       escrowFee: escrowFee.toString(),
+      buyerFee: fees.buyerFee,
+      sellerFee: fees.sellerFee,
       timeline: [
         {
           event: "TRADE_INITIATED",
@@ -332,12 +393,25 @@ export default async function handler(data: {
       ],
     }, { transaction });
 
-    // 9. Update offer available amount
+    // 9. Update offer available amount with validation
     const newTotal = amountConfig.total - amount;
+
+    // CRITICAL: Validate that new total doesn't go negative
+    if (newTotal < 0) {
+      throw createError({
+        statusCode: 409,
+        message: `Insufficient offer amount. Available: ${amountConfig.total} ${offer.currency}, Requested: ${amount} ${offer.currency}`
+      });
+    }
+
+    // Track original total if not already set (for future restoration limits)
+    const originalTotal = amountConfig.originalTotal ?? amountConfig.total + amount;
+
     await offer.update({
       amountConfig: {
         ...amountConfig,
         total: newTotal,
+        originalTotal, // Track original amount for restoration limits
       }
     }, { transaction });
 
@@ -373,12 +447,20 @@ export default async function handler(data: {
       riskLevel: amount > 1000 ? P2PRiskLevel.HIGH : P2PRiskLevel.MEDIUM,
     }).catch(err => console.error("Failed to create audit log:", err));
 
-    // 12. Send notifications (non-blocking)
+    // 12. Increment offer view count (non-blocking)
+    // Views are counted when trade is initiated, not on page load
+    // This ensures only serious interest is counted and prevents owner inflation
+    models.p2pOffer.increment("views", { where: { id } }).catch((err: any) => {
+      console.error("[P2P Offer View] Failed to increment views:", err.message);
+    });
+
+    // 13. Send notifications (non-blocking)
     notifyTradeEvent(trade.id, "TRADE_INITIATED", {
       buyerId,
       sellerId,
       amount,
       currency: offer.currency,
+      initiatorId: user.id, // Pass who initiated the trade
     }).catch(console.error);
 
     // Return trade details

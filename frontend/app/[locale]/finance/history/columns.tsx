@@ -18,7 +18,7 @@ const metadataLabels: Record<string, string> = {
 };
 
 export function renderTransactionMetadata(value: any) {
-  const t = useTranslations("finance/history/columns");
+  const t = useTranslations("common");
   if (!value) return "N/A";
 
   let parsed: Record<string, any>;

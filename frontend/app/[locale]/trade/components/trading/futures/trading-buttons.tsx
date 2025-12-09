@@ -17,7 +17,7 @@ export default function TradingButtons({
   amount,
   isSubmitting = false,
 }: TradingButtonsProps) {
-  const t = useTranslations("trade/components/trading/futures/trading-buttons");
+  const t = useTranslations("ext");
   
   const isDisabled = !currentPrice || amount <= 0 || isSubmitting;
   

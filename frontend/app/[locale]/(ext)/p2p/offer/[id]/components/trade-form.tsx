@@ -61,9 +61,6 @@ export function TradeForm({
   // Safely get the currency code
   const currencyCode = offer?.currency || "BTC";
 
-  // Get price currency from offer (EUR, USD, etc.)
-  const priceCurrency = offer?.priceCurrency || "USD";
-
   // Parse JSON strings if they haven't been parsed already
   const amountConfig =
     typeof offer?.amountConfig === "string"
@@ -74,6 +71,10 @@ export function TradeForm({
     typeof offer?.priceConfig === "string"
       ? JSON.parse(offer.priceConfig || "{}")
       : offer?.priceConfig || {};
+
+  // Get price currency from offer (EUR, USD, etc.)
+  // Check both priceCurrency field and priceConfig.currency for compatibility
+  const priceCurrency = offer?.priceCurrency || priceConfig?.currency || "USD";
 
   const tradeSettings =
     typeof offer?.tradeSettings === "string"
@@ -569,50 +570,51 @@ export function TradeForm({
             </div>
           </div>
 
-          {/* Display fees based on settings */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">{t("Fees")}</Label>
-            <div className="bg-muted/20 p-3 rounded-md space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>
-                  {t("platform_fee_(")}
-                  {isBuyOffer ? settings.p2pTakerFee : settings.p2pMakerFee}
-                  %)
-                </span>
-                <span>
-                  {(
-                    ((isBuyOffer
-                      ? settings.p2pTakerFee
-                      : settings.p2pMakerFee) /
-                      100) *
-                    totalPrice
-                  ).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  {priceCurrency}
-                </span>
-              </div>
-              <Separator className="my-1" />
-              <div className="flex justify-between text-sm font-medium">
-                <span>{t("total_with_fees")}</span>
-                <span>
-                  {(
-                    totalPrice +
-                    ((isBuyOffer
-                      ? settings.p2pTakerFee
-                      : settings.p2pMakerFee) /
-                      100) *
-                      totalPrice
-                  ).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  {priceCurrency}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Display fees based on settings - only if fees are configured */}
+          {/* Note: The current user initiating a trade is ALWAYS the taker (offer acceptor) */}
+          {/* Therefore, they should ALWAYS pay the taker fee, regardless of buy/sell direction */}
+          {(() => {
+            const feeRate = settings.p2pTakerFee || 0; // Always use taker fee for trade initiator
+            const feeAmount = (feeRate / 100) * totalPrice;
+            const totalWithFees = totalPrice + feeAmount;
+
+            // Only show fees section if there's actually a fee
+            if (feeRate > 0 && totalPrice > 0) {
+              return (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">{t("Fees")}</Label>
+                  <div className="bg-muted/20 p-3 rounded-md space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        {t("platform_fee_(")}
+                        {feeRate}
+                        %)
+                      </span>
+                      <span>
+                        {feeAmount.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        {priceCurrency}
+                      </span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>{t("total_with_fees")}</span>
+                      <span>
+                        {totalWithFees.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        {priceCurrency}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">{t("payment_method")}</Label>

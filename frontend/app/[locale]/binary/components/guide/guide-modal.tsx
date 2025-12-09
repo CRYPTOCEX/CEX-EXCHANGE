@@ -54,7 +54,7 @@ const sections = [
 ];
 
 export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
-  const t = useTranslations("binary/components/guide/guide-modal");
+  const t = useTranslations("common");
 
   // Content for each section (moved inside component to access t)
   const sectionContent = {

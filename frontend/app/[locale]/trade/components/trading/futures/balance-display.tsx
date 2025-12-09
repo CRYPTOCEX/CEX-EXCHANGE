@@ -24,7 +24,7 @@ export default function BalanceDisplay({
   fundingRate,
   fundingTime,
 }: BalanceDisplayProps) {
-  const t = useTranslations("trade/components/trading/futures/balance-display");
+  const t = useTranslations("ext");
 
   const formatBalance = (balance: number) => {
     return balance.toLocaleString(undefined, {

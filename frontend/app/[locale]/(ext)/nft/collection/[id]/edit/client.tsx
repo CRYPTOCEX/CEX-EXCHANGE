@@ -177,12 +177,38 @@ export default function EditCollectionClient({ initialCollection }: EditCollecti
   };
 
   const handleDeployCollection = async () => {
+    if (!initialCollection) return;
+
     setIsDeploying(true);
-    // TODO: Implement actual deployment logic
-    // This should connect wallet, deploy contract, and update collection
-    console.log("Deploying collection:", initialCollection.id);
-    toast.info("Deployment feature coming soon!");
-    setTimeout(() => setIsDeploying(false), 2000);
+    try {
+      const response = await $fetch({
+        url: "/api/nft/contract/deploy",
+        method: "POST",
+        body: {
+          collectionId: initialCollection.id,
+          chain: initialCollection.chain,
+          standard: initialCollection.standard || "ERC721",
+          name: initialCollection.name,
+          symbol: initialCollection.symbol,
+          baseURI: initialCollection.baseURI,
+          maxSupply: initialCollection.maxSupply,
+          royaltyPercentage: initialCollection.royaltyPercentage,
+          mintPrice: initialCollection.mintPrice,
+          isPublicMint: initialCollection.isPublicMint
+        }
+      });
+
+      if (response.data) {
+        toast.success(`Collection deployed successfully! Contract: ${response.data.contractAddress}`);
+        // Refresh collection data
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error("Error deploying collection:", error);
+      toast.error(error.message || "Failed to deploy collection");
+    } finally {
+      setIsDeploying(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {

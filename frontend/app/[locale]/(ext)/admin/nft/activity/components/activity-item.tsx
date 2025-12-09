@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface ActivityItemProps {
   activity: {
@@ -84,6 +85,7 @@ interface ActivityItemProps {
 }
 
 export function ActivityItem({ activity, onView, onDelete, index = 0 }: ActivityItemProps) {
+  const t = useTranslations("ext");
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getIcon = (type: string) => {
@@ -169,7 +171,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
       case "MINT":
         return (
           <span>
-            <span className="font-medium">{tokenName || 'Token'}</span> minted in{' '}
+            <span className="font-medium">{tokenName || 'Token'}</span> {t("minted_in")}{' '}
             <span className="font-medium">{collection?.name}</span>
             {toUser && (
               <> by <span className="font-medium">{toUser.firstName} {toUser.lastName}</span></>
@@ -200,7 +202,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
       case "LIST":
         return (
           <span>
-            <span className="font-medium">{tokenName || 'Token'}</span> listed for sale
+            <span className="font-medium">{tokenName || 'Token'}</span> {t("listed_for_sale")}
             {activity.listing?.price && activity.listing?.currency && (
               <> at <span className="font-medium">{formatPrice(activity.listing.price, activity.listing.currency)}</span></>
             )}
@@ -209,13 +211,13 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
       case "DELIST":
         return (
           <span>
-            <span className="font-medium">{tokenName || 'Token'}</span> removed from marketplace
+            <span className="font-medium">{tokenName || 'Token'}</span> {t("removed_from_marketplace")}
           </span>
         );
       case "BID":
         return (
           <span>
-            Bid placed on <span className="font-medium">{tokenName || 'Token'}</span>
+            {t("bid_placed_on")} <span className="font-medium">{tokenName || 'Token'}</span>
             {activity.price && activity.currency && (
               <> for <span className="font-medium text-orange-600 dark:text-orange-400">{formatPrice(activity.price, activity.currency)}</span></>
             )}
@@ -224,7 +226,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
       case "OFFER":
         return (
           <span>
-            Offer made on <span className="font-medium">{tokenName || 'Token'}</span>
+            {t("offer_made_on")} <span className="font-medium">{tokenName || 'Token'}</span>
             {activity.price && activity.currency && (
               <> for <span className="font-medium">{formatPrice(activity.price, activity.currency)}</span></>
             )}
@@ -233,7 +235,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
       case "BURN":
         return (
           <span>
-            <span className="font-medium">{tokenName || 'Token'}</span> burned from{' '}
+            <span className="font-medium">{tokenName || 'Token'}</span> {t("burned_from")}{' '}
             <span className="font-medium">{collection?.name}</span>
           </span>
         );
@@ -386,7 +388,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
                 )}
                 {activity.transactionHash && (
                   <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground mb-1">Transaction Hash</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("transaction_hash")}</p>
                     <div className="flex items-center gap-2">
                       <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
                         {activity.transactionHash}
@@ -407,7 +409,7 @@ export function ActivityItem({ activity, onView, onDelete, index = 0 }: Activity
                 )}
                 {activity.blockNumber && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Block Number</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("block_number")}</p>
                     <code className="text-xs bg-muted px-2 py-1 rounded">
                       #{activity.blockNumber}
                     </code>

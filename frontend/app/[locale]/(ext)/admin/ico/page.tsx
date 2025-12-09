@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.offeringGrowth)}
-                      {t("%_from_last_month")}
+                      % {t("from_last_month")}
                     </span>
                   </span>
                 )}
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.raiseGrowth)}
-                      {t("%_from_last_month")}
+                      % {t("from_last_month")}
                     </span>
                   </span>
                 )}
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-3 w-3 text-green-500" />
                     <span>
                       +{numOrZero(stats?.successRateGrowth)}
-                      {t("%_from_last_month")}
+                      % {t("from_last_month")}
                     </span>
                   </span>
                 )}

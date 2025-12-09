@@ -298,21 +298,21 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                 </h3>
                 <div className="text-sm">
                   <p>
-                    <strong>{t("address")}</strong> {walletInfo.wallet.address}
+                    <strong>{t("address")}:</strong> {walletInfo.wallet.address}
                   </p>
                   <p>
-                    <strong>{t("balance")}</strong> {walletInfo.wallet.balance}{" "}
+                    <strong>{t("balance")}:</strong> {walletInfo.wallet.balance}{" "}
                     {walletInfo.wallet.currency}
                   </p>
                 </div>
                 {walletInfo.tokenDeploymentCost === null ? (
                   <p className="text-sm">
-                    <strong>{t("deployment_cost")}</strong>
+                    <strong>{t("deployment_cost")}:</strong>{" "}
                     {t("not_available_for_this_chain")}
                   </p>
                 ) : (
                   <p className="text-sm">
-                    <strong>{t("deployment_cost")}</strong>{" "}
+                    <strong>{t("deployment_cost")}:</strong>{" "}
                     {walletInfo.tokenDeploymentCost}{" "}
                     {walletInfo.wallet.currency}
                   </p>
@@ -336,7 +336,7 @@ const StepChainAndInfo: React.FC<StepChainAndInfoProps> = ({
                         parseFloat(walletInfo.tokenDeploymentCost) -
                         walletInfo.wallet.balance
                       ).toFixed(4)}{" "}
-                      {walletInfo.wallet.currency}
+                      {walletInfo.wallet.currency}{" "}
                       {t("more")}.
                     </p>
                     <Button onClick={fetchWalletInfo} color="default" size="sm">

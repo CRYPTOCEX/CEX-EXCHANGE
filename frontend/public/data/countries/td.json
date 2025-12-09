@@ -1,0 +1,194 @@
+{
+  "name": "Chad",
+  "iso2": "TD",
+  "iso3": "TCD",
+  "phonecode": "235",
+  "states": [
+    {
+      "name": "Bahr el Gazel",
+      "code": "BG",
+      "cities": [
+        "Moussoro"
+      ]
+    },
+    {
+      "name": "Batha",
+      "code": "BA",
+      "cities": [
+        "Ati",
+        "Oum Hadjer"
+      ]
+    },
+    {
+      "name": "Borkou",
+      "code": "BO",
+      "cities": [
+        "Faya-Largeau"
+      ]
+    },
+    {
+      "name": "Chari-Baguirmi",
+      "code": "CB",
+      "cities": [
+        "Baguirmi Department",
+        "Bousso",
+        "Dababa",
+        "Gaoui",
+        "Linia",
+        "Mandjafa",
+        "Massenya"
+      ]
+    },
+    {
+      "name": "Ennedi-Est",
+      "code": "EE",
+      "cities": []
+    },
+    {
+      "name": "Ennedi-Ouest",
+      "code": "EO",
+      "cities": [
+        "Fada"
+      ]
+    },
+    {
+      "name": "Guéra",
+      "code": "GR",
+      "cities": [
+        "Bitkine",
+        "Melfi",
+        "Mongo"
+      ]
+    },
+    {
+      "name": "Hadjer-Lamis",
+      "code": "HL",
+      "cities": [
+        "Bokoro",
+        "Massaguet",
+        "Massakory"
+      ]
+    },
+    {
+      "name": "Kanem",
+      "code": "KA",
+      "cities": [
+        "Mao"
+      ]
+    },
+    {
+      "name": "Lac",
+      "code": "LC",
+      "cities": [
+        "Bol"
+      ]
+    },
+    {
+      "name": "Logone Occidental",
+      "code": "LO",
+      "cities": [
+        "Beïnamar",
+        "Benoy",
+        "Lac Wey",
+        "Moundou"
+      ]
+    },
+    {
+      "name": "Logone Oriental",
+      "code": "LR",
+      "cities": [
+        "Bébédja",
+        "Béboto",
+        "Doba"
+      ]
+    },
+    {
+      "name": "Mandoul",
+      "code": "MA",
+      "cities": [
+        "Goundi",
+        "Koumra",
+        "Moïssala"
+      ]
+    },
+    {
+      "name": "Mayo-Kebbi Est",
+      "code": "ME",
+      "cities": [
+        "Bongor",
+        "Gounou Gaya",
+        "Guelendeng"
+      ]
+    },
+    {
+      "name": "Mayo-Kebbi Ouest",
+      "code": "MO",
+      "cities": [
+        "Mboursou Léré",
+        "Pala"
+      ]
+    },
+    {
+      "name": "Moyen-Chari",
+      "code": "MC",
+      "cities": [
+        "Kyabé",
+        "Sarh"
+      ]
+    },
+    {
+      "name": "N'Djamena",
+      "code": "ND",
+      "cities": [
+        "N'Djamena"
+      ]
+    },
+    {
+      "name": "Ouaddaï",
+      "code": "OD",
+      "cities": [
+        "Abéché",
+        "Adré",
+        "Goz Béïda"
+      ]
+    },
+    {
+      "name": "Salamat",
+      "code": "SA",
+      "cities": [
+        "Am Timan"
+      ]
+    },
+    {
+      "name": "Sila",
+      "code": "SI",
+      "cities": [
+        "Goz Beïda"
+      ]
+    },
+    {
+      "name": "Tandjilé",
+      "code": "TA",
+      "cities": [
+        "Béré",
+        "Kelo",
+        "Laï"
+      ]
+    },
+    {
+      "name": "Tibesti",
+      "code": "TI",
+      "cities": [
+        "Aozou"
+      ]
+    },
+    {
+      "name": "Wadi Fira",
+      "code": "WF",
+      "cities": [
+        "Biltine",
+        "Iriba"
+      ]
+    }
+  ]
+}

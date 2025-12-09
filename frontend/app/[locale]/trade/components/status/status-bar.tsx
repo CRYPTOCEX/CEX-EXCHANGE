@@ -18,7 +18,7 @@ interface MarketData {
 }
 
 export default function StatusBar() {
-  const t = useTranslations("trade/components/status/status-bar");
+  const t = useTranslations("ext");
   const { isExtensionAvailable, extensions } = useExtensionChecker();
   const [serverTime, setServerTime] = useState(new Date());
   const [spotData, setSpotData] = useState<Record<string, TickerData>>({});

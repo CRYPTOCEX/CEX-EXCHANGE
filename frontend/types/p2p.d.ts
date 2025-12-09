@@ -55,6 +55,15 @@ interface P2PTrade {
   escrowTime?: string;
   paymentConfirmedAt?: string;
   paymentReference?: string;
+  paymentWindow?: number; // Payment window in minutes from offer settings
+  offer?: {
+    id?: string;
+    priceCurrency?: string;
+    tradeSettings?: {
+      autoCancel?: number;
+      paymentWindow?: number;
+    };
+  };
 }
 
 // Admin Trade types
@@ -399,6 +408,8 @@ interface P2PTradeDashboardData {
   activeTrades: any[];
   completedTrades: any[];
   disputedTrades: any[];
+  pendingTrades?: any[];
+  availableCurrencies?: string[];
 }
 
 // Trade offer types

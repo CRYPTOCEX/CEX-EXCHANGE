@@ -1,0 +1,46 @@
+{
+  "name": "Virgin Islands (US)",
+  "iso2": "VI",
+  "iso3": "VIR",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Saint Croix",
+      "code": "SC",
+      "cities": [
+        "Christiansted",
+        "East End",
+        "Frederiksted",
+        "Good Hope",
+        "Northcentral",
+        "Northwest",
+        "Sion Farm",
+        "Southcentral",
+        "Southwest"
+      ]
+    },
+    {
+      "name": "Saint John",
+      "code": "SJ",
+      "cities": [
+        "Central",
+        "Coral Bay",
+        "Cruz Bay",
+        "East End"
+      ]
+    },
+    {
+      "name": "Saint Thomas",
+      "code": "ST",
+      "cities": [
+        "Charlotte Amalie",
+        "East End",
+        "Northside",
+        "Southside",
+        "Tutu",
+        "Water Island",
+        "West End"
+      ]
+    }
+  ]
+}

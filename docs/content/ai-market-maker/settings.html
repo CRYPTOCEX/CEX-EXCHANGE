@@ -1,0 +1,457 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">⚙️</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">AI Market Maker Settings</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Global Configuration & Risk Management</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            AI Market Maker Settings control the global behavior of the market maker system. These settings affect all markets and bots, including trading intervals, safety limits, and risk management parameters.
+        </p>
+    </div>
+</div>
+
+<!-- Accessing Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Accessing Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+            Navigate to the AI Market Maker Settings:
+        </p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+            Admin Panel → Extensions → AI Market Maker → Settings
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Or directly access via URL:</p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+            /admin/ai/market-maker/setting
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Sections -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📝 Configuration Parameters</h2>
+
+    <div class="space-y-8">
+        <!-- Trading Intervals -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">⏱️ Trading Intervals</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Trading Interval</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer (Minutes)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">How often the trading engine runs to process markets and execute trades. Default: 1 minute.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Recommended: 1-5 minutes for active markets</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Min Trade Interval</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer (Seconds)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Minimum time between trades by the same bot. Prevents rapid-fire trading.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Recommended: 10-30 seconds</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Limits -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">📊 Global Limits</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Max Daily Trades</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum total trades per day across all markets. Resets at midnight UTC.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 10,000 trades/day</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Max Concurrent Markets</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum number of markets that can be active simultaneously.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 20 markets</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Max Bots Per Market</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum number of bots allowed per market.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 10 bots/market</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Daily Trade Count</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Integer (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Current day's trade count. Auto-incremented and resets daily.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Management -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🛡️ Risk Management</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Default Volatility Threshold</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (%)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Default volatility limit for new markets. Trading pauses when exceeded.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 5% - adjust based on market type</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Default Max Daily Loss</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (%)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Default maximum loss limit for new markets. Stops trading when hit.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 2% - conservative protection</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Circuit Breaker Threshold</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (%)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Global price movement threshold that triggers emergency stop.</p>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-2 mt-2">
+                        <p class="text-amber-800 dark:text-amber-200 text-xs">
+                            <strong>Warning:</strong> All trading stops when triggered
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Circuit Breaker Cooldown</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer (Minutes)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">How long to wait before allowing trading to resume after circuit breaker trips.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 30 minutes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Settings -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">💰 Price Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Default Spread</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (%)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Default bid-ask spread for new markets.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 0.3% - typical for liquid markets</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Price Precision</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Number of decimal places for price calculations.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 8 decimal places</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Amount Precision</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Number of decimal places for amount calculations.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 8 decimal places</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Slippage Tolerance</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (%)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum acceptable price slippage for trade execution.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 0.5%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Settings -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">🔧 System Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Enable Trading</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Boolean</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Global switch to enable/disable all AI trading activity.</p>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-2 mt-2">
+                        <p class="text-amber-800 dark:text-amber-200 text-xs">
+                            <strong>Emergency Stop:</strong> Toggle off to halt all trading immediately
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Debug Mode</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Boolean</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Enable verbose logging for troubleshooting. Disable in production.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">History Retention Days</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">How long to keep trade history records before auto-cleanup.</p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2 mt-2">
+                        <p class="text-zinc-500 text-xs">Default: 90 days</p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Last Reset At</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">DateTime (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Timestamp of the last daily counter reset.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cron Jobs -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⏰ Cron Jobs</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            The AI Market Maker system relies on scheduled cron jobs to execute trades automatically:
+        </p>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-zinc-50 dark:bg-zinc-800">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Job</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Schedule</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">aiTradingEngine</code>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Every minute</td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Main trading engine - processes markets and executes trades</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">aiTradingReset</code>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Daily at 00:00 UTC</td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Resets daily counters and clears circuit breakers</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">aiTradingCleanup</code>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Weekly</td>
+                        <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Cleans up old history records based on retention setting</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                <strong>💡 Note:</strong> Ensure your server's cron system is properly configured to run the backend scheduler. The trading engine won't execute without the cron job running.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Safety Features -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🛡️ Safety Features</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-lg">📈</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Volatility Pause</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Automatically pauses trading when price volatility exceeds the threshold. Prevents trading during extreme market conditions.
+            </p>
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2">
+                <p class="text-zinc-500 text-xs">Resumes automatically when volatility normalizes</p>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-lg">💸</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Daily Loss Limit</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Stops all trading for a market when daily loss exceeds the configured limit. Protects against extended losing streaks.
+            </p>
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2">
+                <p class="text-zinc-500 text-xs">Resets at midnight UTC daily</p>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-lg">⚡</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Circuit Breaker</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Global emergency stop that halts all trading across all markets when extreme conditions are detected.
+            </p>
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2">
+                <p class="text-zinc-500 text-xs">Requires cooldown period before restart</p>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-3">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-lg">🔢</span>
+                </div>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Trade Limits</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                Enforces maximum trades per day to prevent runaway bot activity and control system load.
+            </p>
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2">
+                <p class="text-zinc-500 text-xs">Per-market and global limits available</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommended Configurations -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Recommended Configurations</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">🐢 Conservative (New Users)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Safe settings for getting started:</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Trading Interval</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">5 min</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Volatility Threshold</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">3%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Max Daily Loss</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">1%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Daily Trades</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">1,000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">⚖️ Balanced (Recommended)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Balanced settings for most use cases:</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Trading Interval</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">1 min</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Volatility Threshold</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">5%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Max Daily Loss</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">2%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Daily Trades</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">10,000</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">🚀 Aggressive (Experienced Users)</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">High activity settings for experienced operators:</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Trading Interval</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">30 sec</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Volatility Threshold</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">10%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Max Daily Loss</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">5%</div>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                    <div class="text-xs text-zinc-500 mb-1">Daily Trades</div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">50,000</div>
+                </div>
+            </div>
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-3 mt-3">
+                <p class="text-amber-800 dark:text-amber-200 text-xs">
+                    <strong>⚠️ Warning:</strong> Aggressive settings increase risk. Only use with thorough testing.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-green-900 dark:text-green-100">✅ Next Steps</h3>
+        <p class="text-green-800 dark:text-green-200 text-sm mb-4">After configuring settings:</p>
+        <ul class="text-green-800 dark:text-green-200 text-sm space-y-1 ml-4 mb-4">
+            <li>• Create your first AI market</li>
+            <li>• Add AI bots with appropriate personalities</li>
+            <li>• Verify cron jobs are running</li>
+            <li>• Monitor the dashboard for activity</li>
+        </ul>
+        <div class="flex gap-3 flex-wrap">
+            <a href="#ai-market-maker-markets" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                Setup Markets
+            </a>
+            <a href="#ai-market-maker-troubleshooting" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Troubleshooting
+            </a>
+        </div>
+    </div>
+</div>

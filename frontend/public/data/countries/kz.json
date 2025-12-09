@@ -1,0 +1,383 @@
+{
+  "name": "Kazakhstan",
+  "iso2": "KZ",
+  "iso3": "KAZ",
+  "phonecode": "7",
+  "states": [
+    {
+      "name": "Abai",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Akmola",
+      "code": "11",
+      "cities": [
+        "Akkol",
+        "Akkol’",
+        "Aksu",
+        "Astrakhan",
+        "Atbasar",
+        "Balkashino",
+        "Bestobe",
+        "Derzhavīnsk",
+        "Egindiköl",
+        "Esil",
+        "Kokshetau",
+        "Krasnogorskiy",
+        "Makinsk",
+        "Shantobe",
+        "Shchuchinsk",
+        "Shortandy",
+        "Stepnogorsk",
+        "Stepnyak",
+        "Yermentau",
+        "Zavodskoy",
+        "Zhaqsy",
+        "Zholymbet"
+      ]
+    },
+    {
+      "name": "Aktobe",
+      "code": "15",
+      "cities": [
+        "Aktobe",
+        "Batamshinskiy",
+        "Bayganin",
+        "Embi",
+        "Kandyagash",
+        "Khromtau",
+        "Martuk",
+        "Shalqar",
+        "Shubarkuduk",
+        "Shubarshi",
+        "Temir",
+        "Yrghyz"
+      ]
+    },
+    {
+      "name": "Almaty",
+      "code": "19",
+      "cities": [
+        "Bakanas",
+        "Balpyk Bī",
+        "Burunday",
+        "Chemolgan",
+        "Druzhba",
+        "Esik",
+        "Kapshagay",
+        "Kegen",
+        "Lepsy",
+        "Matay",
+        "Otegen Batyra",
+        "Pervomayka",
+        "Sarkand",
+        "Saryozek",
+        "Taldykorgan",
+        "Talghar",
+        "Tekeli",
+        "Turgen",
+        "Ülken",
+        "Ush-Tyube",
+        "Zharkent"
+      ]
+    },
+    {
+      "name": "Almaty",
+      "code": "75",
+      "cities": [
+        "Almaty"
+      ]
+    },
+    {
+      "name": "Astana",
+      "code": "71",
+      "cities": [
+        "Nur-Sultan"
+      ]
+    },
+    {
+      "name": "Atyrau",
+      "code": "23",
+      "cities": [
+        "Akkol’",
+        "Atyrau",
+        "Balykshi",
+        "Bayshonas",
+        "Dossor",
+        "Inderbor",
+        "Makhambet",
+        "Maloye Ganyushkino",
+        "Maqat",
+        "Miyaly",
+        "Qaraton",
+        "Qulsary",
+        "Shalkar"
+      ]
+    },
+    {
+      "name": "East Kazakhstan",
+      "code": "63",
+      "cities": [
+        "Altayskiy",
+        "Aqtoghay",
+        "Asūbulaq",
+        "Auezov",
+        "Ayagoz",
+        "Belogorskīy",
+        "Belousovka",
+        "Borodulikha",
+        "Georgīevka",
+        "Glubokoye",
+        "Kurchatov",
+        "Kurchum",
+        "Maleyevsk",
+        "Ognevka",
+        "Priisk Boko",
+        "Qaraūyl",
+        "Ridder",
+        "Semey",
+        "Shar",
+        "Shemonaīkha",
+        "Suykbulak",
+        "Tūghyl",
+        "Urzhar",
+        "Ust-Kamenogorsk",
+        "Ūst’-Talovka",
+        "Zaysan",
+        "Zhalghyztobe",
+        "Zhanga Buqtyrma",
+        "Zhezkent",
+        "Zyryanovsk"
+      ]
+    },
+    {
+      "name": "Jambyl",
+      "code": "31",
+      "cities": [
+        "Aqbaqay",
+        "Chu",
+        "Georgiyevka",
+        "Granitogorsk",
+        "Karatau",
+        "Khantaū",
+        "Lugovoy",
+        "Lugovoye",
+        "Merke",
+        "Moyynkum",
+        "Mynaral",
+        "Oytal",
+        "Sarykemer",
+        "Shyghanaq",
+        "Taraz",
+        "Zhangatas"
+      ]
+    },
+    {
+      "name": "Jetisu",
+      "code": "33",
+      "cities": []
+    },
+    {
+      "name": "Karaganda",
+      "code": "35",
+      "cities": [
+        "Abay",
+        "Abay Qalasy",
+        "Aksu-Ayuly",
+        "Aktas",
+        "Aktau",
+        "Aktogay",
+        "Aqadyr",
+        "Aqshataū",
+        "Aqtoghay Aūdany",
+        "Atasū",
+        "Balqash",
+        "Bukhar-Zhyrau",
+        "Dolinka",
+        "Karagandy",
+        "Kīevka",
+        "Koktal",
+        "Kushoky",
+        "Kyzylzhar",
+        "Moyynty",
+        "Novodolinskiy",
+        "Osakarovka",
+        "Prigorodnoye",
+        "Priozersk",
+        "Qarazhal",
+        "Qarqaraly",
+        "Saryshaghan",
+        "Sayaq",
+        "Shakhan",
+        "Shakhtinsk",
+        "Shashūbay",
+        "Shubarköl",
+        "Soran",
+        "Temirtau",
+        "Tokarevka",
+        "Verkhniye Kayrakty",
+        "Zhambyl",
+        "Zharyk",
+        "Zhezqazghan"
+      ]
+    },
+    {
+      "name": "Kostanay",
+      "code": "39",
+      "cities": [
+        "Arkalyk",
+        "Ayat",
+        "Borovskoy",
+        "Dzhetygara",
+        "Fyodorovka",
+        "Karasu",
+        "Komsomolets",
+        "Kostanay",
+        "Lisakovsk",
+        "Ordzhonikidze",
+        "Qashar",
+        "Qusmuryn",
+        "Rudnyy",
+        "Tobol",
+        "Torghay",
+        "Troyebratskiy"
+      ]
+    },
+    {
+      "name": "Kyzylorda",
+      "code": "43",
+      "cities": [
+        "Aral",
+        "Ayteke Bi",
+        "Belköl",
+        "Dzhalagash",
+        "Kyzylorda",
+        "Qazaly",
+        "Sekseūil",
+        "Shalqīya",
+        "Shīeli",
+        "Tasböget",
+        "Terenozek",
+        "Yanykurgan",
+        "Zhosaly"
+      ]
+    },
+    {
+      "name": "Mangystau",
+      "code": "47",
+      "cities": [
+        "Aktau",
+        "Baūtīno",
+        "Beyneu",
+        "Fort-Shevchenko",
+        "Munayshy",
+        "Ömirzaq",
+        "Sayötesh",
+        "Shetpe",
+        "Taūshyq",
+        "Yeraliyev",
+        "Zhanaozen",
+        "Zhetibay"
+      ]
+    },
+    {
+      "name": "North Kazakhstan",
+      "code": "59",
+      "cities": [
+        "Birlestik",
+        "Bishkul",
+        "Bulayevo",
+        "Būrabay",
+        "Kzyltu",
+        "Novoishimskiy",
+        "Petropavl",
+        "Sergeyevka",
+        "Smirnovo",
+        "Taiynsha",
+        "Talshik",
+        "Timiryazevo",
+        "Volodarskoye",
+        "Yavlenka"
+      ]
+    },
+    {
+      "name": "Pavlodar",
+      "code": "55",
+      "cities": [
+        "Aksu",
+        "Bayanaul",
+        "Belogor’ye",
+        "Ekibastuz",
+        "Irtyshsk",
+        "Kalkaman",
+        "Leninskiy",
+        "Mayqayyng",
+        "Pavlodar",
+        "Qashyr",
+        "Zhelezinka"
+      ]
+    },
+    {
+      "name": "Shymkent",
+      "code": "79",
+      "cities": []
+    },
+    {
+      "name": "Turkistan",
+      "code": "61",
+      "cities": [
+        "Arys",
+        "Ashchysay",
+        "Asyqata",
+        "Atakent",
+        "Bayzhansay",
+        "Belyye Vody",
+        "Chardara",
+        "Chayan",
+        "Chulakkurgan",
+        "Kantagi",
+        "Kentau",
+        "Kokterek",
+        "Lenger",
+        "Leninskoye",
+        "Maqtaaral Aūdany",
+        "Myrzakent",
+        "Qogham",
+        "Saryaghash",
+        "Saryaghash Aūdany",
+        "Sastobe",
+        "Sozaq Aūdany",
+        "Temirlanovka",
+        "Turar Ryskulov",
+        "Turkestan",
+        "Tyul’kubas",
+        "Zhabagly"
+      ]
+    },
+    {
+      "name": "Ulytau",
+      "code": "62",
+      "cities": []
+    },
+    {
+      "name": "West Kazakhstan",
+      "code": "27",
+      "cities": [
+        "Aqsay",
+        "Burlin",
+        "Chapaev",
+        "Chingirlau",
+        "Dzhambeyty",
+        "Fedorovka",
+        "Kaztalovka",
+        "Krūgloozernoe",
+        "Oral",
+        "Peremetnoe",
+        "Saykhin",
+        "Tasqala",
+        "Zhänibek"
+      ]
+    }
+  ]
+}

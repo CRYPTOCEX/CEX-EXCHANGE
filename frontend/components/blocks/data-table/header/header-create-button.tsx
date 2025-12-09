@@ -43,9 +43,7 @@ export function HeaderCreateButton({
   createDialog,
   dialogSize,
 }: HeaderCreateButtonProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/header/header-create-button"
-  );
+  const t = useTranslations("common");
   const tableConfig = useTableStore((state) => state.tableConfig);
   const setCreateDrawerOpen = useTableStore(
     (state) => state.setCreateDrawerOpen

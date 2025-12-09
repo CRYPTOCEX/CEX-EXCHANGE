@@ -2,10 +2,11 @@
 class PatchNotesSystem {
     constructor() {
         this.patchNotes = new Map();
-        this.cacheVersion = '1.0.827421'; // Update this when deploying changes
+        this.cacheVersion = '1.0.682715'; // Update this when deploying changes
         this.extensionIcons = {
             core: '🚀',
-            ai: '🤖',
+            'ai-investment': '🤖',
+            'ai-market-maker': '📊',
             affiliate: '💰',
             ecommerce: '🛒',
             ecosystem: '🌟',
@@ -15,12 +16,12 @@ class PatchNotesSystem {
             ico: '🪙',
             mailwizard: '📧',
             p2p: '🤝',
-            payment: '💳',
             staking: '💎'
         };
         this.extensionColors = {
             core: 'from-blue-500 to-purple-600',
-            ai: 'from-purple-500 to-pink-600',
+            'ai-investment': 'from-purple-500 to-pink-600',
+            'ai-market-maker': 'from-violet-500 to-indigo-600',
             affiliate: 'from-green-500 to-emerald-600',
             ecommerce: 'from-orange-500 to-red-600',
             ecosystem: 'from-yellow-500 to-orange-600',
@@ -30,7 +31,6 @@ class PatchNotesSystem {
             ico: 'from-emerald-500 to-teal-600',
             mailwizard: 'from-blue-500 to-indigo-600',
             p2p: 'from-teal-500 to-cyan-600',
-            payment: 'from-violet-500 to-purple-600',
             staking: 'from-rose-500 to-pink-600'
         };
     }
@@ -50,9 +50,9 @@ class PatchNotesSystem {
     // Load patch notes structure without content (synchronous, for immediate display)
     loadPatchNotesStructure() {
         const contentTypes = [
-            'core', 'ai', 'affiliate', 'ecommerce', 'ecosystem', 
-            'faq', 'forex', 'futures', 'ico', 'mailwizard', 
-            'p2p', 'payment', 'staking'
+            'core', 'ai-investment', 'ai-market-maker', 'affiliate', 'ecommerce', 'ecosystem',
+            'faq', 'forex', 'futures', 'ico', 'mailwizard',
+            'p2p', 'staking'
         ];
 
         // Create structure immediately without loading content
@@ -117,9 +117,9 @@ class PatchNotesSystem {
     // Start lazy loading for all types (background process)
     async startGlobalLazyLoading() {
         const contentTypes = [
-            'core', 'ai', 'affiliate', 'ecommerce', 'ecosystem', 
-            'faq', 'forex', 'futures', 'ico', 'mailwizard', 
-            'p2p', 'payment', 'staking'
+            'core', 'ai-investment', 'ai-market-maker', 'affiliate', 'ecommerce', 'ecosystem',
+            'faq', 'forex', 'futures', 'ico', 'mailwizard',
+            'p2p', 'staking'
         ];
 
         for (const type of contentTypes) {
@@ -134,9 +134,9 @@ class PatchNotesSystem {
     // Load all patch notes content (legacy method for backward compatibility)
     async loadAllPatchNotes() {
         const contentTypes = [
-            'core', 'ai', 'affiliate', 'ecommerce', 'ecosystem', 
-            'faq', 'forex', 'futures', 'ico', 'mailwizard', 
-            'p2p', 'payment', 'staking'
+            'core', 'ai-investment', 'ai-market-maker', 'affiliate', 'ecommerce', 'ecosystem',
+            'faq', 'forex', 'futures', 'ico', 'mailwizard',
+            'p2p', 'staking'
         ];
 
         for (const type of contentTypes) {
@@ -267,19 +267,19 @@ class PatchNotesSystem {
     // IMPORTANT: Update this list when new patch notes files are created
     getKnownVersionsForType(type) {
         const knownVersions = {
-            'core': ['5.0.0', '5.0.8', '5.0.9', '5.1.1', '5.1.3', '5.1.4', '5.1.5', '5.1.6', '5.1.7', '5.1.8', '5.2.0', '5.2.1', '5.2.2', '5.2.4', '5.2.5', '5.2.6', '5.2.7', '5.2.8', '5.2.9', '5.3.0', '5.3.1', '5.3.2', '5.3.3', '5.3.4', '5.3.5', '5.3.6', '5.3.7', '5.3.8', '5.4.0', '5.4.1', '5.4.2', '5.4.3', '5.4.4', '5.4.5', '5.4.6', '5.4.7', '5.4.8', '5.4.9', '5.5.0', '5.5.1', '5.5.2', '5.5.3', '5.5.5', '5.5.7', '5.5.8', '5.5.9', '5.6.1', '5.6.3', '5.6.4', '5.6.5', '5.6.7', '5.7.0'],
+            'core': ['5.0.0', '5.0.8', '5.0.9', '5.1.1', '5.1.3', '5.1.4', '5.1.5', '5.1.6', '5.1.7', '5.1.8', '5.2.0', '5.2.1', '5.2.2', '5.2.4', '5.2.5', '5.2.6', '5.2.7', '5.2.8', '5.2.9', '5.3.0', '5.3.1', '5.3.2', '5.3.3', '5.3.4', '5.3.5', '5.3.6', '5.3.7', '5.3.8', '5.4.0', '5.4.1', '5.4.2', '5.4.3', '5.4.4', '5.4.5', '5.4.6', '5.4.7', '5.4.8', '5.4.9', '5.5.0', '5.5.1', '5.5.2', '5.5.3', '5.5.5', '5.5.7', '5.5.8', '5.5.9', '5.6.1', '5.6.3', '5.6.4', '5.6.5', '5.6.7', '5.7.0', '5.7.1', '5.7.2', '5.7.3', '5.7.4', '5.7.5', '5.7.6'],
             'staking': ['5.0.3', '5.0.7', '5.0.9', '5.1.3', '5.1.6'],
-            'p2p': ['5.0.0', '5.0.4', '5.0.5', '5.0.6', '5.0.7', '5.0.8', '5.1.2', '5.1.3', '5.1.7', '5.1.8', '5.2.1', '5.2.6', '5.2.7'],
+            'p2p': ['5.0.0', '5.0.4', '5.0.5', '5.0.6', '5.0.7', '5.0.8', '5.1.2', '5.1.3', '5.1.7', '5.1.8', '5.2.1', '5.2.6', '5.2.7', '5.2.9', '5.3.1', '5.3.2', '5.3.3', '5.3.4'],
             'ecommerce': ['5.0.3', '5.0.4', '5.0.5', '5.0.6', '5.0.7', '5.0.8', '5.1.1', '5.1.5'],
-            'ai': [],
+            'ai-investment': [],
+            'ai-market-maker': ['5.0.2'],
             'affiliate': ['5.0.5', '5.0.6'],
             'ecosystem': ['5.0.5', '5.1.1', '5.1.6', '5.1.9', '5.2.0', '5.2.3'],
             'faq': ['5.0.6', '5.0.7'],
             'forex': ['5.0.3', '5.0.4', '5.0.5', '5.0.6', '5.1.1'],
             'futures': ['5.0.4'],
-            'ico': ['5.0.1', '5.1.4', '5.1.8', '5.2.4', '5.2.5'],
-            'mailwizard': [],
-            'payment': []
+            'ico': ['5.0.1', '5.1.4', '5.1.8', '5.2.4', '5.2.5', '5.2.6'],
+            'mailwizard': []
         };
         
         return knownVersions[type] || [];

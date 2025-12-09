@@ -1,0 +1,60 @@
+{
+  "name": "Togo",
+  "iso2": "TG",
+  "iso3": "TGO",
+  "phonecode": "228",
+  "states": [
+    {
+      "name": "Centrale",
+      "code": "C",
+      "cities": [
+        "Sokodé",
+        "Sotouboua",
+        "Tchamba"
+      ]
+    },
+    {
+      "name": "Kara",
+      "code": "K",
+      "cities": [
+        "Bafilo",
+        "Bassar",
+        "Kandé",
+        "Kara",
+        "Niamtougou",
+        "Pagouda",
+        "Préfecture de Bassar"
+      ]
+    },
+    {
+      "name": "Maritime",
+      "code": "M",
+      "cities": [
+        "Aného",
+        "Lomé",
+        "Tabligbo",
+        "Tsévié",
+        "Vogan"
+      ]
+    },
+    {
+      "name": "Plateaux",
+      "code": "P",
+      "cities": [
+        "Amlamé",
+        "Atakpamé",
+        "Badou",
+        "Kpalimé",
+        "Notsé"
+      ]
+    },
+    {
+      "name": "Savanes",
+      "code": "S",
+      "cities": [
+        "Dapaong",
+        "Sansanné-Mango"
+      ]
+    }
+  ]
+}

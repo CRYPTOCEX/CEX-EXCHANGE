@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 export function CTASection() {
-  const t = useTranslations("investment/components/cta-section");
+  const t = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   // Format currency

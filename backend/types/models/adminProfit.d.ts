@@ -17,7 +17,8 @@ interface adminProfitAttributes {
     | "P2P_TRADE"
     | "NFT_SALE"
     | "NFT_AUCTION"
-    | "NFT_OFFER";
+    | "NFT_OFFER"
+    | "GATEWAY_PAYMENT";
   amount: number;
   currency: string;
   chain?: string | null;

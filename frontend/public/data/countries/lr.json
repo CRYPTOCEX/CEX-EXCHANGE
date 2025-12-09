@@ -1,0 +1,116 @@
+{
+  "name": "Liberia",
+  "iso2": "LR",
+  "iso3": "LBR",
+  "phonecode": "231",
+  "states": [
+    {
+      "name": "Bomi",
+      "code": "BM",
+      "cities": [
+        "Tubmanburg"
+      ]
+    },
+    {
+      "name": "Bong",
+      "code": "BG",
+      "cities": [
+        "Gbarnga"
+      ]
+    },
+    {
+      "name": "Gbarpolu",
+      "code": "GP",
+      "cities": [
+        "Bopolu"
+      ]
+    },
+    {
+      "name": "Grand Bassa",
+      "code": "GB",
+      "cities": [
+        "Buchanan"
+      ]
+    },
+    {
+      "name": "Grand Cape Mount",
+      "code": "CM",
+      "cities": [
+        "Robertsport"
+      ]
+    },
+    {
+      "name": "Grand Gedeh",
+      "code": "GG",
+      "cities": [
+        "Zwedru"
+      ]
+    },
+    {
+      "name": "Grand Kru",
+      "code": "GK",
+      "cities": [
+        "Barclayville"
+      ]
+    },
+    {
+      "name": "Lofa",
+      "code": "LO",
+      "cities": [
+        "Voinjama"
+      ]
+    },
+    {
+      "name": "Margibi",
+      "code": "MG",
+      "cities": [
+        "Kakata"
+      ]
+    },
+    {
+      "name": "Maryland",
+      "code": "MY",
+      "cities": [
+        "Harper"
+      ]
+    },
+    {
+      "name": "Montserrado",
+      "code": "MO",
+      "cities": [
+        "Bensonville",
+        "Monrovia"
+      ]
+    },
+    {
+      "name": "Nimba",
+      "code": "NI",
+      "cities": [
+        "Ganta",
+        "New Yekepa",
+        "Sanniquellie"
+      ]
+    },
+    {
+      "name": "River Cess",
+      "code": "RI",
+      "cities": [
+        "Cestos City"
+      ]
+    },
+    {
+      "name": "River Gee",
+      "code": "RG",
+      "cities": [
+        "Fish Town"
+      ]
+    },
+    {
+      "name": "Sinoe",
+      "code": "SI",
+      "cities": [
+        "Greenville"
+      ]
+    }
+  ]
+}

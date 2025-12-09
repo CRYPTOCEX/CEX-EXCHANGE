@@ -239,11 +239,8 @@ export function SettingsPanel({
                       <h3 className="font-medium text-gray-800 dark:text-white">
                         {currentLevel.verificationService.name}
                       </h3>
-                      {/* //TODO:Check Tempalate name */}
-                      {/* <p className="text-sm text-gray-500 dark:text-zinc-400">
-                        Template:{" "}
-                        {currentLevel.verificationService.templateName}
-                      </p> */}
+                      {/* Note: templateName field doesn't exist in kycVerificationService model */}
+                      {/* Service details are stored in integrationDetails field instead */}
                     </div>
                     <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-1 rounded-full">
                       {t("Connected")}

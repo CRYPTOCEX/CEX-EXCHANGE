@@ -129,7 +129,7 @@ export async function sendBinaryOrderEmail(user: any, order: any) {
   let sign;
   switch (order.status) {
     case "WIN":
-      profit = order.amount + order.amount * (order.profit / 100);
+      profit = order.profit; // order.profit is already the calculated profit amount
       sign = "+";
       break;
     case "LOSS":

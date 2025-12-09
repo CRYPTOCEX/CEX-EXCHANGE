@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import FAQClient from "./client";
-import { ErrorBoundary } from "@/components/faq/error-boundary";
+import { ErrorBoundary } from "@/app/[locale]/(ext)/faq/components/error-boundary";
 
 export const metadata: Metadata = {
   title: "FAQ - Knowledge Base",

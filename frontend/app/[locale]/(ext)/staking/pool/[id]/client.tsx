@@ -322,8 +322,7 @@ export default function PoolDetailPage() {
                             {pool.lockPeriod}{" "}
                             {t("days_from_the_time_of_staking")}.{" "}
                             {t("early_withdrawal_is_possible_but_subject_to_a")}
-                            {pool.earlyWithdrawalFee}
-                            {t("%_fee")}.
+                            {pool.earlyWithdrawalFee}% {t("fee")}.
                           </p>
                         </div>
                       </div>
@@ -381,15 +380,13 @@ export default function PoolDetailPage() {
                       <div className="flex justify-between">
                         <span>{t("admin_fee")}</span>
                         <span>
-                          {pool.adminFeePercentage}
-                          {t("%_of_earnings")}
+                          {pool.adminFeePercentage}% {t("of_earnings")}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>{t("early_withdrawal_fee")}</span>
                         <span>
-                          {pool.earlyWithdrawalFee}
-                          {t("%_of_staked_amount")}
+                          {pool.earlyWithdrawalFee}% {t("of_staked_amount")}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -469,10 +466,7 @@ export default function PoolDetailPage() {
                           {t("competitive_apr")}
                         </h4>
                         <p className="text-green-700 dark:text-green-300 text-sm">
-                          {t("Earn")}
-                          {pool.apr}
-                          {t("%_apr_on_your_staked")}
-                          {pool.symbol}
+                          {t("earn")} {pool.apr}% {t("apr_on_your_staked")} {pool.symbol}
                           {t("which_is_financial_instruments")}.
                         </p>
                       </div>

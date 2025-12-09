@@ -135,7 +135,7 @@ const DURATION_PRESETS = [
 ];
 
 export default function ListNFTModal({ open, onClose, nft }: ListNFTModalProps) {
-  const t = useTranslations("nft/modals/list");
+  const t = useTranslations("ext");
   const { listToken, loading } = useNftStore();
   const { settings } = useConfigStore();
   const [step, setStep] = useState(1);

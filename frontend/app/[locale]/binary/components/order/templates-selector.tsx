@@ -27,7 +27,7 @@ export default function TemplatesSelector({
   applyTemplate,
   darkMode = true,
 }: TemplatesSelectorProps) {
-  const t = useTranslations("binary/components/order/templates-selector");
+  const t = useTranslations("common");
   return (
     <div
       className={`${darkMode ? "bg-zinc-900" : "bg-gray-100"} p-2 rounded-md`}

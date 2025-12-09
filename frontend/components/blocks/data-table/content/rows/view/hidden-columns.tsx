@@ -59,9 +59,7 @@ export function HiddenColumns({
   );
 }
 function RenderCustomFields({ value }: { value: any }) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/view/hidden-columns"
-  );
+  const t = useTranslations("common");
   if (typeof value === "string") {
     try {
       value = JSON.parse(value);

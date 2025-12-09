@@ -14,6 +14,7 @@ import { Copy, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
+import { getCurrencySymbol } from "@/utils/currency";
 
 interface TradeDetailsTabProps {
   trade: P2PTrade;
@@ -23,6 +24,8 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
   const t = useTranslations("ext");
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const priceCurrency = trade.offer?.priceCurrency || trade.priceCurrency || "USD";
+  const currencySymbol = getCurrencySymbol(priceCurrency);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -103,7 +106,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
                 {t("escrow_fee")}
               </p>
               <p className="font-medium">
-                {trade.escrowFee || "0.1"} {trade.currency} ({((parseFloat(trade.escrowFee || "0.1") * trade.price).toFixed(2))} USD)
+                {trade.escrowFee || "0.1"} {trade.currency} ({currencySymbol}{((parseFloat(trade.escrowFee || "0.1") * trade.price).toFixed(2))})
               </p>
             </div>
           </div>
@@ -115,7 +118,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
               </p>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-muted">
-                  {trade.paymentMethod}
+                  {trade.paymentMethodDetails?.name || trade.paymentMethod}
                 </Badge>
               </div>
             </div>
@@ -135,7 +138,7 @@ export function TradeDetailsTab({ trade }: TradeDetailsTabProps) {
               </p>
               <p className="font-medium">{trade.counterparty.name}</p>
               <p className="text-xs text-muted-foreground">
-                {trade.counterparty.completedTrades} {t("trades_•")} {trade.counterparty.completionRate}{t("%_completion_rate")}
+                {trade.counterparty.completedTrades} {t("trades")} • {trade.counterparty.completionRate}% {t("completion_rate")}
               </p>
             </div>
           </div>

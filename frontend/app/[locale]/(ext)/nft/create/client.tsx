@@ -75,11 +75,11 @@ import { imageUploader } from "@/utils/upload";
 import Image from "next/image";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { toast } from "sonner";
-import { GasEstimator } from "@/components/nft/shared/gas-estimator";
+import { GasEstimator } from "@/app/[locale]/(ext)/nft/components/shared/gas-estimator";
 import { useGasEstimation } from "@/hooks/use-gas-estimation";
 import { $fetch } from "@/lib/api";
-import { IPFSUploadGuide } from "@/components/nft/create/ipfs-upload-guide";
-import { IPFSUrlInput } from "@/components/nft/create/ipfs-url-input";
+import { IPFSUploadGuide } from "@/app/[locale]/(ext)/nft/components/create/ipfs-upload-guide";
+import { IPFSUrlInput } from "@/app/[locale]/(ext)/nft/components/create/ipfs-url-input";
 
 const createNFTSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
@@ -115,7 +115,7 @@ const ATTRIBUTE_DISPLAY_TYPES = [
 ];
 
 export default function CreateNFTClient() {
-  const t = useTranslations("nft/create");
+  const t = useTranslations("ext");
   const router = useRouter();
   const { user } = useUserStore();
 

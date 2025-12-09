@@ -138,6 +138,14 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     subcategory: "Core Functions",
   },
   {
+    key: "withdrawApproval",
+    label: "Withdrawal Approval",
+    type: "switch",
+    description: "Require manual approval for spot wallet withdrawals (when disabled, withdrawals are processed automatically)",
+    category: "wallet",
+    subcategory: "Core Functions",
+  },
+  {
     key: "transfer",
     label: "Transfers",
     type: "switch",

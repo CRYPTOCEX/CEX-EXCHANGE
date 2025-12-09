@@ -12,9 +12,7 @@ export function SortingDirection({
   direction,
   onDirectionChange,
 }: SortingDirectionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/sort/sorting-direction"
-  );
+  const t = useTranslations("common");
   return (
     <div className="space-y-2">
       <h3 className="font-semibold">{t("Direction")}</h3>

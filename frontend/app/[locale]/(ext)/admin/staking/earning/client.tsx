@@ -267,7 +267,7 @@ export function StakingEarningsClient() {
                         100
                       ).toFixed(1)
                     : "0"}
-                  {t("%_of_total_earnings")}
+                  % {t("of_total_earnings")}
                 </p>
               </CardContent>
             </Card>
@@ -290,7 +290,7 @@ export function StakingEarningsClient() {
                         100
                       ).toFixed(1)
                     : "0"}
-                  {t("%_of_total_earnings")}
+                  % {t("of_total_earnings")}
                 </p>
               </CardContent>
             </Card>

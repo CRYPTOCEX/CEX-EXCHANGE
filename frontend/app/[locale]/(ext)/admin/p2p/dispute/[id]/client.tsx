@@ -22,6 +22,7 @@ export default function AdminDisputeDetailsClient() {
   const params = useParams();
   const disputeId = params?.id as string;
 
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [resolutionDetails, setResolutionDetails] = useState({
     outcome: "",
@@ -33,18 +34,22 @@ export default function AdminDisputeDetailsClient() {
     message: string;
   } | null>(null);
   const [noteText, setNoteText] = useState("");
-  const [messageText, setMessageText] = useState("");
 
   const {
     dispute,
     isLoadingDispute,
     disputesError,
+    disputeError,
+    resolvingDisputeError,
     fetchDispute,
     resolveDispute,
     addNote,
-    sendMessage,
     clearError,
   } = useAdminDisputesStore();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (disputeId) {
@@ -71,60 +76,40 @@ export default function AdminDisputeDetailsClient() {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      setActionMessage(null);
+    setIsSubmitting(true);
+    setActionMessage(null);
 
-      await resolveDispute(disputeId, resolutionDetails);
+    await resolveDispute(disputeId, resolutionDetails);
 
-      setActionMessage({
-        type: "success",
-        message: `Dispute successfully resolved for ${
-          resolutionDetails.outcome === "buyer"
-            ? "buyer"
-            : resolutionDetails.outcome === "seller"
-              ? "seller"
-              : "both parties"
-        }`,
-      });
-
-      // In a real app, we might redirect after a delay
-      setTimeout(() => {
-        router.push("/admin/disputes?success=dispute-resolved");
-      }, 2000);
-    } catch (err) {
+    // Check if there was an error from the store
+    const storeError = useAdminDisputesStore.getState().resolvingDisputeError;
+    if (storeError) {
       setActionMessage({
         type: "error",
-        message:
-          err instanceof Error ? err.message : "Failed to resolve dispute",
+        message: storeError,
       });
-    } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!messageText.trim()) {
-      setActionMessage({
-        type: "error",
-        message: "Please enter a message",
-      });
       return;
     }
 
-    try {
-      await sendMessage(disputeId, messageText);
-      setMessageText("");
-      setActionMessage({
-        type: "success",
-        message: "Message sent to both parties",
-      });
-    } catch (err) {
-      setActionMessage({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to send message",
-      });
-    }
+    const outcomeLabel =
+      resolutionDetails.outcome === "BUYER_WINS"
+        ? "buyer"
+        : resolutionDetails.outcome === "SELLER_WINS"
+          ? "seller"
+          : "both parties";
+
+    setActionMessage({
+      type: "success",
+      message: `Dispute successfully resolved for ${outcomeLabel}`,
+    });
+
+    setIsSubmitting(false);
+
+    // Redirect after showing success message
+    setTimeout(() => {
+      router.push("/admin/p2p/dispute?success=dispute-resolved");
+    }, 2000);
   };
 
   const handleAddNote = async () => {
@@ -151,16 +136,16 @@ export default function AdminDisputeDetailsClient() {
     }
   };
 
-  if (isLoadingDispute) {
+  if (!mounted || isLoadingDispute) {
     return <LoadingSkeleton />;
   }
 
-  if (disputesError) {
-    return <ErrorDisplay error={disputesError} clearError={clearError} />;
+  if (disputesError || disputeError) {
+    return <ErrorDisplay error={disputesError || disputeError || "Unknown error"} clearError={clearError} />;
   }
 
   if (!dispute) {
-    return null;
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -178,6 +163,7 @@ export default function AdminDisputeDetailsClient() {
         filedOn={dispute.filedOn}
         tradeId={dispute.tradeId}
         priority={dispute.priority}
+        dispute={dispute}
       />
 
       {/* Action message */}
@@ -190,15 +176,12 @@ export default function AdminDisputeDetailsClient() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             dispute={dispute}
-            messageText={messageText}
-            setMessageText={setMessageText}
-            handleSendMessage={handleSendMessage}
           />
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {dispute.status !== "resolved" ? (
+          {dispute.status !== "RESOLVED" ? (
             <ResolutionForm
               resolutionDetails={resolutionDetails}
               setResolutionDetails={setResolutionDetails}

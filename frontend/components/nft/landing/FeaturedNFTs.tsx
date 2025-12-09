@@ -19,8 +19,10 @@ import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
 import { useInView } from "react-intersection-observer";
 import { cn, formatCurrency } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function FeaturedNFTs() {
+  const t = useTranslations("nft");
   const { featuredTokens, categories, fetchFeaturedTokens, fetchCategories } = useNftStore();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("masonry");
@@ -77,7 +79,7 @@ export default function FeaturedNFTs() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold">Featured NFTs</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">{t("featured_nfts_1")}</h2>
             </motion.div>
             <motion.p
               initial={{ opacity: 0, x: -20 }}
@@ -85,7 +87,7 @@ export default function FeaturedNFTs() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-muted-foreground"
             >
-              Discover hand-picked digital masterpieces
+              {t("discover_hand_picked_digital_masterpieces")}
             </motion.p>
           </div>
 
@@ -152,7 +154,7 @@ export default function FeaturedNFTs() {
                   <Sparkles className="w-10 h-10 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">No NFTs Found</h3>
+                  <h3 className="text-xl font-semibold mb-2">{t("no_nfts_found_1")}</h3>
                   <p className="text-muted-foreground">
                     {selectedCategory === "all"
                       ? "There are no NFTs available at the moment."
@@ -165,7 +167,7 @@ export default function FeaturedNFTs() {
                     onClick={() => setSelectedCategory("all")}
                     className="mt-4"
                   >
-                    View All Categories
+                    {t("view_all_categories")}
                   </Button>
                 )}
               </div>
@@ -316,7 +318,7 @@ export default function FeaturedNFTs() {
               onClick={() => setVisibleCount((prev) => prev + 9)}
               className="gap-2"
             >
-              Load More NFTs
+              {t("load_more_nfts")}
               <TrendingUp className="w-4 h-4" />
             </Button>
           </motion.div>
@@ -331,7 +333,7 @@ export default function FeaturedNFTs() {
         >
           <Link href="/nft/marketplace">
             <Button className="gap-2 bg-gradient-to-r from-primary to-purple-600">
-              Explore All NFTs
+              {t("explore_all_nfts")}
               <Sparkles className="w-4 h-4" />
             </Button>
           </Link>

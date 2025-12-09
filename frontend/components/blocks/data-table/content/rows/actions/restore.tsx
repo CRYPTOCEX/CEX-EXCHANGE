@@ -16,9 +16,7 @@ interface RestoreActionProps {
 }
 
 export function RestoreAction({ row, onSelect }: RestoreActionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/actions/restore"
-  );
+  const t = useTranslations("common");
   const permissions = useTableStore((state) => state.permissions);
   const user = useUserStore((state) => state.user);
   const handleRestore = useTableStore((state) => state.handleRestore);

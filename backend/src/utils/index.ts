@@ -525,6 +525,15 @@ export function serveStaticFile(res, req, filePath, markResponseSent) {
       }
     }
 
+    // Handle case where fullPath was not set (non-uploads path)
+    if (!fullPath) {
+      if (!aborted) {
+        res.writeStatus("404 Not Found").end();
+        markResponseSent();
+      }
+      return true;
+    }
+
     if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
       // Security: Whitelist allowed file extensions for uploads
       if (filePath.startsWith("/uploads/")) {

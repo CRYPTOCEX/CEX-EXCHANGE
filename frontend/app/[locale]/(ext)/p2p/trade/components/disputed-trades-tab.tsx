@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 
 // Constants
 const TRADE_TYPE = {
@@ -20,12 +21,13 @@ interface DisputedTradesTabProps {
   disputedTrades: any[];
 }
 export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
+  const t = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Disputed Trades</CardTitle>
+        <CardTitle>{t("disputed_trades")}</CardTitle>
         <CardDescription>
-          Trades that have been disputed and require resolution
+          {t("trades_that_have_been_disputed_and")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -36,7 +38,7 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="h-10 px-4 text-left text-xs font-medium">
-                      Trade ID
+                      {t("trade_id")}
                     </th>
                     <th className="h-10 px-4 text-left text-xs font-medium">
                       Type
@@ -94,7 +96,7 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
                           </div>
                         </td>
                         <td className="p-2 align-middle text-xs">
-                          <Badge variant="destructive">Under Review</Badge>
+                          <Badge variant="destructive">{t("under_review")}</Badge>
                         </td>
                         <td className="p-2 align-middle text-xs">
                           <Link href={`/p2p/trade/${trade.id}`}>
@@ -115,9 +117,9 @@ export function DisputedTradesTab({ disputedTrades }: DisputedTradesTabProps) {
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="font-medium">No Disputed Trades</h3>
+            <h3 className="font-medium">{t("no_disputed_trades")}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-              You don't have any disputed trades. This is a good thing!
+              {t("you_dont_have_any_disputed_trades")}
             </p>
           </div>
         )}

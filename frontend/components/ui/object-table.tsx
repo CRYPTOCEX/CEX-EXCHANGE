@@ -52,7 +52,7 @@ export function ObjectTable<TData, TValue>({
   searchPlaceholder = "Search...",
   emptyMessage = "No data available",
 }: ObjectTableProps<TData, TValue>) {
-  const t = useTranslations("components/ui/object-table");
+  const t = useTranslations("common");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 

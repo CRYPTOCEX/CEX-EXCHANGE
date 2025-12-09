@@ -76,7 +76,7 @@ const EXPIRY_OPTIONS = [
 ];
 
 export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModalProps) {
-  const t = useTranslations("nft/modals/offer");
+  const t = useTranslations("ext");
   const { makeOffer, loading } = useNftStore();
   const { settings } = useConfigStore();
 
@@ -139,9 +139,9 @@ export default function MakeOfferModal({ isOpen, onClose, token }: MakeOfferModa
           {!offersEnabled ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Offers Disabled</AlertTitle>
+              <AlertTitle>{t("offers_disabled")}</AlertTitle>
               <AlertDescription>
-                Making offers is currently disabled by the marketplace administrator. Please contact support for more information.
+                {t("making_offers_is_currently_disabled_by")} {t("please_contact_support_for_more_information")}
               </AlertDescription>
             </Alert>
           ) : (

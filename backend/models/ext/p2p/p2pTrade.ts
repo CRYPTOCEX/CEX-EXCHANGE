@@ -14,12 +14,14 @@ export default class p2pTrade
   amount!: number;
   price!: number;
   total!: number;
-  status!: "PENDING" | "PAYMENT_SENT" | "COMPLETED" | "CANCELLED" | "DISPUTED";
+  status!: "PENDING" | "PAYMENT_SENT" | "COMPLETED" | "CANCELLED" | "DISPUTED" | "EXPIRED";
   paymentMethod!: string;
   paymentDetails?: any;
   timeline?: any;
   terms?: string;
   escrowFee?: string;
+  buyerFee?: number;
+  sellerFee?: number;
   escrowTime?: string;
   paymentConfirmedAt?: Date;
   paymentReference?: string;
@@ -102,7 +104,8 @@ export default class p2pTrade
             "PAYMENT_SENT",
             "COMPLETED",
             "CANCELLED",
-            "DISPUTED"
+            "DISPUTED",
+            "EXPIRED"
           ),
           allowNull: false,
           defaultValue: "PENDING",
@@ -115,6 +118,7 @@ export default class p2pTrade
                   "COMPLETED",
                   "CANCELLED",
                   "DISPUTED",
+                  "EXPIRED",
                 ],
               ],
               msg: "Invalid status",
@@ -144,6 +148,16 @@ export default class p2pTrade
         escrowFee: {
           type: DataTypes.STRING(50),
           allowNull: true,
+        },
+        buyerFee: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+        },
+        sellerFee: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
         },
         escrowTime: {
           type: DataTypes.STRING(50),

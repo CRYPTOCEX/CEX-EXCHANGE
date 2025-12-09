@@ -306,13 +306,32 @@ export class Response {
   public async sendResponse(
     req: Request,
     statusCode: number | string,
-    responseData: any
+    responseData: any,
+    responseType?: "json" | "binary"
   ): Promise<void> {
     if (this.aborted) {
       return;
     }
 
     try {
+      // Handle binary responses (file downloads)
+      if (responseType === "binary" && responseData?.data && responseData?.headers) {
+        this.res.cork((): void => {
+          this.res.writeStatus(
+            `${statusCode} ${getStatusMessage(Number(statusCode))}`
+          );
+          // Write custom headers
+          Object.entries(responseData.headers).forEach(
+            ([key, value]: [string, any]) => {
+              this.res.writeHeader(key, String(value));
+            }
+          );
+          // Send raw binary data
+          this.res.end(responseData.data);
+        });
+        return;
+      }
+
       this.res.cork((): void => {
         const response: Buffer = this.compressResponse(req, responseData);
         this.handleCookiesInResponse(req, Number(statusCode), responseData);

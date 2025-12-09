@@ -59,7 +59,7 @@ export const metadata = {
     },
   },
   requiresAuth: true,
-  permission: "Access Withdraw Management",
+  permission: "view.withdraw",
 };
 
 export default async (data) => {

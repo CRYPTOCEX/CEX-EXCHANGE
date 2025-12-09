@@ -530,7 +530,7 @@ export default function ProductDetailClient() {
               )}
               {hasPurchased && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  {t("✓_purchased")}
+                  ✓ {t("purchased")}
                 </span>
               )}
             </div>

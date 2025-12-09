@@ -471,7 +471,7 @@ export default function DefaultHomePage() {
                       <div className="text-right">{getContent(pageContent, "marketSection.changeTitle", "24h")}</div>
                     </div>
 
-                    <div className="space-y-3 md:space-y-4">
+                    <div>
                       {isLoading || !topAssets.length
                         ? renderSkeletonRows()
                         : topAssets.slice(0, 5).map((asset, index) => (
@@ -487,10 +487,10 @@ export default function DefaultHomePage() {
                                   delay: 0.1 * index,
                                 }}
                                 className={cn(
-                                  "grid grid-cols-3 gap-2 md:gap-4 p-3 md:p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group",
+                                  "grid grid-cols-3 gap-2 md:gap-4 p-3 md:p-4 transition-all duration-300 hover:bg-zinc-700/30 cursor-pointer group border-b",
                                   isDark
-                                    ? "bg-zinc-800/30 hover:bg-zinc-700/50 border border-zinc-700/30 hover:border-zinc-600/50"
-                                    : "bg-gray-50/80 hover:bg-white border border-gray-200/50 hover:border-gray-300/70"
+                                    ? "border-zinc-700/50"
+                                    : "border-gray-200/50 hover:bg-gray-100/50"
                                 )}
                               >
                                 <div className="col-span-1 flex items-center gap-2 md:gap-3">

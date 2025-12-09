@@ -22,6 +22,7 @@ interface TradeConfirmationProps {
   symbol: Symbol;
   expiryMinutes: number;
   currentPrice: number;
+  profitPercentage: number;
   className?: string;
   darkMode?: boolean;
   priceMovement?: {
@@ -40,11 +41,12 @@ export default function TradeConfirmation({
   symbol,
   expiryMinutes,
   currentPrice,
+  profitPercentage,
   className = "",
   darkMode = true,
   priceMovement,
 }: TradeConfirmationProps) {
-  const t = useTranslations("binary/components/order/trade-confirmation");
+  const t = useTranslations("common");
   const [countdown, setCountdown] = useState(10); // 10 seconds countdown
   const [isAnimating, setIsAnimating] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -57,12 +59,17 @@ export default function TradeConfirmation({
     minute: "2-digit",
   });
 
-  // Calculate potential profit
-  const profitPercentage = 87;
+  // Calculate potential profit using the passed profitPercentage
   const potentialProfit = (amount * profitPercentage) / 100;
 
   // Calculate potential loss
   const potentialLoss = amount;
+
+  // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
+  const getCurrency = (symbol: string) => {
+    const parts = symbol.split("/");
+    return parts[1] || "USDT"; // Default to USDT if parsing fails
+  };
 
   // Auto-countdown for confirmation
   useEffect(() => {
@@ -173,8 +180,7 @@ export default function TradeConfirmation({
             <div className="text-right">
               <div className={styles.labelText}>{t("Amount")}</div>
               <div className={`font-bold ${styles.valueText} text-xl`}>
-                $
-                {amount.toLocaleString()}
+                {amount.toLocaleString()} {getCurrency(symbol)}
               </div>
             </div>
           </div>
@@ -186,8 +192,7 @@ export default function TradeConfirmation({
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("entry_price")}</div>
               <div className={`${styles.valueText} font-medium`}>
-                $
-                {currentPrice.toLocaleString()}
+                {currentPrice.toLocaleString()} {getCurrency(symbol)}
               </div>
             </div>
 
@@ -197,15 +202,14 @@ export default function TradeConfirmation({
                 className={`${styles.valueText} font-medium flex items-center`}
               >
                 <Clock size={14} className="mr-1.5" />
-                {formattedExpiryTime} ( {expiryMinutes} {t("min)")}
+                {formattedExpiryTime} ({expiryMinutes} {t("min")})
               </div>
             </div>
 
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("potential_profit")}</div>
               <div className="text-[#00C896] font-medium">
-                $
-                {potentialProfit.toFixed(2)}{" "}
+                {potentialProfit.toFixed(2)} {getCurrency(symbol)}{" "}
                 <span className="text-[#00C896]">
                   ( {profitPercentage} %)
                 </span>
@@ -215,8 +219,7 @@ export default function TradeConfirmation({
             <div className="flex justify-between items-center">
               <div className={styles.labelText}>{t("potential_loss")}</div>
               <div className="text-[#FF4D4F] font-medium">
-                $
-                {potentialLoss.toFixed(2)}{" "}
+                {potentialLoss.toFixed(2)} {getCurrency(symbol)}{" "}
                 <span className="text-[#FF4D4F]">
                   ( {100} %)
                 </span>

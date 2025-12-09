@@ -36,7 +36,7 @@ export default function LoginForm({
   onForgotPasswordClick,
   onWalletLoginClick,
 }: LoginFormProps) {
-  const t = useTranslations("components/auth/login-form");
+  const t = useTranslations("common");
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();

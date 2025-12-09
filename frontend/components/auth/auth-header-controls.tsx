@@ -14,7 +14,7 @@ export function AuthHeaderControls({
 }: {
   isMobile?: boolean;
 }) {
-  const t = useTranslations("components/auth/auth-header-controls");
+  const t = useTranslations("common");
   const returnTo = useReturnParam();
   const user = useUserStore((state) => state.user);
 

@@ -18,9 +18,7 @@ interface ViewActionProps {
 }
 
 export function ViewAction({ row, onSelect }: ViewActionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/actions/view"
-  );
+  const t = useTranslations("common");
   const handleView = useTableStore((state) => state.handleView);
   const tableConfig = useTableStore((state) => state.tableConfig);
 

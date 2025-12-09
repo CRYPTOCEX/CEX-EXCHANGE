@@ -23,7 +23,7 @@ interface FeaturedPlansSectionProps {
 export function FeaturedPlansSection({
   trendingPlans,
 }: FeaturedPlansSectionProps) {
-  const t = useTranslations("investment/components/featured-plans-section");
+  const t = useTranslations("common");
   // Show up to 3 trending plans, or create mock data if none available
   const displayPlans =
     trendingPlans.length > 0

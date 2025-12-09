@@ -22,7 +22,7 @@ export default function FuturesTradingForm({
   symbol,
   onOrderSubmit,
 }: FuturesTradingFormProps) {
-  const t = useTranslations("trade/components/trading/futures/index");
+  const t = useTranslations("ext");
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [marketInfo, setMarketInfo] = useState<FuturesMarket | null>(null);

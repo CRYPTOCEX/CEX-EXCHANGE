@@ -55,17 +55,21 @@ import { cn } from "@/lib/utils";
 import { Lightbox } from "@/components/ui/lightbox";
 import OfferingLoading from "./loading";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OfferingDetailPage() {
   const t = useTranslations("ext");
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const id = params.id as string;
   const [processingAction, setProcessingAction] = useState<string | null>(null);
   const [rejectNotes, setRejectNotes] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [showAllMetrics, setShowAllMetrics] = useState(false);
   const {
     offering,
@@ -77,6 +81,7 @@ export default function OfferingDetailPage() {
     resumeOffering,
     flagOffering,
     unflagOffering,
+    emergencyCancelOffering,
     errorOffer,
   } = useAdminOfferStore();
   useEffect(() => {
@@ -112,6 +117,27 @@ export default function OfferingDetailPage() {
       ? await unflagOffering(offering.id)
       : await flagOffering(offering.id, flagNotes);
     setFlagDialogOpen(false);
+    setProcessingAction(null);
+  };
+  const handleEmergencyCancel = async () => {
+    if (!offering) return;
+    setProcessingAction("cancel");
+    try {
+      const result = await emergencyCancelOffering(offering.id, cancelReason);
+      toast({
+        title: "ICO Cancelled Successfully",
+        description: `Successfully cancelled and refunded ${result?.data?.successfulRefunds || 0} investors`,
+      });
+      setCancelDialogOpen(false);
+      // Optionally redirect to list or refresh
+      await fetchCurrentOffer(id);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel ICO offering",
+        variant: "destructive",
+      });
+    }
     setProcessingAction(null);
   };
   const getStatusColor = (status) => {
@@ -414,6 +440,19 @@ export default function OfferingDetailPage() {
                     {processingAction === "unflag" ? "Unflagging..." : "Unflag"}
                   </Button>
                 )}
+
+                {/* Emergency Cancel - SuperAdmin Only */}
+                {["ACTIVE", "APPROVED"].includes(offering.status) && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => setCancelDialogOpen(true)}
+                    disabled={processingAction === "cancel"}
+                    className="bg-red-600 hover:bg-red-700 border-red-700"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Emergency Cancel & Refund
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -541,6 +580,49 @@ export default function OfferingDetailPage() {
               disabled={!flagNotes.trim() || processingAction === "flag"}
             >
               {t("flag_offering")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Emergency Cancel Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Emergency Cancel ICO
+            </DialogTitle>
+            <DialogDescription>
+              This will IMMEDIATELY cancel the ICO and refund ALL active investors.
+              This action is irreversible and should only be used for scams or critical security issues.
+            </DialogDescription>
+          </DialogHeader>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              SuperAdmin only. Requires detailed reason for audit trail.
+            </AlertDescription>
+          </Alert>
+          <Textarea
+            placeholder="Enter detailed reason for emergency cancellation (minimum 10 characters)..."
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            className="min-h-[120px]"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCancelDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleEmergencyCancel}
+              disabled={cancelReason.trim().length < 10 || processingAction === "cancel"}
+            >
+              {processingAction === "cancel" ? "Cancelling..." : "Emergency Cancel & Refund All"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -18,7 +18,7 @@ export function DocumentationSection({
   isRead,
   onToggle,
 }: DocSectionProps) {
-  const t = useTranslations("components/blocks/docs/DocumentationSection");
+  const t = useTranslations("common");
   return (
     <div id={section.id} className="mb-6">
       <button

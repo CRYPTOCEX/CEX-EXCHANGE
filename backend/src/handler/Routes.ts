@@ -197,14 +197,14 @@ async function handleHttpMethod(
     // Determine the middleware chain based on metadata flags.
     if (metadata.requiresApi) {
       await handleApiVerification(res, req, async () => {
-        await handleRequest(res, req, handler, entryPath);
+        await handleRequest(res, req, handler, entryPath, metadata);
         endBenchmarking();
       });
       return;
     }
 
     if (!metadata.requiresAuth) {
-      await handleRequest(res, req, handler, entryPath);
+      await handleRequest(res, req, handler, entryPath, metadata);
       endBenchmarking();
       return;
     }
@@ -213,7 +213,7 @@ async function handleHttpMethod(
       await authenticate(res, req, async () => {
         await rolesGate(app, res, req, routePath, method, async () => {
           await siteMaintenanceAccessGate(app, res, req, async () => {
-            await handleRequest(res, req, handler, entryPath);
+            await handleRequest(res, req, handler, entryPath, metadata);
             endBenchmarking();
           });
         });
@@ -231,21 +231,24 @@ async function handleHttpMethod(
  * @param req - The request object.
  * @param handler - The route handler function.
  * @param entryPath - The file system path for logging errors.
+ * @param metadata - The route metadata.
  */
 async function handleRequest(
   res: Response,
   req: Request,
   handler: (req: Request) => Promise<any> | any,
-  entryPath: string
+  entryPath: string,
+  metadata?: any
 ): Promise<void> {
   try {
     const result = await handler(req);
-    res.sendResponse(req, 200, result);
+    res.sendResponse(req, 200, result, metadata?.responseType);
   } catch (error: any) {
     logError("route", error, entryPath);
+
     const statusCode: number = error.statusCode || 500;
     const message: string = error.message || "Internal Server Error";
-    
+
     // Handle validation errors by sending a custom response
     if (error.validationErrors) {
       res.sendResponse(req, statusCode, {
@@ -255,7 +258,7 @@ async function handleRequest(
       });
       return;
     }
-    
+
     res.handleError(statusCode, message);
   }
 }

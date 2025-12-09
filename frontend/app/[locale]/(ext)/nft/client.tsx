@@ -1,17 +1,17 @@
 "use client";
 
-import HeroSection from "@/components/nft/landing/HeroSection";
-import LiveStatsBar from "@/components/nft/landing/LiveStatsBar";
-import FeaturedCarousel from "@/components/nft/landing/FeaturedCarousel";
-import TrendingCollections from "@/components/nft/landing/TrendingCollections";
-import FeaturedNFTs from "@/components/nft/landing/FeaturedNFTs";
-import LiveActivityFeed from "@/components/nft/landing/LiveActivityFeed";
-import CreatorSpotlight from "@/components/nft/landing/CreatorSpotlight";
-import MultiChainSection from "@/components/nft/landing/MultiChainSection";
-import FinalCTA from "@/components/nft/landing/FinalCTA";
-import PageTransition from "@/components/nft/effects/PageTransition";
-import StructuredData from "@/components/nft/seo/StructuredData";
-import PerformanceMonitor from "@/components/nft/analytics/PerformanceMonitor";
+import HeroSection from "@/app/[locale]/(ext)/nft/components/landing/HeroSection";
+import LiveStatsBar from "@/app/[locale]/(ext)/nft/components/landing/LiveStatsBar";
+import FeaturedCarousel from "@/app/[locale]/(ext)/nft/components/landing/FeaturedCarousel";
+import TrendingCollections from "@/app/[locale]/(ext)/nft/components/landing/TrendingCollections";
+import FeaturedNFTs from "@/app/[locale]/(ext)/nft/components/landing/FeaturedNFTs";
+import LiveActivityFeed from "@/app/[locale]/(ext)/nft/components/landing/LiveActivityFeed";
+import CreatorSpotlight from "@/app/[locale]/(ext)/nft/components/landing/CreatorSpotlight";
+import MultiChainSection from "@/app/[locale]/(ext)/nft/components/landing/MultiChainSection";
+import FinalCTA from "@/app/[locale]/(ext)/nft/components/landing/FinalCTA";
+import PageTransition from "@/app/[locale]/(ext)/nft/components/effects/PageTransition";
+import StructuredData from "@/app/[locale]/(ext)/nft/components/seo/StructuredData";
+import PerformanceMonitor from "@/app/[locale]/(ext)/nft/components/analytics/PerformanceMonitor";
 import { useEffect } from "react";
 import { useNftStore } from "@/store/nft/nft-store";
 

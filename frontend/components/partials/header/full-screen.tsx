@@ -14,7 +14,7 @@ type CustomDocument = Document & {
 };
 
 const FullScreenToggle: FC = () => {
-  const t = useTranslations("components/partials/header/full-screen");
+  const t = useTranslations("common");
   const toggleFullScreen: MouseEventHandler<HTMLButtonElement> = () => {
     const doc = document;
     const docEl = doc.documentElement;

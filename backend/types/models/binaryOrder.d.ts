@@ -11,6 +11,7 @@ interface binaryOrderAttributes {
   barrier?: number;
   strikePrice?: number;
   payoutPerPoint?: number;
+  profitPercentage?: number;
   status: "PENDING" | "WIN" | "LOSS" | "DRAW" | "CANCELED";
   isDemo: boolean;
   closedAt: Date;

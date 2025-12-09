@@ -156,6 +156,7 @@ export const WebSocketProvider = ({
         // Play the notification sound with throttling
         playNotificationSound();
       }
+      // Note: "notifications" (bulk) type is handled by initial HTTP fetch
     };
 
     manager.on("message", messageHandler);

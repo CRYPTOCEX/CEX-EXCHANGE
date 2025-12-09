@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export const Analytics: React.FC = () => {
-  const t = useTranslations("components/blocks/data-table/analytics/index");
+  const t = useTranslations("common");
   const {
     analyticsConfig,
     analyticsData,

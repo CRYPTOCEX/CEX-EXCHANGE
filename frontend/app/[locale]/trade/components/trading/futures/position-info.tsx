@@ -12,7 +12,7 @@ export default function PositionInfo({
   estimatedLiquidationPrice,
   formatPrice,
 }: PositionInfoProps) {
-  const t = useTranslations("trade/components/trading/futures/position-info");
+  const t = useTranslations("ext");
   return (
     <div className="mb-4 p-3 bg-muted/50 dark:bg-zinc-900/50 rounded-md">
       <div className="grid grid-cols-2 gap-2 text-xs">

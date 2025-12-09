@@ -18,9 +18,7 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function SelectedItemsActions() {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/selected-items-actions"
-  );
+  const t = useTranslations("common");
   const selectedRows = useTableStore((state) => state.selectedRows);
   const deselectAllRows = useTableStore((state) => state.deselectAllRows);
   const showDeleted = useTableStore((state) => state.showDeleted);

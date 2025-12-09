@@ -6,7 +6,7 @@ import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function PendingTransactions() {
-  const t = useTranslations("finance/wallet/components/pending-transactions");
+  const t = useTranslations("common");
   const {
     pendingTransactions,
     syncing,

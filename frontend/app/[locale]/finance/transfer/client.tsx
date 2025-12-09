@@ -42,7 +42,7 @@ const scaleIn = {
 };
 
 export function TransferForm() {
-  const t = useTranslations("finance/transfer/client");
+  const t = useTranslations("common");
   const {
     transferType,
     setTransferType,
@@ -656,12 +656,12 @@ export function TransferForm() {
                 </div>
                 {recipientExists === true && (
                   <p className="text-sm text-green-600 dark:text-green-400">
-                    {t("✓_recipient_found_and_verified")}
+                    ✓ {t("recipient_found_and_verified")}
                   </p>
                 )}
                 {recipientExists === false && (
                   <p className="text-sm text-red-600 dark:text-red-400">
-                    {t("✗_recipient_not_found")}
+                    ✗ {t("recipient_not_found")}
                   </p>
                 )}
               </CardContent>

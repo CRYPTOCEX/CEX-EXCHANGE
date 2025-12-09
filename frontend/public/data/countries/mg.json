@@ -1,0 +1,48 @@
+{
+  "name": "Madagascar",
+  "iso2": "MG",
+  "iso3": "MDG",
+  "phonecode": "261",
+  "states": [
+    {
+      "name": "Antananarivo",
+      "code": "T",
+      "cities": []
+    },
+    {
+      "name": "Antsiranana",
+      "code": "D",
+      "cities": [
+        "Ampasimanolotra",
+        "Andovoranto",
+        "Mahanoro",
+        "Mahavelona",
+        "Marolambo",
+        "Toamasina",
+        "Toamasina I",
+        "Toamasina II",
+        "Vohibinany"
+      ]
+    },
+    {
+      "name": "Fianarantsoa",
+      "code": "F",
+      "cities": []
+    },
+    {
+      "name": "Mahajanga",
+      "code": "M",
+      "cities": []
+    },
+    {
+      "name": "Toamasina",
+      "code": "A",
+      "cities": []
+    },
+    {
+      "name": "Toliara",
+      "code": "U",
+      "cities": []
+    }
+  ]
+}

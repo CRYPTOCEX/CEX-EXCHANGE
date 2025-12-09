@@ -7,7 +7,7 @@ import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 const ErrorBlock = () => {
-  const t = useTranslations("components/error-block");
+  const t = useTranslations("common");
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const lightImage = "/images/error/light-404.png";

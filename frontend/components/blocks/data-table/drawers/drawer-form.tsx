@@ -18,9 +18,7 @@ interface DrawerFormProps {
 
 export const DrawerForm = React.memo<DrawerFormProps>(
   ({ columns, form, permissions, data, onSubmit, onCancel }) => {
-    const t = useTranslations(
-      "components/blocks/data-table/drawers/drawer-form"
-    );
+    const t = useTranslations("common");
     const handleFormSubmit = useCallback(
       (values: any) => {
         onSubmit(values);

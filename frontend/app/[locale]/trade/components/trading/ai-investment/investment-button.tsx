@@ -15,9 +15,7 @@ export default function InvestmentButton({
   isFormValid,
   onSubmit,
 }: InvestmentButtonProps) {
-  const t = useTranslations(
-    "trade/components/trading/ai-investment/investment-button"
-  );
+  const t = useTranslations("ext");
   return (
     <Button
       className={cn(

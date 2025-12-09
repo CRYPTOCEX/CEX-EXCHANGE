@@ -4,8 +4,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { tradeColumns } from "./columns";
 import { tradeAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function TradesPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/p2p/trade"
@@ -23,7 +25,7 @@ export default function TradesPage() {
       canDelete={false}
       canView={true}
       viewLink="/admin/p2p/trade/[id]"
-      title="P2P Trades"
+      title={t("p2p_trades")}
       itemTitle="Trade"
       columns={tradeColumns}
       analytics={tradeAnalytics}

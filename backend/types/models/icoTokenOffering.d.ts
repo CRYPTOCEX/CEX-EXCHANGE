@@ -6,7 +6,7 @@ interface icoTokenOfferingAttributes {
   name: string;
   symbol: string;
   icon: string;
-  status: "ACTIVE" | "SUCCESS" | "FAILED" | "UPCOMING" | "PENDING" | "REJECTED";
+  status: "ACTIVE" | "SUCCESS" | "FAILED" | "UPCOMING" | "PENDING" | "REJECTED" | "DISABLED";
   purchaseWalletCurrency: string;
   purchaseWalletType: string;
   tokenPrice: number;

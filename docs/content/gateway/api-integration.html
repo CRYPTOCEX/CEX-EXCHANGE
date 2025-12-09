@@ -1,0 +1,587 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔌</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">API Integration Guide</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Developer Documentation for Payment Gateway API</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">API Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The Payment Gateway API allows you to accept cryptocurrency payments on your website or application. The API follows REST conventions and uses JSON for request and response bodies.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Base URL: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">https://your-platform.com/api/gateway/v1</code>
+        </p>
+    </div>
+</div>
+
+<!-- Authentication -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Authentication</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            All API requests must include your API keys in the request headers:
+        </p>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-4"><code>X-Api-Public-Key: pk_live_your_public_key
+X-Api-Secret-Key: sk_live_your_secret_key</code></pre>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">Live Mode Keys</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    Prefix: <code>pk_live_</code> / <code>sk_live_</code><br>
+                    Use for production payments
+                </p>
+            </div>
+            <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Test Mode Keys</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                    Prefix: <code>pk_test_</code> / <code>sk_test_</code><br>
+                    Use for development/testing
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p class="text-red-800 dark:text-red-200 text-sm">
+                <strong>Security Warning:</strong> Never expose your Secret Key in client-side code. Always make API calls from your server.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Create Payment Intent -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Create Payment Intent</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mr-3">POST</span>
+            <code class="text-zinc-900 dark:text-zinc-100">/payment-intents</code>
+        </div>
+
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Creates a new payment intent that represents a customer's intent to pay. Returns a checkout URL where the customer completes payment.
+        </p>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Request Body</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-json">{
+  "amount": 99.99,
+  "currency": "USD",
+  "orderId": "ORDER-12345",
+  "description": "Premium subscription",
+  "customerEmail": "customer@example.com",
+  "customerName": "John Doe",
+  "successUrl": "https://yoursite.com/success",
+  "cancelUrl": "https://yoursite.com/cancel",
+  "metadata": {
+    "productId": "prod_123",
+    "customField": "value"
+  }
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Parameters</h4>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Parameter</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Required</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>amount</code></td>
+                        <td>number</td>
+                        <td>Yes</td>
+                        <td>Payment amount in the specified currency</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>currency</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>Three-letter ISO currency code (e.g., USD, EUR)</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>orderId</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Your internal order identifier</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>description</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Description shown to customer</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>customerEmail</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Customer's email address</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>customerName</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Customer's full name</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>successUrl</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>URL to redirect after successful payment</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>cancelUrl</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>URL to redirect if payment is cancelled</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2"><code>metadata</code></td>
+                        <td>object</td>
+                        <td>No</td>
+                        <td>Custom key-value pairs (returned in webhooks)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-2">Response</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-json">{
+  "success": true,
+  "data": {
+    "paymentIntentId": "pi_abc123xyz",
+    "checkoutUrl": "https://platform.com/gateway/checkout/pi_abc123xyz",
+    "amount": 99.99,
+    "currency": "USD",
+    "status": "PENDING",
+    "expiresAt": "2024-12-07T12:00:00Z"
+  }
+}</code></pre>
+    </div>
+</div>
+
+<!-- Get Payment Status -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Get Payment Status</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <span class="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded mr-3">GET</span>
+            <code class="text-zinc-900 dark:text-zinc-100">/payment-intents/{paymentIntentId}</code>
+        </div>
+
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Retrieves the current status and details of a payment intent.
+        </p>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Response</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-json">{
+  "success": true,
+  "data": {
+    "paymentIntentId": "pi_abc123xyz",
+    "orderId": "ORDER-12345",
+    "amount": 99.99,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "customerEmail": "customer@example.com",
+    "feeAmount": 2.50,
+    "netAmount": 97.49,
+    "completedAt": "2024-12-06T10:30:00Z",
+    "allocations": [
+      {
+        "walletType": "SPOT",
+        "currency": "BTC",
+        "amount": 0.0015,
+        "equivalentInPaymentCurrency": 99.99
+      }
+    ],
+    "metadata": {
+      "productId": "prod_123"
+    }
+  }
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-2">Payment Status Values</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div class="text-center p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <span class="font-semibold text-yellow-800 dark:text-yellow-200">PENDING</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Awaiting customer payment</p>
+            </div>
+            <div class="text-center p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <span class="font-semibold text-green-800 dark:text-green-200">COMPLETED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Payment successful</p>
+            </div>
+            <div class="text-center p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <span class="font-semibold text-red-800 dark:text-red-200">FAILED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Payment failed</p>
+            </div>
+            <div class="text-center p-3 bg-gray-100 dark:bg-gray-900/30 rounded-lg">
+                <span class="font-semibold text-gray-800 dark:text-gray-200">CANCELLED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Cancelled by customer</p>
+            </div>
+            <div class="text-center p-3 bg-gray-100 dark:bg-gray-900/30 rounded-lg">
+                <span class="font-semibold text-gray-800 dark:text-gray-200">EXPIRED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Payment session expired</p>
+            </div>
+            <div class="text-center p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <span class="font-semibold text-blue-800 dark:text-blue-200">REFUNDED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Fully refunded</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Refund -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Create Refund</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <div class="flex items-center mb-4">
+            <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mr-3">POST</span>
+            <code class="text-zinc-900 dark:text-zinc-100">/refund</code>
+        </div>
+
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Creates a full or partial refund for a completed payment.
+        </p>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Request Body</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-json">{
+  "paymentIntentId": "pi_abc123xyz",
+  "amount": 50.00,
+  "reason": "Customer requested refund"
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Parameters</h4>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Parameter</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Type</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Required</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>paymentIntentId</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>ID of the payment to refund</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2"><code>amount</code></td>
+                        <td>number</td>
+                        <td>No</td>
+                        <td>Amount to refund (full refund if omitted)</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2"><code>reason</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Reason for the refund</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-2">Response</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-json">{
+  "success": true,
+  "data": {
+    "refundId": "ref_xyz789",
+    "paymentIntentId": "pi_abc123xyz",
+    "amount": 50.00,
+    "status": "COMPLETED",
+    "reason": "Customer requested refund"
+  }
+}</code></pre>
+    </div>
+</div>
+
+<!-- Webhooks -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Webhooks</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Webhooks notify your server of payment events in real-time. Configure your webhook URL in the merchant dashboard.
+        </p>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Webhook Events</h4>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2 mb-6">
+            <li><code>payment.completed</code> - Payment was successful</li>
+            <li><code>payment.failed</code> - Payment failed</li>
+            <li><code>payment.cancelled</code> - Customer cancelled</li>
+            <li><code>payment.expired</code> - Session expired</li>
+            <li><code>refund.completed</code> - Refund processed</li>
+        </ul>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Webhook Payload</h4>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-json">{
+  "event": "payment.completed",
+  "timestamp": "2024-12-06T10:30:00Z",
+  "data": {
+    "paymentIntentId": "pi_abc123xyz",
+    "orderId": "ORDER-12345",
+    "amount": 99.99,
+    "currency": "USD",
+    "status": "COMPLETED",
+    "customerEmail": "customer@example.com",
+    "feeAmount": 2.50,
+    "netAmount": 97.49,
+    "metadata": {
+      "productId": "prod_123"
+    }
+  }
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Webhook Signature Verification</h4>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Verify webhook authenticity using the signature header:
+        </p>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-4"><code>X-Webhook-Signature: sha256=abc123...</code></pre>
+
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Verification in PHP:
+        </p>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-php">$payload = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'];
+$expected = 'sha256=' . hash_hmac('sha256', $payload, $webhookSecret);
+
+if (hash_equals($expected, $signature)) {
+    // Signature valid, process webhook
+    $data = json_decode($payload, true);
+    // Update order status based on $data['event']
+} else {
+    // Invalid signature, reject
+    http_response_code(401);
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-2">Responding to Webhooks</h4>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Your endpoint should return a <code>200</code> status code within 30 seconds. Failed webhooks are retried up to 3 times with exponential backoff.
+        </p>
+    </div>
+</div>
+
+<!-- Code Examples -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Code Examples</h2>
+
+    <div class="space-y-6">
+        <!-- PHP Example -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">PHP Example</h3>
+            <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-php">&lt;?php
+// Create a payment intent
+$apiUrl = 'https://your-platform.com/api/gateway/v1/payment-intents';
+
+$data = [
+    'amount' => 99.99,
+    'currency' => 'USD',
+    'orderId' => 'ORDER-' . time(),
+    'description' => 'Premium subscription',
+    'customerEmail' => 'customer@example.com',
+    'successUrl' => 'https://yoursite.com/success',
+    'cancelUrl' => 'https://yoursite.com/cancel'
+];
+
+$ch = curl_init($apiUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-Api-Public-Key: pk_live_your_public_key',
+    'X-Api-Secret-Key: sk_live_your_secret_key'
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$result = json_decode($response, true);
+
+if ($result['success']) {
+    // Redirect customer to checkout
+    header('Location: ' . $result['data']['checkoutUrl']);
+    exit;
+} else {
+    // Handle error
+    echo 'Error: ' . $result['message'];
+}</code></pre>
+        </div>
+
+        <!-- Node.js Example -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Node.js Example</h3>
+            <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-javascript">const axios = require('axios');
+
+async function createPayment() {
+    try {
+        const response = await axios.post(
+            'https://your-platform.com/api/gateway/v1/payment-intents',
+            {
+                amount: 99.99,
+                currency: 'USD',
+                orderId: `ORDER-${Date.now()}`,
+                description: 'Premium subscription',
+                customerEmail: 'customer@example.com',
+                successUrl: 'https://yoursite.com/success',
+                cancelUrl: 'https://yoursite.com/cancel'
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Public-Key': 'pk_live_your_public_key',
+                    'X-Api-Secret-Key': 'sk_live_your_secret_key'
+                }
+            }
+        );
+
+        if (response.data.success) {
+            // Redirect customer to checkout URL
+            return response.data.data.checkoutUrl;
+        }
+    } catch (error) {
+        console.error('Payment error:', error.response?.data || error.message);
+    }
+}</code></pre>
+        </div>
+
+        <!-- Python Example -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Python Example</h3>
+            <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code class="language-python">import requests
+import time
+
+def create_payment():
+    url = 'https://your-platform.com/api/gateway/v1/payment-intents'
+
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Api-Public-Key': 'pk_live_your_public_key',
+        'X-Api-Secret-Key': 'sk_live_your_secret_key'
+    }
+
+    data = {
+        'amount': 99.99,
+        'currency': 'USD',
+        'orderId': f'ORDER-{int(time.time())}',
+        'description': 'Premium subscription',
+        'customerEmail': 'customer@example.com',
+        'successUrl': 'https://yoursite.com/success',
+        'cancelUrl': 'https://yoursite.com/cancel'
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    result = response.json()
+
+    if result['success']:
+        return result['data']['checkoutUrl']
+    else:
+        raise Exception(result.get('message', 'Payment creation failed'))</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- Error Handling -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Error Handling</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            API errors return a consistent JSON structure:
+        </p>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-json">{
+  "success": false,
+  "message": "Invalid API key",
+  "code": "INVALID_API_KEY"
+}</code></pre>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Common Error Codes</h4>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">HTTP Code</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Error Code</th>
+                        <th class="text-left py-2 text-zinc-900 dark:text-zinc-100">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="text-zinc-600 dark:text-zinc-400">
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2">400</td>
+                        <td><code>VALIDATION_ERROR</code></td>
+                        <td>Invalid request parameters</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2">401</td>
+                        <td><code>INVALID_API_KEY</code></td>
+                        <td>Missing or invalid API keys</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2">403</td>
+                        <td><code>MERCHANT_SUSPENDED</code></td>
+                        <td>Merchant account is suspended</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2">404</td>
+                        <td><code>NOT_FOUND</code></td>
+                        <td>Resource not found</td>
+                    </tr>
+                    <tr class="border-b border-zinc-100 dark:border-zinc-800">
+                        <td class="py-2">409</td>
+                        <td><code>ALREADY_REFUNDED</code></td>
+                        <td>Payment already fully refunded</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2">500</td>
+                        <td><code>INTERNAL_ERROR</code></td>
+                        <td>Server error, try again later</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Rate Limits -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Rate Limits</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            API requests are rate limited to ensure service stability:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Standard:</strong> 100 requests per minute per API key</li>
+            <li><strong>Payment creation:</strong> 30 requests per minute</li>
+            <li><strong>Refunds:</strong> 10 requests per minute</li>
+        </ul>
+
+        <p class="text-zinc-600 dark:text-zinc-400 mt-4">
+            Rate limit headers are included in all responses:
+        </p>
+        <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto mt-2"><code>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1701858000</code></pre>
+    </div>
+</div>

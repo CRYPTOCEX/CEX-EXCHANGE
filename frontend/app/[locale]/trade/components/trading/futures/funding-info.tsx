@@ -21,7 +21,7 @@ export default function FundingInfo({
   fundingRate,
   fundingTime,
 }: FundingInfoProps) {
-  const t = useTranslations("trade/components/trading/futures/funding-info");
+  const t = useTranslations("ext");
   return (
     <div className="flex justify-between items-center mb-4 p-2 bg-muted/50 dark:bg-zinc-900/50 rounded-md">
       <div>

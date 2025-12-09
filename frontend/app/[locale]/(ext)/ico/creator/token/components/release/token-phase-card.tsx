@@ -47,8 +47,7 @@ export function TokenPhaseCard({
           </div>
           <Progress value={percentageSold} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1">
-            {percentageSold.toFixed(1)}
-            {t("%_sold")}
+            {percentageSold.toFixed(1)}% {t("sold")}
           </p>
         </div>
 

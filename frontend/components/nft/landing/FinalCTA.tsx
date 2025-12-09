@@ -16,8 +16,10 @@ import {
 import { Link } from "@/i18n/routing";
 import { useInView } from "react-intersection-observer";
 import { useNftStore } from "@/store/nft/nft-store";
+import { useTranslations } from "next-intl";
 
 export default function FinalCTA() {
+  const t = useTranslations("nft");
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -104,7 +106,7 @@ export default function FinalCTA() {
                 >
                   <Rocket className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">
-                    Join {(totalUsers / 1000).toFixed(0)}K+ Creators & Collectors
+                    Join {(totalUsers / 1000).toFixed(0)}{t("k_creators_collectors")}
                   </span>
                 </motion.div>
               )}
@@ -117,7 +119,7 @@ export default function FinalCTA() {
                 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight"
               >
                 <span className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Start Your NFT Journey
+                  {t("start_your_nft_journey")}
                 </span>
                 <br />
                 Today
@@ -130,9 +132,7 @@ export default function FinalCTA() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto"
               >
-                Create, buy, and sell NFTs on the world's leading multi-chain
-                marketplace. Zero upfront costs, instant transactions, and
-                global reach.
+                {t("create_buy_and_sell_nfts_on")} {t("zero_upfront_costs_instant_transactions_and")}
               </motion.p>
 
               {/* CTA Buttons */}
@@ -148,7 +148,7 @@ export default function FinalCTA() {
                     className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg text-lg px-8"
                   >
                     <Palette className="w-5 h-5" />
-                    Create Your First NFT
+                    {t("create_your_first_nft")}
                     <Sparkles className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -159,7 +159,7 @@ export default function FinalCTA() {
                     className="gap-2 shadow-lg text-lg px-8"
                   >
                     <TrendingUp className="w-5 h-5" />
-                    Explore Marketplace
+                    {t("explore_marketplace_1")}
                   </Button>
                 </Link>
               </motion.div>
@@ -224,7 +224,7 @@ export default function FinalCTA() {
                       : totalVolume >= 1000
                       ? `$${(totalVolume / 1000).toFixed(0)}K+`
                       : `$${totalVolume}`}{" "}
-                    Trading Volume
+                    {t("trading_volume")}
                   </span>
                 </div>
               )}
@@ -235,7 +235,7 @@ export default function FinalCTA() {
                     {totalUsers >= 1000
                       ? `${(totalUsers / 1000).toFixed(0)}K+`
                       : totalUsers}{" "}
-                    Active Users
+                    {t("active_users")}
                   </span>
                 </div>
               )}

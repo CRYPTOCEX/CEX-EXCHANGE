@@ -20,7 +20,8 @@ export const LICENSE_CONFIG = {
     "swap": "C4160F60",
     "futures": "A94B6354",
     "nft": "C472374E",
-    "payment_gateway": "B80789E1"
+    "gateway": "B80789E1",
+    "ai_market_maker": "AI7RAD1NG"
   }
 };
 

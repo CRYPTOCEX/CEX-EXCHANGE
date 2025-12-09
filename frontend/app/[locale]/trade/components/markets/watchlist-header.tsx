@@ -14,7 +14,7 @@ export function WatchlistHeader({
   sortCriteria,
   onSort,
 }: WatchlistHeaderProps) {
-  const t = useTranslations("trade/components/markets/watchlist-header");
+  const t = useTranslations("ext");
   return (
     <div className="p-2 border-b border-zinc-200 dark:border-zinc-800 bg-muted/80 dark:bg-zinc-900/80">
       <div className="flex items-center justify-between">

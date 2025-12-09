@@ -1,0 +1,46 @@
+{
+  "name": "Tonga",
+  "iso2": "TO",
+  "iso3": "TON",
+  "phonecode": "676",
+  "states": [
+    {
+      "name": "Haʻapai",
+      "code": "02",
+      "cities": [
+        "Pangai"
+      ]
+    },
+    {
+      "name": "ʻEua",
+      "code": "01",
+      "cities": [
+        "‘Ohonua"
+      ]
+    },
+    {
+      "name": "Niuas",
+      "code": "03",
+      "cities": [
+        "Hihifo"
+      ]
+    },
+    {
+      "name": "Tongatapu",
+      "code": "04",
+      "cities": [
+        "Haveluloto",
+        "Kolonga",
+        "Nuku‘alofa",
+        "Vaini"
+      ]
+    },
+    {
+      "name": "Vavaʻu",
+      "code": "05",
+      "cities": [
+        "Neiafu"
+      ]
+    }
+  ]
+}

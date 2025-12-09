@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useUserStore } from "@/store/user";
 import { useNftStore } from "@/store/nft/nft-store";
-import { NFTHeroImage, NFTCardImage } from "@/components/nft/shared/optimized-image";
+import Image from "next/image";
+import { getNftImageUrl } from "@/lib/nft-utils";
 import { $fetch } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ interface ActivityItem {
 }
 
 export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) {
-  const t = useTranslations("nft/details");
+  const t = useTranslations("ext");
   const { user } = useUserStore();
   const { toggleFavorite } = useNftStore();
 
@@ -466,11 +467,14 @@ export default function NFTDetailClient({ initialToken }: NFTDetailClientProps) 
         <div className="space-y-4">
           <Card>
             <CardContent className="p-0">
-              <div className="relative">
-                <NFTHeroImage
-                  src={token.image || "/img/nft/placeholder.svg"}
+              <div className="relative aspect-square">
+                <Image
+                  src={getNftImageUrl(token.id)}
                   alt={token.name}
-                  fallbackSrc="/img/nft/placeholder.svg"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 600px"
+                  className="object-cover rounded-lg"
+                  priority
                 />
                 {token.rarity && (
                   <Badge
@@ -997,10 +1001,12 @@ function SimilarNFTs({ collectionId, currentTokenId, category }: SimilarNFTsProp
             <Link key={token.id} href={`/nft/token/${token.id}`}>
               <div className="group cursor-pointer space-y-3">
                 <div className="aspect-square relative overflow-hidden rounded-lg bg-muted">
-                  <NFTCardImage
-                    src={token.image}
+                  <Image
+                    src={getNftImageUrl(token.id)}
                     alt={token.name}
-                    className="group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 640px) 50vw, 200px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {token.rarity && (
                     <Badge 

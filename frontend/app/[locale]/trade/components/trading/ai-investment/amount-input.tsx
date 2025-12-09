@@ -21,9 +21,7 @@ export default function AmountInput({
   availableBalance,
   selectedPlan,
 }: AmountInputProps) {
-  const t = useTranslations(
-    "trade/components/trading/ai-investment/amount-input"
-  );
+  const t = useTranslations("ext");
   const { setInvestmentAmount } = useAiInvestmentStore();
   const [percentSelected, setPercentSelected] = useState<number | null>(null);
 

@@ -26,7 +26,7 @@ export function TagInput({
   className,
   disabled = false,
 }: TagInputProps) {
-  const t = useTranslations("components/ui/tag-input");
+  const t = useTranslations("common");
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [showLimitMessage, setShowLimitMessage] = useState(false);

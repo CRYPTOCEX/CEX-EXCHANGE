@@ -23,8 +23,10 @@ import NotificationBell from "@/components/partials/header/notification-bell";
 import LanguageSelector from "@/components/partials/header/language-selector";
 import ProfileInfo from "@/components/partials/header/profile-info";
 import { $fetch } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 export default function NFTNavbar() {
+  const t = useTranslations("nft");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -135,7 +137,7 @@ export default function NFTNavbar() {
                   variant="ghost"
                   size="icon"
                   className="group hover:bg-primary/10 transition-colors"
-                  title="Back to Home"
+                  title={t("back_to_home")}
                 >
                   <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
                 </Button>
@@ -199,7 +201,7 @@ export default function NFTNavbar() {
               ) : (
                 <Button className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
                   <Wallet className="w-4 h-4" />
-                  <span className="hidden sm:inline">Connect Wallet</span>
+                  <span className="hidden sm:inline">{t("connect_wallet")}</span>
                 </Button>
               )}
 
@@ -274,7 +276,7 @@ export default function NFTNavbar() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Search NFTs, collections, creators..."
+                      placeholder={t("search_nfts_collections_creators_ellipsis")}
                       className="pl-10 pr-4 h-12 text-lg border-0 focus-visible:ring-0"
                       autoFocus
                       value={searchQuery}
@@ -287,7 +289,7 @@ export default function NFTNavbar() {
                   {isSearching ? (
                     <div className="p-8 text-center text-muted-foreground">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="mt-2">Searching...</p>
+                      <p className="mt-2">{t("searching_ellipsis")}</p>
                     </div>
                   ) : searchQuery.trim() ? (
                     <>
@@ -383,14 +385,14 @@ export default function NFTNavbar() {
                        searchResults.tokens.length === 0 &&
                        searchResults.creators.length === 0 && (
                         <div className="p-8 text-center text-muted-foreground">
-                          <p>No results found for "{searchQuery}"</p>
-                          <p className="text-sm mt-2">Try different keywords</p>
+                          <p>{t("no_results_found_for")}{searchQuery}"</p>
+                          <p className="text-sm mt-2">{t("try_different_keywords")}</p>
                         </div>
                       )}
                     </>
                   ) : (
                     <div className="p-4 text-sm text-muted-foreground">
-                      <p>Try searching for "Crypto Punks", "Bored Apes", or "Art"</p>
+                      <p>{t("try_searching_for_crypto_punks_bored_apes_or_art")}</p>
                     </div>
                   )}
                 </div>

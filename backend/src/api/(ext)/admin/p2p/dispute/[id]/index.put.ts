@@ -1,4 +1,4 @@
-import { models } from "@b/db";
+import { models, sequelize } from "@b/db";
 import { createError } from "@b/utils/error";
 
 import { p2pAdminDisputeRateLimit } from "@b/handler/Middleware";
@@ -7,7 +7,7 @@ import { logP2PAdminAction } from "../../../../p2p/utils/ownership";
 export const metadata = {
   summary: "Update P2P Dispute (Admin)",
   description:
-    "Updates dispute details such as status, resolution information, or appends a message.",
+    "Updates dispute details such as status, resolution information, or appends a message. When resolving, also updates the associated trade.",
   operationId: "updateAdminP2PDispute",
   tags: ["Admin", "Disputes", "P2P"],
   requiresAuth: true,
@@ -30,15 +30,19 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            status: { type: "string", enum: ["IN_PROGRESS", "RESOLVED"] },
+            status: { type: "string", enum: ["PENDING", "IN_PROGRESS", "RESOLVED"] },
             resolution: {
               type: "object",
               properties: {
-                outcome: { type: "string" },
+                outcome: {
+                  type: "string",
+                  enum: ["BUYER_WINS", "SELLER_WINS", "SPLIT", "CANCELLED"],
+                  description: "Resolution outcome - determines how funds are handled"
+                },
                 notes: { type: "string" },
               },
             },
-            message: { type: "string" },
+            message: { type: "string", description: "Admin message to add to dispute" },
           },
         },
       },
@@ -50,7 +54,7 @@ export const metadata = {
     404: { description: "Dispute not found." },
     500: { description: "Internal Server Error." },
   },
-  permission: "Access P2P Management",
+  permission: "edit.p2p.dispute",
 };
 
 export default async (data) => {
@@ -58,63 +62,457 @@ export default async (data) => {
   const { id } = params;
   const { status, resolution, message } = body;
 
-  // Import validation utilities
+  // Import utilities
   const { sanitizeInput } = await import("../../../../p2p/utils/validation");
+  const { notifyTradeEvent } = await import("../../../../p2p/utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("../../../../p2p/trade/[id]/index.ws");
+  const { getWalletSafe } = await import("@b/api/finance/wallet/utils");
+  const { parseAmountConfig } = await import("../../../../p2p/utils/json-parser");
+
+  const transaction = await sequelize.transaction();
 
   try {
-    const dispute = await models.p2pDispute.findByPk(id);
-    if (!dispute)
+    const dispute = await models.p2pDispute.findByPk(id, {
+      include: [{
+        model: models.p2pTrade,
+        as: "trade",
+        include: [{
+          model: models.p2pOffer,
+          as: "offer",
+          attributes: ["currency", "walletType"],
+        }],
+      }],
+      lock: true,
+      transaction,
+    });
+
+    if (!dispute) {
+      await transaction.rollback();
       throw createError({ statusCode: 404, message: "Dispute not found" });
-    
+    }
+
+    const trade = dispute.trade;
+    let tradeUpdated = false;
+    let fundsHandled = false;
+
     // Validate status transition if changing status
     if (status) {
-      const validStatuses = ["IN_PROGRESS", "RESOLVED"];
+      const validStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED"];
       if (!validStatuses.includes(status)) {
-        throw createError({ 
-          statusCode: 400, 
-          message: "Invalid status. Must be IN_PROGRESS or RESOLVED" 
+        await transaction.rollback();
+        throw createError({
+          statusCode: 400,
+          message: "Invalid status. Must be PENDING, IN_PROGRESS, or RESOLVED"
         });
       }
       dispute.status = status;
     }
-    
-    if (resolution) {
-      // Sanitize resolution notes
-      if (resolution.notes) {
-        resolution.notes = sanitizeInput(resolution.notes);
-      }
-      if (resolution.outcome) {
-        resolution.outcome = sanitizeInput(resolution.outcome);
-      }
-      dispute.resolution = resolution;
-      dispute.resolvedOn = new Date();
-    }
-    
-    let sanitizedMessage: string | undefined;
-    if (message) {
-      // Sanitize message content to prevent XSS
-      sanitizedMessage = sanitizeInput(message);
-      if (!sanitizedMessage || sanitizedMessage.length === 0) {
-        throw createError({ 
-          statusCode: 400, 
-          message: "Message cannot be empty" 
+
+    // Handle resolution with fund management
+    if (resolution && resolution.outcome) {
+      const sanitizedNotes = resolution.notes ? sanitizeInput(resolution.notes) : "";
+      const outcome = resolution.outcome;
+
+      // Validate outcome
+      const validOutcomes = ["BUYER_WINS", "SELLER_WINS", "SPLIT", "CANCELLED"];
+      if (!validOutcomes.includes(outcome)) {
+        await transaction.rollback();
+        throw createError({
+          statusCode: 400,
+          message: "Invalid resolution outcome"
         });
       }
-      
-      const existingMessages = dispute.messages || [];
+
+      // CRITICAL: Only handle funds if trade is in DISPUTED status
+      // This prevents double-processing if the trade was already resolved
+      if (trade && trade.status === "DISPUTED" && trade.offer) {
+        let finalTradeStatus = "COMPLETED";
+
+        if (outcome === "BUYER_WINS" || outcome === "SPLIT") {
+          // Release funds to buyer (with escrow fee deduction - same as normal release)
+          const sellerWallet = await getWalletSafe(
+            trade.sellerId,
+            trade.offer.walletType,
+            trade.offer.currency
+          );
+
+          if (sellerWallet) {
+            // CRITICAL: Calculate safe amounts to prevent negative values
+            const safeUnlockAmount = Math.min(trade.amount, sellerWallet.inOrder);
+            const safeDeductAmount = Math.min(trade.amount, sellerWallet.balance);
+
+            if (safeUnlockAmount > 0 || safeDeductAmount > 0) {
+              // Unlock and deduct from seller
+              const newBalance = Math.max(0, sellerWallet.balance - safeDeductAmount);
+              const newInOrder = Math.max(0, sellerWallet.inOrder - safeUnlockAmount);
+
+              await models.wallet.update({
+                balance: newBalance,
+                inOrder: newInOrder,
+              }, {
+                where: { id: sellerWallet.id },
+                transaction
+              });
+
+              // Log if amounts don't match (indicates potential issue)
+              if (safeDeductAmount < trade.amount || safeUnlockAmount < trade.amount) {
+                console.warn('[Dispute Resolution] WARNING: Partial fund handling:', {
+                  tradeId: trade.id,
+                  tradeAmount: trade.amount,
+                  actualDeducted: safeDeductAmount,
+                  actualUnlocked: safeUnlockAmount,
+                  sellerBalance: sellerWallet.balance,
+                  sellerInOrder: sellerWallet.inOrder,
+                });
+              }
+
+              // Calculate escrow fee - same as normal trade release
+              const escrowFeeAmount = parseFloat(trade.escrowFee || "0");
+              const platformFee = Math.min(escrowFeeAmount, safeDeductAmount);
+              const buyerNetAmount = Math.max(0, safeDeductAmount - platformFee);
+
+              // Credit buyer with net amount (after platform fee deduction)
+              const buyerWallet = await getWalletSafe(
+                trade.buyerId,
+                trade.offer.walletType,
+                trade.offer.currency
+              );
+
+              if (buyerWallet) {
+                await models.wallet.update({
+                  balance: buyerWallet.balance + buyerNetAmount,
+                }, {
+                  where: { id: buyerWallet.id },
+                  transaction
+                });
+              } else {
+                await models.wallet.create({
+                  userId: trade.buyerId,
+                  type: trade.offer.walletType,
+                  currency: trade.offer.currency,
+                  balance: buyerNetAmount,
+                  inOrder: 0,
+                }, { transaction });
+              }
+
+              // Record platform commission if there's a fee
+              if (platformFee > 0) {
+                // Get system admin ID for commission recording
+                const systemAdmin = await models.user.findOne({
+                  include: [{
+                    model: models.role,
+                    as: "role",
+                    where: { name: "Super Admin" },
+                  }],
+                  order: [["createdAt", "ASC"]], // Get the oldest super admin
+                  transaction,
+                });
+
+                if (systemAdmin) {
+                  // Record the commission in p2pCommission table
+                  await models.p2pCommission.create({
+                    adminId: systemAdmin.id,
+                    amount: platformFee,
+                    description: `P2P escrow fee for disputed trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency} (${outcome})`,
+                    tradeId: trade.id,
+                  }, { transaction });
+
+                  console.log('[Dispute Resolution] Platform commission recorded:', {
+                    tradeId: trade.id,
+                    adminId: systemAdmin.id,
+                    platformFee,
+                    currency: trade.offer.currency,
+                  });
+                } else {
+                  console.warn('[Dispute Resolution] No super admin found to assign commission');
+                }
+              }
+
+              // Create transaction records for seller
+              await models.transaction.create({
+                userId: trade.sellerId,
+                walletId: sellerWallet.id,
+                type: "P2P_TRADE",
+                status: "COMPLETED",
+                amount: -safeDeductAmount,
+                fee: platformFee,
+                description: `P2P dispute resolved (${outcome}) #${trade.id}`,
+                referenceId: `p2p-dispute-sell-${trade.id}`,
+              }, { transaction });
+
+              // Create transaction record for buyer
+              const buyerWalletForTx = buyerWallet || await models.wallet.findOne({
+                where: { userId: trade.buyerId, type: trade.offer.walletType, currency: trade.offer.currency },
+                transaction,
+              });
+
+              if (buyerWalletForTx) {
+                await models.transaction.create({
+                  userId: trade.buyerId,
+                  walletId: buyerWalletForTx.id,
+                  type: "P2P_TRADE",
+                  status: "COMPLETED",
+                  amount: buyerNetAmount,
+                  fee: 0,
+                  description: `P2P dispute resolved (${outcome}) #${trade.id}`,
+                  referenceId: `p2p-dispute-buy-${trade.id}`,
+                }, { transaction });
+              }
+
+              fundsHandled = true;
+
+              console.log('[Dispute Resolution] Funds transferred to buyer:', {
+                tradeId: trade.id,
+                buyerId: trade.buyerId,
+                sellerId: trade.sellerId,
+                tradeAmount: trade.amount,
+                actualDeducted: safeDeductAmount,
+                platformFee,
+                buyerReceives: buyerNetAmount,
+                currency: trade.offer.currency,
+              });
+            } else {
+              console.warn('[Dispute Resolution] WARNING: No funds available to transfer:', {
+                tradeId: trade.id,
+                sellerBalance: sellerWallet.balance,
+                sellerInOrder: sellerWallet.inOrder,
+              });
+            }
+          }
+          finalTradeStatus = "COMPLETED";
+        } else if (outcome === "SELLER_WINS" || outcome === "CANCELLED") {
+          // Return funds to seller (unlock from inOrder)
+          const sellerWallet = await getWalletSafe(
+            trade.sellerId,
+            trade.offer.walletType,
+            trade.offer.currency
+          );
+
+          if (sellerWallet) {
+            // CRITICAL: Calculate safe unlock amount to prevent negative inOrder
+            const safeUnlockAmount = Math.min(trade.amount, sellerWallet.inOrder);
+
+            if (safeUnlockAmount > 0) {
+              const newInOrder = Math.max(0, sellerWallet.inOrder - safeUnlockAmount);
+
+              await models.wallet.update({
+                inOrder: newInOrder,
+              }, {
+                where: { id: sellerWallet.id },
+                transaction
+              });
+              fundsHandled = true;
+
+              // Log if amounts don't match
+              if (safeUnlockAmount < trade.amount) {
+                console.warn('[Dispute Resolution] WARNING: Partial unlock:', {
+                  tradeId: trade.id,
+                  tradeAmount: trade.amount,
+                  actualUnlocked: safeUnlockAmount,
+                });
+              }
+            } else {
+              console.warn('[Dispute Resolution] WARNING: No funds to unlock:', {
+                tradeId: trade.id,
+                currentInOrder: sellerWallet.inOrder,
+              });
+            }
+          }
+
+          // Restore offer available amount since trade was cancelled
+          // CRITICAL: Validate against original total to prevent over-restoration
+          if (trade.offerId) {
+            const offer = await models.p2pOffer.findByPk(trade.offerId, {
+              lock: true,
+              transaction,
+            });
+
+            if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
+              const amountConfig = parseAmountConfig(offer.amountConfig);
+
+              // Calculate safe restoration amount
+              const originalTotal = amountConfig.originalTotal ?? (amountConfig.total + trade.amount);
+              const proposedTotal = amountConfig.total + trade.amount;
+              const safeTotal = Math.min(proposedTotal, originalTotal);
+
+              if (safeTotal > amountConfig.total) {
+                await offer.update({
+                  amountConfig: {
+                    ...amountConfig,
+                    total: safeTotal,
+                    originalTotal,
+                  },
+                }, { transaction });
+
+                console.log('[Dispute Resolution] Restored offer amount:', {
+                  offerId: offer.id,
+                  tradeAmount: trade.amount,
+                  previousTotal: amountConfig.total,
+                  newTotal: safeTotal,
+                  originalTotal,
+                });
+              } else {
+                console.log('[Dispute Resolution] Skipped restoration - at or above limit:', {
+                  offerId: offer.id,
+                  currentTotal: amountConfig.total,
+                  proposedTotal,
+                  maxAllowed: originalTotal,
+                });
+              }
+            }
+          }
+
+          finalTradeStatus = "CANCELLED";
+        }
+
+        // Update trade timeline
+        let timeline = trade.timeline || [];
+        if (typeof timeline === "string") {
+          try {
+            timeline = JSON.parse(timeline);
+          } catch (e) {
+            timeline = [];
+          }
+        }
+        if (!Array.isArray(timeline)) {
+          timeline = [];
+        }
+
+        timeline.push({
+          event: "DISPUTE_RESOLVED",
+          message: `Dispute resolved by admin: ${outcome}${sanitizedNotes ? ` - ${sanitizedNotes}` : ""}`,
+          userId: user.id,
+          adminName: `${user.firstName} ${user.lastName}`,
+          resolution: outcome,
+          createdAt: new Date().toISOString(),
+        });
+
+        // Update trade status
+        await trade.update({
+          status: finalTradeStatus,
+          timeline,
+          resolution: { outcome, notes: sanitizedNotes, resolvedBy: user.id },
+          completedAt: finalTradeStatus === "COMPLETED" ? new Date() : null,
+          cancelledAt: finalTradeStatus === "CANCELLED" ? new Date() : null,
+        }, { transaction });
+
+        tradeUpdated = true;
+      }
+
+      // Update dispute resolution
+      dispute.resolution = {
+        outcome,
+        notes: sanitizedNotes,
+        resolvedBy: user.id,
+        resolvedAt: new Date().toISOString(),
+        fundsHandled,
+      };
+      dispute.resolvedOn = new Date();
+      dispute.status = "RESOLVED";
+    }
+
+    // Handle message
+    let sanitizedMessage: string | undefined;
+    if (message) {
+      sanitizedMessage = sanitizeInput(message);
+      if (!sanitizedMessage || sanitizedMessage.length === 0) {
+        await transaction.rollback();
+        throw createError({
+          statusCode: 400,
+          message: "Message cannot be empty"
+        });
+      }
+
+      const messageId = `msg-${Date.now()}-${user.id}`;
+      const messageTimestamp = new Date().toISOString();
+
+      // Add to dispute messages
+      let existingMessages = dispute.messages;
+      if (!Array.isArray(existingMessages)) {
+        existingMessages = [];
+      }
       existingMessages.push({
+        id: messageId,
         sender: user.id,
         senderName: `${user.firstName} ${user.lastName}`,
         content: sanitizedMessage,
-        createdAt: new Date().toISOString(),
+        createdAt: messageTimestamp,
         isAdmin: true,
       });
       dispute.messages = existingMessages;
+
+      // Also add message to trade timeline for WebSocket broadcast
+      if (trade) {
+        let timeline = trade.timeline || [];
+        if (typeof timeline === "string") {
+          try {
+            timeline = JSON.parse(timeline);
+          } catch (e) {
+            timeline = [];
+          }
+        }
+        if (!Array.isArray(timeline)) {
+          timeline = [];
+        }
+
+        timeline.push({
+          id: messageId,
+          event: "MESSAGE",
+          message: sanitizedMessage,
+          senderId: user.id,
+          senderName: `${user.firstName} ${user.lastName}`,
+          isAdminMessage: true,
+          createdAt: messageTimestamp,
+        });
+
+        await trade.update({ timeline }, { transaction });
+
+        // Broadcast the message via WebSocket
+        broadcastP2PTradeEvent(trade.id, {
+          type: "MESSAGE",
+          data: {
+            id: messageId,
+            message: sanitizedMessage,
+            senderId: user.id,
+            senderName: `${user.firstName} ${user.lastName}`,
+            isAdminMessage: true,
+            createdAt: messageTimestamp,
+          },
+        });
+
+        // Notify users about admin message
+        notifyTradeEvent(trade.id, "ADMIN_MESSAGE", {
+          buyerId: trade.buyerId,
+          sellerId: trade.sellerId,
+          amount: trade.amount,
+          currency: trade.offer?.currency || trade.currency,
+          message: sanitizedMessage,
+        }).catch(console.error);
+      }
     }
-    
-    await dispute.save();
-    
-    // Log admin action with enhanced audit trail
+
+    await dispute.save({ transaction });
+
+    // Log activity
+    await models.p2pActivityLog.create({
+      userId: user.id,
+      type: "ADMIN_DISPUTE_UPDATE",
+      action: "ADMIN_DISPUTE_UPDATE",
+      relatedEntity: "DISPUTE",
+      relatedEntityId: dispute.id,
+      details: JSON.stringify({
+        status: dispute.status,
+        hasResolution: !!resolution,
+        resolution: resolution?.outcome,
+        hasMessage: !!message,
+        tradeUpdated,
+        fundsHandled,
+        adminId: user.id,
+        adminName: `${user.firstName} ${user.lastName}`,
+      }),
+    }, { transaction });
+
+    // Log admin action
     await logP2PAdminAction(
       user.id,
       "DISPUTE_UPDATE",
@@ -123,19 +521,120 @@ export default async (data) => {
       {
         status: status || dispute.status,
         hasResolution: !!resolution,
+        resolution: resolution?.outcome,
         hasMessage: !!message,
-        resolution: resolution ? sanitizeInput(JSON.stringify(resolution)) : undefined,
-        messageContent: message && sanitizedMessage ? sanitizedMessage.substring(0, 100) + "..." : undefined,
+        tradeUpdated,
+        fundsHandled,
         adminName: `${user.firstName} ${user.lastName}`,
-        updatedBy: `${user.firstName} ${user.lastName}`,
       }
     );
-    
+
+    await transaction.commit();
+
+    // Broadcast WebSocket event if trade was updated
+    if (tradeUpdated && trade) {
+      const finalStatus = resolution?.outcome === "BUYER_WINS" || resolution?.outcome === "SPLIT"
+        ? "COMPLETED"
+        : "CANCELLED";
+
+      broadcastP2PTradeEvent(trade.id, {
+        type: "STATUS_CHANGE",
+        data: {
+          status: finalStatus,
+          previousStatus: "DISPUTED",
+          disputeResolved: true,
+          resolution: resolution?.outcome,
+        },
+      });
+
+      // Send notification about resolution
+      notifyTradeEvent(trade.id, finalStatus === "COMPLETED" ? "TRADE_COMPLETED" : "TRADE_CANCELLED", {
+        buyerId: trade.buyerId,
+        sellerId: trade.sellerId,
+        amount: trade.amount,
+        currency: trade.offer?.currency || trade.currency,
+        disputeResolved: true,
+        resolution: resolution?.outcome,
+      }).catch(console.error);
+    }
+
+    // Reload dispute with all associations for proper response
+    const updatedDispute = await models.p2pDispute.findByPk(id, {
+      include: [
+        {
+          model: models.p2pTrade,
+          as: "trade",
+          include: [
+            {
+              model: models.p2pOffer,
+              as: "offer",
+              attributes: ["id", "type", "currency", "walletType"],
+            },
+            {
+              model: models.user,
+              as: "buyer",
+              attributes: ["id", "firstName", "lastName", "email", "avatar"],
+            },
+            {
+              model: models.user,
+              as: "seller",
+              attributes: ["id", "firstName", "lastName", "email", "avatar"],
+            },
+          ],
+        },
+        {
+          model: models.user,
+          as: "reportedBy",
+          attributes: ["id", "firstName", "lastName", "email", "avatar"],
+        },
+        {
+          model: models.user,
+          as: "against",
+          attributes: ["id", "firstName", "lastName", "email", "avatar"],
+        },
+      ],
+    });
+
+    const plainDispute = updatedDispute?.get({ plain: true }) || dispute.toJSON();
+
+    // Transform messages for frontend compatibility
+    const messages = Array.isArray(plainDispute.messages) ? plainDispute.messages.map((msg: any) => ({
+      id: msg.id || `${msg.createdAt}-${msg.sender}`,
+      sender: msg.senderName || msg.sender || "Unknown",
+      senderId: msg.sender,
+      content: msg.content || msg.message || "",
+      timestamp: msg.createdAt || msg.timestamp,
+      isAdmin: msg.isAdmin || false,
+      avatar: msg.avatar,
+      senderInitials: msg.senderName ? msg.senderName.split(" ").map((n: string) => n[0]).join("").toUpperCase() : "?",
+    })) : [];
+
+    // Transform admin notes from activityLog
+    const activityLog = Array.isArray(plainDispute.activityLog) ? plainDispute.activityLog : [];
+    const adminNotes = activityLog
+      .filter((entry: any) => entry.type === "note")
+      .map((entry: any) => ({
+        content: entry.content || entry.note,
+        createdAt: entry.createdAt,
+        createdBy: entry.adminName || "Admin",
+        adminId: entry.adminId,
+      }));
+
+    // Transform evidence for frontend compatibility
+    const evidence = Array.isArray(plainDispute.evidence) ? plainDispute.evidence.map((e: any) => ({
+      ...e,
+      submittedBy: e.submittedBy || "admin",
+      timestamp: e.createdAt || e.timestamp,
+    })) : [];
+
     return {
-      message: "Dispute updated successfully",
-      dispute: dispute.toJSON()
+      ...plainDispute,
+      messages,
+      adminNotes,
+      evidence,
     };
   } catch (err) {
+    await transaction.rollback();
     if (err.statusCode) {
       throw err;
     }

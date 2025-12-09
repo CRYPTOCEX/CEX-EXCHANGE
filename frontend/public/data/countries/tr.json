@@ -1,0 +1,1474 @@
+{
+  "name": "Turkey",
+  "iso2": "TR",
+  "iso3": "TUR",
+  "phonecode": "90",
+  "states": [
+    {
+      "name": "Adana",
+      "code": "01",
+      "cities": [
+        "Adana",
+        "Aladağ",
+        "Ceyhan",
+        "Çukurova",
+        "Feke",
+        "İmamoğlu",
+        "Karaisalı",
+        "Karataş",
+        "Kozan",
+        "Pozantı",
+        "Saimbeyli",
+        "Sarıçam",
+        "Seyhan",
+        "Tufanbeyli",
+        "Yumurtalık",
+        "Yüreğir"
+      ]
+    },
+    {
+      "name": "Adıyaman",
+      "code": "02",
+      "cities": [
+        "Besni",
+        "Çelikhan",
+        "Gerger",
+        "Gölbaşı",
+        "Kâhta",
+        "Merkez",
+        "Samsat",
+        "Sincik",
+        "Tut"
+      ]
+    },
+    {
+      "name": "Afyonkarahisar",
+      "code": "03",
+      "cities": [
+        "Başmakçı",
+        "Bayat",
+        "Bolvadin",
+        "Çay",
+        "Çobanlar",
+        "Dazkırı",
+        "Dinar",
+        "Emirdağ",
+        "Evciler",
+        "Hocalar",
+        "İhsaniye",
+        "İscehisar",
+        "Kızılören",
+        "Merkez",
+        "Sandıklı",
+        "Sinanpaşa",
+        "Şuhut",
+        "Sultandağı"
+      ]
+    },
+    {
+      "name": "Ağrı",
+      "code": "04",
+      "cities": [
+        "Diyadin",
+        "Doğubayazıt",
+        "Eleşkirt",
+        "Hamur",
+        "Merkez",
+        "Patnos",
+        "Taşlıçay",
+        "Tutak"
+      ]
+    },
+    {
+      "name": "Aksaray",
+      "code": "68",
+      "cities": [
+        "Ağaçören",
+        "Eskil",
+        "Gülağaç",
+        "Güzelyurt",
+        "Merkez",
+        "Ortaköy",
+        "Sarıyahşi",
+        "Sultanhanı"
+      ]
+    },
+    {
+      "name": "Amasya",
+      "code": "05",
+      "cities": [
+        "Göynücek",
+        "Gümüşhacıköy",
+        "Hamamözü",
+        "Merkez",
+        "Merzifon",
+        "Suluova",
+        "Taşova"
+      ]
+    },
+    {
+      "name": "Ankara",
+      "code": "06",
+      "cities": [
+        "Akyurt",
+        "Altındağ",
+        "Ankara",
+        "Ayaş",
+        "Bala",
+        "Beypazarı",
+        "Çamlıdere",
+        "Çankaya",
+        "Çubuk",
+        "Elmadağ",
+        "Etimesgut",
+        "Evren",
+        "Gölbaşı",
+        "Güdül",
+        "Haymana",
+        "Kahramankazan",
+        "Kalecik",
+        "Keçiören",
+        "Kızılcahamam",
+        "Mamak",
+        "Nallıhan",
+        "Polatlı",
+        "Pursaklar",
+        "Şereflikoçhisar",
+        "Sincan",
+        "Yenimahalle"
+      ]
+    },
+    {
+      "name": "Antalya",
+      "code": "07",
+      "cities": [
+        "Akseki",
+        "Aksu",
+        "Alanya",
+        "Antalya",
+        "Demre",
+        "Döşemealtı",
+        "Elmalı",
+        "Finike",
+        "Gazipaşa",
+        "Gündoğmuş",
+        "İbradı",
+        "Kaş",
+        "Kemer",
+        "Kepez",
+        "Konyaaltı",
+        "Korkuteli",
+        "Kumluca",
+        "Manavgat",
+        "Muratpaşa",
+        "Serik"
+      ]
+    },
+    {
+      "name": "Ardahan",
+      "code": "75",
+      "cities": [
+        "Çıldır",
+        "Damal",
+        "Göle",
+        "Hanak",
+        "Merkez",
+        "Posof"
+      ]
+    },
+    {
+      "name": "Artvin",
+      "code": "08",
+      "cities": [
+        "Ardanuç",
+        "Arhavi",
+        "Borçka",
+        "Hopa",
+        "Kemalpaşa",
+        "Merkez",
+        "Murgul",
+        "Şavşat",
+        "Yusufeli"
+      ]
+    },
+    {
+      "name": "Aydın",
+      "code": "09",
+      "cities": [
+        "Bozdoğan",
+        "Buharkent",
+        "Çine",
+        "Didim",
+        "Efeler",
+        "Germencik",
+        "İncirliova",
+        "Karacasu",
+        "Karpuzlu",
+        "Koçarlı",
+        "Köşk",
+        "Kuşadası",
+        "Kuyucak",
+        "Nazilli",
+        "Söke",
+        "Sultanhisar",
+        "Yenipazar"
+      ]
+    },
+    {
+      "name": "Balıkesir",
+      "code": "10",
+      "cities": [
+        "Altıeylül",
+        "Ayvalık",
+        "Balya",
+        "Bandırma",
+        "Bigadiç",
+        "Burhaniye",
+        "Dursunbey",
+        "Edremit",
+        "Erdek",
+        "Gömeç",
+        "Gönen",
+        "Havran",
+        "İvrindi",
+        "Karesi",
+        "Kepsut",
+        "Manyas",
+        "Marmara",
+        "Savaştepe",
+        "Sındırgı",
+        "Susurluk"
+      ]
+    },
+    {
+      "name": "Bartın",
+      "code": "74",
+      "cities": [
+        "Amasra",
+        "Kurucaşile",
+        "Merkez",
+        "Ulus"
+      ]
+    },
+    {
+      "name": "Batman",
+      "code": "72",
+      "cities": [
+        "Beşiri",
+        "Gercüş",
+        "Hasankeyf",
+        "Kozluk",
+        "Merkez",
+        "Sason"
+      ]
+    },
+    {
+      "name": "Bayburt",
+      "code": "69",
+      "cities": [
+        "Aydıntepe",
+        "Demirözü",
+        "Merkez"
+      ]
+    },
+    {
+      "name": "Bilecik",
+      "code": "11",
+      "cities": [
+        "Bozüyük",
+        "Gölpazarı",
+        "İnhisar",
+        "Merkez",
+        "Osmaneli",
+        "Pazaryeri",
+        "Söğüt",
+        "Yenipazar"
+      ]
+    },
+    {
+      "name": "Bingöl",
+      "code": "12",
+      "cities": [
+        "Adaklı",
+        "Genç",
+        "Karlıova",
+        "Kiğı",
+        "Merkez",
+        "Solhan",
+        "Yayladere",
+        "Yedisu"
+      ]
+    },
+    {
+      "name": "Bitlis",
+      "code": "13",
+      "cities": [
+        "Adilcevaz",
+        "Ahlat",
+        "Güroymak",
+        "Hizan",
+        "Merkez",
+        "Mutki",
+        "Tatvan"
+      ]
+    },
+    {
+      "name": "Bolu",
+      "code": "14",
+      "cities": [
+        "Dörtdivan",
+        "Gerede",
+        "Göynük",
+        "Kıbrıscık",
+        "Mengen",
+        "Merkez",
+        "Mudurnu",
+        "Seben",
+        "Yeniçağa"
+      ]
+    },
+    {
+      "name": "Burdur",
+      "code": "15",
+      "cities": [
+        "Ağlasun",
+        "Altınyayla",
+        "Bucak",
+        "Çavdır",
+        "Çeltikçi",
+        "Gölhisar",
+        "Karamanlı",
+        "Kemer",
+        "Merkez",
+        "Tefenni",
+        "Yeşilova"
+      ]
+    },
+    {
+      "name": "Bursa",
+      "code": "16",
+      "cities": [
+        "Büyükorhan",
+        "Gemlik",
+        "Gürsu",
+        "Harmancık",
+        "İnegöl",
+        "İznik",
+        "Karacabey",
+        "Keles",
+        "Kestel",
+        "Mudanya",
+        "Mustafakemalpaşa",
+        "Nilüfer",
+        "Orhaneli",
+        "Orhangazi",
+        "Osmangazi",
+        "Yenişehir",
+        "Yıldırım"
+      ]
+    },
+    {
+      "name": "Çanakkale",
+      "code": "17",
+      "cities": [
+        "Ayvacık",
+        "Bayramiç",
+        "Biga",
+        "Bozcaada",
+        "Çan",
+        "Eceabat",
+        "Ezine",
+        "Gelibolu",
+        "Gökçeada",
+        "Lapseki",
+        "Merkez",
+        "Yenice"
+      ]
+    },
+    {
+      "name": "Çankırı",
+      "code": "18",
+      "cities": [
+        "Atkaracalar",
+        "Bayramören",
+        "Çerkeş",
+        "Eldivan",
+        "Ilgaz",
+        "Kızılırmak",
+        "Korgun",
+        "Kurşunlu",
+        "Merkez",
+        "Orta",
+        "Şabanözü",
+        "Yapraklı"
+      ]
+    },
+    {
+      "name": "Çorum",
+      "code": "19",
+      "cities": [
+        "Alaca",
+        "Bayat",
+        "Boğazkale",
+        "Dodurga",
+        "İskilip",
+        "Kargı",
+        "Laçin",
+        "Mecitözü",
+        "Merkez",
+        "Oğuzlar",
+        "Ortaköy",
+        "Osmancık",
+        "Sungurlu",
+        "Uğurludağ"
+      ]
+    },
+    {
+      "name": "Denizli",
+      "code": "20",
+      "cities": [
+        "Acıpayam",
+        "Babadağ",
+        "Baklan",
+        "Bekilli",
+        "Beyağaç",
+        "Bozkurt",
+        "Buldan",
+        "Çal",
+        "Çameli",
+        "Çardak",
+        "Çivril",
+        "Güney",
+        "Honaz",
+        "Kale",
+        "Merkezefendi",
+        "Pamukkale",
+        "Sarayköy",
+        "Serinhisar",
+        "Tavas"
+      ]
+    },
+    {
+      "name": "Diyarbakır",
+      "code": "21",
+      "cities": [
+        "Bağlar",
+        "Bismil",
+        "Çermik",
+        "Çınar",
+        "Çüngüş",
+        "Dicle",
+        "Eğil",
+        "Ergani",
+        "Hani",
+        "Hazro",
+        "Kayapınar",
+        "Kocaköy",
+        "Kulp",
+        "Lice",
+        "Silvan",
+        "Sur",
+        "Yenişehir"
+      ]
+    },
+    {
+      "name": "Düzce",
+      "code": "81",
+      "cities": [
+        "Akçakoca",
+        "Çilimli",
+        "Cumayeri",
+        "Gölyaka",
+        "Gümüşova",
+        "Kaynaşlı",
+        "Merkez",
+        "Yığılca"
+      ]
+    },
+    {
+      "name": "Edirne",
+      "code": "22",
+      "cities": [
+        "Enez",
+        "Havsa",
+        "İpsala",
+        "Keşan",
+        "Lâlapaşa",
+        "Meriç",
+        "Merkez",
+        "Süloğlu",
+        "Uzunköprü"
+      ]
+    },
+    {
+      "name": "Elazığ",
+      "code": "23",
+      "cities": [
+        "Ağın",
+        "Alacakaya",
+        "Arıcak",
+        "Baskil",
+        "Karakoçan",
+        "Keban",
+        "Kovancılar",
+        "Maden",
+        "Merkez",
+        "Palu",
+        "Sivrice"
+      ]
+    },
+    {
+      "name": "Erzincan",
+      "code": "24",
+      "cities": [
+        "Çayırlı",
+        "İliç",
+        "Kemah",
+        "Kemaliye",
+        "Merkez",
+        "Otlukbeli",
+        "Refahiye",
+        "Tercan",
+        "Üzümlü"
+      ]
+    },
+    {
+      "name": "Erzurum",
+      "code": "25",
+      "cities": [
+        "Aşkale",
+        "Aziziye",
+        "Çat",
+        "Hınıs",
+        "Horasan",
+        "İspir",
+        "Karaçoban",
+        "Karayazı",
+        "Köprüköy",
+        "Narman",
+        "Oltu",
+        "Olur",
+        "Palandöken",
+        "Pasinler",
+        "Pazaryolu",
+        "Şenkaya",
+        "Tekman",
+        "Tortum",
+        "Uzundere",
+        "Yakutiye"
+      ]
+    },
+    {
+      "name": "Eskişehir",
+      "code": "26",
+      "cities": [
+        "Alpu",
+        "Beylikova",
+        "Çifteler",
+        "Günyüzü",
+        "Han",
+        "İnönü",
+        "Mahmudiye",
+        "Mihalgazi",
+        "Mihalıççık",
+        "Odunpazarı",
+        "Sarıcakaya",
+        "Seyitgazi",
+        "Sivrihisar",
+        "Tepebaşı"
+      ]
+    },
+    {
+      "name": "Gaziantep",
+      "code": "27",
+      "cities": [
+        "Araban",
+        "İslahiye",
+        "Karkamış",
+        "Nizip",
+        "Nurdağı",
+        "Oğuzeli",
+        "Şahinbey",
+        "Şehitkamil",
+        "Yavuzeli"
+      ]
+    },
+    {
+      "name": "Giresun",
+      "code": "28",
+      "cities": [
+        "Alucra",
+        "Bulancak",
+        "Çamoluk",
+        "Çanakçı",
+        "Dereli",
+        "Doğankent",
+        "Espiye",
+        "Eynesil",
+        "Görele",
+        "Güce",
+        "Keşap",
+        "Merkez",
+        "Piraziz",
+        "Şebinkarahisar",
+        "Tirebolu",
+        "Yağlıdere"
+      ]
+    },
+    {
+      "name": "Gümüşhane",
+      "code": "29",
+      "cities": [
+        "Kelkit",
+        "Köse",
+        "Kürtün",
+        "Merkez",
+        "Şiran",
+        "Torul"
+      ]
+    },
+    {
+      "name": "Hakkâri",
+      "code": "30",
+      "cities": [
+        "Çukurca",
+        "Derecik",
+        "Merkez",
+        "Şemdinli",
+        "Yüksekova"
+      ]
+    },
+    {
+      "name": "Hatay",
+      "code": "31",
+      "cities": [
+        "Altınözü",
+        "Antakya",
+        "Arsuz",
+        "Belen",
+        "Defne",
+        "Dörtyol",
+        "Erzin",
+        "Hassa",
+        "İskenderun",
+        "Kırıkhan",
+        "Kumlu",
+        "Payas",
+        "Reyhanlı",
+        "Samandağ",
+        "Yayladağı"
+      ]
+    },
+    {
+      "name": "Iğdır",
+      "code": "76",
+      "cities": [
+        "Aralık",
+        "Karakoyunlu",
+        "Merkez",
+        "Tuzluca"
+      ]
+    },
+    {
+      "name": "Isparta",
+      "code": "32",
+      "cities": [
+        "Aksu",
+        "Atabey",
+        "Eğirdir",
+        "Gelendost",
+        "Gönen",
+        "Keçiborlu",
+        "Merkez",
+        "Şarkikaraağaç",
+        "Senirkent",
+        "Sütçüler",
+        "Uluborlu",
+        "Yalvaç",
+        "Yenişarbademli"
+      ]
+    },
+    {
+      "name": "İstanbul",
+      "code": "34",
+      "cities": [
+        "Adalar",
+        "Arnavutköy",
+        "Ataşehir",
+        "Avcılar",
+        "Bağcılar",
+        "Bahçelievler",
+        "Bakırköy",
+        "Başakşehir",
+        "Bayrampaşa",
+        "Beşiktaş",
+        "Beykoz",
+        "Beylikdüzü",
+        "Beyoğlu",
+        "Büyükçekmece",
+        "Çatalca",
+        "Çekmeköy",
+        "Esenler",
+        "Esenyurt",
+        "Eyüpsultan",
+        "Fatih",
+        "Gaziosmanpaşa",
+        "Güngören",
+        "Istanbul",
+        "Kadıköy",
+        "Kâğıthane",
+        "Kartal",
+        "Küçükçekmece",
+        "Maltepe",
+        "Pendik",
+        "Sancaktepe",
+        "Sarıyer",
+        "Şile",
+        "Silivri",
+        "Şişli",
+        "Sultanbeyli",
+        "Sultangazi",
+        "Tuzla",
+        "Ümraniye",
+        "Üsküdar",
+        "Zeytinburnu"
+      ]
+    },
+    {
+      "name": "İzmir",
+      "code": "35",
+      "cities": [
+        "Aliağa",
+        "Balçova",
+        "Bayındır",
+        "Bayraklı",
+        "Bergama",
+        "Beydağ",
+        "Bornova",
+        "Buca",
+        "Çeşme",
+        "Çiğli",
+        "Dikili",
+        "Foça",
+        "Gaziemir",
+        "Güzelbahçe",
+        "İzmir",
+        "Karabağlar",
+        "Karaburun",
+        "Karşıyaka",
+        "Kemalpaşa",
+        "Kiraz",
+        "Kınık",
+        "Konak",
+        "Menderes",
+        "Menemen",
+        "Narlıdere",
+        "Ödemiş",
+        "Seferihisar",
+        "Selçuk",
+        "Tire",
+        "Torbalı",
+        "Urla"
+      ]
+    },
+    {
+      "name": "Kahramanmaraş",
+      "code": "46",
+      "cities": [
+        "Afşin",
+        "Andırın",
+        "Çağlayancerit",
+        "Dulkadiroğlu",
+        "Ekinözü",
+        "Elbistan",
+        "Göksun",
+        "Nurhak",
+        "Onikişubat",
+        "Pazarcık",
+        "Türkoğlu"
+      ]
+    },
+    {
+      "name": "Karabük",
+      "code": "78",
+      "cities": [
+        "Eflani",
+        "Eskipazar",
+        "Merkez",
+        "Ovacık",
+        "Safranbolu",
+        "Yenice"
+      ]
+    },
+    {
+      "name": "Karaman",
+      "code": "70",
+      "cities": [
+        "Ayrancı",
+        "Başyayla",
+        "Ermenek",
+        "Kazımkarabekir",
+        "Merkez",
+        "Sarıveliler"
+      ]
+    },
+    {
+      "name": "Kars",
+      "code": "36",
+      "cities": [
+        "Akyaka",
+        "Arpaçay",
+        "Digor",
+        "Kağızman",
+        "Merkez",
+        "Sarıkamış",
+        "Selim",
+        "Susuz"
+      ]
+    },
+    {
+      "name": "Kastamonu",
+      "code": "37",
+      "cities": [
+        "Abana",
+        "Ağlı",
+        "Araç",
+        "Azdavay",
+        "Bozkurt",
+        "Çatalzeytin",
+        "Cide",
+        "Daday",
+        "Devrekani",
+        "Doğanyurt",
+        "Hanönü",
+        "İhsangazi",
+        "İnebolu",
+        "Küre",
+        "Merkez",
+        "Pınarbaşı",
+        "Şenpazar",
+        "Seydiler",
+        "Taşköprü",
+        "Tosya"
+      ]
+    },
+    {
+      "name": "Kayseri",
+      "code": "38",
+      "cities": [
+        "Akkışla",
+        "Bünyan",
+        "Develi",
+        "Felahiye",
+        "Hacılar",
+        "İncesu",
+        "Kayseri",
+        "Kocasinan",
+        "Melikgazi",
+        "Özvatan",
+        "Pınarbaşı",
+        "Sarıoğlan",
+        "Sarız",
+        "Talas",
+        "Tomarza",
+        "Yahyalı",
+        "Yeşilhisar"
+      ]
+    },
+    {
+      "name": "Kilis",
+      "code": "79",
+      "cities": [
+        "Elbeyli",
+        "Merkez",
+        "Musabeyli",
+        "Polateli"
+      ]
+    },
+    {
+      "name": "Kırıkkale",
+      "code": "71",
+      "cities": [
+        "Bahşılı",
+        "Balışeyh",
+        "Çelebi",
+        "Delice",
+        "Karakeçili",
+        "Keskin",
+        "Merkez",
+        "Sulakyurt",
+        "Yahşihan"
+      ]
+    },
+    {
+      "name": "Kırklareli",
+      "code": "39",
+      "cities": [
+        "Babaeski",
+        "Demirköy",
+        "Kofçaz",
+        "Lüleburgaz",
+        "Merkez",
+        "Pehlivanköy",
+        "Pınarhisar",
+        "Vize"
+      ]
+    },
+    {
+      "name": "Kırşehir",
+      "code": "40",
+      "cities": [
+        "Akçakent",
+        "Akpınar",
+        "Boztepe",
+        "Çiçekdağı",
+        "Kaman",
+        "Merkez",
+        "Mucur"
+      ]
+    },
+    {
+      "name": "Kocaeli",
+      "code": "41",
+      "cities": [
+        "Başiskele",
+        "Çayırova",
+        "Darıca",
+        "Derince",
+        "Dilovası",
+        "Gebze",
+        "Gölcük",
+        "İzmit",
+        "Kandıra",
+        "Karamürsel",
+        "Kartepe",
+        "Körfez"
+      ]
+    },
+    {
+      "name": "Konya",
+      "code": "42",
+      "cities": [
+        "Ahırlı",
+        "Akören",
+        "Akşehir",
+        "Altınekin",
+        "Beyşehir",
+        "Bozkır",
+        "Çeltik",
+        "Cihanbeyli",
+        "Çumra",
+        "Derbent",
+        "Derebucak",
+        "Doğanhisar",
+        "Emirgazi",
+        "Ereğli",
+        "Güneysınır",
+        "Hadim",
+        "Halkapınar",
+        "Hüyük",
+        "Ilgın",
+        "Kadınhanı",
+        "Karapınar",
+        "Karatay",
+        "Kulu",
+        "Meram",
+        "Sarayönü",
+        "Selçuklu",
+        "Seydişehir",
+        "Taşkent",
+        "Tuzlukçu",
+        "Yalıhüyük",
+        "Yunak"
+      ]
+    },
+    {
+      "name": "Kütahya",
+      "code": "43",
+      "cities": [
+        "Altıntaş",
+        "Aslanapa",
+        "Çavdarhisar",
+        "Domaniç",
+        "Dumlupınar",
+        "Emet",
+        "Gediz",
+        "Hisarcık",
+        "Merkez",
+        "Pazarlar",
+        "Şaphane",
+        "Simav",
+        "Tavşanlı"
+      ]
+    },
+    {
+      "name": "Malatya",
+      "code": "44",
+      "cities": [
+        "Akçadağ",
+        "Arapgir",
+        "Arguvan",
+        "Battalgazi",
+        "Darende",
+        "Doğanşehir",
+        "Doğanyol",
+        "Hekimhan",
+        "Kale",
+        "Kuluncak",
+        "Pütürge",
+        "Yazıhan",
+        "Yeşilyurt"
+      ]
+    },
+    {
+      "name": "Manisa",
+      "code": "45",
+      "cities": [
+        "Ahmetli",
+        "Akhisar",
+        "Alaşehir",
+        "Demirci",
+        "Gölmarmara",
+        "Gördes",
+        "Kırkağaç",
+        "Köprübaşı",
+        "Kula",
+        "Salihli",
+        "Sarıgöl",
+        "Saruhanlı",
+        "Şehzadeler",
+        "Selendi",
+        "Soma",
+        "Turgutlu",
+        "Yunusemre"
+      ]
+    },
+    {
+      "name": "Mardin",
+      "code": "47",
+      "cities": [
+        "Artuklu",
+        "Dargeçit",
+        "Derik",
+        "Kızıltepe",
+        "Mazıdağı",
+        "Midyat",
+        "Nusaybin",
+        "Ömerli",
+        "Savur",
+        "Yeşilli"
+      ]
+    },
+    {
+      "name": "Mersin",
+      "code": "33",
+      "cities": [
+        "Akdeniz",
+        "Anamur",
+        "Aydıncık",
+        "Bozyazı",
+        "Çamlıyayla",
+        "Erdemli",
+        "Gülnar",
+        "Mersin",
+        "Mezitli",
+        "Mut",
+        "Silifke",
+        "Tarsus",
+        "Toroslar",
+        "Yenişehir"
+      ]
+    },
+    {
+      "name": "Muğla",
+      "code": "48",
+      "cities": [
+        "Bodrum",
+        "Dalaman",
+        "Datça",
+        "Fethiye",
+        "Kavaklıdere",
+        "Köyceğiz",
+        "Marmaris",
+        "Menteşe",
+        "Milas",
+        "Ortaca",
+        "Seydikemer",
+        "Ula",
+        "Yatağan"
+      ]
+    },
+    {
+      "name": "Muş",
+      "code": "49",
+      "cities": [
+        "Bulanık",
+        "Hasköy",
+        "Korkut",
+        "Malazgirt",
+        "Merkez",
+        "Varto"
+      ]
+    },
+    {
+      "name": "Nevşehir",
+      "code": "50",
+      "cities": [
+        "Acıgöl",
+        "Avanos",
+        "Derinkuyu",
+        "Gülşehir",
+        "Hacıbektaş",
+        "Kozaklı",
+        "Merkez",
+        "Ürgüp"
+      ]
+    },
+    {
+      "name": "Niğde",
+      "code": "51",
+      "cities": [
+        "Altunhisar",
+        "Bor",
+        "Çamardı",
+        "Çiftlik",
+        "Merkez",
+        "Ulukışla"
+      ]
+    },
+    {
+      "name": "Ordu",
+      "code": "52",
+      "cities": [
+        "Akkuş",
+        "Altınordu",
+        "Aybastı",
+        "Çamaş",
+        "Çatalpınar",
+        "Çaybaşı",
+        "Fatsa",
+        "Gölköy",
+        "Gülyalı",
+        "Gürgentepe",
+        "İkizce",
+        "Kabadüz",
+        "Kabataş",
+        "Korgan",
+        "Kumru",
+        "Mesudiye",
+        "Perşembe",
+        "Ulubey",
+        "Ünye"
+      ]
+    },
+    {
+      "name": "Osmaniye",
+      "code": "80",
+      "cities": [
+        "Bahçe",
+        "Düziçi",
+        "Hasanbeyli",
+        "Kadirli",
+        "Merkez",
+        "Sumbas",
+        "Toprakkale"
+      ]
+    },
+    {
+      "name": "Rize",
+      "code": "53",
+      "cities": [
+        "Ardeşen",
+        "Çamlıhemşin",
+        "Çayeli",
+        "Derepazarı",
+        "Fındıklı",
+        "Güneysu",
+        "Hemşin",
+        "İkizdere",
+        "İyidere",
+        "Kalkandere",
+        "Merkez",
+        "Pazar"
+      ]
+    },
+    {
+      "name": "Sakarya",
+      "code": "54",
+      "cities": [
+        "Adapazarı",
+        "Akyazı",
+        "Arifiye",
+        "Erenler",
+        "Ferizli",
+        "Geyve",
+        "Hendek",
+        "Karapürçek",
+        "Karasu",
+        "Kaynarca",
+        "Kocaali",
+        "Pamukova",
+        "Sapanca",
+        "Serdivan",
+        "Söğütlü",
+        "Taraklı"
+      ]
+    },
+    {
+      "name": "Samsun",
+      "code": "55",
+      "cities": [
+        "Alaçam",
+        "Asarcık",
+        "Atakum",
+        "Ayvacık",
+        "Bafra",
+        "Canik",
+        "Çarşamba",
+        "Havza",
+        "İlkadım",
+        "Kavak",
+        "Ladik",
+        "Ondokuzmayıs",
+        "Salıpazarı",
+        "Tekkeköy",
+        "Terme",
+        "Vezirköprü",
+        "Yakakent"
+      ]
+    },
+    {
+      "name": "Şanlıurfa",
+      "code": "63",
+      "cities": [
+        "Akçakale",
+        "Birecik",
+        "Bozova",
+        "Ceylanpınar",
+        "Eyyübiye",
+        "Halfeti",
+        "Haliliye",
+        "Harran",
+        "Hilvan",
+        "Karaköprü",
+        "Siverek",
+        "Suruç",
+        "Viranşehir"
+      ]
+    },
+    {
+      "name": "Siirt",
+      "code": "56",
+      "cities": [
+        "Baykan",
+        "Eruh",
+        "Kurtalan",
+        "Merkez",
+        "Pervari",
+        "Şirvan",
+        "Tillo"
+      ]
+    },
+    {
+      "name": "Sinop",
+      "code": "57",
+      "cities": [
+        "Ayancık",
+        "Boyabat",
+        "Dikmen",
+        "Durağan",
+        "Erfelek",
+        "Gerze",
+        "Merkez",
+        "Saraydüzü",
+        "Türkeli"
+      ]
+    },
+    {
+      "name": "Sivas",
+      "code": "58",
+      "cities": [
+        "Akıncılar",
+        "Altınyayla",
+        "Divriği",
+        "Doğanşar",
+        "Gemerek",
+        "Gölova",
+        "Gürün",
+        "Hafik",
+        "İmranlı",
+        "Kangal",
+        "Koyulhisar",
+        "Merkez",
+        "Şarkışla",
+        "Suşehri",
+        "Ulaş",
+        "Yıldızeli",
+        "Zara"
+      ]
+    },
+    {
+      "name": "Şırnak",
+      "code": "73",
+      "cities": [
+        "Beytüşşebap",
+        "Cizre",
+        "Güçlükonak",
+        "İdil",
+        "Merkez",
+        "Silopi",
+        "Uludere"
+      ]
+    },
+    {
+      "name": "Tekirdağ",
+      "code": "59",
+      "cities": [
+        "Çerkezköy",
+        "Çorlu",
+        "Ergene",
+        "Hayrabolu",
+        "Kapaklı",
+        "Malkara",
+        "Marmaraereğlisi",
+        "Muratlı",
+        "Saray",
+        "Şarköy",
+        "Süleymanpaşa"
+      ]
+    },
+    {
+      "name": "Tokat",
+      "code": "60",
+      "cities": [
+        "Almus",
+        "Artova",
+        "Başçiftlik",
+        "Erbaa",
+        "Merkez",
+        "Niksar",
+        "Pazar",
+        "Reşadiye",
+        "Sulusaray",
+        "Turhal",
+        "Yeşilyurt",
+        "Zile"
+      ]
+    },
+    {
+      "name": "Trabzon",
+      "code": "61",
+      "cities": [
+        "Akçaabat",
+        "Araklı",
+        "Arsin",
+        "Beşikdüzü",
+        "Çarşıbaşı",
+        "Çaykara",
+        "Dernekpazarı",
+        "Düzköy",
+        "Hayrat",
+        "Köprübaşı",
+        "Maçka",
+        "Of",
+        "Ortahisar",
+        "Şalpazarı",
+        "Sürmene",
+        "Tonya",
+        "Vakfıkebir",
+        "Yomra"
+      ]
+    },
+    {
+      "name": "Tunceli",
+      "code": "62",
+      "cities": [
+        "Çemişgezek",
+        "Hozat",
+        "Mazgirt",
+        "Merkez",
+        "Nazımiye",
+        "Ovacık",
+        "Pertek",
+        "Pülümür"
+      ]
+    },
+    {
+      "name": "Uşak",
+      "code": "64",
+      "cities": [
+        "Banaz",
+        "Eşme",
+        "Karahallı",
+        "Merkez",
+        "Sivaslı",
+        "Ulubey"
+      ]
+    },
+    {
+      "name": "Van",
+      "code": "65",
+      "cities": [
+        "Bahçesaray",
+        "Başkale",
+        "Çaldıran",
+        "Çatak",
+        "Edremit",
+        "Erciş",
+        "Gevaş",
+        "Gürpınar",
+        "İpekyolu",
+        "Muradiye",
+        "Özalp",
+        "Saray",
+        "Tuşba"
+      ]
+    },
+    {
+      "name": "Yalova",
+      "code": "77",
+      "cities": [
+        "Altınova",
+        "Armutlu",
+        "Çiftlikköy",
+        "Çınarcık",
+        "Merkez",
+        "Termal"
+      ]
+    },
+    {
+      "name": "Yozgat",
+      "code": "66",
+      "cities": [
+        "Akdağmadeni",
+        "Aydıncık",
+        "Boğazlıyan",
+        "Çandır",
+        "Çayıralan",
+        "Çekerek",
+        "Kadışehri",
+        "Merkez",
+        "Saraykent",
+        "Sarıkaya",
+        "Şefaatli",
+        "Sorgun",
+        "Yenifakılı",
+        "Yerköy"
+      ]
+    },
+    {
+      "name": "Zonguldak",
+      "code": "67",
+      "cities": [
+        "Alaplı",
+        "Çaycuma",
+        "Devrek",
+        "Ereğli",
+        "Gökçebey",
+        "Kilimli",
+        "Kozlu",
+        "Merkez"
+      ]
+    }
+  ]
+}

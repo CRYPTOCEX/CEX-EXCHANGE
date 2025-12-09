@@ -6,9 +6,9 @@ function createTranslationRoutes(api, translationState, wsManager) {
     router.get('/locales', async (req, res) => {
         try {
             const locales = {};
-            
+
             for (const [code, locale] of api.locales.entries()) {
-                const progress = api.calculateProgress(locale);
+                const progress = api.calculateProgress(locale, code);
                 locales[code] = {
                     name: locale.name,
                     totalKeys: locale.totalKeys,

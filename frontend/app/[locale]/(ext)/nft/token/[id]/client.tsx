@@ -57,7 +57,7 @@ interface NFTTokenClientProps {
 }
 
 export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
-  const t = useTranslations("nft/token");
+  const t = useTranslations("ext");
   const router = useRouter();
   const { user } = useUserStore();
   const { settings } = useConfigStore();
@@ -427,7 +427,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Owned by</span>
-                <Link href={`/nft/profile/${selectedToken.ownerId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                <Link href={`/nft/user/${selectedToken.ownerId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={selectedToken.owner?.avatar} />
                     <AvatarFallback>
@@ -444,7 +444,7 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
               {selectedToken.creator && selectedToken.creatorId !== selectedToken.ownerId && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Created by</span>
-                  <Link href={`/nft/profile/${selectedToken.creatorId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                  <Link href={`/nft/creator/${selectedToken.creatorId}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                     <Avatar className="w-6 h-6">
                       <AvatarImage src={selectedToken.creator?.user?.avatar || selectedToken.creator?.avatar} />
                       <AvatarFallback>
@@ -619,7 +619,8 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                           <div className="flex flex-col items-end gap-1">
                             <button
                               onClick={() => {
-                                const metadataUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/nft/metadata/${selectedToken.collectionId}/${selectedToken.tokenId}`;
+                                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:4000";
+                                const metadataUrl = `${siteUrl}/api/nft/metadata/${selectedToken.collectionId}/${selectedToken.tokenId}`;
                                 window.open(metadataUrl, '_blank');
                               }}
                               className="flex items-center gap-1 text-primary hover:opacity-80 text-xs"
@@ -629,7 +630,8 @@ export default function NFTTokenClient({ tokenId }: NFTTokenClientProps) {
                             </button>
                             <button
                               onClick={() => {
-                                const metadataUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/nft/metadata/${selectedToken.collectionId}/${selectedToken.tokenId}`;
+                                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:4000";
+                                const metadataUrl = `${siteUrl}/api/nft/metadata/${selectedToken.collectionId}/${selectedToken.tokenId}`;
                                 copyToClipboard(metadataUrl);
                               }}
                               className="flex items-center gap-1 text-muted-foreground hover:text-primary text-xs"

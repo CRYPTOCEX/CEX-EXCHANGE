@@ -311,8 +311,7 @@ export function FAQWizard({ isOpen, onClose, categories }: FAQWizardProps) {
                   {steps.length}
                 </span>
                 <span>
-                  {Math.round(progress)}
-                  {t("%_complete")}
+                  {Math.round(progress)}% {t("complete")}
                 </span>
               </div>
               <Progress value={progress} className="h-2" />

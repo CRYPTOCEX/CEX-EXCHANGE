@@ -37,6 +37,7 @@ export default async (data: { params?: any; user?: any }) => {
   // Import validation and utilities
   const { validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("./index.ws");
   const { sequelize } = await import("@b/db");
   const { getWalletSafe } = await import("@b/api/finance/wallet/utils");
   const { RedisSingleton } = await import("@b/utils/redis");
@@ -91,27 +92,25 @@ export default async (data: { params?: any; user?: any }) => {
     }
 
     // Check if already released (additional safety check)
-    if (["ESCROW_RELEASED", "COMPLETED", "DISPUTED", "CANCELLED"].includes(trade.status)) {
+    if (["COMPLETED", "DISPUTED", "CANCELLED", "EXPIRED"].includes(trade.status)) {
       await transaction.rollback();
-      throw createError({ 
-        statusCode: 400, 
-        message: `Funds already released or trade is in final state: ${trade.status}` 
+      throw createError({
+        statusCode: 400,
+        message: `Funds already released or trade is in final state: ${trade.status}`
       });
     }
 
-    // Validate status transition
-    const targetStatus = trade.status === "PAYMENT_SENT" ? "ESCROW_RELEASED" : "COMPLETED";
-    
-    if (!validateTradeStatusTransition(trade.status, targetStatus)) {
+    // Validate status transition - from PAYMENT_SENT to COMPLETED
+    if (!validateTradeStatusTransition(trade.status, "COMPLETED")) {
       await transaction.rollback();
-      throw createError({ 
-        statusCode: 400, 
-        message: `Cannot release funds from status: ${trade.status}` 
+      throw createError({
+        statusCode: 400,
+        message: `Cannot release funds from status: ${trade.status}`
       });
     }
 
-    // For ESCROW_RELEASED, transfer funds to buyer
-    if (targetStatus === "ESCROW_RELEASED") {
+    // Transfer funds to buyer when status is PAYMENT_SENT
+    if (trade.status === "PAYMENT_SENT") {
       // This applies to ALL wallet types including FIAT
       // Note: For FIAT, the actual payment happens peer-to-peer externally,
       // but we still need to update platform balances for accounting
@@ -131,12 +130,17 @@ export default async (data: { params?: any; user?: any }) => {
         });
       }
 
-      // Verify funds are still locked
-      if (sellerWallet.inOrder < trade.amount) {
+      // CRITICAL: Calculate safe amounts to prevent negative values
+      // This handles edge cases where funds might have been partially processed
+      const safeUnlockAmount = Math.min(trade.amount, sellerWallet.inOrder);
+      const safeDeductAmount = Math.min(trade.amount, sellerWallet.balance);
+
+      // Verify we have at least some funds to release
+      if (safeUnlockAmount <= 0 && safeDeductAmount <= 0) {
         await transaction.rollback();
         throw createError({
           statusCode: 400,
-          message: "Insufficient locked funds"
+          message: "No locked funds available to release"
         });
       }
 
@@ -144,14 +148,29 @@ export default async (data: { params?: any; user?: any }) => {
       const previousBalance = sellerWallet.balance;
       const previousInOrder = sellerWallet.inOrder;
 
-      // Unlock funds from seller and deduct balance
+      // Unlock funds from seller and deduct balance (with safe amounts)
+      const newBalance = Math.max(0, sellerWallet.balance - safeDeductAmount);
+      const newInOrder = Math.max(0, sellerWallet.inOrder - safeUnlockAmount);
+
       await models.wallet.update({
-        balance: sellerWallet.balance - trade.amount,
-        inOrder: sellerWallet.inOrder - trade.amount,
+        balance: newBalance,
+        inOrder: newInOrder,
       }, {
         where: { id: sellerWallet.id },
         transaction
       });
+
+      // Log warning if amounts don't match expected
+      if (safeDeductAmount < trade.amount || safeUnlockAmount < trade.amount) {
+        console.warn('[P2P Trade Release] WARNING: Partial fund release:', {
+          tradeId: trade.id,
+          tradeAmount: trade.amount,
+          actualDeducted: safeDeductAmount,
+          actualUnlocked: safeUnlockAmount,
+          sellerBalance: previousBalance,
+          sellerInOrder: previousInOrder,
+        });
+      }
 
       // Audit log for funds unlocking
       await createP2PAuditLog({
@@ -162,20 +181,29 @@ export default async (data: { params?: any; user?: any }) => {
         metadata: {
           tradeId: trade.id,
           amount: trade.amount,
+          actualDeducted: safeDeductAmount,
+          actualUnlocked: safeUnlockAmount,
           currency: trade.offer.currency,
           previousBalance: previousBalance,
-          newBalance: previousBalance - trade.amount,
+          newBalance: newBalance,
           previousInOrder: previousInOrder,
-          newInOrder: previousInOrder - trade.amount,
+          newInOrder: newInOrder,
         },
         riskLevel: P2PRiskLevel.HIGH,
       });
 
-      // Calculate net amounts after fees
-      const buyerNetAmount = trade.amount - (trade.buyerFee || 0);
-      const sellerNetAmount = trade.amount - (trade.sellerFee || 0);
+      // Calculate fees - use escrowFee as the primary fee (shown to users)
+      // The escrowFee is a string, so we need to parse it
+      const escrowFeeAmount = parseFloat(trade.escrowFee || "0");
 
-      // Transfer to buyer (net amount after fees)
+      // For P2P, the fee is deducted from the trade amount before buyer receives it
+      // Seller provides trade.amount, platform takes escrowFee, buyer gets the rest
+      // CRITICAL: Use actual deducted amount to calculate buyer's net amount
+      const platformFee = Math.min(escrowFeeAmount, safeDeductAmount);
+      const buyerNetAmount = Math.max(0, safeDeductAmount - platformFee);
+      const sellerNetAmount = safeDeductAmount; // Seller pays the actual deducted amount
+
+      // Transfer to buyer (net amount after platform fee)
       const buyerWallet = await getWalletSafe(
         trade.buyerId,
         trade.offer.walletType,
@@ -192,9 +220,13 @@ export default async (data: { params?: any; user?: any }) => {
           inOrder: 0,
         }, { transaction });
       } else {
-        await buyerWallet.update({
+        // Use models.wallet.update since getWalletSafe returns a plain object
+        await models.wallet.update({
           balance: buyerWallet.balance + buyerNetAmount,
-        }, { transaction });
+        }, {
+          where: { id: buyerWallet.id },
+          transaction
+        });
       }
       
       // Audit log for funds transfer
@@ -206,56 +238,80 @@ export default async (data: { params?: any; user?: any }) => {
         metadata: {
           fromUserId: trade.sellerId,
           toUserId: trade.buyerId,
-          amount: trade.amount,
+          requestedAmount: trade.amount,
+          actualDeducted: safeDeductAmount,
           buyerNetAmount,
-          sellerFee: trade.sellerFee || 0,
-          buyerFee: trade.buyerFee || 0,
+          platformFee,
+          escrowFee: escrowFeeAmount,
           currency: trade.offer.currency,
           walletType: trade.offer.walletType,
         },
         riskLevel: P2PRiskLevel.CRITICAL,
       });
 
-      // Create transaction records
+      // Create transaction records for seller (uses seller's wallet)
+      // CRITICAL: Use actual deducted amount for accurate transaction records
       await models.transaction.create({
         userId: trade.sellerId,
-        type: "P2P_RELEASE",
+        walletId: sellerWallet.id,
+        type: "P2P_TRADE",
         status: "COMPLETED",
-        amount: -trade.amount,
-        fee: trade.sellerFee || 0,
-        currency: trade.offer.currency,
+        amount: -safeDeductAmount,
+        fee: platformFee, // Platform fee deducted from trade
         description: `P2P trade release #${trade.id}`,
-        referenceId: trade.id,
+        referenceId: `p2p-sell-${trade.id}`,
       }, { transaction });
 
-      await models.transaction.create({
-        userId: trade.buyerId,
-        type: "P2P_RECEIVE",
-        status: "COMPLETED",
-        amount: buyerNetAmount,
-        fee: trade.buyerFee || 0,
-        currency: trade.offer.currency,
-        description: `P2P trade receive #${trade.id}`,
-        referenceId: trade.id,
-      }, { transaction });
+      // Create transaction record for buyer (uses buyer's wallet)
+      const buyerWalletForTx = buyerWallet || await models.wallet.findOne({
+        where: { userId: trade.buyerId, type: trade.offer.walletType, currency: trade.offer.currency },
+        transaction,
+      });
 
-      // Create fee transactions if applicable
-      const { createFeeTransactions } = await import("../../utils/fees");
-      if ((trade.buyerFee || 0) > 0 || (trade.sellerFee || 0) > 0) {
-        await createFeeTransactions(
-          trade.id,
-          trade.buyerId,
-          trade.sellerId,
-          {
-            buyerFee: trade.buyerFee || 0,
-            sellerFee: trade.sellerFee || 0,
-            totalFee: (trade.buyerFee || 0) + (trade.sellerFee || 0),
-            netAmountBuyer: buyerNetAmount,
-            netAmountSeller: sellerNetAmount,
-          },
-          trade.offer.currency,
-          transaction
-        );
+      if (buyerWalletForTx) {
+        await models.transaction.create({
+          userId: trade.buyerId,
+          walletId: buyerWalletForTx.id,
+          type: "P2P_TRADE",
+          status: "COMPLETED",
+          amount: buyerNetAmount, // Buyer receives amount minus platform fee
+          fee: 0, // Fee was already deducted
+          description: `P2P trade receive #${trade.id}`,
+          referenceId: `p2p-buy-${trade.id}`,
+        }, { transaction });
+      }
+
+      // Record platform commission if there's a fee
+      if (platformFee > 0) {
+        // Get system admin ID for commission recording
+        const systemAdmin = await models.user.findOne({
+          include: [{
+            model: models.role,
+            as: "role",
+            where: { name: "Super Admin" },
+          }],
+          order: [["createdAt", "ASC"]], // Get the oldest super admin
+          transaction,
+        });
+
+        if (systemAdmin) {
+          // Record the commission in p2pCommission table
+          await models.p2pCommission.create({
+            adminId: systemAdmin.id,
+            amount: platformFee,
+            description: `P2P escrow fee for trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency}`,
+            tradeId: trade.id,
+          }, { transaction });
+
+          console.log('[P2P Trade Release] Platform commission recorded:', {
+            tradeId: trade.id,
+            adminId: systemAdmin.id,
+            platformFee,
+            currency: trade.offer.currency,
+          });
+        } else {
+          console.warn('[P2P Trade Release] No super admin found to assign commission');
+        }
       }
 
       console.log('[P2P Trade Release] Funds transferred:', {
@@ -264,78 +320,90 @@ export default async (data: { params?: any; user?: any }) => {
         buyerId: trade.buyerId,
         walletType: trade.offer.walletType,
         currency: trade.offer.currency,
-        amount: trade.amount,
-        buyerNetAmount,
-        sellerNetAmount,
+        requestedAmount: trade.amount,
+        actualDeducted: safeDeductAmount,
+        platformFee,
+        buyerReceives: buyerNetAmount,
         note: trade.offer.walletType === "FIAT"
           ? "FIAT trade completed - platform balances updated, actual payment happens externally"
-          : "Crypto transferred from seller to buyer"
+          : "Crypto transferred from seller to buyer (minus platform fee)"
       });
     }
 
     // Update trade status and timeline
-    const timeline = trade.timeline || [];
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === "string") {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error("Failed to parse timeline JSON:", e);
+        timeline = [];
+      }
+    }
+
+    // Ensure timeline is an array
+    if (!Array.isArray(timeline)) {
+      timeline = [];
+    }
+
     timeline.push({
-      event: targetStatus === "ESCROW_RELEASED" ? "FUNDS_RELEASED" : "TRADE_COMPLETED",
-      message: targetStatus === "ESCROW_RELEASED" ? "Seller released funds" : "Trade completed",
+      event: "FUNDS_RELEASED",
+      message: "Seller released funds - Trade completed",
       userId: user.id,
       createdAt: new Date().toISOString(),
     });
 
-    await trade.update({ 
-      status: targetStatus,
-      timeline,
-      completedAt: targetStatus === "COMPLETED" ? new Date() : undefined,
-      escrowReleasedAt: targetStatus === "ESCROW_RELEASED" ? new Date() : undefined,
-    }, { transaction });
+    const previousStatus = trade.status;
+    const completedAt = new Date();
 
-    // If moving to completed, update the next status
-    if (targetStatus === "ESCROW_RELEASED") {
-      // Auto-complete after escrow release (could be configurable)
-      setTimeout(async () => {
-        try {
-          await trade.update({ 
-            status: "COMPLETED",
-            completedAt: new Date(),
-          });
-        } catch (error) {
-          console.error("Failed to auto-complete trade:", error);
-        }
-      }, 5000); // 5 seconds delay
-    }
+    await trade.update({
+      status: "COMPLETED",
+      timeline,
+      completedAt,
+    }, { transaction });
 
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
-      type: targetStatus === "ESCROW_RELEASED" ? "FUNDS_RELEASED" : "TRADE_COMPLETED",
-      entityId: trade.id,
-      entityType: "TRADE",
-      metadata: {
-        previousStatus: trade.status,
+      type: "TRADE_COMPLETED",
+      action: "TRADE_COMPLETED",
+      relatedEntity: "TRADE",
+      relatedEntityId: trade.id,
+      details: JSON.stringify({
+        previousStatus,
         amount: trade.amount,
         currency: trade.offer.currency,
-      },
+      }),
     }, { transaction });
 
     await transaction.commit();
 
-    // Send notifications
-    notifyTradeEvent(trade.id, targetStatus, {
+    // Send notifications - use TRADE_COMPLETED event
+    notifyTradeEvent(trade.id, "TRADE_COMPLETED", {
       buyerId: trade.buyerId,
       sellerId: trade.sellerId,
       amount: trade.amount,
       currency: trade.offer.currency,
     }).catch(console.error);
 
-    const result = { 
-      message: targetStatus === "ESCROW_RELEASED" 
-        ? "Funds released successfully." 
-        : "Trade completed successfully.",
+    // Broadcast WebSocket event for real-time updates
+    broadcastP2PTradeEvent(trade.id, {
+      type: "STATUS_CHANGE",
+      data: {
+        status: "COMPLETED",
+        previousStatus,
+        completedAt,
+        timeline,
+      },
+    });
+
+    const result = {
+      message: "Funds released successfully. Trade completed.",
       trade: {
         id: trade.id,
-        status: targetStatus,
-        completedAt: trade.completedAt,
-        escrowReleasedAt: trade.escrowReleasedAt,
+        status: "COMPLETED",
+        completedAt,
       }
     };
 

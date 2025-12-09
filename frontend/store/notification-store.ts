@@ -93,27 +93,28 @@ const computeStats = (
 };
 
 export const useNotificationsStore = create<NotificationsState>()(
-  (set, get) => ({
-    notifications: [],
-    isLoading: false,
-    error: null,
-    stats: {
-      total: 0,
-      unread: 0,
-      types: {
-        investment: 0,
-        message: 0,
-        alert: 0,
-        system: 0,
-        user: 0,
+  persist(
+    (set, get) => ({
+      notifications: [],
+      isLoading: false,
+      error: null,
+      stats: {
+        total: 0,
+        unread: 0,
+        types: {
+          investment: 0,
+          message: 0,
+          alert: 0,
+          system: 0,
+          user: 0,
+        },
+        trend: {
+          percentage: 0,
+          increasing: true,
+        },
       },
-      trend: {
-        percentage: 0,
-        increasing: true,
-      },
-    },
-    lastFetched: null,
-    cacheExpiry: 5 * 60 * 1000, // 5 minutes
+      lastFetched: null,
+      cacheExpiry: 30 * 1000, // 30 seconds for more frequent updates
 
     fetchNotifications: async () => {
       const now = Date.now();
@@ -362,10 +363,14 @@ export const useNotificationsStore = create<NotificationsState>()(
         : [];
       let newNotifications = notificationArray;
       if (msg.method === "create") {
-        newNotifications = [
-          msg.payload as notificationAttributes,
-          ...notificationArray,
-        ];
+        // Check for duplicates before adding
+        const existingIds = new Set(notificationArray.map(n => n.id));
+        if (!(msg.payload as notificationAttributes).id || !existingIds.has((msg.payload as notificationAttributes).id)) {
+          newNotifications = [
+            msg.payload as notificationAttributes,
+            ...notificationArray,
+          ];
+        }
       } else if (msg.method === "update") {
         newNotifications = notificationArray.map((n) =>
           n.id === (msg.payload as notificationAttributes).id
@@ -386,10 +391,15 @@ export const useNotificationsStore = create<NotificationsState>()(
     },
 
     // New: Sound preference and toggle function.
-    soundEnabled: false,
+    soundEnabled: true, // Default to enabled for better user experience
     toggleSound: () => {
       const newVal = !get().soundEnabled;
       set({ soundEnabled: newVal });
     },
-  })
+  }),
+  {
+    name: "notification-preferences",
+    partialize: (state) => ({ soundEnabled: state.soundEnabled }),
+  }
+  )
 );

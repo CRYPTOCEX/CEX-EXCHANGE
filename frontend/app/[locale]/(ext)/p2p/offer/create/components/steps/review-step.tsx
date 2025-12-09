@@ -80,7 +80,7 @@ export function ReviewStep() {
             <Badge variant={Number(price.value) > 0 ? "outline" : "secondary"}>
               {Number(price.value) > 0 ? "+" : ""}{" "}
               {price.value}{" "}
-              {t("%_from_market_price")}
+              % {t("from_market_price")}
             </Badge>
           )}
         </div>
@@ -102,7 +102,7 @@ export function ReviewStep() {
           <Badge variant={Number(price.value) > 0 ? "outline" : "secondary"}>
             {Number(price.value) > 0 ? "+" : ""}{" "}
             {price.value}{" "}
-            {t("%_from_market_price")}
+            % {t("from_market_price")}
           </Badge>
         )}
       </div>
@@ -550,8 +550,7 @@ export function ReviewStep() {
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="px-3 py-1">
                             {t("Min")}.
-                            {tradeData.userRequirements.minSuccessRate}
-                            {t("%_success_rate")}
+                            {tradeData.userRequirements.minSuccessRate}% {t("success_rate")}
                           </Badge>
                         </div>
                       )}

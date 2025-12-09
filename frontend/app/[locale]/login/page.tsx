@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter, Link } from "@/i18n/routing";
 
 export default function LoginPage() {
-  const t = useTranslations("auth/login");
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();

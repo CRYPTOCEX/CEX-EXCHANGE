@@ -10,22 +10,23 @@ interface TradeProgressProps {
 
 export function TradeProgress({ status }: TradeProgressProps) {
   const t = useTranslations("ext");
+
+  // Normalize status to uppercase for comparison
+  const normalizedStatus = status?.toUpperCase() || "";
+
   const getTradeProgress = () => {
-    switch (status) {
-      case "created":
-        return 10;
-      case "funded":
-        return 25;
-      case "waiting_payment":
-        return 50;
-      case "payment_confirmed":
-        return 75;
-      case "completed":
-        return 100;
-      case "disputed":
-        return 60;
-      case "cancelled":
-        return 100;
+    switch (normalizedStatus) {
+      case "PENDING":
+        return 25; // Trade created, escrow funded, waiting for payment
+      case "PAYMENT_SENT":
+        return 50; // Payment confirmed by buyer, waiting for seller to verify
+      case "COMPLETED":
+        return 100; // Trade completed, funds released
+      case "DISPUTED":
+        return 60; // Trade is under dispute
+      case "CANCELLED":
+      case "EXPIRED":
+        return 100; // Terminal states
       default:
         return 0;
     }
@@ -33,34 +34,41 @@ export function TradeProgress({ status }: TradeProgressProps) {
 
   const progress = getTradeProgress();
 
+  // Determine step states based on normalized status
+  const isTradeCreated = ["PENDING", "PAYMENT_SENT", "COMPLETED", "DISPUTED"].includes(normalizedStatus);
+  const isPaymentPending = normalizedStatus === "PENDING";
+  const isPaymentConfirmed = ["PAYMENT_SENT", "COMPLETED"].includes(normalizedStatus);
+  const isTradeCompleted = normalizedStatus === "COMPLETED";
+  const isDisputed = normalizedStatus === "DISPUTED";
+
   const steps = [
     {
       title: "Trade Created",
       description: "Escrow funded",
       icon: ShieldCheck,
-      complete: progress >= 25,
-      active: progress < 25,
+      complete: isTradeCreated,
+      active: !isTradeCreated,
     },
     {
       title: "Payment Pending",
       description: "Waiting for payment",
       icon: Clock,
-      complete: progress >= 50,
-      active: progress >= 25 && progress < 50,
+      complete: isPaymentConfirmed || isTradeCompleted,
+      active: isPaymentPending,
     },
     {
       title: "Payment Confirmed",
       description: "Verification in progress",
-      icon: AlertCircle,
-      complete: progress >= 75,
-      active: progress >= 50 && progress < 75,
+      icon: isDisputed ? AlertCircle : CheckCircle2,
+      complete: isTradeCompleted,
+      active: isPaymentConfirmed && !isTradeCompleted,
     },
     {
       title: "Trade Completed",
       description: "Funds released",
       icon: CheckCircle2,
-      complete: progress >= 100,
-      active: progress >= 75 && progress < 100,
+      complete: isTradeCompleted,
+      active: false,
     },
   ];
 

@@ -25,9 +25,7 @@ export default function PlanSelector({
   isLoadingPlans,
   selectedPlanId,
 }: PlanSelectorProps) {
-  const t = useTranslations(
-    "trade/components/trading/ai-investment/plan-selector"
-  );
+  const t = useTranslations("ext");
   const setSelectedPlan = useAiInvestmentStore(
     (state) => state.setSelectedPlan
   );
@@ -77,9 +75,7 @@ export default function PlanSelector({
 }
 
 function PlanCard({ plan, isSelected, onSelect }) {
-  const t = useTranslations(
-    "trade/components/trading/ai-investment/plan-selector"
-  );
+  const t = useTranslations("ext");
   const [isHovered, setIsHovered] = useState(false);
 
   // Format currency with appropriate decimals

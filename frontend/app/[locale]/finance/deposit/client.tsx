@@ -336,7 +336,7 @@ const ManualDepositForm = ({ method, currency, amount, onSubmit, loading, onBack
 };
 
 export function DepositForm() {
-  const t = useTranslations("finance/deposit");
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
@@ -2928,15 +2928,15 @@ export function DepositForm() {
                       
                       <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
                         <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-2">
-                          ⚠️ {t("⚠️_deposit_will_transaction_hash")}
+                          ⚠️ {t("deposit_will_need_transaction_hash")}
                         </p>
                         <div className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
                           <p className="font-medium">{t("how_to_find_your_transaction_hash")}</p>
                           <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li>{t("•_check_your_wallets_transaction_history")}</li>
-                            <li>{t("•_look_for_the_recent")} {selectedCurrency} {t("transaction")}</li>
-                            <li>{t("•_copy_the_with_0x)")}</li>
-                            <li>{t("•_paste_it_in_the_field_above")}</li>
+                            <li>{t("check_your_wallets_transaction_history")}</li>
+                            <li>{t("look_for_the_recent")} {selectedCurrency} {t("transaction")}</li>
+                            <li>{t("copy_the_hash_starting_with_0x")}</li>
+                            <li>{t("paste_it_in_the_field_above")}</li>
                           </ul>
                           <p className="font-medium mt-2">{t("you_must_submit_your_deposit")}</p>
                         </div>

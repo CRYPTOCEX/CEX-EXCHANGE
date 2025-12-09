@@ -153,7 +153,7 @@ const RESOLUTION_TYPES = [
 ];
 
 export function DisputeManagementClient() {
-  const t = useTranslations("admin.nft.dispute");
+  const t = useTranslations("ext");
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
@@ -376,9 +376,9 @@ export function DisputeManagementClient() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Dispute Management</h1>
+          <h1 className="text-3xl font-bold">{t("dispute_management")}</h1>
           <p className="text-muted-foreground">
-            Manage and resolve NFT marketplace disputes
+            {t("manage_and_resolve_nft_marketplace_disputes")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -397,7 +397,7 @@ export function DisputeManagementClient() {
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Disputes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_disputes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -437,7 +437,7 @@ export function DisputeManagementClient() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg Resolution</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_resolution")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.averageResolutionTime}h</div>
@@ -454,7 +454,7 @@ export function DisputeManagementClient() {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search disputes..."
+                placeholder={t("search_disputes_ellipsis")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -465,7 +465,7 @@ export function DisputeManagementClient() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ALL">{t("all_statuses")}</SelectItem>
                 {DISPUTE_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
@@ -478,7 +478,7 @@ export function DisputeManagementClient() {
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Priorities</SelectItem>
+                <SelectItem value="ALL">{t("all_priorities")}</SelectItem>
                 {DISPUTE_PRIORITIES.map((priority) => (
                   <SelectItem key={priority.value} value={priority.value}>
                     {priority.label}
@@ -559,7 +559,7 @@ export function DisputeManagementClient() {
           {selectedDispute ? (
             <Card>
               <CardHeader>
-                <CardTitle>Dispute Details</CardTitle>
+                <CardTitle>{t("dispute_details")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Quick Actions */}
@@ -592,7 +592,7 @@ export function DisputeManagementClient() {
 
                 {/* Parties Involved */}
                 <div className="space-y-3">
-                  <Label>Parties Involved</Label>
+                  <Label>{t("parties_involved")}</Label>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
@@ -656,7 +656,7 @@ export function DisputeManagementClient() {
                   </ScrollArea>
                   <div className="space-y-2">
                     <Textarea
-                      placeholder="Type your message..."
+                      placeholder={t("type_your_message_ellipsis")}
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
                       className="min-h-[80px]"
@@ -670,7 +670,7 @@ export function DisputeManagementClient() {
                           onChange={(e) => setIsInternalMessage(e.target.checked)}
                         />
                         <Label htmlFor="internal" className="text-sm">
-                          Internal note
+                          {t("internal_note")}
                         </Label>
                       </div>
                       <Button onClick={handleSendMessage} size="sm">
@@ -686,7 +686,7 @@ export function DisputeManagementClient() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <Scale className="h-12 w-12 mb-4" />
-                <p>Select a dispute to view details</p>
+                <p>{t("select_a_dispute_to_view_details")}</p>
               </CardContent>
             </Card>
           )}
@@ -697,14 +697,14 @@ export function DisputeManagementClient() {
       <Dialog open={resolutionModalOpen} onOpenChange={setResolutionModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Resolve Dispute</DialogTitle>
+            <DialogTitle>{t("resolve_dispute")}</DialogTitle>
             <DialogDescription>
-              Choose a resolution type and provide details for this dispute.
+              {t("choose_a_resolution_type_and_provide")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Resolution Type</Label>
+              <Label>{t("resolution_type")}</Label>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {RESOLUTION_TYPES.map((type) => (
                   <Card
@@ -730,10 +730,10 @@ export function DisputeManagementClient() {
             {(resolutionForm.resolutionType === "REFUND" ||
               resolutionForm.resolutionType === "PARTIAL_REFUND") && (
               <div>
-                <Label>Refund Amount</Label>
+                <Label>{t("refund_amount")}</Label>
                 <Input
                   type="number"
-                  placeholder="Enter refund amount"
+                  placeholder={t("enter_refund_amount")}
                   value={resolutionForm.refundAmount}
                   onChange={(e) =>
                     setResolutionForm({
@@ -747,9 +747,9 @@ export function DisputeManagementClient() {
             )}
 
             <div>
-              <Label>Resolution Details</Label>
+              <Label>{t("resolution_details")}</Label>
               <Textarea
-                placeholder="Provide detailed resolution explanation..."
+                placeholder={t("provide_detailed_resolution_explanation_ellipsis")}
                 value={resolutionForm.resolution}
                 onChange={(e) =>
                   setResolutionForm({ ...resolutionForm, resolution: e.target.value })
@@ -763,8 +763,7 @@ export function DisputeManagementClient() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Warning</AlertTitle>
                 <AlertDescription>
-                  Banning a user will prevent them from using the marketplace. This action
-                  requires additional approval.
+                  {t("banning_a_user_will_prevent_them")} {t("this_action_requires_additional_approval")}
                 </AlertDescription>
               </Alert>
             )}
@@ -774,7 +773,7 @@ export function DisputeManagementClient() {
               Cancel
             </Button>
             <Button onClick={handleResolveDispute}>
-              Resolve Dispute
+              {t("resolve_dispute")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -24,7 +24,7 @@ export default function AiInvestmentForm({
   isEco = false,
   symbol,
 }: AiInvestmentFormProps) {
-  const t = useTranslations("trade/components/trading/ai-investment/index");
+  const t = useTranslations("ext");
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -290,7 +290,7 @@ export default function AiInvestmentForm({
 }
 
 function FormHeader() {
-  const t = useTranslations("trade/components/trading/ai-investment/index");
+  const t = useTranslations("ext");
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">

@@ -1,5 +1,6 @@
 import React from "react";
 import { Coins, Package, User, Shield, TrendingUp, Eye, Calendar, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export const columns = [
   {
@@ -102,7 +103,7 @@ export const columns = [
             type: "custom",
             render: (value) => {
               if (value === true || value === 1 || value === "true") {
-                return <span className="text-xs text-green-600 dark:text-green-400">✓ Verified</span>;
+                return <span className="text-xs text-green-600 dark:text-green-400">{t("verified")}</span>;
               }
               return null; // Don't show anything if not verified
             }
@@ -167,7 +168,7 @@ export const columns = [
       type: "custom",
       render: (value, row) => {
         if (!row.creator || !row.creator.user) {
-          return <span className="text-muted-foreground">No creator assigned</span>;
+          return <span className="text-muted-foreground">{t("no_creator_assigned")}</span>;
         }
 
         const creator = row.creator;
@@ -231,7 +232,7 @@ export const columns = [
         if (!value || value === null || value === undefined) {
           return (
             <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-              Not Set
+              {t("not_set")}
             </span>
           );
         }

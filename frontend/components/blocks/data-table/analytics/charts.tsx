@@ -21,7 +21,7 @@ interface AnalyticsChartsProps {
 }
 
 export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
-  const t = useTranslations("components/blocks/data-table/analytics/charts");
+  const t = useTranslations("common");
   const {
     analyticsData,
     fetchAnalyticsData,

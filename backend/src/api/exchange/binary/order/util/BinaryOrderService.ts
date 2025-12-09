@@ -8,26 +8,8 @@ import {
   ensureNotBanned,
   getBinaryOrder,
   getBinaryOrdersByStatus,
-  validateBinaryProfit,
 } from "../utils";
 import { broadcastLog } from "@b/utils/crons/broadcast";
-
-// Dynamic profit margins per type
-const binaryRiseFallProfit = validateBinaryProfit(
-  process.env.NEXT_PUBLIC_BINARY_PROFIT
-);
-const binaryHigherLowerProfit = validateBinaryProfit(
-  process.env.NEXT_PUBLIC_BINARY_HIGHER_LOWER_PROFIT
-);
-const binaryTouchNoTouchProfit = validateBinaryProfit(
-  process.env.NEXT_PUBLIC_BINARY_TOUCH_NO_TOUCH_PROFIT
-);
-const binaryCallPutProfit = validateBinaryProfit(
-  process.env.NEXT_PUBLIC_BINARY_CALL_PUT_PROFIT
-);
-const binaryTurboProfit = validateBinaryProfit(
-  process.env.NEXT_PUBLIC_BINARY_TURBO_PROFIT
-);
 
 export class BinaryOrderService {
   private static orderIntervals = new Map<string, NodeJS.Timeout>();
@@ -39,6 +21,7 @@ export class BinaryOrderService {
     amount,
     side,
     type,
+    durationId,
     durationType = "TIME",
     barrier,
     strikePrice,
@@ -52,6 +35,7 @@ export class BinaryOrderService {
     amount: number;
     side: BinaryOrderSide;
     type: BinaryOrderType;
+    durationId: string;
     durationType?: "TIME" | "TICKS";
     barrier?: number;
     strikePrice?: number;
@@ -98,6 +82,21 @@ export class BinaryOrderService {
         message: "closedAt must be a future time",
       });
     }
+
+    // Fetch the binary duration by ID to get profit percentage
+    const binaryDuration = await models.binaryDuration.findOne({
+      where: { id: durationId, status: true },
+    });
+
+    if (!binaryDuration) {
+      throw createError({
+        statusCode: 400,
+        message: "Invalid or inactive duration selected",
+      });
+    }
+
+    // Store profitPercentage with the order for later use
+    const profitPercentage = binaryDuration.profitPercentage;
 
     await ensureNotBanned();
 
@@ -173,6 +172,7 @@ export class BinaryOrderService {
           amount: amount,
           isDemo: isDemo,
           closedAt: closeAtDate,
+          profitPercentage: profitPercentage,
           barrier: ["HIGHER_LOWER", "TOUCH_NO_TOUCH", "TURBO"].includes(type)
             ? barrier
             : null,
@@ -763,23 +763,26 @@ function determineRiseFallStatus(
   closePrice: number,
   updateData: Partial<binaryOrderAttributes>
 ) {
+  const profitPercentage = order.profitPercentage || 85; // Fallback to 85% if not set
   if (order.side === "RISE") {
     if (closePrice > order.price) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryRiseFallProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === order.price) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   } else {
     if (closePrice < order.price) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryRiseFallProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === order.price) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   }
   return updateData;
@@ -790,24 +793,27 @@ function determineHigherLowerStatus(
   closePrice: number,
   updateData: Partial<binaryOrderAttributes>
 ) {
+  const profitPercentage = order.profitPercentage || 85; // Fallback to 85% if not set
   const hlBarrier = order.barrier!;
   if (order.side === "HIGHER") {
     if (closePrice > hlBarrier) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryHigherLowerProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === hlBarrier) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   } else {
     if (closePrice < hlBarrier) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryHigherLowerProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === hlBarrier) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   }
   return updateData;
@@ -818,19 +824,22 @@ function determineTouchNoTouchStatus(
   touched: boolean | undefined,
   updateData: Partial<binaryOrderAttributes>
 ) {
+  const profitPercentage = order.profitPercentage || 85; // Fallback to 85% if not set
   if (order.side === "TOUCH") {
     if (touched) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryTouchNoTouchProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   } else {
     if (!touched) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryTouchNoTouchProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   }
   return updateData;
@@ -841,31 +850,35 @@ function determineCallPutStatus(
   closePrice: number,
   updateData: Partial<binaryOrderAttributes>
 ) {
+  const profitPercentage = order.profitPercentage || 85; // Fallback to 85% if not set
   const { strikePrice } = order;
   if (!strikePrice) {
     console.error(
       `CALL_PUT order ${order.id} missing strikePrice. Defaulting to LOSS.`
     );
     updateData.status = "LOSS";
+    updateData.profit = order.amount; // Store the loss amount
     return updateData;
   }
   if (order.side === "CALL") {
     if (closePrice > strikePrice) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryCallPutProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === strikePrice) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   } else {
     if (closePrice < strikePrice) {
       updateData.status = "WIN";
-      updateData.profit = order.amount * (binaryCallPutProfit / 100);
+      updateData.profit = order.amount * (profitPercentage / 100);
     } else if (closePrice === strikePrice) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   }
   return updateData;
@@ -883,10 +896,12 @@ function determineTurboStatus(
       `TURBO order ${order.id} missing barrier or payoutPerPoint. Defaulting to LOSS.`
     );
     updateData.status = "LOSS";
+    updateData.profit = order.amount; // Store the loss amount
     return updateData;
   }
   if (turboBreached) {
     updateData.status = "LOSS";
+    updateData.profit = order.amount; // Store the loss amount
     return updateData;
   }
   let payoutValue = 0;
@@ -900,11 +915,13 @@ function determineTurboStatus(
         updateData.status = "DRAW";
       } else {
         updateData.status = "LOSS";
+        updateData.profit = order.amount; // Store the loss amount
       }
     } else if (closePrice === barrier) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   } else {
     if (closePrice < barrier) {
@@ -916,11 +933,13 @@ function determineTurboStatus(
         updateData.status = "DRAW";
       } else {
         updateData.status = "LOSS";
+        updateData.profit = order.amount; // Store the loss amount
       }
     } else if (closePrice === barrier) {
       updateData.status = "DRAW";
     } else {
       updateData.status = "LOSS";
+      updateData.profit = order.amount; // Store the loss amount
     }
   }
   return updateData;

@@ -13,9 +13,7 @@ const envPaths = [
 let envLoaded = false;
 for (const envPath of envPaths) {
   if (fs.existsSync(envPath)) {
-    console.log(`Frontend: Loading environment from ${envPath}`);
     require("dotenv").config({ path: envPath });
-    console.log(`Frontend: NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID = ${process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID}`);
     envLoaded = true;
     break;
   }
@@ -29,6 +27,19 @@ if (!envLoaded) {
 const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || 4000;
 const withNextIntl = require("next-intl/plugin")();
 
+// Extract hostname from NEXT_PUBLIC_SITE_URL for image optimization
+const getSiteHostname = () => {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) return null;
+  try {
+    const url = new URL(siteUrl);
+    return url.hostname;
+  } catch {
+    return null;
+  }
+};
+const siteHostname = getSiteHostname();
+
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
@@ -36,20 +47,20 @@ const nextConfig = {
   poweredByHeader: false,
   trailingSlash: false,
   transpilePackages: ["lucide-react", "framer-motion"],
+  // Mark packages that use worker_threads as server external
+  serverExternalPackages: ['ioredis', 'sharp', 'pino', 'pino-pretty'],
   typescript: {
     // Disable type checking during build
     ignoreBuildErrors: true,
   },
-  // Turbopack configuration (moved from experimental.turbo as it's now stable)
+  // Turbopack configuration
   turbopack: {
     resolveAlias: {
       '@': path.resolve(__dirname, '.'),
       '~': path.resolve(__dirname, '.'),
     },
-  },
-  experimental: {
-    // Activate new client-side router improvements (better navigation performance)
-    clientSegmentCache: true,
+    // Exclude worker_threads from bundling
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
   },
   // Removed explicit env object to allow Next.js automatic NEXT_PUBLIC_ variable exposure
   // This allows all NEXT_PUBLIC_* environment variables to be available in the client
@@ -171,6 +182,19 @@ const nextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
+      {
+        protocol: "https",
+        hostname: "localhost",
+      },
+      // Dynamic site hostname from NEXT_PUBLIC_SITE_URL
+      ...(siteHostname && siteHostname !== "localhost"
+        ? [
+            {
+              protocol: "https",
+              hostname: siteHostname,
+            },
+          ]
+        : []),
     ],
   },
   // Add error handling configuration

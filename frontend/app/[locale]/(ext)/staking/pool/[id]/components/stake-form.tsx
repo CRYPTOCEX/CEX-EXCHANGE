@@ -132,9 +132,7 @@ export default function StakeForm({ pool }: StakeFormProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    {t("total_reward_(")}
-                    {pool.lockPeriod}
-                    {t("days)")}
+                    {t("total_reward")} ({pool.lockPeriod} {t("days")})
                   </span>
                   <span>
                     {totalReward.toFixed(6)} {pool.symbol}

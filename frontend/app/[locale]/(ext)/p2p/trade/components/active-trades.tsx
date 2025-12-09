@@ -3,9 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "@/i18n/routing";
-import { Link } from "@/i18n/routing";
+import { useRouter, Link } from "@/i18n/routing";
 import {
   AlertCircle,
   CheckCircle2,
@@ -21,6 +19,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getCurrencySymbol } from "@/utils/currency";
+import { useTranslations } from "next-intl";
 
 // Constants in CAPITAL_LETTERS
 const TRADE_TYPE = {
@@ -46,21 +46,21 @@ interface Trade {
   status: string;
   date: string;
   paymentMethod: string;
+  currency?: string;
+  offer?: {
+    priceCurrency?: string;
+  };
 }
 interface ActiveTradesProps {
   trades?: Trade[];
 }
 export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
-  const { toast } = useToast();
+  const t = useTranslations("ext");
   const router = useRouter();
-  const handleAction = (id: string, action: string) => {
-    toast({
-      title: `Trade ${action}`,
-      description: `You have ${action.toLowerCase()} trade with ID: ${id}`,
-    });
-  };
-  const viewTradeDetails = (id: string) => {
-    router.push(`/p2p/trade/${id}`);
+
+  const viewTradeDetails = (id: string, tab?: string) => {
+    const url = tab ? `/p2p/trade/${id}?tab=${tab}` : `/p2p/trade/${id}`;
+    router.push(url);
   };
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,10 +97,10 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
       {trades.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            You don't have any active trades
+            {t("you_dont_have_any_active_trades")}
           </p>
           <Link href="/p2p/offer" className="mt-4">
-            <Button>Find Offers</Button>
+            <Button>{t("find_offers")}</Button>
           </Link>
         </div>
       ) : (
@@ -124,7 +124,7 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
                             <Shield className="h-4 w-4 text-green-500 ml-1" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Verified Trader</p>
+                            <p>{t("verified_trader")}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -148,7 +148,7 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
 
               <div className="space-y-2 mb-3">
                 <div className="flex justify-between text-sm">
-                  <span>Trade Progress</span>
+                  <span>{t("trade_progress")}</span>
                   <span>{getProgressValue(trade.status)}%</span>
                 </div>
                 <Progress
@@ -174,7 +174,7 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
                 <div>
                   <div className="text-sm text-muted-foreground">Total</div>
                   <div className="font-medium">
-                    ${trade.fiatAmount.toLocaleString()}
+                    {getCurrencySymbol(trade.offer?.priceCurrency || trade.currency || "USD")}{trade.fiatAmount.toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -186,61 +186,70 @@ export function ActiveTrades({ trades = [] }: ActiveTradesProps) {
                   onClick={() => viewTradeDetails(trade.id)}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  View Details
+                  {t("view_details")}
                 </Button>
 
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => viewTradeDetails(trade.id, "chat")}
+                >
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Chat
                 </Button>
 
-                {trade.status === TRADE_STATUS.PENDING && (
+                {/* PENDING status: Only buyer can cancel/confirm payment */}
+                {trade.status === TRADE_STATUS.PENDING && trade.type === TRADE_TYPE.BUY && (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAction(trade.id, "Cancelled")}
+                      onClick={() => viewTradeDetails(trade.id)}
                     >
                       <AlertCircle className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
                     <Button
                       size="sm"
-                      onClick={() => handleAction(trade.id, "Confirmed")}
+                      onClick={() => viewTradeDetails(trade.id, "payment")}
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Confirm Payment
+                      {t("confirm_payment")}
                     </Button>
                   </>
                 )}
+
+                {/* PAYMENT_SENT status: Only seller can release crypto, both can dispute */}
                 {(trade.status === TRADE_STATUS.IN_PROGRESS ||
                   trade.status === TRADE_STATUS.PAYMENT_SENT) && (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAction(trade.id, "Disputed")}
+                      onClick={() => viewTradeDetails(trade.id)}
                     >
                       <AlertCircle className="mr-2 h-4 w-4" />
                       Dispute
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAction(trade.id, "Completed")}
-                    >
-                      <ArrowRight className="mr-2 h-4 w-4" />
-                      Release Crypto
-                    </Button>
+                    {trade.type === TRADE_TYPE.SELL && (
+                      <Button
+                        size="sm"
+                        onClick={() => viewTradeDetails(trade.id, "escrow")}
+                      >
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                        {t("release_crypto")}
+                      </Button>
+                    )}
                   </>
                 )}
                 {trade.status === TRADE_STATUS.COMPLETED && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleAction(trade.id, "Rated")}
+                    onClick={() => viewTradeDetails(trade.id)}
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Rate Trader
+                    {t("rate_trader")}
                   </Button>
                 )}
               </div>

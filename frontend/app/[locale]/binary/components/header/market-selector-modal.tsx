@@ -33,7 +33,7 @@ export default function MarketSelectorModal({
   onClose,
   handleMarketSelect,
 }: MarketSelectorModalProps) {
-  const t = useTranslations("binary/components/header/market-selector-modal");
+  const t = useTranslations("common");
   // Use the binary store
   const {
     activeMarkets,

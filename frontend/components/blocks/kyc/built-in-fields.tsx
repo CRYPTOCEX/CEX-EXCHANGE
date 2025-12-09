@@ -45,7 +45,7 @@ export function KycBuiltInFields({
   keyMap,
   onUpdate,
 }: BuiltInFieldsProps) {
-  const t = useTranslations("components/blocks/kyc/built-in-fields");
+  const t = useTranslations("common");
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto border border-zinc-200 dark:border-zinc-700 rounded-md">

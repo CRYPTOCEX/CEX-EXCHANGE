@@ -84,8 +84,7 @@ export function StatsOverview({
               variant="outline"
               className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
             >
-              {tradeStats.successRate || 0}
-              {t("%_success_rate")}
+              {tradeStats.successRate || 0}% {t("success_rate")}
             </Badge>
           </div>
         </CardContent>

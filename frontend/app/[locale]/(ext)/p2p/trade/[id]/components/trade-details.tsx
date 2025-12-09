@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, RefObject } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeHeader } from "./trade-header";
@@ -13,28 +13,32 @@ import { TradeChat } from "./trade-chat";
 import { TradeEscrow } from "./trade-escrow";
 import { TradePayment } from "./trade-payment";
 import { TradeRating } from "./trade-rating";
+import { DisputeDialog } from "./dispute-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { AlertCircle, Clock, Shield } from "lucide-react";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { useTranslations } from "next-intl";
+import { canDispute, isDisputed } from "@/utils/p2p-status";
+
+interface Message {
+  id: string;
+  senderId: string;
+  senderName?: string;
+  content: string;
+  timestamp: string;
+  isSystem?: boolean;
+  isAdminMessage?: boolean;
+}
 
 interface TradeDetailsProps {
   tradeId: string;
   initialData: P2PTrade;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  tabsRef?: RefObject<HTMLDivElement>;
+  messages?: Message[];
+  setMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 export function TradeDetails({
@@ -42,9 +46,20 @@ export function TradeDetails({
   initialData,
   activeTab,
   setActiveTab,
+  tabsRef,
+  messages = [],
+  setMessages,
 }: TradeDetailsProps) {
   const t = useTranslations("ext");
   const [trade, setTrade] = useState<P2PTrade>(initialData);
+
+  // Sync local state with initialData when it changes (e.g., from WebSocket updates)
+  // We specifically watch status, timeline, and key timestamps to trigger re-render
+  useEffect(() => {
+    if (initialData) {
+      setTrade(initialData);
+    }
+  }, [initialData, initialData?.status, initialData?.timeline, initialData?.paymentConfirmedAt, initialData?.completedAt, initialData?.cancelledAt]);
 
   // Use the existing p2p store
   const {
@@ -99,11 +114,11 @@ export function TradeDetails({
     }
   };
 
-  const handleDisputeTrade = async (): Promise<void> => {
+  const handleDisputeTrade = async (reason: string, description: string): Promise<void> => {
     const success = await disputeTrade(
       tradeId,
-      "User dispute",
-      "Trade dispute initiated by user"
+      reason,
+      description
     );
     if (success) {
       // Update local state with the new status
@@ -114,18 +129,28 @@ export function TradeDetails({
     }
   };
 
+  // Get payment window from offer settings or use default (240 minutes)
+  const paymentWindow = trade.paymentWindow ||
+    trade.offer?.tradeSettings?.autoCancel ||
+    trade.offer?.tradeSettings?.paymentWindow ||
+    240; // Default to 240 minutes (4 hours) if not specified
+
   // Calculate time remaining if applicable
   const getTimeRemaining = () => {
-    if (trade.status === "waiting_payment") {
+    if (trade.status === "waiting_payment" || trade.status === "pending") {
       const createdTime = new Date(trade.createdAt).getTime();
       const currentTime = new Date().getTime();
-      const timeLimit = 30 * 60 * 1000; // 30 minutes in milliseconds
+      const timeLimit = paymentWindow * 60 * 1000; // Convert minutes to milliseconds
       const timeElapsed = currentTime - createdTime;
       const timeRemaining = timeLimit - timeElapsed;
 
       if (timeRemaining > 0) {
-        const minutes = Math.floor(timeRemaining / (60 * 1000));
+        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+        const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
         const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+        if (hours > 0) {
+          return `${hours}h ${minutes}m ${seconds}s`;
+        }
         return `${minutes}m ${seconds}s`;
       }
       return "Expired";
@@ -134,6 +159,15 @@ export function TradeDetails({
   };
 
   const timeRemaining = getTimeRemaining();
+
+  // Handle chat button click - switch to chat tab and scroll to tabs section
+  const handleChatClick = () => {
+    setActiveTab("chat");
+    // Small delay to ensure tab change is processed
+    setTimeout(() => {
+      tabsRef?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
 
   return (
     <div className="space-y-6">
@@ -149,6 +183,8 @@ export function TradeDetails({
             lastUpdated={trade.lastUpdated}
             status={trade.status}
             counterparty={trade.counterparty}
+            paymentWindow={paymentWindow}
+            onChatClick={handleChatClick}
           />
 
           {/* Time Remaining Alert */}
@@ -217,8 +253,9 @@ export function TradeDetails({
       </div>
 
       {/* Tabs Section */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <div ref={tabsRef}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="details">{t("Details")}</TabsTrigger>
           <TabsTrigger value="chat" className="relative">
             {t("Chat")}
@@ -238,7 +275,12 @@ export function TradeDetails({
         </TabsContent>
 
         <TabsContent value="chat" className="mt-6 animate-in fade-in-50">
-          <TradeChat tradeId={tradeId} counterparty={trade.counterparty} />
+          <TradeChat
+            tradeId={tradeId}
+            counterparty={trade.counterparty}
+            wsMessages={messages}
+            onNewMessage={setMessages ? (msg) => setMessages(prev => [...prev, msg]) : undefined}
+          />
         </TabsContent>
 
         <TabsContent value="payment" className="mt-6 animate-in fade-in-50">
@@ -250,41 +292,24 @@ export function TradeDetails({
             trade={trade}
             onReleaseFunds={handleReleaseFunds}
             onDisputeTrade={handleDisputeTrade}
+            loading={loading}
           />
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
 
-      {/* Dispute Section */}
-      {trade.status !== "disputed" && trade.status !== "completed" && (
+      {/* Dispute Section - Only show when dispute is allowed by backend rules */}
+      {canDispute(trade.status) && !isDisputed(trade.status) && (
         <div className="mt-6">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
-              >
-                <AlertCircle className="mr-2 h-4 w-4" />
-                {t("report_problem_with_this_trade")}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t("report_a_problem")}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("are_you_sure_is_resolved")}.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => handleDisputeTrade()}
-                  className="bg-destructive text-destructive-foreground"
-                >
-                  {t("open_dispute")}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <DisputeDialog onSubmit={handleDisputeTrade} loading={loading} userRole={trade.type === "buy" ? "buyer" : "seller"}>
+            <Button
+              variant="outline"
+              className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+            >
+              <AlertCircle className="mr-2 h-4 w-4" />
+              {t("report_problem_with_this_trade")}
+            </Button>
+          </DisputeDialog>
         </div>
       )}
 

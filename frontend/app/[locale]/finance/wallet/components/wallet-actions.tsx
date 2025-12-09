@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 export function WalletActions() {
-  const t = useTranslations("finance/wallet/components/wallet-actions");
+  const t = useTranslations("common");
   const router = useRouter();
 
   const actions = [

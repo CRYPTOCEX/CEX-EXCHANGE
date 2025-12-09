@@ -1,0 +1,118 @@
+{
+  "name": "Palau",
+  "iso2": "PW",
+  "iso3": "PLW",
+  "phonecode": "680",
+  "states": [
+    {
+      "name": "Aimeliik",
+      "code": "002",
+      "cities": [
+        "Ngchemiangel"
+      ]
+    },
+    {
+      "name": "Airai",
+      "code": "004",
+      "cities": [
+        "Ngetkib"
+      ]
+    },
+    {
+      "name": "Angaur",
+      "code": "010",
+      "cities": [
+        "Angaur State"
+      ]
+    },
+    {
+      "name": "Hatohobei",
+      "code": "050",
+      "cities": [
+        "Tobi Village"
+      ]
+    },
+    {
+      "name": "Kayangel",
+      "code": "100",
+      "cities": [
+        "Kayangel"
+      ]
+    },
+    {
+      "name": "Koror",
+      "code": "150",
+      "cities": [
+        "Koror"
+      ]
+    },
+    {
+      "name": "Melekeok",
+      "code": "212",
+      "cities": [
+        "Melekeok Village"
+      ]
+    },
+    {
+      "name": "Ngaraard",
+      "code": "214",
+      "cities": [
+        "Ulimang"
+      ]
+    },
+    {
+      "name": "Ngarchelong",
+      "code": "218",
+      "cities": [
+        "Mengellang"
+      ]
+    },
+    {
+      "name": "Ngardmau",
+      "code": "222",
+      "cities": [
+        "Ngardmau"
+      ]
+    },
+    {
+      "name": "Ngatpang",
+      "code": "224",
+      "cities": []
+    },
+    {
+      "name": "Ngchesar",
+      "code": "226",
+      "cities": [
+        "Ngchesar Hamlet"
+      ]
+    },
+    {
+      "name": "Ngeremlengui",
+      "code": "227",
+      "cities": [
+        "Imeong Hamlet"
+      ]
+    },
+    {
+      "name": "Ngiwal",
+      "code": "228",
+      "cities": [
+        "Ngerkeai"
+      ]
+    },
+    {
+      "name": "Peleliu",
+      "code": "350",
+      "cities": [
+        "Kloulklubed"
+      ]
+    },
+    {
+      "name": "Sonsorol",
+      "code": "370",
+      "cities": [
+        "Sonsorol Village"
+      ]
+    }
+  ]
+}

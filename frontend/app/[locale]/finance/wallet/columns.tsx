@@ -8,7 +8,7 @@ import {
 import { useTranslations } from "next-intl";
 
 function renderEcoAddresses(value: any, row?: any) {
-  const t = useTranslations("finance/wallet/columns");
+  const t = useTranslations("common");
   // 1) Check if we have a row
   if (!row) {
     // row is undefined, so we can't check row.type

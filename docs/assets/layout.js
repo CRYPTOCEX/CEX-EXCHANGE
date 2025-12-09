@@ -8,7 +8,7 @@ class DocsLayout {
         this.isLoading = false;
         this.sidebarStates = this.loadSidebarStates();
         this.searchIndexBuilt = false;
-        this.cacheVersion = '1.0.827421'; // Update this when deploying changes
+        this.cacheVersion = '1.0.682715'; // Update this when deploying changes
     }
 
     // Initialize the layout with configuration
@@ -165,6 +165,19 @@ class DocsLayout {
                         ]
                     },
                     {
+                        title: 'AI Market Maker',
+                        href: '',
+                        icon: '🎯',
+                        isGroup: true,
+                        children: [
+                            { title: 'Installation', href: '#ai-market-maker-installation', icon: '🚀' },
+                            { title: 'Markets', href: '#ai-market-maker-markets', icon: '📊' },
+                            { title: 'Bots', href: '#ai-market-maker-bots', icon: '🤖' },
+                            { title: 'Settings', href: '#ai-market-maker-settings', icon: '⚙️' },
+                            { title: 'Troubleshooting', href: '#ai-market-maker-troubleshooting', icon: '🔧' }
+                        ]
+                    },
+                    {
                         title: 'Ecommerce',
                         href: '',
                         icon: '🛒',
@@ -282,6 +295,18 @@ class DocsLayout {
                             { title: 'Pool Management', href: '#staking-pools', icon: '🏊‍♂️' },
                             { title: 'Position Management', href: '#staking-positions', icon: '📊' },
                             { title: 'Rewards & Earnings', href: '#staking-rewards', icon: '💰' }
+                        ]
+                    },
+                    {
+                        title: 'Payment Gateway',
+                        href: '',
+                        icon: '💳',
+                        isGroup: true,
+                        children: [
+                            { title: 'Installation', href: '#gateway-installation', icon: '🚀' },
+                            { title: 'Merchant Features', href: '#gateway-merchant-features', icon: '🏪' },
+                            { title: 'Admin Features', href: '#gateway-admin-features', icon: '👑' },
+                            { title: 'API Integration', href: '#gateway-api-integration', icon: '🔌' }
                         ]
                     }
                 ]
@@ -1209,7 +1234,29 @@ class DocsLayout {
             contentFile: 'content/ai-investment/durations.html'
         });
 
-        
+        // AI Market Maker routes
+        this.routes.set('ai-market-maker-installation', {
+            title: 'AI Market Maker - Installation Guide',
+            contentFile: 'content/ai-market-maker/installation.html'
+        });
+        this.routes.set('ai-market-maker-markets', {
+            title: 'AI Market Maker - Markets Management',
+            contentFile: 'content/ai-market-maker/markets.html'
+        });
+        this.routes.set('ai-market-maker-bots', {
+            title: 'AI Market Maker - Bots Management',
+            contentFile: 'content/ai-market-maker/bots.html'
+        });
+        this.routes.set('ai-market-maker-settings', {
+            title: 'AI Market Maker - Settings',
+            contentFile: 'content/ai-market-maker/settings.html'
+        });
+        this.routes.set('ai-market-maker-troubleshooting', {
+            title: 'AI Market Maker - Troubleshooting',
+            contentFile: 'content/ai-market-maker/troubleshooting.html'
+        });
+
+
         // Ecommerce routes
         this.routes.set('ecommerce-installation', {
             title: 'Ecommerce - Installation Guide',
@@ -1399,7 +1446,25 @@ class DocsLayout {
             contentFile: 'content/staking/rewards.html'
         });
 
-        
+        // Payment Gateway Extension Routes
+        this.routes.set('gateway-installation', {
+            title: 'Payment Gateway - Installation Guide',
+            contentFile: 'content/gateway/installation.html'
+        });
+        this.routes.set('gateway-merchant-features', {
+            title: 'Payment Gateway - Merchant Features',
+            contentFile: 'content/gateway/merchant-features.html'
+        });
+        this.routes.set('gateway-admin-features', {
+            title: 'Payment Gateway - Admin Features',
+            contentFile: 'content/gateway/admin-features.html'
+        });
+        this.routes.set('gateway-api-integration', {
+            title: 'Payment Gateway - API Integration',
+            contentFile: 'content/gateway/api-integration.html'
+        });
+
+
         this.routes.set('blockchain-ethereum', {
             title: 'Ethereum Integration',
             contentFile: 'content/ecosystem/blockchain/ethereum.html'

@@ -341,12 +341,6 @@ export default class user
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
-    user.hasMany(models.paymentIntent, {
-      as: "paymentIntents",
-      foreignKey: "userId",
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
-    });
     user.belongsTo(models.role, {
       as: "role",
       foreignKey: "roleId",

@@ -776,7 +776,20 @@ export default function CreateCollectionClient() {
                                   }}
                                 >
                                   <div className="text-center">
-                                    <div className="text-4xl mb-3">{chain.icon}</div>
+                                    <div className="mb-3 flex justify-center">
+                                      {chain.icon?.startsWith("/") ? (
+                                        <img
+                                          src={chain.icon}
+                                          alt={chain.name}
+                                          className="w-12 h-12 object-contain"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                          }}
+                                        />
+                                      ) : (
+                                        <span className="text-4xl">{chain.icon || "⚡"}</span>
+                                      )}
+                                    </div>
                                     <h3 className="font-semibold text-lg mb-1">{chain.name}</h3>
                                     <p className="text-sm text-muted-foreground capitalize">
                                       {chain.network}

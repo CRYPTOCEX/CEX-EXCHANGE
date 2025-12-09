@@ -7,7 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 export function TrendingOffers() {
+  const t = useTranslations("ext");
   const { offers, isLoadingOffers, fetchOffers } = useP2PStore();
   useEffect(() => {
     fetchOffers({
@@ -52,7 +54,7 @@ export function TrendingOffers() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-lg flex items-center">
             <TrendingUp className="mr-2 h-5 w-5 text-primary" />
-            Trending Offers
+            {t("trending_offers")}
           </h3>
         </div>
         <div className="space-y-4">
@@ -94,7 +96,7 @@ export function TrendingOffers() {
       <CardFooter className="p-4 pt-0">
         <Link href="/p2p/offer" className="w-full">
           <Button variant="outline" className="w-full">
-            View All Offers
+            {t("view_all_offers")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>

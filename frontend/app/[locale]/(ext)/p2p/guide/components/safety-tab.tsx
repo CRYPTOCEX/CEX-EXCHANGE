@@ -153,7 +153,7 @@ export function SafetyTab() {
               <XCircle className="h-4 w-4" />
               <AlertTitle>{t("reversible_payments")}</AlertTitle>
               <AlertDescription className="text-sm">
-                {t("be_cautious_with_credit_cards)")}.{" "}
+                {t("be_cautious_with_credit_cards")}.{" "}
                 {t("once_cryptocurrency_is_be_reversed")}.
               </AlertDescription>
             </Alert>

@@ -46,7 +46,7 @@ export default function MobileLayout({
   const type = searchParams.get("type") || "spot";
   const marketType = type === "futures" ? "futures" : type === "spot-eco" ? "eco" : "spot";
   const isFutures = marketType === "futures";
-  const t = useTranslations("trade/components/layout/mobile-layout");
+  const t = useTranslations("ext");
 
   useEffect(() => {
     setMounted(true);

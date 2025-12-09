@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 
 // Constants
 const TRADE_TYPE = {
@@ -22,12 +23,13 @@ interface CompletedTradesTabProps {
 export function CompletedTradesTab({
   completedTrades,
 }: CompletedTradesTabProps) {
+  const t = useTranslations("ext");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Completed Trades</CardTitle>
+        <CardTitle>{t("completed_trades")}</CardTitle>
         <CardDescription>
-          Your successfully completed trades history
+          {t("your_successfully_completed_trades_history")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -38,7 +40,7 @@ export function CompletedTradesTab({
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="h-10 px-4 text-left text-xs font-medium">
-                      Trade ID
+                      {t("trade_id")}
                     </th>
                     <th className="h-10 px-4 text-left text-xs font-medium">
                       Type
@@ -117,20 +119,19 @@ export function CompletedTradesTab({
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
               <CheckCircle2 className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="font-medium">No Completed Trades</h3>
+            <h3 className="font-medium">{t("no_completed_trades")}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-              You haven't completed any trades yet. Start trading to see your
-              history here.
+              {t("you_havent_completed_any_trades_yet")} {t("start_trading_to_see_your_history_here")}
             </p>
             <Link href="/p2p/offer" className="mt-4">
-              <Button>Find Offers</Button>
+              <Button>{t("find_offers")}</Button>
             </Link>
           </div>
         )}
         {completedTrades && completedTrades.length > 0 && (
           <div className="flex justify-center mt-4">
             <Button variant="outline" size="sm">
-              View All History
+              {t("view_all_history")}
             </Button>
           </div>
         )}

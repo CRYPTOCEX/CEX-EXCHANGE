@@ -42,7 +42,7 @@ import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 
 export default function MarketplaceClient() {
-  const t = useTranslations("nft/marketplace");
+  const t = useTranslations("ext");
 
   const {
     listings,
@@ -211,17 +211,17 @@ export default function MarketplaceClient() {
             </div>
           </Link>
 
-          <CardContent className="p-5">
-            <div className="space-y-3">
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-2 sm:space-y-3">
               {/* Collection */}
               {listing.token.collection && (
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/nft/collections/${listing.token.collection.slug}`}
-                    className="text-xs text-primary hover:underline font-semibold flex items-center gap-1.5 group/collection"
+                    className="text-xs text-primary hover:underline font-semibold flex items-center gap-1.5 group/collection truncate"
                   >
                     {listing.token.collection.logoImage && (
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden ring-2 ring-primary/20 group-hover/collection:ring-primary/50 transition-all">
+                      <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-full overflow-hidden ring-2 ring-primary/20 group-hover/collection:ring-primary/50 transition-all flex-shrink-0">
                         <Image
                           src={listing.token.collection.logoImage}
                           alt={listing.token.collection.name}
@@ -230,11 +230,11 @@ export default function MarketplaceClient() {
                         />
                       </div>
                     )}
-                    <span className="group-hover/collection:text-primary/80">{listing.token.collection.name}</span>
+                    <span className="group-hover/collection:text-primary/80 truncate">{listing.token.collection.name}</span>
                   </Link>
                   {listing.token.collection.isVerified && (
-                    <Badge className="h-5 w-5 p-0 bg-blue-500 text-white flex items-center justify-center">
-                      <Award className="h-3 w-3" />
+                    <Badge className="h-4 w-4 sm:h-5 sm:w-5 p-0 bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
+                      <Award className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     </Badge>
                   )}
                 </div>
@@ -242,21 +242,21 @@ export default function MarketplaceClient() {
 
               {/* Title */}
               <Link href={`/nft/token/${listing.token.id}`}>
-                <h3 className="font-bold text-lg line-clamp-1 hover:text-primary transition-colors group-hover:text-primary">
+                <h3 className="font-bold text-base sm:text-lg line-clamp-1 hover:text-primary transition-colors group-hover:text-primary">
                   {listing.token.name}
                 </h3>
               </Link>
 
               {/* Seller */}
               {listing.seller && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Users className="h-3 w-3" />
-                  <span className="font-medium text-foreground">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                  <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                  <span className="font-medium text-foreground truncate">
                     {listing.seller.nftCreator?.displayName ||
                      `${listing.seller.firstName} ${listing.seller.lastName}`}
                   </span>
                   {listing.seller.nftCreator?.verificationTier && (
-                    <Badge variant="outline" className="h-5 text-[10px] px-2">
+                    <Badge variant="outline" className="h-4 sm:h-5 text-[9px] sm:text-[10px] px-1.5 sm:px-2 flex-shrink-0">
                       {listing.seller.nftCreator.verificationTier}
                     </Badge>
                   )}
@@ -264,30 +264,30 @@ export default function MarketplaceClient() {
               )}
 
               {/* Price section */}
-              <div className="pt-3 border-t border-border">
-                <div className="flex items-end justify-between">
+              <div className="pt-2 sm:pt-3 border-t border-border">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
                   <div>
-                    <p className="text-[10px] text-muted-foreground mb-1 uppercase font-semibold tracking-wide">
+                    <p className="text-[10px] text-muted-foreground mb-0.5 sm:mb-1 uppercase font-semibold tracking-wide">
                       {isAuction ? (hasEnded ? t("final_bid") : t("current_bid")) : t("Price")}
                     </p>
-                    <div className="flex items-baseline gap-1.5">
-                      <p className="font-bold text-xl text-foreground">
-                        {isAuction ? (listing.currentBid || listing.price) : listing.price}
+                    <div className="flex items-baseline gap-1">
+                      <p className="font-bold text-lg sm:text-xl text-foreground">
+                        {parseFloat(isAuction ? (listing.currentBid || listing.price) : listing.price).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 6 })}
                       </p>
-                      <span className="text-sm text-muted-foreground font-medium">{listing.currency}</span>
+                      <span className="text-xs sm:text-sm text-muted-foreground font-medium">{listing.currency}</span>
                     </div>
                   </div>
 
                   {!hasEnded && (
-                    <Button size="sm" className="h-9 px-4 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg">
+                    <Button size="sm" className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg w-full sm:w-auto">
                       {isAuction ? (
                         <>
-                          <Gavel className="h-4 w-4 mr-1.5" />
+                          <Gavel className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                           {t("place_bid")}
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="h-4 w-4 mr-1.5" />
+                          <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                           {t("buy_now")}
                         </>
                       )}
@@ -297,25 +297,25 @@ export default function MarketplaceClient() {
               </div>
 
               {/* Stats */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer">
-                    <Eye className="h-3.5 w-3.5" />
+              <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground pt-2">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <span className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
+                    <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     <span className="font-medium">{listing.token.viewCount || 0}</span>
                   </span>
-                  <span className="flex items-center gap-1.5 hover:text-red-500 transition-colors cursor-pointer">
-                    <Heart className="h-3.5 w-3.5" />
+                  <span className="flex items-center gap-1 hover:text-red-500 transition-colors cursor-pointer">
+                    <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     <span className="font-medium">{listing.token.likeCount || 0}</span>
                   </span>
                   {isAuction && (
-                    <span className="flex items-center gap-1.5 hover:text-orange-500 transition-colors">
-                      <Gavel className="h-3.5 w-3.5" />
+                    <span className="flex items-center gap-1 hover:text-orange-500 transition-colors">
+                      <Gavel className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       <span className="font-medium">{listing.bidCount || 0}</span>
                     </span>
                   )}
                 </div>
                 {listing.token.rarity && (
-                  <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-semibold">
+                  <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 font-semibold">
                     {listing.token.rarity}
                   </Badge>
                 )}
@@ -351,18 +351,17 @@ export default function MarketplaceClient() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-6"
             >
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">Explore the Marketplace</span>
+              <span className="text-sm font-semibold text-primary">{t("explore_the_marketplace")}</span>
             </motion.div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent">
-              Discover, Collect & Sell
+              {t("discover_collect_sell")}
               <br />
-              <span className="text-primary">Extraordinary NFTs</span>
+              <span className="text-primary">{t("extraordinary_nfts")}</span>
             </h1>
 
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              The world's largest digital marketplace for crypto collectibles and non-fungible tokens.
-              Buy, sell, and discover exclusive digital assets.
+              {t("the_worlds_largest_digital_marketplace_for")} {t("buy_sell_and_discover_exclusive_digital_assets")}
             </p>
 
             <div className="flex justify-center">
@@ -375,7 +374,7 @@ export default function MarketplaceClient() {
                 className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-xl h-12 px-8"
               >
                 <Zap className="w-5 h-5" />
-                Explore NFTs
+                {t("explore_nfts")}
               </Button>
             </div>
           </motion.div>
@@ -507,7 +506,7 @@ export default function MarketplaceClient() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Price Range */}
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold">{t("price_range")} (ETH)</label>
+                        <label className="text-sm font-semibold">{t("price_range")} {t("eth")}</label>
                         <div className="grid grid-cols-2 gap-3">
                           <Input
                             type="number"

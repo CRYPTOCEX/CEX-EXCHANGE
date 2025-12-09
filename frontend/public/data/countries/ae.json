@@ -1,0 +1,80 @@
+{
+  "name": "United Arab Emirates",
+  "iso2": "AE",
+  "iso3": "ARE",
+  "phonecode": "971",
+  "states": [
+    {
+      "name": "Abu Dhabi",
+      "code": "AZ",
+      "cities": [
+        "Abu Dhabi",
+        "Al Ain City",
+        "Al Dhafra",
+        "Bani Yas City",
+        "Ghayathi",
+        "Khalifa City",
+        "Liwa Oasis",
+        "Mussafah",
+        "Muzayri‘",
+        "Ruwais",
+        "Zayed City"
+      ]
+    },
+    {
+      "name": "Ajman",
+      "code": "AJ",
+      "cities": [
+        "Ajman",
+        "Manama",
+        "Masfut"
+      ]
+    },
+    {
+      "name": "Dubai",
+      "code": "DU",
+      "cities": [
+        "Dubai"
+      ]
+    },
+    {
+      "name": "Fujairah",
+      "code": "FU",
+      "cities": [
+        "Dibba Al Fujairah",
+        "Dibba Al-Fujairah",
+        "Dibba Al-Hisn",
+        "Fujairah"
+      ]
+    },
+    {
+      "name": "Ras Al Khaimah",
+      "code": "RK",
+      "cities": [
+        "Ras Al Khaimah"
+      ]
+    },
+    {
+      "name": "Sharjah",
+      "code": "SH",
+      "cities": [
+        "Al Batayih",
+        "Al Dhaid",
+        "Al Hamriyah",
+        "Al Madam",
+        "Kalba",
+        "Khor Fakkan",
+        "Milehah",
+        "Murbaḩ",
+        "Sharjah"
+      ]
+    },
+    {
+      "name": "Umm Al Quwain",
+      "code": "UQ",
+      "cities": [
+        "Umm AL Quwain"
+      ]
+    }
+  ]
+}

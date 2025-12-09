@@ -229,19 +229,27 @@ export default async (data: Handler) => {
           )
         }
 
-                // Record admin profit from processing fees (if any)
+        // Record admin profit from processing fees (if any)
         const gateway = await models.depositGateway.findOne({
           where: { id: 'paysafe' },
         })
 
         if (gateway) {
-              const percentageFee = gateway.getPercentageFee(transaction.currency)
-    const fixedFee = gateway.getFixedFee(transaction.currency)
+          const percentageFee = gateway.getPercentageFee(transaction.currency)
+          const fixedFee = gateway.getFixedFee(transaction.currency)
           const totalFee = (paymentAmount * percentageFee / 100) + fixedFee
 
           if (totalFee > 0) {
-            // TODO: Record admin profit - temporarily disabled due to type mismatch
-            console.log(`Admin profit would be recorded: ${totalFee} ${paymentDetails.currencyCode}`)
+            await models.adminProfit.create(
+              {
+                amount: totalFee,
+                currency: paymentDetails.currencyCode,
+                type: "DEPOSIT",
+                transactionId: transaction.id,
+                description: `Admin profit from Paysafe deposit fee of ${totalFee} ${paymentDetails.currencyCode} for user (${user.id})`,
+              },
+              { transaction: dbTransaction }
+            );
           }
         }
 

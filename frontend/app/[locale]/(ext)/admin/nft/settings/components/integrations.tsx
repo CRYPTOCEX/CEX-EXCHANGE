@@ -117,11 +117,11 @@ export default function NFTIntegrationSettingsSection({
                   <h4 className="text-sm font-medium mb-2">{t("enabled_networks")}</h4>
                   {blockchainLoading ? (
                     <p className="text-sm text-muted-foreground">
-                      Loading blockchains...
+                      {t("loading_blockchains_ellipsis")}
                     </p>
                   ) : blockchainError ? (
                     <p className="text-sm text-red-500">
-                      Error loading blockchains: {blockchainError}
+                      {t("error_loading_blockchains")} {blockchainError}
                     </p>
                   ) : blockchainOptions.length > 0 ? (
                     <div className="flex flex-wrap gap-2">

@@ -28,7 +28,7 @@ export default function MobileNavigation({
   priceMovement,
   balance,
 }: MobileNavigationProps) {
-  const t = useTranslations("binary/components/navigation/mobile-navigation");
+  const t = useTranslations("common");
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
 

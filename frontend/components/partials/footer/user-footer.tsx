@@ -18,7 +18,7 @@ const siteDescription =
   "The most trusted cryptocurrency platform with advanced trading tools and secure storage.";
 
 export function SiteFooter() {
-  const t = useTranslations("components/partials/footer/user-footer");
+  const t = useTranslations("common");
   const { resolvedTheme } = useTheme();
   const { extensions, settingsFetched } = useSettings();
   const isDark = resolvedTheme === "dark";

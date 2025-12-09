@@ -1,6 +1,7 @@
 import { models } from "@b/db";
 import { createError } from "@b/utils/error";
 import { serverErrorResponse } from "@b/utils/query";
+import { Op } from "sequelize";
 
 export const metadata = {
   summary: "Delete Payment Method",
@@ -46,7 +47,7 @@ export default async (data: { params?: any; user?: any }) => {
 
     // Only allow deletion of custom methods owned by the user
     if (!paymentMethod.userId || paymentMethod.userId !== user.id) {
-      throw createError({ statusCode: 401, message: "Unauthorized" });
+      throw createError({ statusCode: 401, message: "Unauthorized - you can only delete your own payment methods" });
     }
 
     // Check if payment method is being used by any active offers
@@ -61,7 +62,7 @@ export default async (data: { params?: any; user?: any }) => {
         },
       ],
       where: {
-        status: ["ACTIVE", "PENDING_APPROVAL", "PAUSED"],
+        status: { [Op.in]: ["ACTIVE", "PENDING_APPROVAL", "PAUSED"] },
       },
       attributes: ["id", "status"],
     });
@@ -69,30 +70,15 @@ export default async (data: { params?: any; user?: any }) => {
     if (activeOffers.length > 0) {
       throw createError({
         statusCode: 400,
-        message: `Cannot delete payment method. It is currently being used by ${activeOffers.length} active offer(s). Please pause or cancel these offers first.`,
+        message: `Cannot delete payment method. It is currently being used by ${activeOffers.length} active offer(s). Please remove this payment method from these offers first.`,
       });
     }
 
-    // Check if payment method is being used by any ongoing trades
+    // Check if payment method is being used by any ongoing trades (directly on the trade)
     const ongoingTrades = await models.p2pTrade.findAll({
-      include: [
-        {
-          model: models.p2pOffer,
-          as: "offer",
-          include: [
-            {
-              model: models.p2pPaymentMethod,
-              as: "paymentMethods",
-              where: { id: paymentMethod.id },
-              attributes: ["id"],
-              through: { attributes: [] },
-            },
-          ],
-          attributes: ["id"],
-        },
-      ],
       where: {
-        status: ["PENDING", "PAID", "DISPUTE_OPEN", "ESCROW_REVIEW"],
+        paymentMethod: id,
+        status: { [Op.in]: ["PENDING", "PAYMENT_SENT", "DISPUTED"] },
       },
       attributes: ["id", "status"],
     });
@@ -100,7 +86,7 @@ export default async (data: { params?: any; user?: any }) => {
     if (ongoingTrades.length > 0) {
       throw createError({
         statusCode: 400,
-        message: `Cannot delete payment method. It is currently being used by ${ongoingTrades.length} ongoing trade(s). Please wait for these trades to complete.`,
+        message: `Cannot delete payment method. It is currently being used by ${ongoingTrades.length} ongoing trade(s). Please wait for these trades to complete or be cancelled.`,
       });
     }
 

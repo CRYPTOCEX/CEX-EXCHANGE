@@ -1,0 +1,71 @@
+{
+  "name": "Faroe Islands",
+  "iso2": "FO",
+  "iso3": "FRO",
+  "phonecode": "298",
+  "states": [
+    {
+      "name": "Eysturoy",
+      "code": "EY",
+      "cities": [
+        "Eiði",
+        "Eystur",
+        "Fuglafjørður",
+        "Nes",
+        "Runavík",
+        "Sjóvar"
+      ]
+    },
+    {
+      "name": "Northern Isles",
+      "code": "NO",
+      "cities": [
+        "Hvannasund",
+        "Klaksvík",
+        "Kunoy"
+      ]
+    },
+    {
+      "name": "Sandoy",
+      "code": "SA",
+      "cities": [
+        "Húsavík",
+        "Sandur",
+        "Skálavík",
+        "Skopun",
+        "Skúvoy"
+      ]
+    },
+    {
+      "name": "Streymoy",
+      "code": "ST",
+      "cities": [
+        "Kvívík",
+        "Sunda",
+        "Tórshavn",
+        "Vestmanna"
+      ]
+    },
+    {
+      "name": "Suðuroy",
+      "code": "SU",
+      "cities": [
+        "Fámjin",
+        "Hov",
+        "Hvalba",
+        "Porkeri",
+        "Sumba",
+        "Tvøroyri",
+        "Vágur"
+      ]
+    },
+    {
+      "name": "Vágar",
+      "code": "VA",
+      "cities": [
+        "Sørvágur",
+        "Vágar"
+      ]
+    }
+  ]
+}

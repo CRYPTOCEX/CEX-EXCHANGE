@@ -29,27 +29,41 @@ const dataTablePermissionsRegex = /permissions\s*=\s*\{\{([^}]+)\}\}/s;
 
 console.log("🔍 Starting comprehensive permission extraction and cleanup...");
 
-// Step 1: Extract permissions from frontend files (page.tsx/ts)
+// Step 1: Extract permissions from frontend files (page.tsx/ts and permission.ts)
 console.log("\n📁 Processing frontend files...");
 const frontendPermissions = new Set();
 const permissionFiles = [];
 
 walk(APP_DIR, (filePath) => {
-  if (filePath.endsWith("/page.tsx") || filePath.endsWith("/page.ts")) {
+  // Check for existing permission.ts files first
+  if (filePath.endsWith("/permission.ts") || filePath.endsWith("\\permission.ts")) {
     const content = fs.readFileSync(filePath, "utf8");
     const matches = [...content.matchAll(permissionExportRegex)];
-    
+
     if (matches.length > 0) {
       matches.forEach((match) => {
         const permission = match[1];
         frontendPermissions.add(permission);
-        console.log(`  ✓ Found: ${permission}`);
+        console.log(`  ✓ Found in permission.ts: ${permission}`);
+      });
+    }
+  }
+  // Then check page files for inline permissions
+  else if (filePath.endsWith("/page.tsx") || filePath.endsWith("/page.ts")) {
+    const content = fs.readFileSync(filePath, "utf8");
+    const matches = [...content.matchAll(permissionExportRegex)];
+
+    if (matches.length > 0) {
+      matches.forEach((match) => {
+        const permission = match[1];
+        frontendPermissions.add(permission);
+        console.log(`  ✓ Found in page file: ${permission}`);
       });
 
       // Create permission.ts file
       const dir = path.dirname(filePath);
       const permissionFilePath = path.join(dir, "permission.ts");
-      
+
       matches.forEach((match) => {
         const permission = match[1];
         const permissionContent = `export const permission = "${permission}";\n`;

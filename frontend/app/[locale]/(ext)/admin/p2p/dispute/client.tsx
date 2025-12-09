@@ -4,8 +4,10 @@ import React from "react";
 import DataTable from "@/components/blocks/data-table";
 import { disputeColumns } from "./columns";
 import { disputeAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function AdminDisputesClient() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/p2p/dispute"
@@ -23,7 +25,7 @@ export default function AdminDisputesClient() {
       canDelete={false}
       canView={true}
       viewLink="/admin/p2p/dispute/[id]"
-      title="P2P Disputes"
+      title={t("p2p_disputes")}
       itemTitle="Dispute"
       columns={disputeColumns}
       analytics={disputeAnalytics}

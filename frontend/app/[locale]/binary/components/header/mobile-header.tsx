@@ -34,7 +34,7 @@ export function MobileHeader({
   handleMarketSelect,
   onTradingModeChange,
 }: MobileHeaderProps) {
-  const t = useTranslations("binary/components/header/mobile-header");
+  const t = useTranslations("common");
   // Use next-themes hook properly
   const { theme, setTheme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -161,17 +161,6 @@ export function MobileHeader({
             </div>
             <ChevronDown size={14} />
           </button>
-
-          {/* Trading Mode Badge - Smaller */}
-          <div
-            className={`px-1.5 py-0.5 text-xs rounded-full ${
-              effectiveTradingMode === "demo"
-                ? "bg-blue-500/20 text-blue-400"
-                : "bg-green-500/20 text-green-400"
-            }`}
-          >
-            {effectiveTradingMode === "demo" ? "Demo" : "Real"}
-          </div>
         </div>
 
         <div className="flex items-center space-x-1.5">

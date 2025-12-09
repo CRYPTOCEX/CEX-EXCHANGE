@@ -1,0 +1,472 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">📈</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">AI Market Maker Markets</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Market Configuration Guide</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            AI Market Maker Markets are the foundation of the market maker system. Each market connects to an existing ecosystem trading pair and configures how AI bots will trade on that pair, including target prices, price movement strategies, and liquidity settings.
+        </p>
+    </div>
+</div>
+
+<!-- Accessing Markets -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚀 Accessing AI Markets</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+            Navigate to the AI Market Maker Markets management:
+        </p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm mb-3">
+            Admin Panel → Extensions → AI Market Maker → Markets
+        </div>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Or directly access via URL:</p>
+        <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-3 font-mono text-sm">
+            /admin/ai/market-maker/market
+        </div>
+    </div>
+</div>
+
+<!-- Creating Markets -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">➕ Creating a New AI Market</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">1</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Click "Create New Market"</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Click the "+" button in the markets management interface to open the creation dialog.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">2</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Select Ecosystem Market</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Choose an existing ecosystem market pair (e.g., BTC/USDT, ETH/USDT) from the dropdown.
+                    </p>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-3">
+                        <p class="text-blue-800 dark:text-blue-200 text-sm">
+                            <strong>💡 Note:</strong> Markets must be created in the Ecosystem extension first before they can be selected here.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">3</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Configure Price Settings</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Set the target price and price movement strategy for this market.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">4</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Set Liquidity Parameters</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Configure the real liquidity percentage and base/quote allocations.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm mr-4">5</div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Save and Activate</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                        Save the market configuration. The market starts in INACTIVE status - activate it when ready to begin trading.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Fields -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📝 Market Configuration Fields</h2>
+
+    <div class="space-y-8">
+        <!-- Basic Information -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Ecosystem Market</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Select (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">The underlying ecosystem market pair this AI market will trade on (e.g., BTC/USDT).</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Status</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Select</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">Current operational status of the market:</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">ACTIVE</span>
+                        <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 rounded text-xs">INACTIVE</span>
+                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs">PAUSED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Settings -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Price Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Target Price</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">The desired price that the AI bots will gradually move toward. Set this based on your market objectives.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Current Price</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">The current market price. This is updated automatically as trades execute.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Price Strategy</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Select (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">How price should move toward the target:</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded text-xs">GRADUAL_DRIFT</span>
+                            <span class="text-zinc-500 text-xs">Slow, steady movement</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-xs">OSCILLATION</span>
+                            <span class="text-zinc-500 text-xs">Wave patterns around target</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs">SUPPORT_RESISTANCE</span>
+                            <span class="text-zinc-500 text-xs">Bounce between levels</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Spread Percentage</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">The bid-ask spread maintained by market makers, expressed as a percentage (e.g., 0.5 = 0.5% spread).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liquidity Settings -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Liquidity Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Real Liquidity Percent</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer 0-100 (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Percentage of orders that execute as real ecosystem orders vs AI-only simulated orders.</p>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-2 mt-2">
+                        <p class="text-amber-800 dark:text-amber-200 text-xs">
+                            <strong>0%</strong> = All AI-only (no real trades) | <strong>100%</strong> = All real orders
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Base Balance</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Current balance of the base currency (e.g., BTC) available for AI trading.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Quote Balance</div>
+                    <div class="text-xs bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Auto)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Current balance of the quote currency (e.g., USDT) available for AI trading.</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Daily Trade Limit</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Integer (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum number of trades allowed per day for this market. Resets at midnight UTC.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Settings -->
+        <div>
+            <h3 class="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Risk Management</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Volatility Threshold</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum allowed price volatility (as %). Trading pauses if exceeded. Default: 5%</p>
+                </div>
+
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                    <div class="text-blue-600 dark:text-blue-400 font-semibold mb-1">Max Daily Loss</div>
+                    <div class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mb-2 inline-block">Decimal (Required)</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Maximum loss allowed per day (as %). Trading stops if limit is hit. Default: 2%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Price Strategies Detail -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📊 Price Movement Strategies</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">📈</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Gradual Drift</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Price moves slowly and steadily toward the target over time. Best for organic-looking price discovery without sudden movements.
+                    </p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                            <strong>Use when:</strong> You want gradual price appreciation/depreciation that appears natural to traders.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">〰️</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Oscillation</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Price waves up and down around the target price in a sine-wave pattern. Creates trading opportunities and natural-looking volatility.
+                    </p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                            <strong>Use when:</strong> You want to maintain a price range while providing swing trading opportunities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mr-4">
+                    <span class="text-xl">↔️</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Support & Resistance</h3>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-3">
+                        Price bounces between defined support and resistance levels, mimicking technical analysis patterns traders expect.
+                    </p>
+                    <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3">
+                        <p class="text-zinc-600 dark:text-zinc-400 text-sm">
+                            <strong>Use when:</strong> You want price to behave according to technical analysis expectations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Status States -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔄 Market Status States</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-zinc-50 dark:bg-zinc-800">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Bots Active?</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Transitions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs font-semibold">ACTIVE</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Market is live and bots are trading</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Yes</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">→ PAUSED, INACTIVE</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs font-semibold">PAUSED</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Temporarily halted (volatility/loss limit)</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">No</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">→ ACTIVE, INACTIVE</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200 rounded text-xs font-semibold">INACTIVE</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Market disabled, no trading</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">No</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">→ ACTIVE</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <p class="text-amber-800 dark:text-amber-200 text-sm">
+            <strong>⚠️ Auto-Pause:</strong> Markets automatically transition to PAUSED status when volatility thresholds or daily loss limits are exceeded. Check the history logs to understand why a market was paused.
+        </p>
+    </div>
+</div>
+
+<!-- Best Practices -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💡 Best Practices</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Starting a New Market</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• <strong>Start Conservative</strong> - Begin with 0% real liquidity to test bot behavior</li>
+                <li>• <strong>Low Daily Limits</strong> - Set conservative daily trade limits initially</li>
+                <li>• <strong>Monitor Closely</strong> - Watch the first few hours of trading activity</li>
+                <li>• <strong>Gradual Increase</strong> - Slowly increase real liquidity % as you gain confidence</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Target Price Management</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• <strong>Realistic Targets</strong> - Set targets within reasonable range of current price</li>
+                <li>• <strong>Gradual Changes</strong> - Avoid sudden large target price changes</li>
+                <li>• <strong>Market Alignment</strong> - Consider external market conditions when setting targets</li>
+                <li>• <strong>Regular Review</strong> - Adjust targets based on market performance</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Risk Management</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-1 ml-4">
+                <li>• <strong>Set Loss Limits</strong> - Always configure max daily loss protection</li>
+                <li>• <strong>Volatility Buffers</strong> - Leave headroom in volatility thresholds</li>
+                <li>• <strong>Diversify Strategies</strong> - Use different strategies across markets</li>
+                <li>• <strong>Emergency Stop</strong> - Know how to quickly pause all markets if needed</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Example Configuration -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Example Market Configuration</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-zinc-50 dark:bg-zinc-800">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Field</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Value</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Notes</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Ecosystem Market</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">ETH/USDT</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Popular trading pair</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Target Price</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">2500.00</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Desired price level</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Price Strategy</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">GRADUAL_DRIFT</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Natural price movement</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Spread %</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">0.3%</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Tight spread for liquidity</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Real Liquidity %</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">25%</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Conservative real order ratio</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Daily Trade Limit</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">500</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Moderate activity level</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Volatility Threshold</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">5%</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Pause if exceeded</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">Max Daily Loss</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">2%</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Loss protection limit</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Next Steps -->
+<div class="mb-12">
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-green-900 dark:text-green-100">✅ Next Steps</h3>
+        <p class="text-green-800 dark:text-green-200 text-sm mb-4">After creating your market:</p>
+        <ul class="text-green-800 dark:text-green-200 text-sm space-y-1 ml-4 mb-4">
+            <li>• Create AI bots with appropriate personalities</li>
+            <li>• Configure bot-specific settings</li>
+            <li>• Activate the market and monitor performance</li>
+            <li>• Review history logs for insights</li>
+        </ul>
+        <div class="flex gap-3 flex-wrap">
+            <a href="#ai-market-maker-bots" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                Setup Bots
+            </a>
+            <a href="#ai-market-maker-settings" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Global Settings
+            </a>
+        </div>
+    </div>
+</div>

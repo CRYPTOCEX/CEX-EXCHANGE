@@ -50,7 +50,7 @@ export default function OrderBookPanel({
   currency,
   pair,
 }: OrderBookPanelProps) {
-  const t = useTranslations("trade/components/orderbook/orderbook-panel");
+  const t = useTranslations("ext");
   const { theme } = useNextTheme();
   const [currentSymbol, setCurrentSymbol] = useState<Symbol>(symbol);
   const [currentMarketType, setCurrentMarketType] =

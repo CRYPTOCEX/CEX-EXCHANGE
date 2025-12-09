@@ -189,6 +189,16 @@ export default class binaryOrder
           },
           comment: "Payout amount per point movement",
         },
+        profitPercentage: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          validate: {
+            isNumeric: {
+              msg: "profitPercentage: Profit Percentage must be a number",
+            },
+          },
+          comment: "Profit percentage for this binary order duration",
+        },
         status: {
           type: DataTypes.ENUM("PENDING", "WIN", "LOSS", "DRAW", "CANCELED"),
           allowNull: false,

@@ -32,7 +32,7 @@ export function MarketItem({
   onSortVolume,
   onSortPrice,
 }: MarketItemProps) {
-  const t = useTranslations("trade/components/markets/market-item");
+  const t = useTranslations("ext");
   return (
     <div
       className={cn(

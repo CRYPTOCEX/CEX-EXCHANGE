@@ -4,32 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
-import PaymentMethodDialog from "./components/payment-method-dialog";
 
 export default function P2PPaymentMethodClient() {
-  const t = useTranslations("ext.admin.p2p.paymentMethod");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingMethod, setEditingMethod] = useState<any>(null);
+  const t = useTranslations("ext");
+  const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleCreate = () => {
-    setEditingMethod(null);
-    setIsDialogOpen(true);
-  };
-
-  const handleEdit = (method: any) => {
-    setEditingMethod(method);
-    setIsDialogOpen(true);
-  };
-
-  const handleDialogClose = (shouldRefresh?: boolean) => {
-    setIsDialogOpen(false);
-    setEditingMethod(null);
-    if (shouldRefresh) {
-      setRefreshKey(prev => prev + 1);
-    }
+    router.push("/admin/p2p/payment-method/new");
   };
 
   return (
@@ -38,15 +23,15 @@ export default function P2PPaymentMethodClient() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Payment Methods
+            {t("payment_methods")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage global payment methods available to all P2P users
+            {t("manage_global_payment_methods_available")}
           </p>
         </div>
         <Button onClick={handleCreate} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Add Payment Method
+          {t("add_payment_method")}
         </Button>
       </div>
 
@@ -65,20 +50,13 @@ export default function P2PPaymentMethodClient() {
         pageSize={10}
         canCreate={false} // We handle create with custom button
         canEdit={true}
+        editLink="/admin/p2p/payment-method/[id]"
         canDelete={true}
         canView={false}
         title=""
         itemTitle="Payment Method"
         columns={columns}
         isParanoid={false}
-        onEditClick={handleEdit}
-      />
-
-      {/* Dialog */}
-      <PaymentMethodDialog
-        isOpen={isDialogOpen}
-        onClose={handleDialogClose}
-        method={editingMethod}
       />
     </div>
   );

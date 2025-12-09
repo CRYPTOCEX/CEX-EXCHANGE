@@ -54,6 +54,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   // Import utilities
   const { validateTradeStatusTransition, sanitizeInput } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("./index.ws");
   const { sequelize } = await import("@b/db");
   const { getWalletSafe } = await import("@b/api/finance/wallet/utils");
 
@@ -78,7 +79,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       include: [{
         model: models.p2pOffer,
         as: "offer",
-        attributes: ["currency", "walletType", "id"],
+        attributes: ["currency", "walletType", "id", "type"],
       }],
       lock: true,
       transaction,
@@ -107,41 +108,77 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       });
     }
 
-    // If funds were locked (PENDING or PAYMENT_SENT status), unlock them
-    // This applies to ALL wallet types including FIAT
+    // Handle fund unlocking and offer restoration based on offer type
+    // - For SELL offers: Funds were locked at offer creation, stay locked until offer is deleted
+    //                    Only restore offer amount, don't unlock wallet inOrder
+    // - For BUY offers: Funds were locked at trade initiation, need to unlock on cancel
     if (["PENDING", "PAYMENT_SENT"].includes(trade.status)) {
-      const sellerWallet = await getWalletSafe(
-        trade.sellerId,
-        trade.offer.walletType,
-        trade.offer.currency
-      );
+      const isBuyOffer = trade.offer.type === "BUY";
 
-      if (sellerWallet && sellerWallet.inOrder >= trade.amount) {
-        // Store old value before update for logging
-        const previousInOrder = sellerWallet.inOrder;
+      // Only unlock wallet inOrder for BUY offers (funds were locked at trade initiation)
+      if (isBuyOffer) {
+        const sellerWallet = await getWalletSafe(
+          trade.sellerId,
+          trade.offer.walletType,
+          trade.offer.currency
+        );
 
-        // Unlock seller's funds
-        await models.wallet.update({
-          inOrder: sellerWallet.inOrder - trade.amount,
-        }, {
-          where: { id: sellerWallet.id },
-          transaction
-        });
+        if (sellerWallet) {
+          // CRITICAL: Calculate safe unlock amount to prevent negative inOrder
+          const safeUnlockAmount = Math.min(trade.amount, sellerWallet.inOrder);
 
-        console.log('[P2P Trade Cancel] Unlocked funds:', {
-          sellerId: trade.sellerId,
-          walletType: trade.offer.walletType,
-          currency: trade.offer.currency,
+          if (safeUnlockAmount > 0) {
+            // Store old value before update for logging
+            const previousInOrder = sellerWallet.inOrder;
+            const newInOrder = Math.max(0, sellerWallet.inOrder - safeUnlockAmount);
+
+            // Unlock seller's funds
+            await models.wallet.update({
+              inOrder: newInOrder,
+            }, {
+              where: { id: sellerWallet.id },
+              transaction
+            });
+
+            console.log('[P2P Trade Cancel] Unlocked funds (BUY offer):', {
+              sellerId: trade.sellerId,
+              walletType: trade.offer.walletType,
+              currency: trade.offer.currency,
+              requestedAmount: trade.amount,
+              actualUnlocked: safeUnlockAmount,
+              previousInOrder: previousInOrder,
+              newInOrder: newInOrder,
+            });
+
+            // Log warning if amounts don't match (indicates potential double-processing)
+            if (safeUnlockAmount < trade.amount) {
+              console.warn('[P2P Trade Cancel] WARNING: Partial unlock - inOrder was less than trade amount:', {
+                tradeId: trade.id,
+                tradeAmount: trade.amount,
+                availableInOrder: sellerWallet.inOrder,
+                actualUnlocked: safeUnlockAmount,
+              });
+            }
+          } else {
+            console.warn('[P2P Trade Cancel] WARNING: No funds to unlock - inOrder is already 0:', {
+              tradeId: trade.id,
+              tradeAmount: trade.amount,
+              currentInOrder: sellerWallet.inOrder,
+            });
+          }
+        }
+      } else {
+        // For SELL offers: Don't unlock wallet inOrder, funds stay locked for the offer
+        console.log('[P2P Trade Cancel] SELL offer - funds remain locked for offer:', {
+          tradeId: trade.id,
+          offerId: trade.offerId,
           amount: trade.amount,
-          previousInOrder: previousInOrder,
-          newInOrder: previousInOrder - trade.amount,
-          note: trade.offer.walletType === "FIAT"
-            ? "FIAT balance unlocked on platform"
-            : "Crypto balance unlocked from escrow"
+          currency: trade.offer.currency,
         });
       }
 
-      // Restore offer amount if applicable (for both FIAT and crypto)
+      // Restore offer amount if applicable (for both SELL and BUY offers)
+      // This makes the amount available for new trades again
       if (trade.offerId) {
         const offer = await models.p2pOffer.findByPk(trade.offerId, {
           lock: true,
@@ -152,18 +189,59 @@ export default async (data: { params?: any; body: any; user?: any }) => {
           // Parse amountConfig with robust parser
           const amountConfig = parseAmountConfig(offer.amountConfig);
 
-          await offer.update({
-            amountConfig: {
-              ...amountConfig,
-              total: amountConfig.total + trade.amount,
-            },
-          }, { transaction });
+          // Calculate maximum allowed restoration to prevent exceeding original offer amount
+          const originalTotal = amountConfig.originalTotal ?? (amountConfig.total + trade.amount);
+          const maxAllowedTotal = originalTotal;
+          const proposedTotal = amountConfig.total + trade.amount;
+          const safeTotal = Math.min(proposedTotal, maxAllowedTotal);
+
+          // Only restore if it would increase the total
+          if (safeTotal > amountConfig.total) {
+            await offer.update({
+              amountConfig: {
+                ...amountConfig,
+                total: safeTotal,
+                originalTotal, // Preserve original total tracking
+              },
+            }, { transaction });
+
+            console.log('[P2P Trade Cancel] Restored offer amount:', {
+              offerId: offer.id,
+              offerType: offer.type,
+              tradeAmount: trade.amount,
+              previousTotal: amountConfig.total,
+              newTotal: safeTotal,
+              originalTotal,
+            });
+          } else {
+            console.log('[P2P Trade Cancel] Skipped offer restoration - already at or above safe limit:', {
+              offerId: offer.id,
+              currentTotal: amountConfig.total,
+              proposedTotal,
+              maxAllowed: maxAllowedTotal,
+            });
+          }
         }
       }
     }
 
     // Update trade status and timeline
-    const timeline = trade.timeline || [];
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === "string") {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error("Failed to parse timeline JSON:", e);
+        timeline = [];
+      }
+    }
+
+    // Ensure timeline is an array
+    if (!Array.isArray(timeline)) {
+      timeline = [];
+    }
+
     timeline.push({
       event: "TRADE_CANCELLED",
       message: `Trade cancelled: ${sanitizedReason}`,
@@ -183,15 +261,16 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     await models.p2pActivityLog.create({
       userId: user.id,
       type: "TRADE_CANCELLED",
-      entityId: trade.id,
-      entityType: "TRADE",
-      metadata: {
+      action: "TRADE_CANCELLED",
+      relatedEntity: "TRADE",
+      relatedEntityId: trade.id,
+      details: JSON.stringify({
         previousStatus: trade.status,
         reason: sanitizedReason,
         amount: trade.amount,
         currency: trade.offer.currency,
         counterpartyId: user.id === trade.buyerId ? trade.sellerId : trade.buyerId,
-      },
+      }),
     }, { transaction });
 
     await transaction.commit();
@@ -205,6 +284,18 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       cancelledBy: user.id,
       reason: sanitizedReason,
     }).catch(console.error);
+
+    // Broadcast WebSocket event for real-time updates
+    broadcastP2PTradeEvent(trade.id, {
+      type: "STATUS_CHANGE",
+      data: {
+        status: "CANCELLED",
+        previousStatus: trade.status,
+        cancelledAt: trade.cancelledAt,
+        cancellationReason: sanitizedReason,
+        cancelledBy: user.id,
+      },
+    });
 
     return { 
       message: "Trade cancelled successfully.",

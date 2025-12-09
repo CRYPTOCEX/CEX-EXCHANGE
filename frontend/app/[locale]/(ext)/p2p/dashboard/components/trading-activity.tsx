@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Constants for status types
 const STATUS = {
@@ -27,6 +28,43 @@ const STATUS = {
   PENDING: "PENDING",
   CANCELLED: "CANCELLED",
   DISPUTED: "DISPUTED",
+  // Additional statuses from trade flow
+  PAYMENT_SENT: "PAYMENT_SENT",
+  ESCROW_REVIEW: "ESCROW_REVIEW",
+  SELLER_CONFIRMED: "SELLER_CONFIRMED",
+  BUYER_CONFIRMED: "BUYER_CONFIRMED",
+};
+
+// Helper to categorize status for display
+const getStatusCategory = (status: string) => {
+  const completedStatuses = ["COMPLETED", "RELEASED"];
+  const inProgressStatuses = ["PAYMENT_SENT", "ESCROW_REVIEW", "SELLER_CONFIRMED", "BUYER_CONFIRMED", "IN_PROGRESS"];
+  const pendingStatuses = ["PENDING", "OPEN"];
+  const disputedStatuses = ["DISPUTED", "CANCELLED", "REFUNDED"];
+
+  if (completedStatuses.includes(status)) return "completed";
+  if (inProgressStatuses.includes(status)) return "in_progress";
+  if (pendingStatuses.includes(status)) return "pending";
+  if (disputedStatuses.includes(status)) return "disputed";
+  return "pending";
+};
+
+const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    COMPLETED: "Completed",
+    IN_PROGRESS: "In Progress",
+    PENDING: "Pending",
+    CANCELLED: "Cancelled",
+    DISPUTED: "Disputed",
+    PAYMENT_SENT: "Payment Sent",
+    ESCROW_REVIEW: "In Escrow",
+    SELLER_CONFIRMED: "Seller Confirmed",
+    BUYER_CONFIRMED: "Buyer Confirmed",
+    RELEASED: "Released",
+    REFUNDED: "Refunded",
+    OPEN: "Open",
+  };
+  return labels[status] || status;
 };
 
 // Constants for trade types
@@ -52,6 +90,7 @@ interface TradingActivityProps {
   isLoading: boolean;
 }
 export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
+  const t = useTranslations("ext");
   if (isLoading) {
     return <TradingActivitySkeleton />;
   }
@@ -110,38 +149,32 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
                       </div>
                       <Badge
                         variant={
-                          trade.status === STATUS.COMPLETED
+                          getStatusCategory(trade.status) === "completed"
                             ? "default"
-                            : trade.status === STATUS.IN_PROGRESS
+                            : getStatusCategory(trade.status) === "in_progress"
                               ? "secondary"
                               : "outline"
                         }
                         className={cn(
                           "px-3 py-1 rounded-full text-sm",
-                          trade.status === STATUS.COMPLETED
+                          getStatusCategory(trade.status) === "completed"
                             ? "bg-green-500/10 text-green-500 border-green-200 dark:border-green-900"
-                            : trade.status === STATUS.IN_PROGRESS
+                            : getStatusCategory(trade.status) === "in_progress"
                               ? "bg-blue-500/10 text-blue-500 border-blue-200 dark:border-blue-900"
-                              : "bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900"
+                              : getStatusCategory(trade.status) === "disputed"
+                                ? "bg-red-500/10 text-red-500 border-red-200 dark:border-red-900"
+                                : "bg-amber-500/10 text-amber-500 border-amber-200 dark:border-amber-900"
                         )}
                       >
                         <div className="flex items-center gap-1">
-                          {trade.status === STATUS.COMPLETED ? (
+                          {getStatusCategory(trade.status) === "completed" ? (
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                          ) : trade.status === STATUS.IN_PROGRESS ? (
+                          ) : getStatusCategory(trade.status) === "in_progress" ? (
                             <Clock className="h-3.5 w-3.5" />
                           ) : (
                             <AlertCircle className="h-3.5 w-3.5" />
                           )}
-                          {trade.status === STATUS.COMPLETED
-                            ? "Completed"
-                            : trade.status === STATUS.IN_PROGRESS
-                              ? "In Progress"
-                              : trade.status === STATUS.PENDING
-                                ? "Pending"
-                                : trade.status === STATUS.CANCELLED
-                                  ? "Cancelled"
-                                  : "Disputed"}
+                          {getStatusLabel(trade.status)}
                         </div>
                       </Badge>
                     </div>
@@ -197,7 +230,7 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
       <Link href="/p2p/trade">
         <Button variant="outline" className="w-full justify-between group relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <span className="relative z-10">View all activity</span>
+          <span className="relative z-10">{t("view_all_activity")}</span>
           <ChevronRight className="h-4 w-4 relative z-10" />
         </Button>
       </Link>
@@ -205,17 +238,18 @@ export function TradingActivity({ trades, isLoading }: TradingActivityProps) {
   );
 }
 export function EmptyTradingActivity() {
+  const t = useTranslations("ext");
   return (
     <div className="border border-dashed rounded-xl p-8 text-center">
       <div className="flex flex-col items-center">
         <Activity className="h-12 w-12 text-muted-foreground/40 mb-4" />
-        <h3 className="text-lg font-medium mb-2">No trading activity yet</h3>
+        <h3 className="text-lg font-medium mb-2">{t("no_trading_activity_yet")}</h3>
         <p className="text-muted-foreground max-w-md mb-6">
-          Start trading with other users to see your P2P trading activity here.
+          {t("start_trading_with_other_users_to")}
         </p>
         <Link href="/p2p/offer">
           <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Find Trading Partners
+            <PlusCircle className="mr-2 h-4 w-4" /> {t("find_trading_partners")}
           </Button>
         </Link>
       </div>

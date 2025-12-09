@@ -404,7 +404,7 @@ export default function StakingHero() {
                                     (featuredPool.availableToStake ?? 0))) *
                                   100
                               )}
-                              {t("%_filled")}
+% {t("filled")}
                             </span>
                           </div>
                         </div>

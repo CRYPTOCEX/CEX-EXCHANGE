@@ -21,28 +21,29 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
+import { getCurrencySymbol } from "@/utils/currency";
+import { isTradeActive, isPaymentSent, isCompleted, isDisputed, isExpired } from "@/utils/p2p-status";
+import { DisputeDialog } from "./dispute-dialog";
 
 interface TradeEscrowProps {
   trade: any;
   onReleaseFunds: () => Promise<void>;
-  onDisputeTrade: () => Promise<void>;
+  onDisputeTrade: (reason: string, description: string) => Promise<void>;
+  loading?: boolean;
 }
 
 export function TradeEscrow({
   trade,
   onReleaseFunds,
   onDisputeTrade,
+  loading = false,
 }: TradeEscrowProps) {
   const t = useTranslations("ext");
+  const currencySymbol = getCurrencySymbol(trade.offer?.priceCurrency || "USD");
+
   // Backend uses: PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED
-  const isEscrowActive = [
-    "PENDING",
-    "PAYMENT_SENT",
-    "waiting_payment",
-    "payment_confirmed",
-  ].includes(trade.status);
-  const canRelease =
-    (trade.status === "PAYMENT_SENT" || trade.status === "payment_confirmed") && trade.type === "sell";
+  const isEscrowActive = isTradeActive(trade.status);
+  const canRelease = isPaymentSent(trade.status) && trade.type === "sell";
 
   // Calculate escrow time
   const getEscrowTime = () => {
@@ -74,7 +75,7 @@ export function TradeEscrow({
               <div>
                 <h3 className="font-medium">{t("escrow_active")}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {trade.amount} {trade.coin}
+                  {trade.amount} {trade.coin}{" "}
                   {t("is_securely_held_is_completed")}.
                 </p>
               </div>
@@ -84,7 +85,7 @@ export function TradeEscrow({
               <div className="flex justify-between text-sm">
                 <span>{t("escrow_status")}</span>
                 <span>
-                  {t("active_for")}
+                  {t("active_for")}{" "}
                   {getEscrowTime()}
                 </span>
               </div>
@@ -109,10 +110,10 @@ export function TradeEscrow({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {t("usd_value")}
+                        {t("currency_value")}
                       </span>
                       <span className="font-medium">
-                        ${trade.total.toLocaleString()}
+                        {currencySymbol}{trade.total?.toLocaleString() || "0"}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -120,11 +121,10 @@ export function TradeEscrow({
                         {t("escrow_fee")}
                       </span>
                       <span className="font-medium">
-                        ${(trade.total * 0.001).toFixed(2)}
-                        (0. 1%)
+                        {trade.escrowFee ? `${trade.escrowFee} ${trade.coin}` : `${(trade.amount * 0.002).toFixed(8)} ${trade.coin}`}
+                        {" "}(0.2%)
                       </span>
-                    </div>
-                    <div className="flex justify-between">
+                    </div>                    <div className="flex justify-between">
                       <span className="text-muted-foreground">
                         {t("locked_since")}
                       </span>
@@ -159,14 +159,14 @@ export function TradeEscrow({
                     <li>{t("buyer_confirms_payment_has_been_sent")}</li>
                     <li>{t("seller_verifies_payment_receipt")}</li>
                     <li>{t("seller_releases_funds_from_escrow")}</li>
-                    <li>{t("automatic_release_after_no_dispute)")}</li>
+                    <li>{t("automatic_release_after_no_dispute")}</li>
                     <li>{t("admin_intervention_in_case_of_disputes")}</li>
                   </ul>
                 </CardContent>
               </Card>
             </div>
 
-            {trade.status === "payment_confirmed" && (
+            {isPaymentSent(trade.status) && (
               <Alert
                 className={
                   trade.type === "sell"
@@ -191,17 +191,19 @@ export function TradeEscrow({
             </div>
             <h3 className="font-medium">
               {t("Escrow")}
-              {trade.status === "completed" ? "Released" : "Not Active"}
+              {isCompleted(trade.status) ? " Released" : " Not Active"}
             </h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-              {trade.status === "completed"
+              {isCompleted(trade.status)
                 ? "The escrow has been released and the funds have been transferred to the buyer."
-                : trade.status === "disputed"
+                : isDisputed(trade.status)
                   ? "This trade is under dispute. The escrow will be held until the dispute is resolved."
-                  : "The escrow for this trade is not currently active. It will be activated once the trade is funded."}
+                  : isExpired(trade.status)
+                    ? "This trade has expired. The escrowed funds have been returned to the seller."
+                    : "The escrow for this trade is not currently active. It will be activated once the trade is funded."}
             </p>
 
-            {trade.status === "completed" && (
+            {isCompleted(trade.status) && (
               <div className="mt-6 flex justify-center">
                 <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 flex items-center gap-1 px-3 py-1">
                   <CheckCircle2 className="h-3 w-3" />
@@ -215,17 +217,22 @@ export function TradeEscrow({
       <CardFooter className="flex justify-between">
         {isEscrowActive && (
           <>
-            <Button
-              variant="outline"
-              onClick={onDisputeTrade}
-              disabled={trade.status === "disputed"}
-              className="flex-1 sm:flex-none"
+            <DisputeDialog
+              onSubmit={onDisputeTrade}
+              loading={loading}
+              userRole={trade.type === "buy" ? "buyer" : "seller"}
             >
-              <AlertCircle className="mr-2 h-4 w-4" />
-              {t("open_dispute")}
-            </Button>
+              <Button
+                variant="outline"
+                disabled={isDisputed(trade.status) || loading}
+                className="flex-1 sm:flex-none"
+              >
+                <AlertCircle className="mr-2 h-4 w-4" />
+                {t("open_dispute")}
+              </Button>
+            </DisputeDialog>
             {canRelease && (
-              <Button onClick={onReleaseFunds} className="flex-1 sm:flex-none">
+              <Button onClick={onReleaseFunds} disabled={loading} className="flex-1 sm:flex-none">
                 <ArrowRight className="mr-2 h-4 w-4" />
                 {t("release_funds")}
               </Button>

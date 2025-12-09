@@ -58,16 +58,19 @@ export default async (data: Handler) => {
       {
         model: models.p2pTrade,
         as: "trade",
+        attributes: ["id", "status", "amount", "currency"],
       },
       {
         model: models.user,
         as: "reportedBy",
         attributes: ["id", "firstName", "lastName", "email", "avatar"],
+        required: false,
       },
       {
         model: models.user,
         as: "against",
         attributes: ["id", "firstName", "lastName", "email", "avatar"],
+        required: false,
       },
     ],
   });

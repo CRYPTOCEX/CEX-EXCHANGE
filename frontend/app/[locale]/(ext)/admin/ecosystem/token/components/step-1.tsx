@@ -33,7 +33,7 @@ const StepMode: React.FC = () => {
         </label>
       </div>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-        {t("current_mode")}
+        {t("current_mode")}{" "}
         <strong>{mode}</strong>
       </p>
     </Card>

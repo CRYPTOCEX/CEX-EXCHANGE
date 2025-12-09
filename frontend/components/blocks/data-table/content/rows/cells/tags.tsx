@@ -9,9 +9,7 @@ interface TagsCellProps {
 }
 
 export function TagsCell({ value, row, maxDisplay = 3 }: TagsCellProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/cells/tags"
-  );
+  const t = useTranslations("common");
   const transformed = Array.isArray(value)
     ? value.map((item: any) =>
         typeof item === "object" && item.name ? item.name : item
@@ -20,7 +18,7 @@ export function TagsCell({ value, row, maxDisplay = 3 }: TagsCellProps) {
 
   const displayTags = transformed.slice(0, maxDisplay);
   if (displayTags.length === 0) {
-    return <span>{t("N_A")}</span>;
+    return <span>N/A</span>;
   }
   const remaining = transformed.length - maxDisplay;
 

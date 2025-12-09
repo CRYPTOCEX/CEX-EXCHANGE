@@ -1,0 +1,127 @@
+{
+  "name": "Nepal",
+  "iso2": "NP",
+  "iso3": "NPL",
+  "phonecode": "977",
+  "states": [
+    {
+      "name": "Bagmati",
+      "code": "P3",
+      "cities": [
+        "Bhaktapur",
+        "Chitwan",
+        "Dhading",
+        "Dolakha",
+        "Kathmandu",
+        "Kavrepalanchok",
+        "Lalitpur",
+        "Makwanpur",
+        "Nuwakot",
+        "Ramechhap",
+        "Rasuwa",
+        "Sindhuli",
+        "Sindhupalchok"
+      ]
+    },
+    {
+      "name": "Gandaki",
+      "code": "P4",
+      "cities": [
+        "Baglung",
+        "Gorkha",
+        "Kaski",
+        "Lamjung",
+        "Manang",
+        "Mustang",
+        "Myagdi",
+        "Nawalpur",
+        "Parbat",
+        "Syangja",
+        "Tanahun"
+      ]
+    },
+    {
+      "name": "Karnali",
+      "code": "P6",
+      "cities": [
+        "Dailekh",
+        "Dolpa",
+        "Humla",
+        "Jajarkot",
+        "Jumla",
+        "Kalikot",
+        "Mugu",
+        "Salyan",
+        "Surkhet",
+        "Western Rukum"
+      ]
+    },
+    {
+      "name": "Koshi",
+      "code": "P1",
+      "cities": [
+        "Bhojpur",
+        "Dhankuta",
+        "Ilam",
+        "Jhapa",
+        "Khotang",
+        "Morang",
+        "Okhaldhunga",
+        "Panchthar",
+        "Sankhuwasabha",
+        "Solukhumbu",
+        "Sunsari",
+        "Taplejung",
+        "Terhathum",
+        "Udayapur"
+      ]
+    },
+    {
+      "name": "Lumbini",
+      "code": "P5",
+      "cities": [
+        "Arghakhanchi",
+        "Banke",
+        "Bardiya",
+        "Dang",
+        "Eastern Rukum",
+        "Gulmi",
+        "Kapilvastu",
+        "Nawalparasi (West of Bardaghat Susta)",
+        "Palpa",
+        "Pyuthan",
+        "Rolpa",
+        "Rupandehi"
+      ]
+    },
+    {
+      "name": "Madhesh",
+      "code": "P2",
+      "cities": [
+        "Bara",
+        "Dhanusha",
+        "Mahottari",
+        "Parsa",
+        "Rautahat",
+        "Saptari",
+        "Sarlahi",
+        "Siraha"
+      ]
+    },
+    {
+      "name": "Sudurpashchim",
+      "code": "P7",
+      "cities": [
+        "Achham",
+        "Baitadi",
+        "Bajhang",
+        "Bajura",
+        "Dadeldhura",
+        "Darchula",
+        "Doti",
+        "Kailali",
+        "Kanchanpur"
+      ]
+    }
+  ]
+}

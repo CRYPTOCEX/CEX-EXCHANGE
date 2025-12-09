@@ -31,9 +31,13 @@ export function TradeTimer({ startTime, timeLimit, status }: TradeTimerProps) {
         return "Time expired";
       }
 
+      const hours = Math.floor(difference / (1000 * 60 * 60));
       const minutes = Math.floor((difference / 1000 / 60) % 60);
       const seconds = Math.floor((difference / 1000) % 60);
 
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      }
       return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 

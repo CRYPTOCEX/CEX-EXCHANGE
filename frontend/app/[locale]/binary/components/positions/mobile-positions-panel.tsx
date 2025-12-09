@@ -22,9 +22,7 @@ export default function MobilePositionsPanel({
   className = "",
   theme = "dark",
 }: MobilePositionsPanelProps) {
-  const t = useTranslations(
-    "binary/components/positions/mobile-positions-panel"
-  );
+  const t = useTranslations("ext");
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
   // Count active positions
@@ -33,37 +31,33 @@ export default function MobilePositionsPanel({
   ).length;
 
   // Theme-based classes
-  const bgClass = theme === "dark" ? "bg-[#131722]" : "bg-white";
+  const bgClass = theme === "dark" ? "bg-zinc-950" : "bg-white";
   const borderClass = theme === "dark" ? "border-zinc-800" : "border-zinc-200";
   const textClass = theme === "dark" ? "text-white" : "text-zinc-900";
   const secondaryTextClass =
-    theme === "dark" ? "text-zinc-400" : "text-zinc-600";
-  const tabBgClass = theme === "dark" ? "bg-zinc-900" : "bg-zinc-100";
-  const activeTabBgClass = theme === "dark" ? "bg-zinc-800" : "bg-zinc-200";
-  const hoverTextClass =
-    theme === "dark" ? "hover:text-white" : "hover:text-zinc-900";
+    theme === "dark" ? "text-zinc-500" : "text-zinc-600";
 
   return (
     <div className={`flex flex-col h-full ${bgClass} ${className}`}>
       {/* Header with tabs */}
-      <div className={`flex-shrink-0 border-b ${borderClass} ${tabBgClass}`}>
+      <div className={`flex-shrink-0 border-b ${borderClass} ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-100"}`}>
         <div className="flex">
           <button
             onClick={() => setActiveTab("active")}
             className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium transition-colors border-b-2 ${
               activeTab === "active"
-                ? `${activeTabBgClass} ${textClass} ${theme === "dark" ? "border-zinc-500" : "border-zinc-400"}`
-                : `${secondaryTextClass} ${hoverTextClass} border-transparent hover:${theme === "dark" ? "bg-zinc-800/50" : "bg-zinc-100/50"}`
+                ? `${textClass} ${theme === "dark" ? "border-orange-500 bg-zinc-800/50" : "border-orange-500 bg-white"}`
+                : `${secondaryTextClass} border-transparent ${theme === "dark" ? "hover:bg-zinc-800/30 hover:text-zinc-300" : "hover:bg-zinc-200 hover:text-zinc-700"}`
             }`}
           >
             <Clock size={16} className="mr-2" />
             {t("Active")}
             {activePositionsCount > 0 && (
               <span
-                className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
                   theme === "dark"
-                    ? "bg-zinc-700 text-zinc-300"
-                    : "bg-zinc-300 text-zinc-700"
+                    ? "bg-orange-500/20 text-orange-400"
+                    : "bg-orange-100 text-orange-600"
                 }`}
               >
                 {activePositionsCount}
@@ -74,8 +68,8 @@ export default function MobilePositionsPanel({
             onClick={() => setActiveTab("completed")}
             className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium transition-colors border-b-2 ${
               activeTab === "completed"
-                ? `${activeTabBgClass} ${textClass} ${theme === "dark" ? "border-zinc-500" : "border-zinc-400"}`
-                : `${secondaryTextClass} ${hoverTextClass} border-transparent hover:${theme === "dark" ? "bg-zinc-800/50" : "bg-zinc-100/50"}`
+                ? `${textClass} ${theme === "dark" ? "border-orange-500 bg-zinc-800/50" : "border-orange-500 bg-white"}`
+                : `${secondaryTextClass} border-transparent ${theme === "dark" ? "hover:bg-zinc-800/30 hover:text-zinc-300" : "hover:bg-zinc-200 hover:text-zinc-700"}`
             }`}
           >
             <BarChart3 size={16} className="mr-2" />
@@ -85,7 +79,7 @@ export default function MobilePositionsPanel({
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-hidden">
+      <div className={`flex-1 overflow-hidden ${theme === "dark" ? "bg-zinc-950" : "bg-white"}`}>
         {activeTab === "active" ? (
           <ActivePositions
             orders={orders}

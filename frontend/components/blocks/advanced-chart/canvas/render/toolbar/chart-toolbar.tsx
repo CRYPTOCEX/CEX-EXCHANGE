@@ -25,9 +25,7 @@ export const ChartToolbar: React.FC<ChartToolbarProps> = ({
   onIndicatorsClick,
   onSettingsClick,
 }) => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/toolbar/chart-toolbar"
-  );
+  const t = useTranslations("common");
   const context = useChart();
   const timeFrame = context.timeFrame;
   const onTimeFrameChange = context.onTimeFrameChange;

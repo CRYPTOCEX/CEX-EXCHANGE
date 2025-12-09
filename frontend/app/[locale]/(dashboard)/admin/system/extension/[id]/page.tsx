@@ -98,8 +98,7 @@ export default function ExtensionDetailsPage() {
                     {currentExtension.title}
                   </h2>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {t("version")}
-                    {currentExtension.version}
+                    {t("version")}: {currentExtension.version}
                   </p>
                 </div>
               </div>

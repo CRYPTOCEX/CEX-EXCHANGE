@@ -160,7 +160,7 @@ const FEATURE_MESSAGES = {
 };
 
 export default function KycRequiredNotice({ feature }: { feature?: string }) {
-  const t = useTranslations("components/blocks/kyc/kyc-required-notice");
+  const t = useTranslations("common");
   const featureInfo = feature
     ? FEATURE_MESSAGES[feature as keyof typeof FEATURE_MESSAGES]
     : null;

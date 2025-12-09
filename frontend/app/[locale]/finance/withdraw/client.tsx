@@ -86,7 +86,7 @@ interface WithdrawFormProps {
   initialCurrency?: string;
 }
 export function WithdrawForm() {
-  const t = useTranslations("finance/withdraw/client");
+  const t = useTranslations("common");
   const searchParams = useSearchParams();
   const initialType = searchParams?.get("type");
   const initialCurrency = searchParams?.get("currency");
@@ -1009,7 +1009,7 @@ export function WithdrawForm() {
                       {currency}
                     </span>
                     <span>
-                      {t("min")} {getMinAmount()} {currency} {t("(to_receive")}{" "}
+                      {t("min")} {getMinAmount()} {currency} ({t("to_receive")}{" "}
                       {(() => {
                         const method = withdrawalMethods.find(
                           (m) => m.id === withdrawMethod

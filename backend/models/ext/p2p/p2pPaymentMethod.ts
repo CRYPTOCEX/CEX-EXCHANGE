@@ -11,6 +11,7 @@ export default class p2pPaymentMethod
   icon!: string;
   description?: string;
   instructions?: string;
+  metadata?: Record<string, string>; // Flexible key-value pairs for payment details (e.g., "PayPal Email": "user@example.com")
   processingTime?: string;
   fees?: string;
   available!: boolean;
@@ -57,6 +58,23 @@ export default class p2pPaymentMethod
         instructions: {
           type: DataTypes.TEXT("long"),
           allowNull: true,
+        },
+        metadata: {
+          type: DataTypes.JSON,
+          allowNull: true,
+          comment: "Flexible key-value pairs for payment details (e.g., PayPal Email, Bank Account, etc.)",
+          get() {
+            const rawValue = this.getDataValue("metadata" as keyof p2pPaymentMethodAttributes);
+            if (!rawValue) return null;
+            if (typeof rawValue === "string") {
+              try {
+                return JSON.parse(rawValue);
+              } catch {
+                return null;
+              }
+            }
+            return rawValue;
+          },
         },
         processingTime: {
           type: DataTypes.STRING(50),

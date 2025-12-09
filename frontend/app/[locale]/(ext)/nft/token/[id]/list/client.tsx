@@ -60,7 +60,7 @@ import { Separator } from "@/components/ui/separator";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import { useWalletStore } from "@/store/nft/wallet-store";
-import { WalletButton } from "@/components/ext/nft/WalletButton";
+import { WalletButton } from "@/app/[locale]/(ext)/nft/components/shared/WalletButton";
 
 const listingSchema = z.object({
   type: z.enum(["FIXED_PRICE", "AUCTION"]),

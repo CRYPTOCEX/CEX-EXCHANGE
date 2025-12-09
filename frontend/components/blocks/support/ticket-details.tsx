@@ -14,7 +14,7 @@ interface TicketDetailsProps {
 }
 
 export function TicketDetails({ ticket }: TicketDetailsProps) {
-  const t = useTranslations("components/blocks/support/ticket-details");
+  const t = useTranslations("common");
   const getStatusStyles = (status: string) => {
     switch (status) {
       case "OPEN":

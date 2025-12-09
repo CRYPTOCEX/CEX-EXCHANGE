@@ -14,7 +14,7 @@ export function WatchlistSortButtons({
   sortCriteria,
   onSort,
 }: WatchlistSortButtonsProps) {
-  const t = useTranslations("trade/components/markets/watchlist-sort-buttons");
+  const t = useTranslations("ext");
   // Get the primary sort field and direction
   const primarySort = sortCriteria[0] || { field: "name", direction: "asc" };
 

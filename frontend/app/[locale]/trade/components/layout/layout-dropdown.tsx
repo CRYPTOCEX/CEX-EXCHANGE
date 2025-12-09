@@ -13,7 +13,7 @@ import { LayoutGrid, LayoutPanelLeft, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function LayoutDropdown() {
-  const t = useTranslations("trade/components/layout/layout-dropdown");
+  const t = useTranslations("ext");
   const {
     layoutConfig,
     setLayoutConfig,

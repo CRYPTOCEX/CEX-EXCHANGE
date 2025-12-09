@@ -1,0 +1,350 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">👑</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Admin Features</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Administrator Guide for Payment Gateway Management</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Admin Dashboard Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The admin panel provides comprehensive control over the Payment Gateway system. Access it by navigating to <strong>Admin > Gateway</strong> from the main navigation.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Administrators can monitor all payment activity, manage merchants, configure platform settings, approve payouts, and handle disputes across all merchants on the platform.
+        </p>
+    </div>
+</div>
+
+<!-- Admin Navigation -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Admin Navigation</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">📊</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Dashboard</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Platform-wide analytics and metrics</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">🏪</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Merchants</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Manage merchant accounts and verification</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">💳</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Payments</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">View and manage all transactions</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">💸</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Payouts</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Approve and manage payout requests</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 text-center">
+            <div class="text-3xl mb-3">⚙️</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Settings</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Configure platform-wide settings</p>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Analytics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Platform Analytics</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The admin dashboard displays platform-wide metrics:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-green-800 dark:text-green-200">Total Volume</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">All payments processed</p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-blue-800 dark:text-blue-200">Total Fees Collected</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Platform revenue from fees</p>
+            </div>
+            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-800 dark:text-purple-200">Active Merchants</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Merchants with recent activity</p>
+            </div>
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                <h4 class="font-semibold text-yellow-800 dark:text-yellow-200">Pending Payouts</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Awaiting admin approval</p>
+            </div>
+        </div>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Charts & Trends</h3>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Payment Volume Chart</strong> - Daily/weekly/monthly payment trends</li>
+            <li><strong>Fee Revenue Chart</strong> - Platform earnings over time</li>
+            <li><strong>Merchant Activity</strong> - Most active merchants by volume</li>
+            <li><strong>Payment Methods</strong> - Distribution by wallet type (FIAT/SPOT/ECO)</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Merchant Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Merchant Management</h2>
+
+    <div class="space-y-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Viewing Merchants</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Navigate to <strong>Admin > Gateway > Merchants</strong> to see all registered merchants. The list shows:
+            </p>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li><strong>Merchant Name</strong> - Business name and slug</li>
+                <li><strong>Owner</strong> - Associated user account</li>
+                <li><strong>Status</strong> - Active, Suspended, or Pending verification</li>
+                <li><strong>Total Volume</strong> - Cumulative payment amount processed</li>
+                <li><strong>Created Date</strong> - Account registration date</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Merchant Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">View Details</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Access full merchant profile, payment history, and balances</p>
+                </div>
+                <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Suspend/Activate</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Temporarily disable or enable merchant accounts</p>
+                </div>
+                <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">View API Keys</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">See merchant's active API keys and usage</p>
+                </div>
+                <div class="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Adjust Fees</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Set custom fee rates for specific merchants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Payment Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Viewing All Payments</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Navigate to <strong>Admin > Gateway > Payments</strong> to view all transactions across all merchants. Use filters to find specific payments:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>By Merchant</strong> - Filter by specific merchant</li>
+            <li><strong>By Status</strong> - Pending, Completed, Failed, Refunded</li>
+            <li><strong>By Mode</strong> - Live or Test transactions</li>
+            <li><strong>By Date Range</strong> - Custom date filtering</li>
+            <li><strong>By Amount</strong> - Minimum/maximum amount</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Payment Details</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Click on any payment to view comprehensive details:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Transaction Info</strong> - IDs, amounts, timestamps</li>
+            <li><strong>Merchant Info</strong> - Associated merchant and their settings</li>
+            <li><strong>Customer Info</strong> - Customer account and wallet details</li>
+            <li><strong>Wallet Allocations</strong> - Which wallets were used and amounts</li>
+            <li><strong>Fee Breakdown</strong> - Platform fee calculation</li>
+            <li><strong>Webhook History</strong> - Delivery attempts and responses</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Admin Refunds</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Administrators can issue refunds on behalf of merchants:
+        </p>
+        <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Open the payment details</li>
+            <li>Click "Admin Refund"</li>
+            <li>Select full or partial refund</li>
+            <li>Enter internal notes (visible only to admins)</li>
+            <li>Confirm the refund</li>
+        </ol>
+        <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                <strong>Note:</strong> Admin refunds bypass merchant approval and should be used carefully. All admin refunds are logged for audit purposes.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Payout Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Payout Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Payout Queue</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Navigate to <strong>Admin > Gateway > Payouts</strong> to manage payout requests. The queue shows:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Merchant</strong> - Who is requesting the payout</li>
+            <li><strong>Amount</strong> - Requested payout amount per currency</li>
+            <li><strong>Status</strong> - Pending, Processing, Completed, Rejected</li>
+            <li><strong>Request Date</strong> - When the payout was requested</li>
+            <li><strong>Type</strong> - Automatic (scheduled) or Manual (merchant-initiated)</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Approving Payouts</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            To approve a pending payout:
+        </p>
+        <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Review the payout details and merchant information</li>
+            <li>Verify the merchant has sufficient gateway pending balance</li>
+            <li>Click "Approve Payout"</li>
+            <li>The system will transfer funds from merchant's gateway pending balance to their wallet</li>
+        </ol>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Rejecting Payouts</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            To reject a payout request:
+        </p>
+        <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Click "Reject Payout" on the payout details</li>
+            <li>Enter a reason for rejection (will be shown to merchant)</li>
+            <li>Confirm the rejection</li>
+        </ol>
+        <p class="text-zinc-600 dark:text-zinc-400 mt-2">
+            Rejected payouts keep the funds in the merchant's gateway pending balance for the next payout cycle.
+        </p>
+    </div>
+</div>
+
+<!-- Platform Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Platform Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-6">
+            Navigate to <strong>Admin > Gateway > Settings</strong> to configure platform-wide options:
+        </p>
+
+        <div class="space-y-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Fee Configuration</h4>
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg">
+                    <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                        <li><strong>Default Fee Percentage</strong> - Platform fee charged on all transactions (e.g., 2.5%)</li>
+                        <li><strong>Minimum Fee</strong> - Minimum fee amount per transaction</li>
+                        <li><strong>Maximum Fee</strong> - Cap on fee amount (optional)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Payout Configuration</h4>
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg">
+                    <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                        <li><strong>Minimum Payout Amount</strong> - Threshold before payouts are processed</li>
+                        <li><strong>Payout Schedule</strong> - Automatic payout frequency (daily/weekly/monthly)</li>
+                        <li><strong>Require Admin Approval</strong> - Toggle manual approval requirement</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Wallet Configuration</h4>
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg">
+                    <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                        <li><strong>Allowed Wallet Types</strong> - Enable/disable FIAT, SPOT, ECO wallet payments</li>
+                        <li><strong>Allowed Currencies</strong> - Which currencies can be used for each wallet type</li>
+                        <li><strong>Currency Conversion</strong> - Enable automatic conversion to payment currency</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Checkout Design</h4>
+                <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg">
+                    <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                        <li><strong>Default Design</strong> - Set platform-wide default checkout theme</li>
+                        <li><strong>Available Designs</strong> - Enable/disable specific design options for merchants</li>
+                        <li><strong>Preview</strong> - Preview checkout designs before enabling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fee Collection -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Understanding Fee Collection</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            When a payment is processed, the platform fee is automatically collected:
+        </p>
+
+        <div class="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg mb-4">
+            <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Fee Calculation Example</h4>
+            <pre class="text-sm text-zinc-600 dark:text-zinc-400">
+Payment Amount:    $100.00
+Platform Fee (2.5%): $2.50
+Net to Merchant:   $97.50
+            </pre>
+        </div>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Where Fees Go</h4>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Fees are credited to the super admin's wallet</li>
+            <li>An <code>adminProfit</code> record is created for tracking</li>
+            <li>Fee revenue appears in the admin dashboard analytics</li>
+        </ul>
+
+        <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mt-4 mb-2">Fee Refunds</h4>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            When a refund is issued, platform fees are also refunded proportionally. For partial refunds, fees are refunded based on the percentage of the original amount being refunded.
+        </p>
+    </div>
+</div>
+
+<!-- Audit & Compliance -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Audit & Compliance</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Transaction Logs</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            All payment gateway activities are logged for audit purposes:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Payment creation and status changes</li>
+            <li>Refund requests and processing</li>
+            <li>Payout approvals and rejections</li>
+            <li>Merchant account changes</li>
+            <li>API key generation and revocation</li>
+            <li>Admin actions on merchant accounts</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Wallet Allocations</h3>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Every payment stores detailed allocation data showing exactly which wallets were used and for what amounts. This data is preserved for refund processing and audit trail purposes.
+        </p>
+    </div>
+</div>

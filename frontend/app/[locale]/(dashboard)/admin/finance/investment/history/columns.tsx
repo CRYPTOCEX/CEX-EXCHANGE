@@ -100,8 +100,7 @@ export const columns: ColumnDefinition[] = [
     filterable: false,
     editable: true,
     description: "Investment duration",
-    // TODO: Fix sorting issue
-    // sortKey: ["duration", "timeframe"],
+    sortKey: "duration",
     render: (value: any, row: any) => {
       const duration = row?.duration || value;
       return duration ? `${duration.duration} ${duration.timeframe}` : "N/A";

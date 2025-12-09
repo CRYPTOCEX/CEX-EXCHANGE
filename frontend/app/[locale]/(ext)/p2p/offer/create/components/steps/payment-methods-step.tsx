@@ -49,6 +49,7 @@ import {
   Save,
   Loader2,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -71,7 +72,12 @@ interface PaymentMethod {
   popularityRank?: number;
   isCustom?: boolean;
   instructions?: string;
+  metadata?: Record<string, string>; // Flexible key-value pairs for payment details
   requiresDetails: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  hasActiveTrade?: boolean;
+  hasActiveOffer?: boolean;
   fields: {
     name: string;
     label: string;
@@ -102,6 +108,9 @@ export function PaymentMethodsStep() {
   const [newMethodInstructions, setNewMethodInstructions] = useState("");
   const [newMethodDescription, setNewMethodDescription] = useState("");
   const [newMethodProcessingTime, setNewMethodProcessingTime] = useState("");
+  const [newMethodMetadata, setNewMethodMetadata] = useState<{ key: string; value: string }[]>([
+    { key: "", value: "" }, // Start with one empty field
+  ]);
   const [customMethods, setCustomMethods] = useState<PaymentMethod[]>([]);
   const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<string | null>(null);
@@ -142,6 +151,123 @@ export function PaymentMethodsStep() {
     );
   };
 
+  // Handle updating metadata for custom methods
+  const handleUpdateMetadata = (methodId: string, key: string, value: string) => {
+    setCustomMethods((prev) =>
+      prev.map((method) =>
+        method.id === methodId
+          ? {
+              ...method,
+              metadata: {
+                ...(method.metadata || {}),
+                [key]: value,
+              },
+            }
+          : method
+      )
+    );
+  };
+
+  // Handle updating metadata key (rename)
+  const handleUpdateMetadataKey = (methodId: string, oldKey: string, newKey: string) => {
+    setCustomMethods((prev) =>
+      prev.map((method) => {
+        if (method.id !== methodId || !method.metadata) return method;
+
+        const newMetadata: Record<string, string> = {};
+        for (const [k, v] of Object.entries(method.metadata)) {
+          if (k === oldKey) {
+            newMetadata[newKey] = v;
+          } else {
+            newMetadata[k] = v;
+          }
+        }
+
+        return {
+          ...method,
+          metadata: newMetadata,
+        };
+      })
+    );
+  };
+
+  // Handle removing metadata field
+  const handleRemoveMetadataField = (methodId: string, key: string) => {
+    setCustomMethods((prev) =>
+      prev.map((method) => {
+        if (method.id !== methodId || !method.metadata) return method;
+
+        const newMetadata = { ...method.metadata };
+        delete newMetadata[key];
+
+        return {
+          ...method,
+          metadata: Object.keys(newMetadata).length > 0 ? newMetadata : undefined,
+        };
+      })
+    );
+  };
+
+  // Handle adding metadata field to existing method
+  const handleAddMetadataToMethod = (methodId: string) => {
+    setCustomMethods((prev) =>
+      prev.map((method) => {
+        if (method.id !== methodId) return method;
+
+        // Generate a unique placeholder key
+        const existingKeys = Object.keys(method.metadata || {});
+        let newKey = "";
+        let counter = 1;
+        while (existingKeys.includes(newKey)) {
+          newKey = `field_${counter}`;
+          counter++;
+        }
+
+        return {
+          ...method,
+          metadata: {
+            ...(method.metadata || {}),
+            [newKey]: "",
+          },
+        };
+      })
+    );
+  };
+
+  // Handle metadata field changes
+  const handleMetadataChange = (index: number, field: "key" | "value", value: string) => {
+    setNewMethodMetadata((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  // Add a new metadata field
+  const addMetadataField = () => {
+    if (newMethodMetadata.length < 20) {
+      setNewMethodMetadata((prev) => [...prev, { key: "", value: "" }]);
+    }
+  };
+
+  // Remove a metadata field
+  const removeMetadataField = (index: number) => {
+    setNewMethodMetadata((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Convert metadata array to object for API
+  const getMetadataObject = (): Record<string, string> | null => {
+    const metadata: Record<string, string> = {};
+    for (const { key, value } of newMethodMetadata) {
+      const trimmedKey = key.trim();
+      const trimmedValue = value.trim();
+      if (trimmedKey && trimmedValue) {
+        metadata[trimmedKey] = trimmedValue;
+      }
+    }
+    return Object.keys(metadata).length > 0 ? metadata : null;
+  };
+
   // Update custom method via API
   const updateCustomMethod = async (methodId: string) => {
     const method = customMethods.find((m) => m.id === methodId);
@@ -156,6 +282,7 @@ export function PaymentMethodsStep() {
           description: method.description,
           processingTime: method.processingTime,
           instructions: method.instructions,
+          metadata: method.metadata, // Include metadata in update
           available: method.available,
         },
       });
@@ -249,33 +376,53 @@ export function PaymentMethodsStep() {
           return;
         }
 
-        // Transform API data to our format with required fields
-        // Add a fallback empty array if data is undefined
-        const methods =
-          data && Array.isArray(data)
-            ? data.map((method: any) => ({
-                ...method,
-                requiresDetails: false,
-                // Custom methods don't require additional details
-                isCustom: !!method.userId,
-                // Mark as custom if it has a userId
-                available: method.available === 1 || method.available === true,
-                fields: [],
-              }))
-            : [];
+        // Handle new API response format: { global: [...], custom: [...] }
+        if (data && typeof data === "object" && "global" in data) {
+          // New format with separated global and custom methods
+          const globalMethods = (data.global || []).map((method: any) => ({
+            ...method,
+            requiresDetails: false,
+            isCustom: false,
+            available: method.available === 1 || method.available === true,
+            fields: [],
+          }));
 
-        // Separate custom methods
-        const customMethodsFromAPI = methods.filter(
-          (m: PaymentMethod) => m.isCustom
-        );
-        if (customMethodsFromAPI.length > 0) {
+          const customMethodsFromAPI = (data.custom || []).map((method: any) => ({
+            ...method,
+            requiresDetails: false,
+            isCustom: true,
+            available: method.available === 1 || method.available === true,
+            fields: [],
+          }));
+
+          setAvailablePaymentMethods(globalMethods);
           setCustomMethods(customMethodsFromAPI);
-        }
+        } else {
+          // Legacy format: flat array
+          const methods =
+            data && Array.isArray(data)
+              ? data.map((method: any) => ({
+                  ...method,
+                  requiresDetails: false,
+                  isCustom: !!method.userId,
+                  available: method.available === 1 || method.available === true,
+                  fields: [],
+                }))
+              : [];
 
-        // Set standard methods
-        setAvailablePaymentMethods(
-          methods.filter((m: PaymentMethod) => !m.isCustom)
-        );
+          // Separate custom methods
+          const customMethodsFromAPI = methods.filter(
+            (m: PaymentMethod) => m.isCustom
+          );
+          if (customMethodsFromAPI.length > 0) {
+            setCustomMethods(customMethodsFromAPI);
+          }
+
+          // Set standard methods
+          setAvailablePaymentMethods(
+            methods.filter((m: PaymentMethod) => !m.isCustom)
+          );
+        }
       } catch (err) {
         console.error("Error fetching payment methods:", err);
         setError("An unexpected error occurred");
@@ -386,6 +533,7 @@ export function PaymentMethodsStep() {
         fees: method?.fees,
         icon: method?.icon,
         instructions: method?.instructions || "",
+        metadata: method?.metadata || null, // Include flexible payment details
         details: paymentDetails[id] || {},
       };
     });
@@ -423,6 +571,7 @@ export function PaymentMethodsStep() {
         fees: method?.fees,
         icon: method?.icon,
         instructions: method?.instructions || "",
+        metadata: method?.metadata || null, // Include flexible payment details
         details: paymentDetails[id] || {},
       };
     });
@@ -441,7 +590,19 @@ export function PaymentMethodsStep() {
 
   // Handle adding a custom payment method
   const handleAddCustomMethod = async () => {
-    if (!newMethodName.trim() || !newMethodInstructions.trim()) return;
+    if (!newMethodName.trim()) return;
+
+    // At least one of instructions or metadata should be provided
+    const metadata = getMetadataObject();
+    if (!newMethodInstructions.trim() && !metadata) {
+      toast({
+        title: "Payment details required",
+        description: "Please provide either payment instructions or at least one payment detail field.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCreatingMethod(true);
     try {
       // Create a new custom payment method object
@@ -451,7 +612,7 @@ export function PaymentMethodsStep() {
         description: newMethodDescription || "Custom payment method",
         processingTime: newMethodProcessingTime || "Varies",
         instructions: newMethodInstructions,
-        // Save instructions with the payment method
+        metadata, // Include flexible key-value pairs for payment details
         available: true,
       };
 
@@ -484,7 +645,7 @@ export function PaymentMethodsStep() {
         processingTime: createdMethod.processingTime,
         fees: createdMethod.fees,
         instructions: newMethodInstructions,
-        // Store instructions
+        metadata: createdMethod.metadata || metadata, // Store the metadata
         available: true,
         isCustom: true,
         requiresDetails: false,
@@ -515,6 +676,7 @@ export function PaymentMethodsStep() {
               fees: method?.fees,
               icon: method?.icon,
               instructions: method?.instructions || "",
+              metadata: method?.metadata || null, // Include flexible payment details
               details: paymentDetails[id] || {},
             };
           });
@@ -542,6 +704,7 @@ export function PaymentMethodsStep() {
       setNewMethodDescription("");
       setNewMethodProcessingTime("");
       setNewMethodInstructions("");
+      setNewMethodMetadata([{ key: "", value: "" }]); // Reset metadata fields
     } catch (err) {
       console.error("Error creating custom payment method:", err);
       toast({
@@ -772,7 +935,7 @@ export function PaymentMethodsStep() {
                             <CardContent className="pb-3 border-t pt-4 bg-muted/30">
                               <div className="flex justify-between items-center mb-3">
                                 <h4 className="font-medium text-sm">
-                                  {t("payment_instructions")}
+                                  {t("payment_details")}
                                 </h4>
                                 <div className="flex gap-2">
                                   <Button
@@ -853,25 +1016,100 @@ export function PaymentMethodsStep() {
                                   </AlertDialog>
                                 </div>
                               </div>
-                              {editMode === methodId ? (
-                                <Textarea
-                                  value={method.instructions || ""}
-                                  onChange={(e) =>
-                                    handleUpdateInstructions(
-                                      methodId,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter payment instructions"
-                                  rows={4}
-                                  className="resize-none"
-                                />
-                              ) : (
-                                <div className="bg-background rounded-md p-3 border text-sm whitespace-pre-wrap">
-                                  {method.instructions ||
-                                    "No instructions provided"}
+
+                              {/* Display metadata fields */}
+                              {(method.metadata && Object.keys(method.metadata).length > 0) || editMode === methodId ? (
+                                <div className="mb-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h5 className="text-xs font-medium text-muted-foreground">{t("payment_details")}</h5>
+                                    {editMode === methodId && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleAddMetadataToMethod(methodId);
+                                        }}
+                                        className="h-6 text-xs"
+                                      >
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        {t("add_field")}
+                                      </Button>
+                                    )}
+                                  </div>
+                                  {editMode === methodId ? (
+                                    <div className="bg-background rounded-md p-3 border text-sm space-y-2">
+                                      {method.metadata && Object.entries(method.metadata).map(([key, value], index) => (
+                                        <div key={`${key}-${index}`} className="flex gap-2 items-center">
+                                          <Input
+                                            placeholder={t("field_name")}
+                                            value={key}
+                                            onChange={(e) => handleUpdateMetadataKey(methodId, key, e.target.value)}
+                                            className="flex-1 h-8 text-sm"
+                                          />
+                                          <Input
+                                            placeholder={t("field_value")}
+                                            value={value}
+                                            onChange={(e) => handleUpdateMetadata(methodId, key, e.target.value)}
+                                            className="flex-1 h-8 text-sm"
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleRemoveMetadataField(methodId, key);
+                                            }}
+                                            className="h-8 w-8 text-destructive hover:text-destructive/80 flex-shrink-0"
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      {(!method.metadata || Object.keys(method.metadata).length === 0) && (
+                                        <p className="text-xs text-muted-foreground text-center py-2">
+                                          {t("no_payment_details_click_add_field")}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="bg-background rounded-md p-3 border text-sm space-y-2">
+                                      {method.metadata && Object.entries(method.metadata).map(([key, value]) => (
+                                        <div key={key} className="flex justify-between">
+                                          <span className="text-muted-foreground">{key}:</span>
+                                          <span className="font-medium">{value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              ) : null}
+
+                              {/* Instructions section */}
+                              <div>
+                                <h5 className="text-xs font-medium text-muted-foreground mb-2">{t("Instructions")}</h5>
+                                {editMode === methodId ? (
+                                  <Textarea
+                                    value={method.instructions || ""}
+                                    onChange={(e) =>
+                                      handleUpdateInstructions(
+                                        methodId,
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder={t("enter_payment_instructions")}
+                                    rows={4}
+                                    className="resize-none"
+                                  />
+                                ) : (
+                                  <div className="bg-background rounded-md p-3 border text-sm whitespace-pre-wrap">
+                                    {method.instructions ||
+                                      "No instructions provided"}
+                                  </div>
+                                )}
+                              </div>
                             </CardContent>
                           </motion.div>
                         )}
@@ -885,79 +1123,94 @@ export function PaymentMethodsStep() {
         )}
       </div>
 
-      {/* Available Methods Section */}
+      {/* Global Payment Methods Section */}
+      {availablePaymentMethods.filter((method) => method.available).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-muted-foreground">
+              {t("Global")} {t("payment_methods")}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {availablePaymentMethods
+              .filter((method) => method.available)
+              .map((method) => {
+                const isSelected = selectedMethods.includes(method.id);
+                const MethodIcon = getIconComponent(method.icon);
+                const colorClass = getMethodColorClass(method.id);
+                return (
+                  <motion.div
+                    key={method.id}
+                    whileHover={{
+                      scale: 1.02,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    transition={{
+                      duration: 0.2,
+                    }}
+                  >
+                    <Card
+                      className={cn(
+                        "cursor-pointer transition-all hover:shadow-md",
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-primary/20"
+                      )}
+                      onClick={() => handleMethodToggle(method.id)}
+                    >
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <div
+                          className={cn(
+                            "p-2 rounded-md w-10 h-10 flex items-center justify-center",
+                            colorClass
+                          )}
+                        >
+                          <MethodIcon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium flex items-center gap-2">
+                            {method.name}
+                            {isSelected && (
+                              <CheckCircle className="h-4 w-4 text-primary" />
+                            )}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {method.description}
+                          </p>
+                          {method.processingTime && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t("processing")} {method.processingTime}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Custom Payment Methods Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">
-            {t("available_payment_methods")}
+          <h3 className="text-lg font-medium text-muted-foreground">
+            {t("your_custom_payment_methods")}
           </h3>
-          {/* Removed the Add Custom button from here */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availablePaymentMethods
-            .filter((method) => method.available)
-            .map((method) => {
-              const isSelected = selectedMethods.includes(method.id);
-              const MethodIcon = getIconComponent(method.icon);
-              const colorClass = getMethodColorClass(method.id);
-              return (
-                <motion.div
-                  key={method.id}
-                  whileHover={{
-                    scale: 1.02,
-                  }}
-                  whileTap={{
-                    scale: 0.98,
-                  }}
-                  transition={{
-                    duration: 0.2,
-                  }}
-                >
-                  <Card
-                    className={cn(
-                      "cursor-pointer transition-all hover:shadow-md",
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "hover:border-primary/20"
-                    )}
-                    onClick={() => handleMethodToggle(method.id)}
-                  >
-                    <CardContent className="p-4 flex items-start gap-3">
-                      <div
-                        className={cn(
-                          "p-2 rounded-md w-10 h-10 flex items-center justify-center",
-                          colorClass
-                        )}
-                      >
-                        <MethodIcon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium flex items-center gap-2">
-                          {method.name}
-                          {isSelected && (
-                            <CheckCircle className="h-4 w-4 text-primary" />
-                          )}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {method.description}
-                        </p>
-                        {method.processingTime && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("processing")} {method.processingTime}
-                          </p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-
           {/* Custom methods */}
           {customMethods.map((method) => {
             const isSelected = selectedMethods.includes(method.id);
             const MethodIcon = getIconComponent(method.icon);
+            const hasActiveTrade = method.hasActiveTrade === true;
+            const hasActiveOffer = method.hasActiveOffer === true;
+            const canDelete = method.canDelete !== false;
             return (
               <motion.div
                 key={method.id}
@@ -990,11 +1243,27 @@ export function PaymentMethodsStep() {
                       <MethodIcon className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium flex items-center gap-2">
+                      <h3 className="font-medium flex items-center gap-2 flex-wrap">
                         {method.name}
-                        <Badge variant="outline" className="ml-1 text-xs">
+                        <Badge variant="outline" className="text-xs">
                           {t("Custom")}
                         </Badge>
+                        {hasActiveTrade && (
+                          <Badge variant="secondary" className="text-xs gap-1">
+                            <Lock className="h-3 w-3" />
+                            {t("in_trade")}
+                          </Badge>
+                        )}
+                        {hasActiveOffer && !hasActiveTrade && (
+                          <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
+                            {t("in_offer")}
+                          </Badge>
+                        )}
+                        {canDelete && (
+                          <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                            {t("can_delete")}
+                          </Badge>
+                        )}
                         {isSelected && (
                           <CheckCircle className="h-4 w-4 text-primary" />
                         )}
@@ -1044,6 +1313,13 @@ export function PaymentMethodsStep() {
                 </CardContent>
               </Card>
             </motion.div>
+          )}
+
+          {/* Show message if no custom methods and custom not allowed */}
+          {customMethods.length === 0 && !customMethodsAllowed && (
+            <div className="col-span-full text-center py-4 text-muted-foreground text-sm">
+              {t("no_custom_payment_methods")}
+            </div>
           )}
         </div>
       </div>
@@ -1113,7 +1389,7 @@ export function PaymentMethodsStep() {
               </Label>
               <Input
                 id="method-name"
-                placeholder="e.g., Zelle, Wire Transfer"
+                placeholder={t("e_g_zelle_wire_transfer")}
                 value={newMethodName}
                 onChange={(e) => setNewMethodName(e.target.value)}
                 className="w-full"
@@ -1123,7 +1399,7 @@ export function PaymentMethodsStep() {
               <Label htmlFor="method-description">{t("Description")}</Label>
               <Input
                 id="method-description"
-                placeholder="Brief description of the payment method"
+                placeholder={t("brief_description_of_the_payment_method")}
                 value={newMethodDescription}
                 onChange={(e) => setNewMethodDescription(e.target.value)}
                 className="w-full"
@@ -1135,7 +1411,7 @@ export function PaymentMethodsStep() {
               </Label>
               <Input
                 id="method-processing-time"
-                placeholder="e.g., 1-2 business days"
+                placeholder={t("e_g_1_2_business_days")}
                 value={newMethodProcessingTime}
                 onChange={(e) => setNewMethodProcessingTime(e.target.value)}
                 className="w-full"
@@ -1144,16 +1420,70 @@ export function PaymentMethodsStep() {
             <div className="space-y-2">
               <Label htmlFor="method-instructions">
                 {t("payment_instructions")}
-                <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="method-instructions"
-                placeholder="Provide instructions for the buyer on how to use this payment method"
+                placeholder={t("provide_instructions_for_the_buyer_on")}
                 value={newMethodInstructions}
                 onChange={(e) => setNewMethodInstructions(e.target.value)}
-                rows={5}
+                rows={3}
                 className="resize-none w-full"
               />
+            </div>
+
+            {/* Dynamic Payment Details Fields */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>
+                  {t("payment_details")}
+                  <span className="text-muted-foreground text-xs ml-2">
+                    ({t("e_g_account_number_email")})
+                  </span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={addMetadataField}
+                  disabled={newMethodMetadata.length >= 20}
+                  className="h-7 text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  {t("add_field")}
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {newMethodMetadata.map((field, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      placeholder={t("field_name")}
+                      value={field.key}
+                      onChange={(e) => handleMetadataChange(index, "key", e.target.value)}
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder={t("field_value")}
+                      value={field.value}
+                      onChange={(e) => handleMetadataChange(index, "value", e.target.value)}
+                      className="flex-1"
+                    />
+                    {newMethodMetadata.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeMetadataField(index)}
+                        className="h-8 w-8 text-destructive hover:text-destructive/80 flex-shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("add_your_payment_details_like_account_numbers")}
+              </p>
             </div>
           </div>
           <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2">
@@ -1168,7 +1498,6 @@ export function PaymentMethodsStep() {
               onClick={handleAddCustomMethod}
               disabled={
                 !newMethodName.trim() ||
-                !newMethodInstructions.trim() ||
                 isCreatingMethod
               }
               className="w-full sm:w-auto"

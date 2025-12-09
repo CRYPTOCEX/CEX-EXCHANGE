@@ -367,9 +367,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   {t("earning_details")}
                 </h4>
                 <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                  {t("Earn")}
-                  {pool.apr}
-                  {t("%_apr_paid_out")} {pool.earningFrequency.toLowerCase()}
+                  {t("earn")} {pool.apr}% {t("apr_paid_out")} {pool.earningFrequency.toLowerCase()}
                   {t("in")}
                   {pool.symbol}
                   {pool.autoCompound &&
@@ -450,8 +448,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                       {t("funds_are_locked_for")}
                       {pool.lockPeriod}
                       {t("days")}. {t("early_withdrawal_incurs_a")}
-                      {pool.earlyWithdrawalFee}
-                      {t("%_penalty_fee")}.
+                      {pool.earlyWithdrawalFee}% {t("penalty_fee")}.
                     </div>
                   </div>
                 </div>
@@ -465,9 +462,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   <div>
                     <div className="font-medium">{t("apr_variability")}</div>
                     <div className="text-sm text-muted-foreground">
-                      {t("The")}
-                      {pool.apr}
-                      {t("%_apr_is_market_conditions")}.
+                      {t("the")} {pool.apr}% {t("apr_is_subject_to_market_conditions")}.
                     </div>
                   </div>
                 </div>
@@ -509,9 +504,7 @@ export function PoolDetailsTab({ poolId }: PoolDetailsTabProps) {
                   {pool.earlyWithdrawalFee}%
                 </li>
                 <li>
-                  {t("admin_fee")}
-                  {pool.adminFeePercentage}
-                  {t("%_of_earnings")}
+                  {t("admin_fee")} {pool.adminFeePercentage}% {t("of_earnings")}
                 </li>
                 <li>
                   {t("earnings_are_distributed")}

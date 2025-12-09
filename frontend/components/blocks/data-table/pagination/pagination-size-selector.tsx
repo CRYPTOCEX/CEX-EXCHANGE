@@ -10,9 +10,7 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function PaginationSizeSelector() {
-  const t = useTranslations(
-    "components/blocks/data-table/pagination/pagination-size-selector"
-  );
+  const t = useTranslations("common");
   const pageSize = useTableStore((state) => state.pageSize);
   const setPageSize = useTableStore((state) => state.setPageSize);
   const paginationLoading = useTableStore((state) => state.paginationLoading);

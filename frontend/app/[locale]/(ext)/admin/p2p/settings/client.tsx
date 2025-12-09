@@ -44,6 +44,14 @@ export default function SettingsConfiguration() {
     TakerFee: localSettings.p2pTakerFee !== undefined ? localSettings.p2pTakerFee : 0.2,
     DisputeFeePercent: localSettings.p2pDisputeFeePercent !== undefined ? localSettings.p2pDisputeFeePercent : 1,
     EscrowReleaseTime: localSettings.p2pEscrowReleaseTime !== undefined ? localSettings.p2pEscrowReleaseTime : "00:00",
+    MinimumTradeAmounts: localSettings.p2pMinimumTradeAmounts !== undefined ? localSettings.p2pMinimumTradeAmounts : {
+      BTC: 0.00005,
+      ETH: 0.001,
+      LTC: 0.01,
+      BCH: 0.001,
+      DOGE: 10,
+    },
+    AutoReleaseEscrow: localSettings.p2pAutoReleaseEscrow !== undefined ? localSettings.p2pAutoReleaseEscrow : true,
   };
 
   // Extract platform settings
@@ -123,6 +131,8 @@ export default function SettingsConfiguration() {
       p2pTakerFee: feesSettings.TakerFee,
       p2pDisputeFeePercent: feesSettings.DisputeFeePercent,
       p2pEscrowReleaseTime: feesSettings.EscrowReleaseTime,
+      p2pMinimumTradeAmounts: feesSettings.MinimumTradeAmounts,
+      p2pAutoReleaseEscrow: feesSettings.AutoReleaseEscrow,
 
       p2pEnabled: platformSettings.Enabled,
       p2pMaintenanceMode: platformSettings.MaintenanceMode,

@@ -30,7 +30,7 @@ const safeString = (value: any): string => {
   return String(value);
 };
 export function WalletList() {
-  const t = useTranslations("finance/wallet/components/wallet-list");
+  const t = useTranslations("common");
   const router = useRouter();
   const { fiatWallets, spotWallets, ecoWallets, futuresWallets } =
     useWalletStore();

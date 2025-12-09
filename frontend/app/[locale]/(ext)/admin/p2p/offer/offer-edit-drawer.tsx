@@ -73,6 +73,8 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([]);
   const [countries, setCountries] = useState<any[]>([]);
+  const [availableCurrencies, setAvailableCurrencies] = useState<{value: string, label: string}[]>([]);
+  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
   
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState<{
@@ -142,6 +144,39 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
     adminNotes: "",
   });
 
+  // Fetch currencies based on wallet type
+  const fetchCurrenciesForWalletType = async (walletType: string) => {
+    if (!walletType) return;
+
+    setLoadingCurrencies(true);
+    try {
+      const response = await fetch("/api/finance/currency/valid");
+      if (!response.ok) {
+        throw new Error("Failed to fetch currencies");
+      }
+
+      const data = await response.json();
+      // If wallet type is ECO, use FUNDING currencies
+      const mappedWalletType = walletType === "ECO" ? "FUNDING" : walletType;
+      const walletCurrencies = data[mappedWalletType] || [];
+
+      setAvailableCurrencies(walletCurrencies);
+    } catch (err) {
+      console.error("Error fetching currencies:", err);
+      // Fallback to empty array
+      setAvailableCurrencies([]);
+    } finally {
+      setLoadingCurrencies(false);
+    }
+  };
+
+  // Load currencies when wallet type changes
+  useEffect(() => {
+    if (formData.walletType) {
+      fetchCurrenciesForWalletType(formData.walletType);
+    }
+  }, [formData.walletType]);
+
   // Load payment methods and countries
   useEffect(() => {
     async function loadData() {
@@ -153,7 +188,18 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
           silent: true,
         });
         if (methodsData) {
-          setPaymentMethods(methodsData);
+          // Handle new API response format: { global: [...], custom: [...] }
+          if (typeof methodsData === "object" && "global" in methodsData) {
+            // Combine global and custom methods for admin view
+            const allMethods = [
+              ...(methodsData.global || []),
+              ...(methodsData.custom || []),
+            ];
+            setPaymentMethods(allMethods);
+          } else if (Array.isArray(methodsData)) {
+            // Legacy format: flat array
+            setPaymentMethods(methodsData);
+          }
         }
 
         // Load countries (you might need to adjust this endpoint)
@@ -174,28 +220,16 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
 
   // Function to process offer data
   const processOfferData = (offerData: any) => {
-    console.log("=== PROCESS OFFER DATA ===");
     if (!offerData) {
-      console.log("No offer data to process");
       return;
     }
-    
-    console.log("Raw offer data:", offerData);
-    
+
     // Parse all JSON fields
     const amountConfig = safeJsonParse(offerData.amountConfig, {});
     const priceConfig = safeJsonParse(offerData.priceConfig, {});
     const tradeSettings = safeJsonParse(offerData.tradeSettings, {});
     const locationSettings = safeJsonParse(offerData.locationSettings, {});
     const userRequirements = safeJsonParse(offerData.userRequirements, {});
-    
-    console.log("Parsed configs:", {
-      amountConfig,
-      priceConfig,
-      tradeSettings,
-      locationSettings,
-      userRequirements
-    });
     
     // Extract payment method IDs
     const paymentMethodIds = Array.isArray(offerData.paymentMethods)
@@ -254,13 +288,6 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
       paymentMethodIds: paymentMethodIds,
       adminNotes: offerData.adminNotes || "",
     });
-    
-    console.log("Processed offer data:", offerData);
-    console.log("Parsed form data:", {
-      type: offerData.type,
-      status: offerData.status,
-      paymentMethodIds,
-    });
   };
 
   // Load offer data when drawer opens
@@ -272,23 +299,21 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
 
   const loadOfferData = async () => {
     if (!offerId) return;
-    
+
     setLoading(true);
     try {
-      console.log("Loading offer with ID:", offerId);
       // Load the offer data directly via API
       const { data, error } = await $fetch({
         url: `/api/admin/p2p/offer/${offerId}`,
         method: "GET",
         silent: true,
       });
-      
+
       if (error) {
         throw new Error(error);
       }
-      
+
       if (data) {
-        console.log("Offer loaded directly:", data);
         // Process the data immediately
         processOfferData(data);
       }
@@ -372,23 +397,17 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
   };
 
   const handleSubmit = async () => {
-    console.log("=== HANDLESUBMIT START ===");
-    console.log("formData:", formData);
-    console.log("selectedPaymentMethods:", selectedPaymentMethods);
-    
     // Clear previous errors
     setValidationErrors({});
-    
+
     // Validate form
     if (!validateForm()) {
-      console.log("Validation failed, errors:", validationErrors);
-      
       // Find first tab with errors
       const tabsWithErrors = Object.keys(validationErrors);
       if (tabsWithErrors.length > 0) {
         setActiveTab(tabsWithErrors[0]);
       }
-      
+
       toast({
         title: "Validation Error",
         description: "Please fix the errors before saving",
@@ -398,7 +417,6 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
     }
 
     if (!offerId) {
-      console.log("Validation failed: No offer ID");
       toast({
         title: "Error",
         description: "No offer ID provided",
@@ -406,11 +424,9 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
       });
       return;
     }
-    
-    console.log("All validations passed, proceeding with save...");
 
     setSaving(true);
-    
+
     try {
       // Prepare data for API
       const submitData = {
@@ -427,38 +443,22 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
         adminNotes: formData.adminNotes,
       };
 
-      console.log("=== SAVE DEBUG ===");
-      console.log("Submitting data:", submitData);
-      console.log("Offer ID:", offerId);
-      console.log("About to call updateOffer...");
-
       // Use the store's updateOffer function
       const response = await updateOffer(offerId, submitData);
-      
-      console.log("Update response:", response);
-      console.log("=== END SAVE DEBUG ===");
 
       toast({
         title: "Success",
         description: response?.message || "Offer updated successfully",
       });
-      
+
       // Call onSuccess to refresh the DataTable
       if (onSuccess) {
-        console.log("Calling onSuccess callback");
         onSuccess();
       } else {
-        console.log("No onSuccess callback, closing drawer");
         onClose();
       }
     } catch (err: any) {
-      console.error("=== SAVE ERROR ===");
       console.error("Error updating offer:", err);
-      console.error("Error details:", {
-        message: err?.message,
-        stack: err?.stack,
-        response: err?.response,
-      });
       toast({
         title: "Error",
         description: err?.message || "Failed to update offer",
@@ -466,7 +466,6 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
       });
     } finally {
       setSaving(false);
-      console.log("Save operation completed, saving state reset");
     }
   };
 
@@ -650,20 +649,33 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
                           <Label>Currency <span className="text-red-500">*</span></Label>
                           <Select
                             value={formData.currency}
-                            onValueChange={(value) => 
+                            onValueChange={(value) =>
                               setFormData({ ...formData, currency: value })
                             }
+                            disabled={loadingCurrencies}
                           >
                             <SelectTrigger>
-                              <SelectValue />
+                              <SelectValue placeholder={loadingCurrencies ? "Loading..." : "Select currency"} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="USDT">USDT</SelectItem>
-                              <SelectItem value="BTC">BTC</SelectItem>
-                              <SelectItem value="ETH">ETH</SelectItem>
-                              <SelectItem value="USDC">USDC</SelectItem>
+                              {availableCurrencies.length > 0 ? (
+                                availableCurrencies.map((currency) => (
+                                  <SelectItem key={currency.value} value={currency.value}>
+                                    {currency.label}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="" disabled>
+                                  No currencies available
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
+                          {availableCurrencies.length === 0 && !loadingCurrencies && (
+                            <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                              No currencies available for this wallet type
+                            </p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -737,40 +749,53 @@ export default function OfferEditDrawer({ isOpen, onClose, offerId, onSuccess }:
                         </RadioGroup>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className={`grid gap-4 ${formData.priceConfig.model !== "FIXED" ? "grid-cols-2" : "grid-cols-1"}`}>
                         <div className="space-y-2">
                           <Label>Price</Label>
                           <Input
                             type="number"
                             value={formData.priceConfig.value}
-                            onChange={(e) => 
+                            onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                priceConfig: { 
-                                  ...formData.priceConfig, 
-                                  value: parseFloat(e.target.value) || 0 
+                                priceConfig: {
+                                  ...formData.priceConfig,
+                                  value: parseFloat(e.target.value) || 0
                                 }
                               })
                             }
+                            disabled={formData.priceConfig.model === "MARKET"}
                           />
+                          {formData.priceConfig.model === "MARKET" && (
+                            <p className="text-xs text-zinc-500">
+                              Price is automatically set from market data
+                            </p>
+                          )}
                         </div>
 
-                        <div className="space-y-2">
-                          <Label>Margin (%)</Label>
-                          <Input
-                            type="number"
-                            value={formData.priceConfig.margin}
-                            onChange={(e) => 
-                              setFormData({
-                                ...formData,
-                                priceConfig: { 
-                                  ...formData.priceConfig, 
-                                  margin: parseFloat(e.target.value) || 0 
-                                }
-                              })
-                            }
-                          />
-                        </div>
+                        {formData.priceConfig.model !== "FIXED" && (
+                          <div className="space-y-2">
+                            <Label>Margin (%)</Label>
+                            <Input
+                              type="number"
+                              value={formData.priceConfig.margin}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  priceConfig: {
+                                    ...formData.priceConfig,
+                                    margin: parseFloat(e.target.value) || 0
+                                  }
+                                })
+                              }
+                            />
+                            <p className="text-xs text-zinc-500">
+                              {formData.priceConfig.model === "MARKET"
+                                ? "Percentage above/below market price"
+                                : "Custom margin percentage"}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <Separator />

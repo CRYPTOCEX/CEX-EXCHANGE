@@ -240,8 +240,7 @@ export default function OfferingPage() {
                     <div>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium">
-                          {progress.toFixed(1)}
-                          {t("%_complete")}
+                          {progress.toFixed(1)}% {t("complete")}
                         </span>
                         <span className="text-sm font-medium">
                           {daysLeft}{" "}

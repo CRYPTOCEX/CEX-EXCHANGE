@@ -1,14 +1,20 @@
 "use client";
 
-import { AlertTriangle, FileText, User } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 
 interface TradeDisputeViewProps {
   reason: string;
   details: string;
   trade: any;
+}
+
+function getFullName(user: any): string {
+  if (!user) return "Unknown";
+  if (user.name) return user.name;
+  return `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown";
 }
 
 export function TradeDisputeView({
@@ -17,21 +23,28 @@ export function TradeDisputeView({
   trade,
 }: TradeDisputeViewProps) {
   const t = useTranslations("ext");
+
+  // Determine who filed the dispute
+  const disputeFiledById = trade.disputeFiledBy || trade.dispute?.reportedById;
+  const filedByBuyer = disputeFiledById === trade.buyerId || disputeFiledById === trade.buyer?.id;
+  const filedBySeller = disputeFiledById === trade.sellerId || disputeFiledById === trade.seller?.id;
+  const filedBy = filedByBuyer ? trade.buyer : filedBySeller ? trade.seller : null;
+
   return (
     <div className="space-y-6">
-      <div className="rounded-md border-2 border-red-200 bg-red-50 p-4">
+      <div className="rounded-md border-2 border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800/50 p-4">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
           <div>
-            <h3 className="font-medium text-red-800">{t("dispute_reason")}</h3>
-            <p className="mt-1 text-red-800">{reason}</p>
+            <h3 className="font-medium text-red-800 dark:text-red-300">{t("dispute_reason")}</h3>
+            <p className="mt-1 text-red-800 dark:text-red-300">{reason}</p>
           </div>
         </div>
       </div>
 
       <div>
         <h3 className="mb-2 font-medium">{t("dispute_details")}</h3>
-        <p className="text-sm">{details}</p>
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{details}</p>
       </div>
 
       <Separator />
@@ -40,31 +53,16 @@ export function TradeDisputeView({
         <h3 className="mb-2 font-medium">{t("dispute_filed_by")}</h3>
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
-          <span>{trade.buyer.name}</span>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="mb-2 font-medium">{t("supporting_evidence")}</h3>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-md border p-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              {t("Payment_receipt")}. {t("pdf")}
-            </span>
-            <Button variant="outline" size="sm" className="ml-auto">
-              {t("View")}
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 rounded-md border p-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              {t("Bank_statement")}. {t("pdf")}
-            </span>
-            <Button variant="outline" size="sm" className="ml-auto">
-              {t("View")}
-            </Button>
-          </div>
+          {filedBy ? (
+            <Link
+              href={`/admin/crm/user/${filedBy.id}`}
+              className="text-primary hover:underline"
+            >
+              {getFullName(filedBy)} ({filedByBuyer ? t("Buyer") : t("Seller")})
+            </Link>
+          ) : (
+            <span className="text-muted-foreground">{t("Unknown")}</span>
+          )}
         </div>
       </div>
     </div>

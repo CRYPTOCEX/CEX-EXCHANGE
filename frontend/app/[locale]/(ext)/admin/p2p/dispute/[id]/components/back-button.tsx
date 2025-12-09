@@ -13,7 +13,7 @@ export function BackButton() {
     <Button
       variant="outline"
       size="sm"
-      onClick={() => router.push("/admin/disputes")}
+      onClick={() => router.push("/admin/p2p/dispute")}
     >
       <ArrowLeft className="mr-2 h-4 w-4" />
       {t("back_to_disputes")}

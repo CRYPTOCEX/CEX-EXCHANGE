@@ -80,7 +80,7 @@ const benefits = [
 ];
 
 export function HowItWorksSection() {
-  const t = useTranslations("investment/components/how-it-works-section");
+  const t = useTranslations("common");
   const { stats, statsLoading } = useInvestmentStore();
 
   // Format currency

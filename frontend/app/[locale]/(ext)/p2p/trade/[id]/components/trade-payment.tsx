@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -24,16 +24,20 @@ import {
   Clock,
   Camera,
   FileText,
+  X,
+  Loader2,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
 import { getCurrencySymbol } from "@/utils/currency";
+import { isWaitingPayment, isPaymentSent, isExpired, isCompleted } from "@/utils/p2p-status";
+import { imageUploader } from "@/utils/upload";
 
 interface TradePaymentProps {
   trade: any;
-  onConfirmPayment: () => Promise<void>;
+  onConfirmPayment: (receiptUrl?: string) => Promise<void>;
 }
 
 export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
@@ -41,11 +45,14 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
   const [reference, setReference] = useState("");
   const [proofNote, setProofNote] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const currencySymbol = getCurrencySymbol(trade.offer?.priceCurrency || "USD");
 
-  const canConfirmPayment =
-    (trade.status === "waiting_payment" || trade.status === "PENDING") && trade.type === "buy";
+  const canConfirmPayment = isWaitingPayment(trade.status) && trade.type === "buy";
 
   const copyPaymentDetails = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -55,6 +62,49 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
       description: "Payment details have been copied to your clipboard.",
     });
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, GIF, or WebP)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReceiptFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReceiptPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveReceipt = () => {
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmitProof = async (e: React.FormEvent) => {
@@ -68,7 +118,42 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
       return;
     }
 
-    await onConfirmPayment();
+    let receiptUrl: string | undefined;
+
+    // Upload receipt if provided
+    if (receiptFile) {
+      setIsUploading(true);
+      try {
+        const uploadResult = await imageUploader({
+          file: receiptFile,
+          dir: `p2p/receipts/${trade.id}`,
+          size: { maxWidth: 1920, maxHeight: 1920 },
+        });
+
+        if (uploadResult.success && uploadResult.url) {
+          receiptUrl = uploadResult.url;
+        } else {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload receipt image. Please try again.",
+            variant: "destructive",
+          });
+          setIsUploading(false);
+          return;
+        }
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload receipt image. Please try again.",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+
+    await onConfirmPayment(receiptUrl);
   };
 
   return (
@@ -102,7 +187,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {(trade.status === "waiting_payment" || trade.status === "PENDING") ? (
+        {isWaitingPayment(trade.status) ? (
           <>
             <div className="rounded-md border p-4 bg-muted/30">
               <h3 className="font-medium mb-4 flex items-center">
@@ -115,13 +200,13 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                     <p className="text-sm text-muted-foreground">
                       {t("payment_method")}
                     </p>
-                    <p className="font-medium">{trade.paymentMethod}</p>
+                    <p className="font-medium">{trade.paymentDetails?.name || trade.paymentMethodDetails?.name || trade.paymentMethod}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() =>
-                      copyPaymentDetails(trade.paymentMethod, "method")
+                      copyPaymentDetails(trade.paymentDetails?.name || trade.paymentMethodDetails?.name || trade.paymentMethod, "method")
                     }
                     className="h-8 w-8"
                   >
@@ -135,65 +220,70 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
 
                 <Separator />
 
-                <div className="flex justify-between items-start">
+                {/* Dynamic payment details from metadata */}
+                {trade.paymentDetails && Object.entries(trade.paymentDetails)
+                  .filter(([key]) => !["name", "icon", "instructions", "processingTime"].includes(key))
+                  .map(([key, value]) => (
+                    <div key={key}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            {key}
+                          </p>
+                          <p className="font-medium">
+                            {String(value)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            copyPaymentDetails(String(value), key)
+                          }
+                          className="h-8 w-8"
+                        >
+                          {copied === key ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <Separator />
+                    </div>
+                  ))
+                }
+
+                {/* Show instructions if available */}
+                {trade.paymentDetails?.instructions && (
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("account_name")}
-                    </p>
-                    <p className="font-medium">
-                      {trade.paymentDetails?.accountName || "John Doe"}
-                    </p>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">
+                          {t("Instructions")}
+                        </p>
+                        <p className="font-medium whitespace-pre-wrap">
+                          {trade.paymentDetails.instructions}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          copyPaymentDetails(trade.paymentDetails.instructions, "instructions")
+                        }
+                        className="h-8 w-8"
+                      >
+                        {copied === "instructions" ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <Separator />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      copyPaymentDetails(
-                        trade.paymentDetails?.accountName || "John Doe",
-                        "name"
-                      )
-                    }
-                    className="h-8 w-8"
-                  >
-                    {copied === "name" ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("account_number")}
-                    </p>
-                    <p className="font-medium">
-                      {trade.paymentDetails?.accountNumber || "1234567890"}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      copyPaymentDetails(
-                        trade.paymentDetails?.accountNumber || "1234567890",
-                        "number"
-                      )
-                    }
-                    className="h-8 w-8"
-                  >
-                    {copied === "number" ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-
-                <Separator />
+                )}
 
                 <div className="flex justify-between items-start">
                   <div>
@@ -231,8 +321,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                       {t("Reference")}
                     </p>
                     <p className="font-medium">
-                      {t("TRADE-")}
-                      {trade.id}
+                      TRADE-{trade.id}
                     </p>
                   </div>
                   <Button
@@ -270,7 +359,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                   </Label>
                   <Input
                     id="reference"
-                    placeholder="Enter the reference or transaction ID"
+                    placeholder={t("enter_the_reference_or_transaction_id")}
                     value={reference}
                     onChange={(e) => setReference(e.target.value)}
                     required
@@ -283,22 +372,74 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                   </Label>
                   <Textarea
                     id="proof-note"
-                    placeholder="Add any additional information about your payment"
+                    placeholder={t("add_any_additional_information_about_your_payment")}
                     value={proofNote}
                     onChange={(e) => setProofNote(e.target.value)}
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button type="button" variant="outline" className="flex-1">
-                    <Camera className="mr-2 h-4 w-4" />
-                    {t("upload_receipt")}
-                  </Button>
-                  <Button type="submit" className="flex-1">
-                    <Upload className="mr-2 h-4 w-4" />
-                    {t("confirm_payment_sent")}
-                  </Button>
+                {/* Receipt Upload */}
+                <div className="space-y-2">
+                  <Label>{t("payment_receipt")} ({t("optional")})</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="receipt-upload"
+                  />
+                  {receiptPreview ? (
+                    <div className="relative rounded-lg border overflow-hidden">
+                      <img
+                        src={receiptPreview}
+                        alt="Receipt preview"
+                        className="w-full h-48 object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8"
+                        onClick={handleRemoveReceipt}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-24 border-dashed"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <Camera className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {t("click_to_upload_receipt")}
+                        </span>
+                      </div>
+                    </Button>
+                  )}
                 </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("uploading")}...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      {t("confirm_payment_sent")}
+                    </>
+                  )}
+                </Button>
               </form>
             )}
           </>
@@ -327,7 +468,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                   <span className="text-muted-foreground">
                     {t("payment_method")}
                   </span>
-                  <span>{trade.paymentMethod}</span>
+                  <span>{trade.paymentDetails?.name || trade.paymentMethodDetails?.name || trade.paymentMethod}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("amount")}</span>
@@ -352,14 +493,16 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
           <div className="text-center py-8">
             <h3 className="font-medium">
               {t("Payment")}{" "}
-              {trade.status === "completed" ? "Completed" : "Not Required"}
+              {isCompleted(trade.status) ? "Completed" : isExpired(trade.status) ? "Expired" : "Not Required"}
             </h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-              {trade.status === "completed"
+              {isCompleted(trade.status)
                 ? "Payment has been confirmed and the trade has been completed successfully."
                 : trade.status === "disputed"
                   ? "This trade is under dispute. Payment verification is on hold."
-                  : "No payment is required at this stage of the trade."}
+                  : isExpired(trade.status)
+                    ? "This trade has expired. No payment was made within the allowed time window."
+                    : "No payment is required at this stage of the trade."}
             </p>
           </div>
         )}

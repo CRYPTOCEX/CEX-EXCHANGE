@@ -1,0 +1,327 @@
+{
+  "name": "Egypt",
+  "iso2": "EG",
+  "iso3": "EGY",
+  "phonecode": "20",
+  "states": [
+    {
+      "name": "Alexandria",
+      "code": "ALX",
+      "cities": [
+        "Abu Qir",
+        "Agami",
+        "Alexandria",
+        "Ar-Raml",
+        "Borg El Arab",
+        "Montaza",
+        "New Borg El Arab",
+        "Sidi Bishr"
+      ]
+    },
+    {
+      "name": "Aswan",
+      "code": "ASN",
+      "cities": [
+        "Abu Simbel",
+        "Aswan",
+        "Idfū",
+        "Kawm Umbū"
+      ]
+    },
+    {
+      "name": "Asyut",
+      "code": "AST",
+      "cities": [
+        "Abnūb",
+        "Abū Tīj",
+        "Al Badārī",
+        "Al Qūşīyah",
+        "Asyūţ",
+        "Dayrūţ",
+        "Manfalūţ"
+      ]
+    },
+    {
+      "name": "Beheira",
+      "code": "BH",
+      "cities": [
+        "Abū al Maţāmīr",
+        "Ad Dilinjāt",
+        "Damanhūr",
+        "Ḩawsh ‘Īsá",
+        "Idkū",
+        "Kafr ad Dawwār",
+        "Kawm Ḩamādah",
+        "Rosetta"
+      ]
+    },
+    {
+      "name": "Beni Suef",
+      "code": "BNS",
+      "cities": [
+        "Al Fashn",
+        "Banī Suwayf",
+        "Būsh",
+        "Sumusţā as Sulţānī"
+      ]
+    },
+    {
+      "name": "Cairo",
+      "code": "C",
+      "cities": [
+        "Badr",
+        "Bulaq",
+        "Cairo",
+        "El Mataria",
+        "Fustat",
+        "Hadayek El Kobba",
+        "Heliopolis",
+        "Helwan",
+        "Maadi",
+        "Musturud",
+        "New Administrative Capital of Egypt",
+        "Shubra",
+        "Tura"
+      ]
+    },
+    {
+      "name": "Dakahlia",
+      "code": "DK",
+      "cities": [
+        "‘Izbat al Burj",
+        "Ajā",
+        "Al Jammālīyah",
+        "Al Manşūrah",
+        "Al Manzalah",
+        "Al Maţarīyah",
+        "Bilqās",
+        "Dikirnis",
+        "Minyat an Naşr",
+        "Shirbīn",
+        "Ţalkhā"
+      ]
+    },
+    {
+      "name": "Damietta",
+      "code": "DT",
+      "cities": [
+        "Az Zarqā",
+        "Damietta",
+        "Fāraskūr"
+      ]
+    },
+    {
+      "name": "Faiyum",
+      "code": "FYM",
+      "cities": [
+        "Al Fayyūm",
+        "Al Wāsiţah",
+        "Ibshawāy",
+        "Iţsā",
+        "Ţāmiyah"
+      ]
+    },
+    {
+      "name": "Gharbia",
+      "code": "GH",
+      "cities": [
+        "Al Maḩallah al Kubrá",
+        "Basyūn",
+        "Kafr az Zayyāt",
+        "Quţūr",
+        "Samannūd",
+        "Tanda",
+        "Zefta"
+      ]
+    },
+    {
+      "name": "Giza",
+      "code": "GZ",
+      "cities": [
+        "Al ‘Ayyāţ",
+        "Al Bawīţī",
+        "Al Ḩawāmidīyah",
+        "Aş Şaff",
+        "Awsīm",
+        "Giza",
+        "Madīnat Sittah Uktūbar"
+      ]
+    },
+    {
+      "name": "Ismailia",
+      "code": "IS",
+      "cities": [
+        "Ismailia"
+      ]
+    },
+    {
+      "name": "Kafr El-Sheikh",
+      "code": "KFS",
+      "cities": [
+        "Al Ḩāmūl",
+        "Disūq",
+        "Fuwwah",
+        "Kafr ash Shaykh",
+        "Markaz Disūq",
+        "Munshāt ‘Alī Āghā",
+        "Sīdī Sālim"
+      ]
+    },
+    {
+      "name": "Luxor",
+      "code": "LX",
+      "cities": [
+        "Luxor",
+        "Markaz al Uqşur"
+      ]
+    },
+    {
+      "name": "Matrouh",
+      "code": "MT",
+      "cities": [
+        "Al ‘Alamayn",
+        "Mersa Matruh",
+        "Siwa Oasis"
+      ]
+    },
+    {
+      "name": "Minya",
+      "code": "MN",
+      "cities": [
+        "Abū Qurqāş",
+        "Al Minyā",
+        "Banī Mazār",
+        "Dayr Mawās",
+        "Mallawī",
+        "Maţāy",
+        "Samālūţ"
+      ]
+    },
+    {
+      "name": "Monufia",
+      "code": "MNF",
+      "cities": [
+        "Al Bājūr",
+        "Ash Shuhadā’",
+        "Ashmūn",
+        "Munūf",
+        "Quwaysinā",
+        "Shibīn al Kawm",
+        "Talā"
+      ]
+    },
+    {
+      "name": "New Valley",
+      "code": "WAD",
+      "cities": [
+        "Al Khārijah",
+        "Qaşr al Farāfirah"
+      ]
+    },
+    {
+      "name": "North Sinai",
+      "code": "SIN",
+      "cities": [
+        "Arish"
+      ]
+    },
+    {
+      "name": "Port Said",
+      "code": "PTS",
+      "cities": [
+        "Port Said"
+      ]
+    },
+    {
+      "name": "Qalyubia",
+      "code": "KB",
+      "cities": [
+        "Al Khānkah",
+        "Al Qanāţir al Khayrīyah",
+        "Banhā",
+        "Qalyūb",
+        "Shibīn al Qanāṭir",
+        "Toukh"
+      ]
+    },
+    {
+      "name": "Qena",
+      "code": "KN",
+      "cities": [
+        "Dishnā",
+        "Farshūţ",
+        "Isnā",
+        "Kousa",
+        "Naja' Ḥammādī",
+        "Qinā"
+      ]
+    },
+    {
+      "name": "Red Sea",
+      "code": "BA",
+      "cities": [
+        "Al Quşayr",
+        "El Gouna",
+        "Hurghada",
+        "Makadi Bay",
+        "Marsa Alam",
+        "Ras Gharib",
+        "Safaga"
+      ]
+    },
+    {
+      "name": "Sharqia",
+      "code": "SHR",
+      "cities": [
+        "10th of Ramadan",
+        "Al Qurein",
+        "Awlad Saqr",
+        "Bilbeis",
+        "Diyarb Negm",
+        "El Husseiniya",
+        "Faqous",
+        "Hihya",
+        "Kafr Saqr",
+        "Markaz Abū Ḩammād",
+        "Mashtoul El Souk",
+        "Minya El Qamh",
+        "New Salhia",
+        "Zagazig"
+      ]
+    },
+    {
+      "name": "Sohag",
+      "code": "SHG",
+      "cities": [
+        "Akhmīm",
+        "Al Balyanā",
+        "Al Manshāh",
+        "Jirjā",
+        "Juhaynah",
+        "Markaz Jirjā",
+        "Markaz Sūhāj",
+        "Sohag",
+        "Ţahţā"
+      ]
+    },
+    {
+      "name": "South Sinai",
+      "code": "JS",
+      "cities": [
+        "Dahab",
+        "El-Tor",
+        "Nuwaybi‘a",
+        "Saint Catherine",
+        "Sharm el-Sheikh"
+      ]
+    },
+    {
+      "name": "Suez",
+      "code": "SUZ",
+      "cities": [
+        "Ain Sukhna",
+        "Suez"
+      ]
+    }
+  ]
+}

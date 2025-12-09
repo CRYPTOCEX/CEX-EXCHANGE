@@ -22,20 +22,13 @@ const PERMISSION_MAP: Record<string, string[]> = {
   deposit: ["/api/finance/deposit"],
   withdraw: ["/api/finance/withdraw"],
   transfer: ["/api/finance/transfer"],
-  payment: ["/api/payment/intent"],
-  // NFT permissions
-  "nft.admin": [
-    "/api/nft/marketplace/deploy",
-    "/api/nft/marketplace/config",
-    "/api/nft/marketplace/pause",
-    "/api/nft/marketplace/unpause",
-    "/api/nft/marketplace/withdraw",
-    "/api/nft/marketplace/whitelist",
-    "/api/nft/marketplace/balance",
-    "/api/admin/nft"
-  ],
-  "nft.create": ["/api/nft/token/mint", "/api/nft/collection"],
-  "nft.trade": ["/api/nft/listing", "/api/nft/offer", "/api/nft/auction"],
+};
+
+// Gateway extension permission map for API key authentication
+const GATEWAY_PERMISSION_MAP: Record<string, string[]> = {
+  "gateway.payment.create": ["/api/ext/gateway/v1/payment/create"],
+  "gateway.payment.status": ["/api/ext/gateway/v1/payment"],
+  "gateway.refund.create": ["/api/ext/gateway/v1/refund"],
 };
 
 // Define the NextFunction type for middleware chaining.
@@ -237,6 +230,7 @@ export async function handleApiVerification(
     }
 
     // Check if the route requires specific permissions.
+    // First check PERMISSION_MAP (legacy API keys)
     const routePermissions = Object.entries(PERMISSION_MAP).find(([, routes]) =>
       routes.some((route) => req.url.startsWith(route))
     );
@@ -245,6 +239,18 @@ export async function handleApiVerification(
       const [requiredPermission] = routePermissions;
       if (!permissions.includes(requiredPermission)) {
         return res.handleError(403, "Forbidden: Permission denied");
+      }
+    }
+
+    // Check GATEWAY_PERMISSION_MAP (gateway extension API keys)
+    const gatewayPermissions = Object.entries(GATEWAY_PERMISSION_MAP).find(([, routes]) =>
+      routes.some((route) => req.url.startsWith(route))
+    );
+
+    if (gatewayPermissions) {
+      const [requiredPermission] = gatewayPermissions;
+      if (!permissions.includes(requiredPermission)) {
+        return res.handleError(403, "Forbidden: Gateway permission denied");
       }
     }
 
@@ -587,9 +593,28 @@ export async function rolesGate(
         typeof apiKeyRecord.permissions === "string"
           ? JSON.parse(apiKeyRecord.permissions)
           : apiKeyRecord.permissions;
+
+      // Check PERMISSION_MAP (legacy API keys)
       for (const permission in PERMISSION_MAP) {
         if (
           PERMISSION_MAP[permission].some((route) =>
+            routePath.startsWith(route)
+          )
+        ) {
+          if (!userPermissions.includes(permission)) {
+            return res.handleError(
+              403,
+              "Forbidden - You do not have permission to access this"
+            );
+          }
+          break;
+        }
+      }
+
+      // Check GATEWAY_PERMISSION_MAP (gateway extension API keys)
+      for (const permission in GATEWAY_PERMISSION_MAP) {
+        if (
+          GATEWAY_PERMISSION_MAP[permission].some((route) =>
             routePath.startsWith(route)
           )
         ) {

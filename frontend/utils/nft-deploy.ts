@@ -1,5 +1,37 @@
 // NFT Collection Contract Deployment via Web3
 
+// Chain ID mapping for network switching
+const CHAIN_IDS: Record<string, number> = {
+  ETH: 1,
+  ETHEREUM: 1,
+  BSC: 56,
+  BINANCE: 56,
+  POLYGON: 137,
+  MATIC: 137,
+  ARBITRUM: 42161,
+  OPTIMISM: 10,
+  BASE: 8453,
+  AVALANCHE: 43114,
+  AVAX: 43114,
+  FANTOM: 250,
+  FTM: 250,
+  CRONOS: 25,
+  CRO: 25,
+};
+
+// Chain names for error messages
+const CHAIN_NAMES: Record<number, string> = {
+  1: "Ethereum Mainnet",
+  56: "BNB Smart Chain",
+  137: "Polygon",
+  42161: "Arbitrum One",
+  10: "Optimism",
+  8453: "Base",
+  43114: "Avalanche",
+  250: "Fantom",
+  25: "Cronos",
+};
+
 // Dynamic ABI loading to handle ecosystem extension availability
 async function loadABIs() {
   try {
@@ -74,9 +106,59 @@ export async function deployNFTContract(
     const userAddress = connectorClient.account.address;
     console.log("[NFT DEPLOY] Connected wallet:", userAddress);
 
-    // Create ethers provider from Wagmi connector
-    const provider = new BrowserProvider(connectorClient.transport);
+    // Get target chain ID from chain parameter
+    const targetChainId = CHAIN_IDS[params.chain.toUpperCase()] || 56; // Default to BSC
+    const targetChainName = CHAIN_NAMES[targetChainId] || params.chain;
+    console.log("[NFT DEPLOY] Target chain:", targetChainName, "Chain ID:", targetChainId);
+
+    // Check current chain and switch if necessary
+    const currentChainId = connectorClient.chain?.id;
+    console.log("[NFT DEPLOY] Current chain ID:", currentChainId);
+
+    if (currentChainId !== targetChainId) {
+      console.log("[NFT DEPLOY] Switching network from", currentChainId, "to", targetChainId);
+
+      try {
+        const { switchChain } = await import("wagmi/actions");
+        await switchChain(config, { chainId: targetChainId });
+        console.log("[NFT DEPLOY] Network switched successfully to", targetChainName);
+
+        // Wait a moment for the switch to complete and get new connector client
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Get updated connector client after network switch
+        const updatedConnectorClient = await getConnectorClient(config);
+        if (updatedConnectorClient.chain?.id !== targetChainId) {
+          throw new Error(`Failed to switch to ${targetChainName}. Please switch manually in your wallet.`);
+        }
+      } catch (switchError: any) {
+        console.error("[NFT DEPLOY] Network switch failed:", switchError);
+
+        // Check if user rejected the switch
+        if (switchError.code === 4001 || switchError.code === "ACTION_REJECTED") {
+          throw new Error(`You must switch to ${targetChainName} to deploy this contract. Please approve the network switch in your wallet.`);
+        }
+
+        // Network might not be added to wallet, try to add it
+        if (switchError.code === 4902) {
+          throw new Error(`${targetChainName} is not configured in your wallet. Please add it manually and try again.`);
+        }
+
+        throw new Error(`Failed to switch to ${targetChainName}: ${switchError.message}`);
+      }
+    }
+
+    // Create ethers provider from Wagmi connector (use updated client after potential network switch)
+    const finalConnectorClient = await getConnectorClient(config);
+    const provider = new BrowserProvider(finalConnectorClient.transport);
     const signer = await provider.getSigner();
+
+    // Verify we're on the correct network
+    const network = await provider.getNetwork();
+    if (Number(network.chainId) !== targetChainId) {
+      throw new Error(`Network mismatch. Expected ${targetChainName} (${targetChainId}) but got chain ID ${network.chainId}. Please switch networks in your wallet.`);
+    }
+    console.log("[NFT DEPLOY] Verified on correct network:", network.chainId.toString());
 
     // Get the appropriate ABI and bytecode
     const contractArtifact = params.standard === "ERC721" ? ERC721_ABI : ERC1155_ABI;

@@ -225,13 +225,13 @@ function hasExistingTDeclaration(ast) {
   return false;
 }
 
-// Generate a readable key from text, preserving readability and casing
+// Generate a readable key from text, converting to snake_case
 function generateTranslationKey(text) {
-  // Clean up the text but keep it readable and preserve casing
+  // Clean up the text
   let key = text
     .replace(/\s+/g, " ") // normalize whitespace
     .trim();
-  
+
   // Remove or replace problematic characters for JSON keys
   key = key
     .replace(/['"]/g, "") // remove quotes
@@ -240,7 +240,7 @@ function generateTranslationKey(text) {
     .replace(/\./g, "_") // replace periods with underscores
     .replace(/\n/g, " ") // replace newlines with space
     .trim();
-    
+
   // If the key is too long (>50 chars), create a shorter version
   if (key.length > 50) {
     const words = key.split(" ");
@@ -254,7 +254,12 @@ function generateTranslationKey(text) {
       key = key.substring(0, 47) + "_";
     }
   }
-  
+
+  // Convert to snake_case: replace spaces with underscores and lowercase
+  key = key
+    .replace(/\s+/g, "_") // replace spaces with underscores
+    .toLowerCase(); // convert to lowercase
+
   return key;
 }
 
@@ -358,24 +363,50 @@ async function processFile(filePath, messages) {
       const sentence = sentences[i];
       // Create readable key from sentence - make sure to clean it properly
       let key = generateTranslationKey(sentence);
-      
+
       // Double-check that no periods remain in the key
       key = key.replace(/\./g, "_");
-      
-      // Ensure key uniqueness in this namespace
-      // Check if key already exists with same value - if so, reuse it
-      let finalKey = key;
-      if (messages[locales[0]][namespace] && messages[locales[0]][namespace][finalKey]) {
-        // Key exists, check if it has the same value
-        if (messages[locales[0]][namespace][finalKey] === sentence) {
-          // Same value, reuse the existing key
-          console.log(`Reusing existing key: ${namespace}.${finalKey} for "${sentence}"`);
-        } else {
-          // Different value, create a more descriptive key by adding context
-          // Try to make the key more unique by adding more context from the sentence
+
+      // FIRST: Search for an existing key with the SAME value in current namespace
+      let finalKey = null;
+
+      // Search current namespace first
+      if (messages[locales[0]][namespace]) {
+        for (const [existingKey, existingValue] of Object.entries(messages[locales[0]][namespace])) {
+          if (existingValue === sentence) {
+            // Found an exact match in current namespace! Reuse this key
+            finalKey = existingKey;
+            console.log(`Reusing existing key: ${namespace}.${existingKey} for "${sentence}"`);
+            break;
+          }
+        }
+      }
+
+      // If not found in current namespace, search ALL other namespaces for the key name
+      if (!finalKey) {
+        // Generate the key name
+        finalKey = key;
+
+        // Check if this key name exists in ANY other namespace with the SAME value
+        let foundInOtherNamespace = false;
+        for (const [ns, keys] of Object.entries(messages[locales[0]])) {
+          if (ns !== namespace && typeof keys === 'object' && keys !== null) {
+            if (keys[finalKey] === sentence) {
+              // Found same key name with same value in another namespace!
+              // We can safely use this key name in our namespace
+              foundInOtherNamespace = true;
+              console.log(`Found ${ns}.${finalKey} with same value, creating ${namespace}.${finalKey} for "${sentence}"`);
+              break;
+            }
+          }
+        }
+
+        // Check if this key already exists in current namespace with DIFFERENT value
+        if (!foundInOtherNamespace && messages[locales[0]][namespace] && messages[locales[0]][namespace][finalKey] && messages[locales[0]][namespace][finalKey] !== sentence) {
+          // Key exists in current namespace with different value, need to make it unique
           const words = sentence.split(' ');
           let uniqueKey = key;
-          
+
           // Add more words from the sentence to make it unique
           if (words.length > 1) {
             // Take first 2-3 words and last 1-2 words
@@ -384,16 +415,14 @@ async function processFile(filePath, messages) {
             const combinedWords = [...new Set([...startWords, ...endWords])];
             uniqueKey = generateTranslationKey(combinedWords.join(' '));
           }
-          
-          // If still conflicts, add minimal context
+
+          // If still conflicts, add minimal counter
           let counter = 1;
           finalKey = uniqueKey;
-          while (messages[locales[0]][namespace] && messages[locales[0]][namespace][finalKey] && 
+          while (messages[locales[0]][namespace] && messages[locales[0]][namespace][finalKey] &&
                  messages[locales[0]][namespace][finalKey] !== sentence) {
-            // Only add counter if we really need to, and keep it minimal
             finalKey = `${uniqueKey}_${counter}`;
             counter++;
-            // Prevent infinite loops
             if (counter > 100) {
               console.warn(`Too many conflicts for key: ${uniqueKey}, using random suffix`);
               finalKey = `${uniqueKey}_${Date.now()}`;

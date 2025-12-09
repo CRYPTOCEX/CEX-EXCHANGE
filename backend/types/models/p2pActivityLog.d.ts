@@ -1,6 +1,6 @@
 interface p2pActivityLogAttributes {
   id: string;
-  userId: string;
+  userId?: string | null;
   type: string;
   action: string;
   details?: string;

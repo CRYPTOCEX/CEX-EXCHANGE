@@ -5,7 +5,7 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import { TradeTimer } from "./trade-timer";
 import { TradeStatusBadge } from "./trade-status-badge";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Star, Shield, ExternalLink } from "lucide-react";
+import { MessageCircle, Star, Shield } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +23,8 @@ interface TradeHeaderProps {
   lastUpdated?: string;
   status: string;
   counterparty: P2PTradeCounterparty;
+  paymentWindow?: number; // in minutes
+  onChatClick?: () => void;
 }
 
 export function TradeHeader({
@@ -33,6 +35,8 @@ export function TradeHeader({
   lastUpdated,
   status,
   counterparty,
+  paymentWindow = 30, // default to 30 minutes if not provided
+  onChatClick,
 }: TradeHeaderProps) {
   const t = useTranslations("ext");
   return (
@@ -46,19 +50,15 @@ export function TradeHeader({
             <TradeStatusBadge status={status} />
           </div>
           <CardDescription className="mt-1">
-            {t("trade_started")}
+            {t("trade_started")}{" "}
             {new Date(createdAt).toLocaleString()}
           </CardDescription>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={onChatClick}>
             <MessageCircle className="mr-2 h-4 w-4" />
             {t("Chat")}
-          </Button>
-          <Button variant="outline" size="sm" className="hidden md:flex">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            {t("view_blockchain")}
           </Button>
         </div>
       </div>
@@ -102,7 +102,7 @@ export function TradeHeader({
                 ))}
               </div>
               <span>
-                {counterparty.completedTrades} {t("trades_•")} {counterparty.completionRate} {t("%_completion")}
+                {counterparty.completedTrades} {t("trades")} • {counterparty.completionRate}% {t("completion")}
               </span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export function TradeHeader({
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <TradeTimer
             startTime={lastUpdated || createdAt}
-            timeLimit={30} // 30 minutes
+            timeLimit={paymentWindow}
             status={status}
           />
         </div>

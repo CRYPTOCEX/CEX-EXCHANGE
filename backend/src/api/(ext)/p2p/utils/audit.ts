@@ -178,22 +178,31 @@ function determineRiskLevel(eventType: P2PAuditEventType, metadata: any): P2PRis
 async function createSecurityAlert(log: P2PAuditLog, riskLevel: P2PRiskLevel): Promise<void> {
   try {
     // Create notification for admins
-    // const { notifyAdmins } = await import("./notifications");
-    // TODO: Implement notifyAdmins function
-    
-    // TODO: Implement admin notification
-    // await notifyAdmins("P2P_SECURITY_ALERT", {
-    //   eventType: log.eventType,
-    //   entityType: log.entityType,
-    //   entityId: log.entityId,
-    //   userId: log.userId,
-    //   adminId: log.adminId,
-    //   riskLevel,
-    //   metadata: log.metadata,
-    //   timestamp: new Date().toISOString(),
-    // });
-    
-    // TODO: Send to security monitoring system
+    const { notifyAdmins } = await import("./notifications");
+
+    // Notify admins about high-risk activity
+    await notifyAdmins("P2P_SECURITY_ALERT", {
+      eventType: log.eventType,
+      entityType: log.entityType,
+      entityId: log.entityId,
+      userId: log.userId,
+      adminId: log.adminId,
+      riskLevel,
+      metadata: log.metadata,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Log to console for additional monitoring
+    console.log(`[P2P SECURITY] ${riskLevel} risk event: ${log.eventType} for ${log.entityType} ${log.entityId}`);
+
+    // TODO: Send to external security monitoring system (e.g., Sentry, DataDog)
+    // if (process.env.SECURITY_MONITORING_ENABLED === "true") {
+    //   await sendToSecurityMonitoring({
+    //     severity: riskLevel,
+    //     event: log.eventType,
+    //     details: log.metadata,
+    //   });
+    // }
   } catch (error) {
     console.error("Failed to create security alert:", error);
   }

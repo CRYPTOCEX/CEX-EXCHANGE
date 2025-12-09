@@ -10,9 +10,7 @@ export default function ExpectedProfitDisplay({
   profitPercentage,
   currency,
 }: ExpectedProfitDisplayProps) {
-  const t = useTranslations(
-    "trade/components/trading/ai-investment/expected-profit-display"
-  );
+  const t = useTranslations("ext");
   // Calculate expected profit
   const profit = (investmentAmount * profitPercentage) / 100;
 
@@ -26,9 +24,7 @@ export default function ExpectedProfitDisplay({
           {t("expected_profit")}
         </span>
         <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-          {formattedProfit} {currency} {t("(")}
-          {profitPercentage}
-          {t("%)")}
+          {formattedProfit} {currency} ({profitPercentage}%)
         </span>
       </div>
     </div>

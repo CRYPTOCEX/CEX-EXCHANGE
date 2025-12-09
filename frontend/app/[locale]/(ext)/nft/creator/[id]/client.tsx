@@ -34,7 +34,7 @@ interface PublicCreatorClientProps {
 }
 
 export default function PublicCreatorClient({ creatorId }: PublicCreatorClientProps) {
-  const t = useTranslations("nft/creator/profile");
+  const t = useTranslations("ext");
   const { user } = useUserStore();
   
   const [creator, setCreator] = useState<any>(null);
@@ -163,9 +163,9 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
   if (!creator) {
     return (
       <div className="container mx-auto py-12 px-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Creator Profile Not Found</h1>
+        <h1 className="text-2xl font-bold mb-4">{t("creator_profile_not_found")}</h1>
         <p className="text-muted-foreground mb-6">
-          The creator profile you're looking for doesn't exist or is private.
+          {t("the_creator_profile_youre_looking_for")}
         </p>
         <Link href="/nft">
           <Button>Browse NFTs</Button>
@@ -181,7 +181,7 @@ export default function PublicCreatorClient({ creatorId }: PublicCreatorClientPr
         {creator.banner && (
           <Image
             src={creator.banner}
-            alt="Creator Banner"
+            alt={t("creator_banner")}
             fill
             className="object-cover"
           />

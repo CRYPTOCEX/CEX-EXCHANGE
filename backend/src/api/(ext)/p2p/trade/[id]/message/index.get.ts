@@ -61,6 +61,7 @@ export default async (data: { params?: any; user?: any }) => {
             message: entry.message,
             senderId: entry.senderId,
             senderName: entry.senderName || "User",
+            isAdminMessage: entry.isAdminMessage || false,
             createdAt: entry.createdAt,
           }))
       : [];

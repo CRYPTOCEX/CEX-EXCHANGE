@@ -16,9 +16,7 @@ interface DeleteActionProps {
 }
 
 export function DeleteAction({ row, onSelect }: DeleteActionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/actions/delete"
-  );
+  const t = useTranslations("common");
   const permissions = useTableStore((state) => state.permissions);
   const user = useUserStore((state) => state.user);
   const handleDelete = useTableStore((state) => state.handleDelete);

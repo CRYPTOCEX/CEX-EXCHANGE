@@ -60,7 +60,7 @@ const CommingSoonPage = () => {
                 </Button>
               </div>
               <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-                {t("*dont_worry_we_will_not_spam_you_)")}
+                *{t("dont_worry_we_will_not_spam_you")}
               </div>
             </div>
             <div className="mt-10 lg:mt-0 xl:pl-32">

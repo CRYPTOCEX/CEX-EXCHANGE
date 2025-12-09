@@ -40,8 +40,7 @@ export default function CampaignProgress() {
         ></div>
       </div>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        {progressPercent}
-        {t("%_completed")}
+        {progressPercent}% {t("completed")}
       </p>
     </div>
   );

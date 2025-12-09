@@ -22,7 +22,7 @@ export default function LeverageSlider({
   calculateLiquidationPrice,
   currentPrice,
 }: LeverageSliderProps) {
-  const t = useTranslations("trade/components/trading/futures/leverage-slider");
+  const t = useTranslations("ext");
   // Handle leverage change
   const handleLeverageChange = (value: number[]) => {
     setLeverage(value[0]);

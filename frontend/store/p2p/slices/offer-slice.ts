@@ -217,7 +217,7 @@ function transformFormDataToApiPayload(formData: P2POfferFormData): any {
     // Transform tradeSettings and ensure visibility is uppercase
     tradeSettings: {
       ...formData.tradeSettings,
-      kycRequired: formData.tradeSettings.kycRequired || true, // Default to true if missing
+      kycRequired: formData.tradeSettings.kycRequired ?? false, // Default to false if missing
       visibility: formData.tradeSettings.visibility.toUpperCase() as
         | "PUBLIC"
         | "PRIVATE",
@@ -261,7 +261,7 @@ export const createOfferSlice = (
     paymentMethods: [],
     tradeSettings: {
       autoCancel: 30,
-      kycRequired: true,
+      kycRequired: false,
       termsOfTrade: "",
       visibility: "public",
     },
@@ -355,8 +355,21 @@ export const createOfferSlice = (
         return;
       }
 
+      // Handle new API response format: { global: [...], custom: [...] }
+      let allMethods: Array<{ id: string; name: string; icon: string }> = [];
+      if (data && typeof data === "object" && "global" in data) {
+        // New format with separated global and custom methods
+        allMethods = [
+          ...(data.global || []),
+          ...(data.custom || []),
+        ];
+      } else if (Array.isArray(data)) {
+        // Legacy format: flat array
+        allMethods = data;
+      }
+
       set({
-        availablePaymentMethods: data,
+        availablePaymentMethods: allMethods,
         isLoadingAvailablePaymentMethods: false,
       });
     } catch (err) {
@@ -431,7 +444,7 @@ export const createOfferSlice = (
         paymentMethods: [],
         tradeSettings: {
           autoCancel: 30,
-          kycRequired: true,
+          kycRequired: false,
           termsOfTrade: "",
           visibility: "public",
         },

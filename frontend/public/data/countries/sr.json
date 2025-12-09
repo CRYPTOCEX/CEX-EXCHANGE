@@ -1,0 +1,80 @@
+{
+  "name": "Suriname",
+  "iso2": "SR",
+  "iso3": "SUR",
+  "phonecode": "597",
+  "states": [
+    {
+      "name": "Brokopondo",
+      "code": "BR",
+      "cities": [
+        "Brokopondo",
+        "Brownsweg"
+      ]
+    },
+    {
+      "name": "Commewijne",
+      "code": "CM",
+      "cities": [
+        "Mariënburg",
+        "Nieuw Amsterdam"
+      ]
+    },
+    {
+      "name": "Coronie",
+      "code": "CR",
+      "cities": [
+        "Totness"
+      ]
+    },
+    {
+      "name": "Marowijne",
+      "code": "MA",
+      "cities": [
+        "Albina",
+        "Moengo"
+      ]
+    },
+    {
+      "name": "Nickerie",
+      "code": "NI",
+      "cities": [
+        "Nieuw Nickerie",
+        "Wageningen"
+      ]
+    },
+    {
+      "name": "Para",
+      "code": "PR",
+      "cities": [
+        "Onverwacht"
+      ]
+    },
+    {
+      "name": "Paramaribo",
+      "code": "PM",
+      "cities": [
+        "Paramaribo"
+      ]
+    },
+    {
+      "name": "Saramacca",
+      "code": "SA",
+      "cities": [
+        "Groningen"
+      ]
+    },
+    {
+      "name": "Sipaliwini",
+      "code": "SI",
+      "cities": []
+    },
+    {
+      "name": "Wanica",
+      "code": "WA",
+      "cities": [
+        "Lelydorp"
+      ]
+    }
+  ]
+}

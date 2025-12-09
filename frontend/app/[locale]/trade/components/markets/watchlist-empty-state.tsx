@@ -2,7 +2,7 @@ import { AlertTriangle, Clock, Sparkles, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function WatchlistEmptyState() {
-  const t = useTranslations("trade/components/markets/watchlist-empty-state");
+  const t = useTranslations("ext");
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 flex flex-col items-center justify-center p-4">

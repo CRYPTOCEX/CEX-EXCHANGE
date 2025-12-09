@@ -57,7 +57,7 @@ export default async (data) => {
         {
           model: "forexPlanDuration",
           method: "addDurations",
-          data: durations.map((duration) => duration.value),
+          data: durations.map((duration) => typeof duration === 'string' ? duration : duration.value),
           fields: {
             source: "planId",
             target: "durationId",

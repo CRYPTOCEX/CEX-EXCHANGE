@@ -100,12 +100,14 @@ export async function setupWebSocketEndpoint(
             await authenticate(res, req, async () => {
               await rolesGate(app, res, req, routePath, "ws", async () => {
                 res.cork(async () => {
+                  // Store base path without query params for correct route matching
+                  const basePath = req.url.split('?')[0];
                   res.upgrade(
                     {
                       user: req.user,
                       params: req.params,
                       query: req.query,
-                      path: req.url,
+                      path: basePath,
                     },
                     req.headers["sec-websocket-key"],
                     req.headers["sec-websocket-protocol"],
@@ -118,6 +120,8 @@ export async function setupWebSocketEndpoint(
           });
         } else {
           res.cork(async () => {
+            // Store base path without query params for correct route matching
+            const basePath = req.url.split('?')[0];
             res.upgrade(
               {
                 user: {
@@ -126,7 +130,7 @@ export async function setupWebSocketEndpoint(
                 },
                 params: req.params,
                 query: req.query,
-                path: req.url,
+                path: basePath,
               },
               req.headers["sec-websocket-key"],
               req.headers["sec-websocket-protocol"],

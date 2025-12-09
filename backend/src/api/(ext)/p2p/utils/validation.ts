@@ -2,10 +2,10 @@ import validator from "validator";
 import { createError } from "@b/utils/error";
 
 // Trade status transitions state machine
+// Valid DB statuses: PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED, EXPIRED
 const TRADE_STATUS_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["PAYMENT_SENT", "CANCELLED"],
-  PAYMENT_SENT: ["ESCROW_RELEASED", "DISPUTED", "CANCELLED"],
-  ESCROW_RELEASED: ["COMPLETED", "DISPUTED"],
+  PENDING: ["PAYMENT_SENT", "CANCELLED", "EXPIRED"],
+  PAYMENT_SENT: ["COMPLETED", "DISPUTED", "CANCELLED"],
   COMPLETED: ["DISPUTED"], // Can still dispute after completion within time limit
   DISPUTED: ["COMPLETED", "CANCELLED"],
   CANCELLED: [], // Terminal state
@@ -208,6 +208,7 @@ export function validateDisputeReason(reason: any): string {
   const validReasons = [
     "PAYMENT_NOT_RECEIVED",
     "PAYMENT_INCORRECT_AMOUNT",
+    "CRYPTO_NOT_RELEASED",
     "SELLER_UNRESPONSIVE",
     "BUYER_UNRESPONSIVE",
     "FRAUDULENT_ACTIVITY",
@@ -216,9 +217,9 @@ export function validateDisputeReason(reason: any): string {
   ];
 
   if (!reason || !validReasons.includes(reason)) {
-    throw createError({ 
-      statusCode: 400, 
-      message: "Invalid dispute reason" 
+    throw createError({
+      statusCode: 400,
+      message: "Invalid dispute reason"
     });
   }
 

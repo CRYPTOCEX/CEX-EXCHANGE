@@ -9,29 +9,46 @@ import { parseAmountConfig } from "@b/api/(ext)/p2p/utils/json-parser";
  * This job runs periodically to handle expired trades
  */
 export async function handleP2PTradeTimeouts() {
-  console.log("[P2P] Starting trade timeout handler...");
-
   try {
-    // Find all trades that have expired
-    const expiredTrades = await models.p2pTrade.findAll({
+    // Get default payment window setting (in minutes, default 30) as fallback
+    const { CacheManager } = await import("@b/utils/cache");
+    const cacheManager = CacheManager.getInstance();
+    const defaultPaymentWindowMinutes = await cacheManager.getSetting("p2pDefaultPaymentWindow") || 30;
+
+    // Find all trades that might have expired (we'll check each one individually)
+    // We check trades older than 10 minutes (minimum reasonable timeout)
+    const potentiallyExpiredCutoff = new Date();
+    potentiallyExpiredCutoff.setMinutes(potentiallyExpiredCutoff.getMinutes() - 10);
+
+    const potentiallyExpiredTrades = await models.p2pTrade.findAll({
       where: {
         status: {
           [Op.in]: ["PENDING", "PAYMENT_SENT"],
         },
-        expiresAt: {
-          [Op.lt]: new Date(),
+        createdAt: {
+          [Op.lt]: potentiallyExpiredCutoff,
         },
       },
       include: [
         {
           model: models.p2pOffer,
           as: "offer",
-          attributes: ["id", "currency", "walletType", "userId"],
+          attributes: ["id", "currency", "walletType", "userId", "tradeSettings"],
         },
       ],
     });
 
-    console.log(`[P2P] Found ${expiredTrades.length} expired trades`);
+    // Filter to actually expired trades based on offer-specific timeout
+    const expiredTrades = potentiallyExpiredTrades.filter((trade) => {
+      const offerTimeout = trade.offer?.tradeSettings?.autoCancel || defaultPaymentWindowMinutes;
+      const tradeAge = new Date().getTime() - new Date(trade.createdAt).getTime();
+      const isExpired = tradeAge > (offerTimeout * 60 * 1000);
+      return isExpired;
+    });
+
+    if (expiredTrades.length > 0) {
+      console.log(`[P2P] Processing ${expiredTrades.length} expired trades`);
+    }
 
     for (const trade of expiredTrades) {
       const transaction = await sequelize.transaction();
@@ -43,42 +60,88 @@ export async function handleP2PTradeTimeouts() {
           transaction,
         });
 
-        // Double-check status hasn't changed
-        if (!lockedTrade || 
+        // Double-check status hasn't changed and trade is still expired
+        const offerTimeout = trade.offer?.tradeSettings?.autoCancel || defaultPaymentWindowMinutes;
+        const tradeAge = new Date().getTime() - new Date(lockedTrade.createdAt).getTime();
+        const isStillExpired = tradeAge > (offerTimeout * 60 * 1000);
+
+        if (!lockedTrade ||
             !["PENDING", "PAYMENT_SENT"].includes(lockedTrade.status) ||
-            new Date(lockedTrade.expiresAt) > new Date()) {
+            !isStillExpired) {
           await transaction.rollback();
           continue;
         }
 
         // If funds were locked (seller's funds), release them
         // This applies to ALL wallet types including FIAT
-        if (lockedTrade.status === "PENDING" || lockedTrade.status === "PAYMENT_SENT") {
-          const sellerWallet = await getWalletSafe(
-            lockedTrade.sellerId,
-            trade.offer.walletType,
-            trade.offer.currency
-          );
+        if ((lockedTrade.status === "PENDING" || lockedTrade.status === "PAYMENT_SENT") && trade.offer) {
+          try {
+            const sellerWallet = await getWalletSafe(
+              lockedTrade.sellerId,
+              trade.offer.walletType,
+              trade.offer.currency || lockedTrade.currency
+            );
 
-          if (sellerWallet && sellerWallet.inOrder >= trade.amount) {
-            // Release locked funds
-            await models.wallet.update({
-              inOrder: sellerWallet.inOrder - trade.amount,
-            }, {
-              where: { id: sellerWallet.id },
-              transaction
-            });
+            if (sellerWallet) {
+              // CRITICAL: Calculate safe unlock amount to prevent negative inOrder
+              const safeUnlockAmount = Math.min(trade.amount, sellerWallet.inOrder);
 
-            console.log(`[P2P] Released ${trade.amount} ${trade.offer.currency} (${trade.offer.walletType}) for seller ${lockedTrade.sellerId}`);
+              if (safeUnlockAmount > 0) {
+                const newInOrder = Math.max(0, sellerWallet.inOrder - safeUnlockAmount);
+
+                // Release locked funds
+                await models.wallet.update({
+                  inOrder: newInOrder,
+                }, {
+                  where: { id: sellerWallet.id },
+                  transaction
+                });
+
+                console.log(`[P2P] Released ${safeUnlockAmount} ${trade.offer.currency || lockedTrade.currency} (${trade.offer.walletType}) for seller ${lockedTrade.sellerId}`, {
+                  tradeAmount: trade.amount,
+                  previousInOrder: sellerWallet.inOrder,
+                  newInOrder,
+                });
+
+                // Log warning if amounts don't match
+                if (safeUnlockAmount < trade.amount) {
+                  console.warn('[P2P Timeout] WARNING: Partial unlock - inOrder was less than trade amount:', {
+                    tradeId: trade.id,
+                    tradeAmount: trade.amount,
+                    availableInOrder: sellerWallet.inOrder,
+                    actualUnlocked: safeUnlockAmount,
+                  });
+                }
+              } else {
+                console.warn('[P2P Timeout] WARNING: No funds to unlock - inOrder is already 0:', {
+                  tradeId: trade.id,
+                  tradeAmount: trade.amount,
+                  currentInOrder: sellerWallet.inOrder,
+                });
+              }
+            }
+          } catch (walletError) {
+            console.error(`[P2P] Failed to release wallet funds for trade ${trade.id}:`, walletError);
+            // Continue with expiration even if fund release fails
           }
         }
 
-        // Update trade status
-        const timeline = lockedTrade.timeline || [];
+        // Update trade status - ensure timeline is an array (might be string from DB)
+        let timeline = lockedTrade.timeline || [];
+        if (typeof timeline === "string") {
+          try {
+            timeline = JSON.parse(timeline);
+          } catch {
+            timeline = [];
+          }
+        }
+        if (!Array.isArray(timeline)) {
+          timeline = [];
+        }
         timeline.push({
           event: "TRADE_EXPIRED",
           message: "Trade expired due to timeout",
-          userId: "system",
+          userId: null, // System-generated event
           createdAt: new Date().toISOString(),
         });
 
@@ -89,6 +152,7 @@ export async function handleP2PTradeTimeouts() {
         }, { transaction });
 
         // If offer was associated, restore the amount
+        // CRITICAL: Validate against original total to prevent over-restoration
         if (trade.offerId) {
           const offer = await models.p2pOffer.findByPk(trade.offerId, {
             lock: true,
@@ -99,18 +163,41 @@ export async function handleP2PTradeTimeouts() {
             // Parse amountConfig with robust parser
             const amountConfig = parseAmountConfig(offer.amountConfig);
 
-            await offer.update({
-              amountConfig: {
-                ...amountConfig,
-                total: amountConfig.total + trade.amount,
-              },
-            }, { transaction });
+            // Calculate safe restoration amount
+            const originalTotal = amountConfig.originalTotal ?? (amountConfig.total + trade.amount);
+            const proposedTotal = amountConfig.total + trade.amount;
+            const safeTotal = Math.min(proposedTotal, originalTotal);
+
+            if (safeTotal > amountConfig.total) {
+              await offer.update({
+                amountConfig: {
+                  ...amountConfig,
+                  total: safeTotal,
+                  originalTotal,
+                },
+              }, { transaction });
+
+              console.log('[P2P Timeout] Restored offer amount:', {
+                offerId: offer.id,
+                tradeAmount: trade.amount,
+                previousTotal: amountConfig.total,
+                newTotal: safeTotal,
+                originalTotal,
+              });
+            } else {
+              console.log('[P2P Timeout] Skipped restoration - at or above limit:', {
+                offerId: offer.id,
+                currentTotal: amountConfig.total,
+                proposedTotal,
+                maxAllowed: originalTotal,
+              });
+            }
           }
         }
 
-        // Log activity
+        // Log activity for both buyer and seller
         await models.p2pActivityLog.create({
-          userId: "system",
+          userId: trade.sellerId,
           type: "TRADE_EXPIRED",
           action: "EXPIRED",
           relatedEntity: "TRADE",
@@ -121,6 +208,7 @@ export async function handleP2PTradeTimeouts() {
             currency: trade.offer.currency,
             buyerId: trade.buyerId,
             sellerId: trade.sellerId,
+            systemGenerated: true,
           }),
         }, { transaction });
 
@@ -165,11 +253,17 @@ async function handleExpiredOffers() {
         updatedAt: {
           [Op.lt]: expiryDate,
         },
-        amountConfig: sequelize.literal(`"amountConfig"->>'total' = '0' OR "amountConfig"->>'total'::numeric <= 0`),
+        [Op.or]: [
+          sequelize.literal(`JSON_EXTRACT(\`amountConfig\`, '$.total') = 0`),
+          sequelize.literal(`JSON_EXTRACT(\`amountConfig\`, '$.total') IS NULL`),
+          sequelize.literal(`CAST(JSON_EXTRACT(\`amountConfig\`, '$.total') AS DECIMAL(36,18)) <= 0`),
+        ],
       },
     });
 
-    console.log(`[P2P] Found ${expiredOffers.length} expired offers`);
+    if (expiredOffers.length > 0) {
+      console.log(`[P2P] Processing ${expiredOffers.length} expired offers`);
+    }
 
     for (const offer of expiredOffers) {
       try {
@@ -178,9 +272,9 @@ async function handleExpiredOffers() {
           adminNotes: `Auto-expired due to inactivity and zero balance at ${new Date().toISOString()}`,
         });
 
-        // Log activity
+        // Log activity for offer owner
         await models.p2pActivityLog.create({
-          userId: "system",
+          userId: offer.userId,
           type: "OFFER_EXPIRED",
           action: "EXPIRED",
           relatedEntity: "OFFER",
@@ -188,6 +282,7 @@ async function handleExpiredOffers() {
           details: JSON.stringify({
             reason: "inactivity_and_zero_balance",
             lastUpdated: offer.updatedAt,
+            systemGenerated: true,
           }),
         });
 
@@ -232,7 +327,9 @@ export async function archiveOldP2PTrades() {
       limit: 100, // Process in batches
     });
 
-    console.log(`[P2P] Found ${tradesToArchive.length} trades to archive`);
+    if (tradesToArchive.length > 0) {
+      console.log(`[P2P] Archiving ${tradesToArchive.length} trades`);
+    }
 
     for (const trade of tradesToArchive) {
       try {
@@ -242,7 +339,6 @@ export async function archiveOldP2PTrades() {
           archivedAt: new Date(),
         });
 
-        console.log(`[P2P] Archived trade ${trade.id}`);
       } catch (error) {
         console.error(`[P2P] Failed to archive trade ${trade.id}:`, error);
       }
@@ -289,7 +385,9 @@ export async function updateP2PReputationScores() {
       ]),
     ];
 
-    console.log(`[P2P] Updating reputation for ${allUserIds.length} users`);
+    if (allUserIds.length > 0) {
+      console.log(`[P2P] Updating reputation for ${allUserIds.length} users`);
+    }
 
     for (const userId of allUserIds) {
       try {
@@ -344,11 +442,6 @@ export async function updateP2PReputationScores() {
 
         // Ensure score is between 0 and 100
         reputationScore = Math.max(0, Math.min(100, Math.round(reputationScore)));
-
-        // Update user's P2P profile or metadata
-        // This would typically be stored in a separate p2pUserProfile table
-        // For now, we'll log it
-        console.log(`[P2P] User ${userId} reputation: ${reputationScore} (${completedTrades} completed, ${disputedTrades} disputes)`);
 
         // Check for milestones
         if (completedTrades === 10 || completedTrades === 50 || completedTrades === 100) {

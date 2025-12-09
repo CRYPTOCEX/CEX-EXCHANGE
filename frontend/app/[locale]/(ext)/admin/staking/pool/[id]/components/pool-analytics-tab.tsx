@@ -268,8 +268,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
             <div className="flex items-center mt-1 text-xs text-green-500">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               <span>
-                +{(pool.apr / 12).toFixed(2)}
-                {t("%_monthly_rate")}
+                +{(pool.apr / 12).toFixed(2)}% {t("monthly_rate")}
               </span>
             </div>
           </CardContent>
@@ -324,8 +323,7 @@ export function PoolAnalyticsTab({ pool, positions }: PoolAnalyticsTabProps) {
                 ) : (
                   <TrendingDown className="h-3 w-3 inline mr-1" />
                 )}
-                {metrics.actualAPR.toFixed(2)}
-                {t("%_actual_apr")}
+                {metrics.actualAPR.toFixed(2)}% {t("actual_apr")}
               </span>
             </div>
           </CardContent>

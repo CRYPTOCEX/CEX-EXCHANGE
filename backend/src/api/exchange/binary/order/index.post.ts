@@ -21,6 +21,7 @@ export const metadata: OperationObject = {
             amount: { type: "number" },
             side: { type: "string" }, // now can be RISE, FALL, HIGHER, LOWER
             closedAt: { type: "string", format: "date-time" },
+            durationId: { type: "string" }, // ID of the binary duration
             isDemo: { type: "boolean" },
             type: { type: "string" }, // RISE_FALL or HIGHER_LOWER
             // durationType: { type: "string" }, // TIME or TICKS
@@ -28,7 +29,7 @@ export const metadata: OperationObject = {
             // strikePrice: { type: "number" }, // required if type=CALL_PUT
             // payoutPerPoint: { type: "number" }, // required if type=CALL_PUT
           },
-          required: ["currency", "pair", "amount", "side", "closedAt", "type"],
+          required: ["currency", "pair", "amount", "side", "closedAt", "durationId", "type"],
         },
       },
     },
@@ -58,6 +59,7 @@ export default async (data: Handler) => {
     amount,
     side,
     type,
+    durationId,
     // durationType,
     // barrier,
     // strikePrice,
@@ -74,6 +76,7 @@ export default async (data: Handler) => {
       amount,
       side,
       type: "RISE_FALL",
+      durationId,
       // durationType,
       // barrier,
       // strikePrice,

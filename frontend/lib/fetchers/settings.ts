@@ -16,6 +16,18 @@ function getBaseURL() {
   return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost";
 }
 
+// Helper to check if error is a connection error (backend not ready)
+function isConnectionError(error: any): boolean {
+  const errorCode = error?.code || error?.cause?.code;
+  return (
+    errorCode === "ECONNRESET" ||
+    errorCode === "ECONNREFUSED" ||
+    error?.name === "AbortError" ||
+    error?.message?.includes("aborted") ||
+    error?.message?.includes("fetch failed")
+  );
+}
+
 export const getSettings = cache(async () => {
   const siteUrl = getBaseURL();
 
@@ -26,17 +38,26 @@ export const getSettings = cache(async () => {
 
   try {
     const apiUrl = `${siteUrl}/api/settings`;
-    console.log("SSR: Fetching settings from:", apiUrl);
+
+    // Use AbortController with timeout to prevent hanging when backend is not ready
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const res = await fetch(apiUrl, {
       method: "GET",
       next: { revalidate: 60 },
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
-      console.warn(
-        `SSR: Failed to fetch /api/settings: ${res.status} ${res.statusText} from ${apiUrl}`
-      );
+      // Don't log for common startup scenarios
+      if (res.status !== 404) {
+        console.warn(
+          `SSR: Failed to fetch /api/settings: ${res.status} ${res.statusText}`
+        );
+      }
       // Return empty defaults instead of throwing
       return { settings: {}, extensions: [], error: `HTTP ${res.status}` };
     }
@@ -44,8 +65,11 @@ export const getSettings = cache(async () => {
     let data;
     try {
       data = await res.json();
-    } catch (parseError) {
-      console.warn("SSR: Failed to parse settings response:", parseError);
+    } catch (parseError: any) {
+      // Silently handle parse errors during startup
+      if (!isConnectionError(parseError)) {
+        console.warn("SSR: Failed to parse settings response:", parseError);
+      }
       return {
         settings: {},
         extensions: [],
@@ -54,11 +78,14 @@ export const getSettings = cache(async () => {
     }
 
     return { settings: data || {}, extensions: [], error: null };
-  } catch (error) {
-    console.warn(
-      "SSR: Error fetching settings:",
-      error instanceof Error ? error.message : error
-    );
+  } catch (error: any) {
+    // Silently handle connection errors (backend not ready during startup)
+    if (!isConnectionError(error)) {
+      console.warn(
+        "SSR: Error fetching settings:",
+        error instanceof Error ? error.message : error
+      );
+    }
     // Return empty defaults instead of throwing
     return {
       settings: {},

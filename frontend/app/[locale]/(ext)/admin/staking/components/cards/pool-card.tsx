@@ -49,10 +49,7 @@ export function PoolCard({ pool, onEdit, onDelete }: PoolCardProps) {
               )}
             </div>
             <div className="text-sm text-muted-foreground mt-1">
-              {pool.symbol}
-              {t("•_lock_period")}
-              {pool.lockPeriod}
-              {t("days")}
+              {pool.symbol} • {t("lock_period")} {pool.lockPeriod} {t("days")}
             </div>
             <p className="text-sm mt-2 line-clamp-2">{pool.description}</p>
           </div>

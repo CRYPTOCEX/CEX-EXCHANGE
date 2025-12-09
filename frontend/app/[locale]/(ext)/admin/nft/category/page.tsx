@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftCategoryAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTCategoriesPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/category"
@@ -23,7 +25,7 @@ export default function NFTCategoriesPage() {
       isParanoid={true}
       title="NFT Categories"
       itemTitle="Category"
-      description="Manage NFT categories and genres for better organization and discovery"
+      description={t("manage_nft_categories_and_genres_for")}
       columns={columns}
       analytics={nftCategoryAnalytics}
     />

@@ -31,7 +31,7 @@ export default function ForgotPasswordForm({
   onLoginClick,
   onTokenSubmit,
 }: ForgotPasswordFormProps) {
-  const t = useTranslations("components/auth/forgot-password-form");
+  const t = useTranslations("common");
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");

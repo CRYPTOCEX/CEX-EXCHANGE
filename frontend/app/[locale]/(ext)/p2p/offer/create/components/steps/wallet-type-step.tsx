@@ -8,6 +8,7 @@ import { Wallet, Landmark, Sprout, Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 interface WalletOption {
   id: string;
   name: string;
@@ -25,6 +26,7 @@ interface UserWallet {
   status: boolean;
 }
 export function WalletTypeStep() {
+  const t = useTranslations("ext");
   const { tradeData, updateTradeData, markStepComplete } = useWizard();
   const [walletOptions, setWalletOptions] = useState<WalletOption[]>([]);
   const [selectedWallet, setSelectedWallet] = useState<string>("");
@@ -284,7 +286,7 @@ export function WalletTypeStep() {
                         {wallet.symbol}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Available Balance
+                        {t("available_balance")}
                       </p>
                     </div>
                     {selectedUserWallet === wallet.id && (
@@ -322,7 +324,7 @@ export function WalletTypeStep() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <p className="text-muted-foreground">Loading wallet options...</p>
+        <p className="text-muted-foreground">{t("loading_wallet_options_ellipsis")}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-40 w-full" />
@@ -341,7 +343,7 @@ export function WalletTypeStep() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        Select the wallet type you want to use for this {tradeType || "trade"}.
+        {t("select_the_wallet_type_you_want_to_use_for_this")} {tradeType || "trade"}.
       </p>
 
       {walletOptionsUI}
@@ -363,7 +365,7 @@ export function WalletTypeStep() {
       {tradeType === "SELL" && selectedWallet && (
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">
-            Select a wallet to sell from
+            {t("select_a_wallet_to_sell_from")}
           </h3>
           {userWalletsUI}
         </div>

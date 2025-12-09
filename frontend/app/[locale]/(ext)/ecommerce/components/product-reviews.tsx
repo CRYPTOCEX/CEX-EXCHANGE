@@ -171,7 +171,7 @@ export default function ProductReviews({
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">
                 {reviewText.length}
-                {t("500_characters")}
+                {t("out_of_500_characters")}
               </p>
             </div>
 

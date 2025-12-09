@@ -43,7 +43,7 @@ export default function RegisterForm({
   onRegistrationSuccess,
   onLoginClick,
 }: RegisterFormProps) {
-  const t = useTranslations("components/auth/register-form");
+  const t = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();

@@ -100,7 +100,7 @@ const ICON_CATEGORIES = {
 };
 
 export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps) {
-  const t = useTranslations("components/ui/icon-picker");
+  const t = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("popular");
   const [allIcons, setAllIcons] = useState<string[]>([]);

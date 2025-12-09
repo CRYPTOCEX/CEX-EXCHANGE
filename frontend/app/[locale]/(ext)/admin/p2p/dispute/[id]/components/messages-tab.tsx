@@ -81,7 +81,7 @@ export function MessagesTab({
               {t("send_message_to_both_parties")}
             </h3>
             <Textarea
-              placeholder="Type your message here..."
+              placeholder={t("type_your_message_here_ellipsis")}
               className="min-h-[100px] dark:bg-slate-800/50 dark:border-slate-700/50"
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}

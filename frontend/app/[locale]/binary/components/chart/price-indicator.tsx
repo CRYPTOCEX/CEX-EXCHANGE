@@ -9,7 +9,7 @@ interface PriceIndicatorProps {
 }
 
 export default function PriceIndicator({ price, symbol }: PriceIndicatorProps) {
-  const t = useTranslations("binary/components/chart/price-indicator");
+  const t = useTranslations("common");
   return (
     <div className="absolute top-2 left-2 bg-[#1A1D29]/80 backdrop-blur-sm rounded-md px-3 py-1.5 border border-[#2A2E39]/50 z-10">
       <div className="flex items-center">

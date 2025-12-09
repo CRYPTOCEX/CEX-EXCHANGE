@@ -139,7 +139,7 @@ const getActivityDetails = (activity: any) => {
 };
 
 export default function CollectionDetailClient({ initialCollection }: CollectionDetailClientProps) {
-  const t = useTranslations("nft/collection");
+  const t = useTranslations("ext");
 
   const [collection, setCollection] = useState(initialCollection);
   const [tokens, setTokens] = useState<any[]>([]);

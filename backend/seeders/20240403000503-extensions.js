@@ -131,15 +131,25 @@ const predefinedExtensions = [
     link: "",
     image: "/img/extensions/nft.png",
   },
+  // ai trading
+  {
+    productId: "AI7RAD1NG",
+    name: "ai_market_maker",
+    title: "AI Market Maker",
+    description:
+      "AI-powered market making system with automated trading bots, liquidity management, and intelligent price discovery for ecosystem markets.",
+    link: "",
+    image: "/img/extensions/ai-market-maker.png",
+  },
   // payment gateway
   {
     productId: "B80789E1",
-    name: "payment_gateway",
+    name: "gateway",
     title: "Payment Gateway",
     description:
-      "Integrate payment gateways to enable seamless transactions on your platform.",
+      "Accept cryptocurrency payments from any website with our Payment Gateway addon. Supports multi-wallet payments, automatic currency conversion, and merchant dashboards.",
     link: "",
-    image: "/img/extensions/payment-gateway.png",
+    image: "/img/extensions/gateway.png",
   },
 ];
 

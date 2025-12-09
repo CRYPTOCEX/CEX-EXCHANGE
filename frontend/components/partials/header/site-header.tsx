@@ -36,7 +36,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   rightControls,
   title,
 }) => {
-  const t = useTranslations("components/partials/header/site-header");
+  const t = useTranslations("common");
   const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user, hasPermission } = useUserStore();

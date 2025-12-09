@@ -30,7 +30,7 @@ export default function StopOrderForm({
   takerFee = 0.001,
   makerFee = 0.001,
 }: OrderFormProps) {
-  const t = useTranslations("trade/components/trading/spot/stop-order-form");
+  const t = useTranslations("ext");
   const [amount, setAmount] = useState("");
   const [stopPrice, setStopPrice] = useState("");
   const [limitPrice, setLimitPrice] = useState("");
@@ -390,7 +390,7 @@ export default function StopOrderForm({
       {/* Fee Display */}
       {amount && marketPrice && Number(amount) > 0 && (
         <div className="flex items-center justify-between px-1 py-0.5 text-[10px] text-muted-foreground dark:text-zinc-500">
-          <span>{t("Est. Fee")} ({(takerFee * 100).toFixed(2)}%):</span>
+          <span>{t("est_fee")} ({(takerFee * 100).toFixed(2)}%):</span>
           <span>
             {(Number(marketPrice.replace(/,/g, "")) * Number(amount) * takerFee).toFixed(pricePrecision)} {pair}
           </span>

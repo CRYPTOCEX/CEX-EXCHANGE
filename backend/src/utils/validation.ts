@@ -35,8 +35,8 @@ export function sanitizeUserPath(inputPath: string): string {
     /\/\.+\//g,        // Dots between slashes
     /^\.+/,            // Starting with dots
     /\.+$/,            // Ending with dots
-    /\/+/g,            // Multiple consecutive slashes
-    /\\+/g,            // Multiple consecutive backslashes
+    /\/{2,}/g,         // Multiple consecutive slashes (2 or more)
+    /\\{2,}/g,         // Multiple consecutive backslashes (2 or more)
     /[<>:"|?*]/g,      // Windows invalid characters
     /[\x00-\x1F]/g,    // Control characters
   ];
@@ -75,8 +75,9 @@ export function sanitizeUserPath(inputPath: string): string {
     throw new Error('Path too long');
   }
 
-  // Ensure path only contains safe characters
-  if (!/^[a-zA-Z0-9_\-/]+$/.test(sanitized)) {
+  // Ensure path only contains safe characters (including dot for file extensions)
+  // Note: Directory traversal (..) is already handled above in dangerousPatterns
+  if (!/^[a-zA-Z0-9_\-/.]+$/.test(sanitized)) {
     throw new Error('Path contains invalid characters');
   }
 

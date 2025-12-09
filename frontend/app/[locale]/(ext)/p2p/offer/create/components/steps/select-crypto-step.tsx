@@ -210,7 +210,7 @@ export function SelectCryptoStep() {
       <div className="space-y-6">
         <div className="relative">
           <Input
-            placeholder="Search currencies..."
+            placeholder={t("search_currencies_ellipsis")}
             disabled
             className="pl-10"
           />
@@ -238,7 +238,7 @@ export function SelectCryptoStep() {
       <div className="space-y-6">
         <div className="relative">
           <Input
-            placeholder="Search currencies..."
+            placeholder={t("search_currencies_ellipsis")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -268,7 +268,7 @@ export function SelectCryptoStep() {
 
       <div className="relative mb-4">
         <Input
-          placeholder="Search currencies..."
+          placeholder={t("search_currencies_ellipsis")}
           className="pl-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

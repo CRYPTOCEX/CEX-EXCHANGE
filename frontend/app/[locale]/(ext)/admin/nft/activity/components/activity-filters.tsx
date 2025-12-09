@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, Filter, Search } from "lucide-react";
 import { $fetch } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 interface ActivityFiltersProps {
   onFilterChange: (filters: ActivityFilters) => void;
@@ -42,6 +43,7 @@ const activityTypes = [
 ];
 
 export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFiltersProps) {
+  const t = useTranslations("ext");
   const [collections, setCollections] = useState<any[]>([]);
   const [creators, setCreators] = useState<any[]>([]);
   const [tokens, setTokens] = useState<any[]>([]);
@@ -199,12 +201,12 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 className="h-8 text-xs"
               >
                 <X className="h-3 w-3 mr-1" />
-                Clear All
+                {t("clear_all")}
               </Button>
             )}
           </div>
           <CardDescription>
-            Filter activity by type, collection, creator, or NFT
+            {t("filter_activity_by_type_collection_creator_or_nft")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -216,7 +218,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Transaction hash, user email..."
+                  placeholder={t("transaction_hash_user_email_ellipsis")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -240,7 +242,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
 
           {/* Activity Types */}
           <div className="space-y-3">
-            <Label>Activity Type</Label>
+            <Label>{t("activity_type")}</Label>
             <div className="grid grid-cols-1 gap-2">
               {activityTypes.map((type) => (
                 <div key={type.value} className="flex items-center space-x-2">
@@ -273,7 +275,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 <SelectValue placeholder={loadingCollections ? "Loading..." : "All Collections"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Collections</SelectItem>
+                <SelectItem value="all">{t("all_collections")}</SelectItem>
                 {collections.map((collection) => (
                   <SelectItem key={collection.id} value={collection.id}>
                     {collection.name}
@@ -296,7 +298,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                   <SelectValue placeholder={loadingTokens ? "Loading..." : "All Tokens"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Tokens</SelectItem>
+                  <SelectItem value="all">{t("all_tokens")}</SelectItem>
                   {tokens.map((token) => (
                     <SelectItem key={token.id} value={token.id}>
                       {token.name} #{token.tokenId}
@@ -319,7 +321,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                 <SelectValue placeholder={loadingCreators ? "Loading..." : "All Creators"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Creators</SelectItem>
+                <SelectItem value="all">{t("all_creators")}</SelectItem>
                 {creators.map((creator) => (
                   <SelectItem key={creator.id} value={creator.id}>
                     {creator.displayName || creator.user?.email || "Unknown"}
@@ -335,7 +337,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
       {activeFilterCount > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Active Filters</CardTitle>
+            <CardTitle className="text-sm">{t("active_filters")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -355,7 +357,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                         handleTypeToggle(type);
                       }}
                       className="ml-1 rounded-sm hover:bg-destructive/10 p-0.5 cursor-pointer transition-colors"
-                      aria-label="Remove filter"
+                      aria-label={t("remove_filter")}
                     >
                       <X className="h-3 w-3 hover:text-destructive" />
                     </button>
@@ -371,7 +373,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                       handleCollectionChange("all");
                     }}
                     className="ml-1 rounded-sm hover:bg-destructive/10 p-0.5 cursor-pointer transition-colors"
-                    aria-label="Remove filter"
+                    aria-label={t("remove_filter")}
                   >
                     <X className="h-3 w-3 hover:text-destructive" />
                   </button>
@@ -386,7 +388,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                       handleTokenChange("all");
                     }}
                     className="ml-1 rounded-sm hover:bg-destructive/10 p-0.5 cursor-pointer transition-colors"
-                    aria-label="Remove filter"
+                    aria-label={t("remove_filter")}
                   >
                     <X className="h-3 w-3 hover:text-destructive" />
                   </button>
@@ -401,7 +403,7 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
                       handleCreatorChange("all");
                     }}
                     className="ml-1 rounded-sm hover:bg-destructive/10 p-0.5 cursor-pointer transition-colors"
-                    aria-label="Remove filter"
+                    aria-label={t("remove_filter")}
                   >
                     <X className="h-3 w-3 hover:text-destructive" />
                   </button>
@@ -409,14 +411,14 @@ export function ActivityFilters({ onFilterChange, activeFilters }: ActivityFilte
               )}
               {activeFilters.search && (
                 <Badge variant="secondary" className="gap-1 pr-1">
-                  Search: {activeFilters.search}
+                  {t("search")} {activeFilters.search}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleClearSearch();
                     }}
                     className="ml-1 rounded-sm hover:bg-destructive/10 p-0.5 cursor-pointer transition-colors"
-                    aria-label="Remove filter"
+                    aria-label={t("remove_filter")}
                   >
                     <X className="h-3 w-3 hover:text-destructive" />
                   </button>

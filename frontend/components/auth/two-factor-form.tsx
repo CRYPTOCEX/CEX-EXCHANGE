@@ -22,7 +22,7 @@ export default function TwoFactorForm({
   onSuccess,
   onCancel,
 }: TwoFactorFormProps) {
-  const t = useTranslations("components/auth/two-factor-form");
+  const t = useTranslations("common");
   const { toast } = useToast();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);

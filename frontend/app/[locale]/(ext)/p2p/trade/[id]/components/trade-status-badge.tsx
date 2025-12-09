@@ -13,34 +13,21 @@ import {
   Clock,
   Ban,
   ShieldAlert,
+  TimerOff,
 } from "lucide-react";
+import { normalizeP2PStatus, P2P_STATUS } from "@/utils/p2p-status";
 
 interface TradeStatusBadgeProps {
   status: string;
 }
 
 export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
+  const normalizedStatus = normalizeP2PStatus(status);
+
   const getStatusConfig = () => {
-    switch (status) {
-      case "created":
-        return {
-          label: "Created",
-          variant: "outline" as const,
-          icon: Clock,
-          color: "text-blue-500",
-          bg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-          tooltip: "Trade has been created and is waiting for the next step",
-        };
-      case "funded":
-        return {
-          label: "Funded",
-          variant: "outline" as const,
-          icon: CheckCircle2,
-          color: "text-blue-500",
-          bg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-          tooltip: "Escrow has been funded and is ready for payment",
-        };
-      case "waiting_payment":
+    switch (normalizedStatus) {
+      case P2P_STATUS.PENDING:
+      case P2P_STATUS.IN_PROGRESS:
         return {
           label: "Awaiting Payment",
           variant: "outline" as const,
@@ -49,9 +36,9 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           bg: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
           tooltip: "Waiting for buyer to send payment",
         };
-      case "payment_confirmed":
+      case P2P_STATUS.PAYMENT_SENT:
         return {
-          label: "Payment Confirmed",
+          label: "Payment Sent",
           variant: "outline" as const,
           icon: CheckCircle2,
           color: "text-purple-500",
@@ -59,7 +46,16 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           tooltip:
             "Payment has been confirmed, waiting for seller to release funds",
         };
-      case "completed":
+      case P2P_STATUS.ESCROW_RELEASED:
+        return {
+          label: "Escrow Released",
+          variant: "outline" as const,
+          icon: CheckCircle2,
+          color: "text-blue-500",
+          bg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+          tooltip: "Funds have been released from escrow",
+        };
+      case P2P_STATUS.COMPLETED:
         return {
           label: "Completed",
           variant: "default" as const,
@@ -68,7 +64,7 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           bg: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
           tooltip: "Trade has been successfully completed",
         };
-      case "disputed":
+      case P2P_STATUS.DISPUTED:
         return {
           label: "Disputed",
           variant: "destructive" as const,
@@ -77,7 +73,7 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           bg: "",
           tooltip: "Trade is under dispute and being reviewed by admins",
         };
-      case "cancelled":
+      case P2P_STATUS.CANCELLED:
         return {
           label: "Cancelled",
           variant: "outline" as const,
@@ -85,6 +81,15 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
           color: "text-gray-500",
           bg: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
           tooltip: "Trade has been cancelled",
+        };
+      case P2P_STATUS.EXPIRED:
+        return {
+          label: "Expired",
+          variant: "outline" as const,
+          icon: TimerOff,
+          color: "text-gray-500",
+          bg: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+          tooltip: "Trade has expired due to timeout",
         };
       default:
         return {

@@ -204,7 +204,10 @@ export default function CompletedPositions({
 
     // Calculate total profit/loss
     const totalProfit = completedOrders.reduce(
-      (sum, order) => sum + (order.profit || 0),
+      (sum, order) => {
+        const profitAmount = order.profit || 0;
+        return sum + (order.status === "WIN" ? profitAmount : -profitAmount);
+      },
       0
     );
     const winRate =
@@ -247,6 +250,12 @@ export default function CompletedPositions({
       month: "short",
       day: "numeric",
     });
+  };
+
+  // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
+  const getCurrency = (symbol: string) => {
+    const parts = symbol.split("/");
+    return parts[1] || "USDT"; // Default to USDT if parsing fails
   };
 
   // Toggle sort
@@ -324,8 +333,8 @@ export default function CompletedPositions({
                 <div
                   className={`text-sm ${stats.totalProfit >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                 >
-                  {stats.totalProfit >= 0 ? "+" : ""}$
-                  {stats.totalProfit.toFixed(2)}
+                  {stats.totalProfit >= 0 ? "+" : ""}
+                  {stats.totalProfit.toFixed(2)} {completedOrders[0] && getCurrency(completedOrders[0].symbol)}
                 </div>
                 <div className={`text-xs ${secondaryTextClass}`}>
                   Win:{" "}
@@ -344,25 +353,39 @@ export default function CompletedPositions({
           </div>
         </div>
 
-        {/* Mobile filters */}
+        {/* Mobile filters - pill style tabs */}
         <div
-          className={`flex-shrink-0 px-4 py-3 border-b ${borderLightClass}`}
+          className={`flex-shrink-0 px-3 py-2 ${theme === "dark" ? "bg-zinc-950" : "bg-white"}`}
         >
-          <div className="flex gap-2">
+          <div className={`flex p-1 rounded-lg ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}>
             <button
-              className={`flex-1 px-4 py-2.5 text-sm rounded-lg font-medium transition-all duration-200 ${filter === "all" ? activeBgClass + " " + textClass + " shadow-sm" : secondaryTextClass + " hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+              className={`flex-1 py-2 px-3 text-sm font-medium transition-all rounded-md ${
+                filter === "all"
+                  ? theme === "dark"
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "bg-white text-zinc-900 shadow-sm"
+                  : `${secondaryTextClass} hover:text-zinc-${theme === "dark" ? "300" : "700"}`
+              }`}
               onClick={() => setFilter("all")}
             >
               All
             </button>
             <button
-              className={`flex-1 px-4 py-2.5 text-sm rounded-lg font-medium transition-all duration-200 ${filter === "WIN" ? "bg-green-500/20 text-[#22c55e] shadow-sm" : secondaryTextClass + " hover:bg-green-500/10 hover:text-[#22c55e]"}`}
+              className={`flex-1 py-2 px-3 text-sm font-medium transition-all rounded-md ${
+                filter === "WIN"
+                  ? "bg-green-500/20 text-green-400 shadow-sm"
+                  : `${secondaryTextClass} hover:text-green-400`
+              }`}
               onClick={() => setFilter("WIN")}
             >
               Won
             </button>
             <button
-              className={`flex-1 px-4 py-2.5 text-sm rounded-lg font-medium transition-all duration-200 ${filter === "LOSS" ? "bg-red-500/20 text-[#ef4444] shadow-sm" : secondaryTextClass + " hover:bg-red-500/10 hover:text-[#ef4444]"}`}
+              className={`flex-1 py-2 px-3 text-sm font-medium transition-all rounded-md ${
+                filter === "LOSS"
+                  ? "bg-red-500/20 text-red-400 shadow-sm"
+                  : `${secondaryTextClass} hover:text-red-400`
+              }`}
               onClick={() => setFilter("LOSS")}
             >
               Lost
@@ -405,18 +428,18 @@ export default function CompletedPositions({
                         Amount
                       </span>
                       <span className={`text-sm font-medium ${tableValueClass}`}>
-                        ${order.amount.toFixed(2)}
+                        {order.amount.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className={`text-xs ${secondaryTextClass} uppercase tracking-wide`}>
-                        {(order.profit || 0) >= 0 ? "Profit" : "Loss"}
+                        {order.status === "WIN" ? "Profit" : "Loss"}
                       </span>
                       <span
-                        className={`text-sm font-bold ${(order.profit || 0) >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+                        className={`text-sm font-bold ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                       >
-                        {(order.profit || 0) >= 0 ? "+" : ""}$
-                        {Math.abs(order.profit || 0).toFixed(2)}
+                        {order.status === "WIN" ? "+" : "-"}
+                        {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                   </div>
@@ -436,7 +459,7 @@ export default function CompletedPositions({
                         Entry Price
                       </span>
                       <span className={`text-xs ${tableValueClass} font-mono`}>
-                        ${order.entryPrice.toFixed(2)}
+                        {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                   </div>
@@ -505,8 +528,8 @@ export default function CompletedPositions({
                 <div
                   className={`ml-3 text-sm ${stats.totalProfit >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                 >
-                  {stats.totalProfit >= 0 ? "+" : ""}$
-                  {stats.totalProfit.toFixed(2)}
+                  {stats.totalProfit >= 0 ? "+" : ""}
+                  {stats.totalProfit.toFixed(2)} {completedOrders[0] && getCurrency(completedOrders[0].symbol)}
                 </div>
                 <div
                   className={`ml-3 text-xs ${theme === "dark" ? "text-zinc-400" : "text-zinc-500"}`}
@@ -655,16 +678,16 @@ export default function CompletedPositions({
                       {order.side === "RISE" ? "↑" : "↓"}
                     </div>
                     <div className={`text-xs ${tableValueClass}`}>
-                      ${order.entryPrice.toFixed(2)}
+                      {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
                     </div>
                     <div className={`text-xs ${tableValueClass}`}>
-                      ${order.amount.toFixed(2)}
+                      {order.amount.toFixed(2)} {getCurrency(order.symbol)}
                     </div>
                     <div
-                      className={`font-semibold text-xs ${(order.profit || 0) >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}
+                      className={`font-semibold text-xs ${order.status === "WIN" ? "text-[#22c55e]" : "text-[#ef4444]"}`}
                     >
-                      {(order.profit || 0) >= 0 ? "+" : ""}$
-                      {Math.abs(order.profit || 0).toFixed(2)}
+                      {order.status === "WIN" ? "+" : "-"}
+                      {Math.abs(order.profit || 0).toFixed(2)} {getCurrency(order.symbol)}
                     </div>
                     <div>
                       <span

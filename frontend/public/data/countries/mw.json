@@ -1,0 +1,227 @@
+{
+  "name": "Malawi",
+  "iso2": "MW",
+  "iso3": "MWI",
+  "phonecode": "265",
+  "states": [
+    {
+      "name": "Balaka",
+      "code": "BA",
+      "cities": []
+    },
+    {
+      "name": "Blantyre",
+      "code": "BL",
+      "cities": []
+    },
+    {
+      "name": "Central",
+      "code": "C",
+      "cities": [
+        "Chipoka",
+        "Dedza",
+        "Dedza District",
+        "Dowa",
+        "Dowa District",
+        "Kasungu",
+        "Kasungu District",
+        "Lilongwe",
+        "Lilongwe District",
+        "Mchinji",
+        "Mchinji District",
+        "Mponela",
+        "Nkhotakota",
+        "Nkhotakota District",
+        "Ntcheu",
+        "Ntcheu District",
+        "Ntchisi",
+        "Ntchisi District",
+        "Salima",
+        "Salima District"
+      ]
+    },
+    {
+      "name": "Chikwawa",
+      "code": "CK",
+      "cities": []
+    },
+    {
+      "name": "Chiradzulu",
+      "code": "CR",
+      "cities": []
+    },
+    {
+      "name": "Chitipa",
+      "code": "CT",
+      "cities": []
+    },
+    {
+      "name": "Dedza",
+      "code": "DE",
+      "cities": []
+    },
+    {
+      "name": "Dowa",
+      "code": "DO",
+      "cities": []
+    },
+    {
+      "name": "Karonga",
+      "code": "KR",
+      "cities": []
+    },
+    {
+      "name": "Kasungu",
+      "code": "KS",
+      "cities": []
+    },
+    {
+      "name": "Likoma",
+      "code": "LK",
+      "cities": []
+    },
+    {
+      "name": "Lilongwe",
+      "code": "LI",
+      "cities": []
+    },
+    {
+      "name": "Machinga",
+      "code": "MH",
+      "cities": []
+    },
+    {
+      "name": "Mangochi",
+      "code": "MG",
+      "cities": []
+    },
+    {
+      "name": "Mchinji",
+      "code": "MC",
+      "cities": []
+    },
+    {
+      "name": "Mulanje",
+      "code": "MU",
+      "cities": []
+    },
+    {
+      "name": "Mwanza",
+      "code": "MW",
+      "cities": []
+    },
+    {
+      "name": "Mzimba",
+      "code": "MZ",
+      "cities": []
+    },
+    {
+      "name": "Neno",
+      "code": "NE",
+      "cities": []
+    },
+    {
+      "name": "Nkhata Bay",
+      "code": "NB",
+      "cities": []
+    },
+    {
+      "name": "Nkhotakota",
+      "code": "NK",
+      "cities": []
+    },
+    {
+      "name": "Northern",
+      "code": "N",
+      "cities": [
+        "Chitipa",
+        "Chitipa District",
+        "Karonga",
+        "Karonga District",
+        "Likoma",
+        "Livingstonia",
+        "Mzimba",
+        "Mzimba District",
+        "Mzuzu",
+        "Nkhata Bay",
+        "Nkhata Bay District",
+        "Rumphi",
+        "Rumphi District"
+      ]
+    },
+    {
+      "name": "Nsanje",
+      "code": "NS",
+      "cities": []
+    },
+    {
+      "name": "Ntcheu",
+      "code": "NU",
+      "cities": []
+    },
+    {
+      "name": "Ntchisi",
+      "code": "NI",
+      "cities": []
+    },
+    {
+      "name": "Phalombe",
+      "code": "PH",
+      "cities": []
+    },
+    {
+      "name": "Rumphi",
+      "code": "RU",
+      "cities": []
+    },
+    {
+      "name": "Salima",
+      "code": "SA",
+      "cities": []
+    },
+    {
+      "name": "Southern",
+      "code": "S",
+      "cities": [
+        "Balaka",
+        "Balaka District",
+        "Blantyre",
+        "Blantyre District",
+        "Chikwawa",
+        "Chikwawa District",
+        "Chiradzulu",
+        "Chiradzulu District",
+        "Liwonde",
+        "Luchenza",
+        "Machinga",
+        "Machinga District",
+        "Mangochi",
+        "Mangochi District",
+        "Monkey Bay",
+        "Mulanje",
+        "Mulanje District",
+        "Mwanza",
+        "Mwanza District",
+        "Neno",
+        "Nsanje",
+        "Nsanje District",
+        "Phalombe",
+        "Phalombe District",
+        "Thyolo",
+        "Thyolo District",
+        "Zomba",
+        "Zomba District"
+      ]
+    },
+    {
+      "name": "Thyolo",
+      "code": "TH",
+      "cities": []
+    },
+    {
+      "name": "Zomba",
+      "code": "ZO",
+      "cities": []
+    }
+  ]
+}

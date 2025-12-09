@@ -29,7 +29,7 @@ export function SupportChat({
   onFileUpload,
   isReplying,
 }: SupportChatProps) {
-  const t = useTranslations("components/blocks/support/support-chat");
+  const t = useTranslations("common");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>(
     ticket.messages || []

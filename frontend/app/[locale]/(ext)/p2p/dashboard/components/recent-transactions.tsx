@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Constants for status types
 const STATUS = {
@@ -49,6 +50,7 @@ export function RecentTransactions({
   transactions,
   isLoading,
 }: RecentTransactionsProps) {
+  const t = useTranslations("ext");
   if (isLoading) {
     return <TransactionsSkeleton />;
   }
@@ -133,16 +135,18 @@ export function RecentTransactions({
                       </div>
                       <div className="text-sm flex items-center justify-end">
                         {tx.value}
-                        <span
-                          className={cn(
-                            "ml-1.5",
-                            tx.change.startsWith("+")
-                              ? "text-green-500"
-                              : "text-red-500"
-                          )}
-                        >
-                          {tx.change}
-                        </span>
+                        {tx.change && (
+                          <span
+                            className={cn(
+                              "ml-1.5",
+                              tx.change.startsWith("+")
+                                ? "text-green-500"
+                                : "text-red-500"
+                            )}
+                          >
+                            {tx.change}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -155,25 +159,25 @@ export function RecentTransactions({
 
       <Link href="/transactions" className="w-full justify-between mt-2">
         <Button variant="outline">
-          View all transactions <ChevronRight className="h-4 w-4" />
+          {t("view_all_transactions")} <ChevronRight className="h-4 w-4" />
         </Button>
       </Link>
     </div>
   );
 }
 export function EmptyTransactions() {
+  const t = useTranslations("ext");
   return (
     <div className="border border-dashed rounded-xl p-8 text-center">
       <div className="flex flex-col items-center">
         <History className="h-12 w-12 text-muted-foreground/40 mb-4" />
-        <h3 className="text-lg font-medium mb-2">No transactions yet</h3>
+        <h3 className="text-lg font-medium mb-2">{t("no_transactions_yet")}</h3>
         <p className="text-muted-foreground max-w-md mb-6">
-          Your recent transactions will appear here once you start trading or
-          make deposits.
+          {t("your_recent_transactions_will_appear_here")}
         </p>
         <Link href="/finance/wallet">
           <Button>
-            <Banknote className="mr-2 h-4 w-4" /> Go to Wallet
+            <Banknote className="mr-2 h-4 w-4" /> {t("go_to_wallet")}
           </Button>
         </Link>
       </div>

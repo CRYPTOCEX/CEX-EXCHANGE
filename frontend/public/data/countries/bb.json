@@ -1,0 +1,77 @@
+{
+  "name": "Barbados",
+  "iso2": "BB",
+  "iso3": "BRB",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Christ Church",
+      "code": "01",
+      "cities": [
+        "Oistins"
+      ]
+    },
+    {
+      "name": "Saint Andrew",
+      "code": "02",
+      "cities": [
+        "Greenland"
+      ]
+    },
+    {
+      "name": "Saint George",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Saint James",
+      "code": "04",
+      "cities": [
+        "Holetown"
+      ]
+    },
+    {
+      "name": "Saint John",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Saint Joseph",
+      "code": "06",
+      "cities": [
+        "Bathsheba"
+      ]
+    },
+    {
+      "name": "Saint Lucy",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Saint Michael",
+      "code": "08",
+      "cities": [
+        "Bridgetown"
+      ]
+    },
+    {
+      "name": "Saint Peter",
+      "code": "09",
+      "cities": [
+        "Speightstown"
+      ]
+    },
+    {
+      "name": "Saint Philip",
+      "code": "10",
+      "cities": [
+        "Crane"
+      ]
+    },
+    {
+      "name": "Saint Thomas",
+      "code": "11",
+      "cities": []
+    }
+  ]
+}

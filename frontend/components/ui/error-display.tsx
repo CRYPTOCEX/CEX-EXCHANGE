@@ -10,7 +10,7 @@ interface ErrorDisplayProps {
 }
 
 export function ErrorDisplay({ error, onRetry }: ErrorDisplayProps) {
-  const t = useTranslations("components/ui/error-display");
+  const t = useTranslations("common");
   return (
     <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
       <div className="flex items-start">

@@ -46,7 +46,7 @@ export default function P2PTradingSettingsSection({
               onChange={(e) =>
                 onUpdate("DefaultEscrowTime", Number(e.target.value))
               }
-              placeholder="Enter default escrow time"
+              placeholder={t("enter_default_escrow_time")}
               min="1"
               max="1440"
             />
@@ -65,7 +65,7 @@ export default function P2PTradingSettingsSection({
               onChange={(e) =>
                 onUpdate("DefaultPaymentWindow", Number(e.target.value))
               }
-              placeholder="Enter payment window time"
+              placeholder={t("enter_payment_window_time")}
               min="1"
               max="1440"
             />
@@ -88,7 +88,7 @@ export default function P2PTradingSettingsSection({
               onChange={(e) =>
                 onUpdate("MinimumTradeAmount", Number(e.target.value))
               }
-              placeholder="Enter minimum trade amount"
+              placeholder={t("enter_minimum_trade_amount")}
               min="0"
               step="0.01"
             />
@@ -107,7 +107,7 @@ export default function P2PTradingSettingsSection({
               onChange={(e) =>
                 onUpdate("MaximumTradeAmount", Number(e.target.value))
               }
-              placeholder="Enter maximum trade amount"
+              placeholder={t("enter_maximum_trade_amount")}
               min="0"
               step="0.01"
             />

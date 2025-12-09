@@ -23,7 +23,8 @@ export default class adminProfit
     | "P2P_TRADE"
     | "NFT_SALE"
     | "NFT_AUCTION"
-    | "NFT_OFFER";
+    | "NFT_OFFER"
+    | "GATEWAY_PAYMENT";
   amount!: number;
   currency!: string;
   chain?: string | null;
@@ -70,7 +71,8 @@ export default class adminProfit
             "P2P_TRADE",
             "NFT_SALE",
             "NFT_AUCTION",
-            "NFT_OFFER"
+            "NFT_OFFER",
+            "GATEWAY_PAYMENT"
           ),
           allowNull: false,
           validate: {
@@ -93,6 +95,7 @@ export default class adminProfit
                   "NFT_SALE",
                   "NFT_AUCTION",
                   "NFT_OFFER",
+                  "GATEWAY_PAYMENT",
                 ],
               ],
               msg: "type: Type must be one of the defined transaction types",

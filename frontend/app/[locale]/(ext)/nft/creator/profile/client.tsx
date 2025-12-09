@@ -50,7 +50,7 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function CreatorProfileClient() {
-  const t = useTranslations("nft/creator/profile/edit");
+  const t = useTranslations("ext");
   const router = useRouter();
   const { user } = useUserStore();
   

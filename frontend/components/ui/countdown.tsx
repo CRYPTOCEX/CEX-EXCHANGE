@@ -18,7 +18,7 @@ export function Countdown({
   showWarning = true,
   warningThreshold = 300, // 5 minutes default
 }: CountdownProps) {
-  const t = useTranslations("components/ui/countdown");
+  const t = useTranslations("common");
   const [timeLeft, setTimeLeft] = useState(initialTimeInSeconds);
   const [isWarning, setIsWarning] = useState(false);
 

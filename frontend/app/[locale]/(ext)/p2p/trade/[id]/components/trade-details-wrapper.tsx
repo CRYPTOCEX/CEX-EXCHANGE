@@ -1,43 +1,227 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { TradeDetails } from "./trade-details";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { useTranslations } from "next-intl";
+import { useNotificationsStore } from "@/store/notification-store";
+import { wsManager } from "@/services/ws-manager";
+import { useUserStore } from "@/store/user";
 
 interface TradeDetailsWrapperProps {
   tradeId: string;
 }
 
+// Get WebSocket URL for P2P trade
+function getP2PTradeWsUrl(tradeId: string): string {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const host = process.env.NEXT_PUBLIC_BACKEND_WS_URL || window.location.host;
+  return `${protocol}//${host}/api/p2p/trade/${tradeId}`;
+}
+
 export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
   const t = useTranslations("ext");
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currentTrade, isLoadingTradeById, tradeByIdError, fetchTradeById } =
     useP2PStore();
-  const [activeTab, setActiveTab] = useState("details");
+  const { fetchNotifications } = useNotificationsStore();
+  const { user } = useUserStore();
+  const [messages, setMessages] = useState<any[]>([]);
+  const wsConnectionId = `p2p-trade-${tradeId}`;
 
+  // Get initial tab from URL query param or default to "details"
+  const tabParam = searchParams.get("tab");
+  const validTabs = ["details", "chat", "payment", "escrow"];
+  const initialTab = tabParam && validTabs.includes(tabParam) ? tabParam : "details";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  // Handle tab change and update URL
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Update URL without navigation
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  // Scroll to tabs section when coming from chat button
   useEffect(() => {
-    // Load trade details initially
+    if (tabParam === "chat" && tabsRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [tabParam]);
+
+  // Load trade details initially
+  useEffect(() => {
     fetchTradeById(tradeId);
   }, [tradeId, fetchTradeById]);
 
-  useEffect(() => {
-    // Only set up polling if we have a successful trade load and no error
-    if (!currentTrade || tradeByIdError) {
-      return;
+  // Handle WebSocket messages for trade updates
+  const handleTradeData = useCallback((data: any) => {
+    // Initial data from WebSocket subscription
+    if (data.messages) {
+      setMessages(data.messages.map((msg: any) => ({
+        id: msg.id,
+        senderId: msg.senderId,
+        senderName: msg.senderName,
+        content: msg.message,
+        timestamp: msg.createdAt,
+        isSystem: false,
+        isAdminMessage: msg.isAdminMessage || false,
+      })));
     }
 
-    // Set up polling for real-time updates
-    const interval = setInterval(() => {
-      fetchTradeById(tradeId);
-    }, 10000); // Poll every 10 seconds
+    // Update trade data in store
+    if (data.id) {
+      useP2PStore.setState((state) => {
+        // Don't overwrite with stale status - check timestamps
+        const currentUpdatedAt = state.currentTrade?.updatedAt ? new Date(state.currentTrade.updatedAt).getTime() : 0;
+        const newUpdatedAt = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
 
-    return () => clearInterval(interval);
-  }, [tradeId, fetchTradeById, currentTrade, tradeByIdError]);
+        // If current trade data is newer, preserve the status
+        const shouldPreserveStatus = currentUpdatedAt > newUpdatedAt;
+
+        // Parse paymentDetails if it's a string
+        let paymentDetails = data.paymentDetails;
+        if (typeof paymentDetails === 'string') {
+          try {
+            paymentDetails = JSON.parse(paymentDetails);
+          } catch {
+            paymentDetails = state.currentTrade?.paymentDetails;
+          }
+        }
+
+        return {
+          currentTrade: {
+            ...state.currentTrade,
+            ...data,
+            // Use parsed paymentDetails or preserve existing
+            paymentDetails: paymentDetails || state.currentTrade?.paymentDetails,
+            // Preserve status if current data is newer (prevents stale WebSocket data)
+            status: shouldPreserveStatus ? state.currentTrade?.status : data.status,
+            // Preserve frontend-transformed fields
+            type: state.currentTrade?.type,
+            coin: state.currentTrade?.coin,
+            counterparty: state.currentTrade?.counterparty,
+          },
+        };
+      });
+    }
+  }, []);
+
+  // Handle WebSocket events (status changes, new messages)
+  const handleTradeEvent = useCallback((data: any) => {
+    if (data.type === "MESSAGE") {
+      // Add new message to chat
+      const newMsg = {
+        id: data.data.id,
+        senderId: data.data.senderId,
+        senderName: data.data.senderName,
+        content: data.data.message,
+        timestamp: data.data.createdAt,
+        isSystem: false,
+        isAdminMessage: data.data.isAdminMessage || false,
+      };
+      setMessages((prev) => {
+        // Check if message already exists
+        if (prev.some((m) => m.id === newMsg.id)) {
+          return prev;
+        }
+        return [...prev, newMsg];
+      });
+    } else if (data.type === "STATUS_CHANGE" || data.type === "DISPUTE") {
+      // Update trade state directly from WebSocket event data for instant UI update
+      useP2PStore.setState((state) => ({
+        currentTrade: state.currentTrade ? {
+          ...state.currentTrade,
+          status: data.data.status,
+          timeline: data.data.timeline || state.currentTrade.timeline,
+          paymentConfirmedAt: data.data.paymentConfirmedAt || state.currentTrade.paymentConfirmedAt,
+          completedAt: data.data.completedAt || state.currentTrade.completedAt,
+          cancelledAt: data.data.cancelledAt || state.currentTrade.cancelledAt,
+          dispute: data.data.dispute || state.currentTrade.dispute,
+        } : null,
+      }));
+      // Also refetch to ensure we have all the latest data
+      fetchTradeById(tradeId);
+      fetchNotifications();
+    } else if (data.type === "TRADE_UPDATE") {
+      // Update trade data
+      useP2PStore.setState((state) => {
+        // Parse paymentDetails if it's a string
+        let paymentDetails = data.data?.paymentDetails;
+        if (typeof paymentDetails === 'string') {
+          try {
+            paymentDetails = JSON.parse(paymentDetails);
+          } catch {
+            paymentDetails = state.currentTrade?.paymentDetails;
+          }
+        }
+        return {
+          currentTrade: {
+            ...state.currentTrade,
+            ...data.data,
+            // Use parsed paymentDetails or preserve existing
+            paymentDetails: paymentDetails || state.currentTrade?.paymentDetails,
+          },
+        };
+      });
+    }
+  }, [tradeId, fetchTradeById, fetchNotifications]);
+
+  // Set up WebSocket connection
+  useEffect(() => {
+    if (!user?.id || !tradeId) return;
+
+    const wsUrl = getP2PTradeWsUrl(tradeId);
+
+    // Connect to WebSocket
+    wsManager.connect(wsUrl, wsConnectionId);
+
+    // Subscribe to trade data stream
+    wsManager.subscribe("p2p-trade-data", handleTradeData, wsConnectionId);
+    wsManager.subscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
+
+    // Send subscription message once connected
+    const subscribeInterval = setInterval(() => {
+      if (wsManager.getStatus(wsConnectionId) === "connected") {
+        wsManager.sendMessage(
+          {
+            action: "SUBSCRIBE",
+            payload: { tradeId, userId: user.id },
+          },
+          wsConnectionId
+        );
+        clearInterval(subscribeInterval);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(subscribeInterval);
+      // Unsubscribe and close connection
+      wsManager.sendMessage(
+        {
+          action: "UNSUBSCRIBE",
+          payload: { tradeId },
+        },
+        wsConnectionId
+      );
+      wsManager.unsubscribe("p2p-trade-data", handleTradeData, wsConnectionId);
+      wsManager.unsubscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
+      wsManager.close(wsConnectionId);
+    };
+  }, [tradeId, user?.id, wsConnectionId, handleTradeData, handleTradeEvent]);
 
   if (isLoadingTradeById && !currentTrade) {
     return (
@@ -110,7 +294,10 @@ export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
       tradeId={tradeId}
       initialData={currentTrade}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleTabChange}
+      tabsRef={tabsRef}
+      messages={messages}
+      setMessages={setMessages}
     />
   );
 }

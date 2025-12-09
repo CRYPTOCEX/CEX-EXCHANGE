@@ -161,8 +161,7 @@ export const columns: ColumnDefinition[] = [
             ></div>
           </div>
           <div className="text-xs text-muted-foreground">
-            {percentComplete}
-            {t("%_completed")}
+            {percentComplete}% {t("completed")}
           </div>
         </div>
       );

@@ -36,7 +36,7 @@ function CustomOptionRow({
   onChange,
   onRemove,
 }: CustomOptionRowProps) {
-  const t = useTranslations("components/blocks/kyc/custom-options");
+  const t = useTranslations("common");
   return (
     <tr className="border-b last:border-none">
       {/* Option Title */}
@@ -131,7 +131,7 @@ export function KycCustomOptions({
   onChange,
   onRemove,
 }: KycCustomOptionsProps) {
-  const t = useTranslations("components/blocks/kyc/custom-options");
+  const t = useTranslations("common");
   return (
     <div className="space-y-3">
       {/* Header Row: Title + Add Button */}

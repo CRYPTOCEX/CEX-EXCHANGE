@@ -85,9 +85,9 @@ export default async (data: Handler) => {
     // Check if recipient exists and is not the same as sender
     const recipient = await models.user.findOne({
       where: {
-        uuid: uuid,
+        id: uuid,
       },
-      attributes: ["id", "uuid", "firstName", "lastName", "email", "status"],
+      attributes: ["id", "firstName", "lastName", "email", "status"],
     });
 
     if (!recipient) {
@@ -106,7 +106,7 @@ export default async (data: Handler) => {
     }
 
     // Check if recipient account is active
-    if (!recipient.status) {
+    if (recipient.status !== "ACTIVE") {
       return {
         exists: false,
         message: "Recipient account is inactive",
@@ -117,7 +117,6 @@ export default async (data: Handler) => {
       exists: true,
       recipient: {
         id: recipient.id,
-        uuid: recipient.uuid,
         firstName: recipient.firstName,
         lastName: recipient.lastName,
         email: recipient.email,

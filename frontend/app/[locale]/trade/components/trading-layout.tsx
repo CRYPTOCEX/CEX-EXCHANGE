@@ -73,7 +73,7 @@ function TradingInterface({
   handleFuturesOrderSubmit?: (orderData: any) => Promise<any>;
   currentMarket?: any;
 }) {
-  const t = useTranslations("trade/components/trading-layout");
+  const t = useTranslations("ext");
   const searchParams = useSearchParams();
   const {
     layoutConfig,

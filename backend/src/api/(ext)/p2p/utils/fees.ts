@@ -26,27 +26,41 @@ interface TradeFees {
  */
 export async function getMinimumTradeAmounts(): Promise<MinimumTradeAmounts> {
   try {
-    const settings = await models.settings.findOne({
+    // Try to get from extension settings first (admin-configurable)
+    const extensionSettings = await models.settings.findOne({
+      where: { key: "p2p" },
+    });
+
+    if (extensionSettings?.value) {
+      const p2pSettings = JSON.parse(extensionSettings.value);
+      if (p2pSettings.MinimumTradeAmounts) {
+        return p2pSettings.MinimumTradeAmounts;
+      }
+    }
+
+    // Fallback: try old settings key
+    const legacySettings = await models.settings.findOne({
       where: { key: "p2pMinimumTradeAmounts" },
     });
 
-    if (settings?.value) {
-      return JSON.parse(settings.value);
+    if (legacySettings?.value) {
+      return JSON.parse(legacySettings.value);
     }
   } catch (error) {
     console.error("Failed to load P2P minimum trade amounts:", error);
   }
 
   // Default minimum trade amounts to prevent dust
+  // User requested 0.00005 BTC as minimum, which is very conservative
   return {
-    BTC: 0.001,      // 0.001 BTC minimum (~$40-50 at typical prices)
-    ETH: 0.01,       // 0.01 ETH minimum
-    LTC: 0.1,        // 0.1 LTC minimum
-    BCH: 0.01,       // 0.01 BCH minimum
-    DOGE: 100,       // 100 DOGE minimum
-    XRP: 10,         // 10 XRP minimum
-    ADA: 10,         // 10 ADA minimum
-    SOL: 0.1,        // 0.1 SOL minimum
+    BTC: 0.00005,    // 0.00005 BTC minimum (prevents UTXO dust)
+    ETH: 0.001,      // 0.001 ETH minimum
+    LTC: 0.01,       // 0.01 LTC minimum
+    BCH: 0.001,      // 0.001 BCH minimum
+    DOGE: 10,        // 10 DOGE minimum
+    XRP: 5,          // 5 XRP minimum
+    ADA: 5,          // 5 ADA minimum
+    SOL: 0.01,       // 0.01 SOL minimum
     MATIC: 1,        // 1 MATIC minimum
     // Add more as needed
   };
@@ -102,32 +116,48 @@ export async function getP2PFeeConfiguration(): Promise<FeeConfiguration> {
 
 /**
  * Calculate trade fees for a P2P trade
+ * @param amount - Trade amount
+ * @param currency - Currency code
+ * @param offerOwnerId - The user ID of the offer creator (maker)
+ * @param tradeInitiatorId - The user ID of the person who initiated/accepted the trade (taker)
+ * @param buyerId - The user ID of the buyer in this trade
+ * @param sellerId - The user ID of the seller in this trade
+ * @param customConfig - Optional custom fee configuration
  */
 export async function calculateTradeFees(
   amount: number,
   currency: string,
-  isMakerBuyer: boolean,
+  offerOwnerId: string,
+  tradeInitiatorId: string,
+  buyerId: string,
+  sellerId: string,
   customConfig?: FeeConfiguration
 ): Promise<TradeFees> {
   const config = customConfig || await getP2PFeeConfiguration();
 
   // Calculate raw fees
-  const makerFee = amount * (config.maker / 100);
-  const takerFee = amount * (config.taker / 100);
+  const makerFeeAmount = amount * (config.maker / 100);
+  const takerFeeAmount = amount * (config.taker / 100);
 
   // Apply minimum and maximum limits
   const appliedMakerFee = Math.min(
-    Math.max(makerFee, config.minimum),
+    Math.max(makerFeeAmount, config.minimum),
     config.maximum
   );
   const appliedTakerFee = Math.min(
-    Math.max(takerFee, config.minimum),
+    Math.max(takerFeeAmount, config.minimum),
     config.maximum
   );
 
-  // Determine buyer and seller fees based on who is maker/taker
-  const buyerFee = isMakerBuyer ? appliedMakerFee : appliedTakerFee;
-  const sellerFee = isMakerBuyer ? appliedTakerFee : appliedMakerFee;
+  // Determine who gets which fee
+  // Maker = offer owner, Taker = trade initiator
+  const buyerIsMaker = buyerId === offerOwnerId;
+  const sellerIsMaker = sellerId === offerOwnerId;
+
+  // Assign fees correctly
+  // The offer owner (maker) pays maker fee, trade initiator (taker) pays taker fee
+  const buyerFee = buyerIsMaker ? appliedMakerFee : appliedTakerFee;
+  const sellerFee = sellerIsMaker ? appliedMakerFee : appliedTakerFee;
 
   // Calculate net amounts
   const netAmountBuyer = amount - buyerFee;
@@ -151,16 +181,41 @@ export async function calculateEscrowFee(
   currency: string
 ): Promise<number> {
   try {
-    // Try to get from settings
-    const settings = await models.settings.findOne({
-      where: { key: "p2pEscrowFeeRate" },
+    let escrowFeeRate = 0.2; // Default 0.2%
+
+    // First try to get from extension settings (p2p key)
+    const extensionSettings = await models.settings.findOne({
+      where: { key: "p2p" },
     });
 
-    const escrowFeeRate = settings?.value ? parseFloat(settings.value) : 0.1; // Default 0.1%
+    if (extensionSettings?.value) {
+      try {
+        const p2pSettings = JSON.parse(extensionSettings.value);
+        // Check for EscrowFeeRate in extension settings
+        if (p2pSettings.EscrowFeeRate !== undefined) {
+          escrowFeeRate = parseFloat(p2pSettings.EscrowFeeRate);
+        } else if (p2pSettings.escrowFeeRate !== undefined) {
+          escrowFeeRate = parseFloat(p2pSettings.escrowFeeRate);
+        }
+      } catch (parseError) {
+        console.error("Failed to parse P2P extension settings:", parseError);
+      }
+    }
+
+    // Fallback: try legacy settings key
+    if (escrowFeeRate === 0.2) {
+      const legacySettings = await models.settings.findOne({
+        where: { key: "p2pEscrowFeeRate" },
+      });
+      if (legacySettings?.value) {
+        escrowFeeRate = parseFloat(legacySettings.value);
+      }
+    }
+
     const escrowFee = amount * (escrowFeeRate / 100);
 
     // Apply minimum escrow fee
-    const minEscrowFee = 0.01;
+    const minEscrowFee = 0.0001;
     return parseFloat(Math.max(escrowFee, minEscrowFee).toFixed(8));
   } catch (error) {
     console.error("Failed to calculate escrow fee:", error);

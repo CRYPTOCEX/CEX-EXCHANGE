@@ -16,9 +16,7 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 
 export const SettingsPanel: React.FC = () => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/toolbar/settings-panel"
-  );
+  const t = useTranslations("common");
   const {
     chartType,
     setChartType,

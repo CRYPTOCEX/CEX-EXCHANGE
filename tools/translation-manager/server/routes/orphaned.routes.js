@@ -9,7 +9,10 @@ function createOrphanedRoutes(api, getTsxFiles) {
         try {
             const orphanedKeys = [];
             const frontendPath = path.join(__dirname, '../../../../frontend');
-            
+
+            // Reload locales to get fresh data (in case new keys were added)
+            await api.loadLocales();
+
             // Get all translation keys from all locales
             const allMessageKeys = new Set();
             for (const [localeCode, locale] of api.locales.entries()) {
@@ -32,27 +35,52 @@ function createOrphanedRoutes(api, getTsxFiles) {
                 const filePath = file;
                 try {
                     const content = await fs.readFile(filePath, 'utf8');
-                    
-                    // Find the namespace used in this file
-                    const namespaceMatch = content.match(/useTranslations\(["']([^"']+)["']\)/);
-                    const namespace = namespaceMatch ? namespaceMatch[1] : null;
-                    
-                    if (!namespace) continue; // Skip files without translations
-                    
+
+                    // Find ALL useTranslations calls in this file (there can be multiple)
+                    const namespaceMatches = [...content.matchAll(/const\s+(\w+)\s*=\s*useTranslations\(["']([^"']+)["']\)/g)];
+                    const namespaceMap = new Map(); // variableName -> namespace
+
+                    for (const match of namespaceMatches) {
+                        namespaceMap.set(match[1], match[2]);
+                    }
+
+                    // Also check for useTranslations() without namespace (uses root)
+                    const rootTranslationsMatch = content.match(/const\s+(\w+)\s*=\s*useTranslations\(\)/);
+                    if (rootTranslationsMatch) {
+                        namespaceMap.set(rootTranslationsMatch[1], ''); // Empty string means root level
+                    }
+
+                    if (namespaceMap.size === 0) continue; // Skip files without translations
+
+                    // Find the namespace for variable 't' (most common case)
+                    let defaultNamespace = namespaceMap.get('t') || '';
+
+                    // If 't' is not found or has no namespace, use the first non-empty namespace
+                    if (!defaultNamespace) {
+                        for (const [varName, ns] of namespaceMap) {
+                            if (ns) {
+                                defaultNamespace = ns;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!defaultNamespace) continue; // Skip if only root-level useTranslations()
+
                     // Find all t() calls with proper word boundary to avoid false matches
                     const tCallRegex = /\bt\(["']([^"']+)["']/g;
                     let match;
-                    
+
                     while ((match = tCallRegex.exec(content)) !== null) {
                         const key = match[1];
-                        const fullKey = `${namespace}.${key}`;
-                        
+                        const fullKey = `${defaultNamespace}.${key}`;
+
                         // Check if this key exists in message files
                         if (!allMessageKeys.has(fullKey)) {
                             if (!foundTranslations.has(fullKey)) {
                                 foundTranslations.set(fullKey, {
                                     files: [],
-                                    namespace: namespace,
+                                    namespace: defaultNamespace,
                                     key: key,
                                     fullKey: fullKey
                                 });
@@ -194,23 +222,44 @@ function createOrphanedRoutes(api, getTsxFiles) {
                         if (usesNamespace) {
                             // File uses namespace, so we look for t('key')
                             const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            
-                            // Pattern to match t('key') with word boundaries
-                            const patterns = [
-                                new RegExp(`\\bt\\(['"\`]${escapedKey}['"\`]\\)`, 'g'),
-                                new RegExp(`{\\s*t\\(['"\`]${escapedKey}['"\`]\\)\\s*}`, 'g'),
-                            ];
-                            
-                            for (const pattern of patterns) {
-                                const matches = content.match(pattern);
-                                if (matches) {
-                                    // Replace with the key itself as a fallback
-                                    content = content.replace(pattern, `'${key}'`);
-                                    modified = true;
-                                    
-                                    if (!results.cleaned[file]) {
-                                        results.cleaned[file] = [];
-                                    }
+
+                            // Get the suggested value (convert key to readable text)
+                            const suggestedValue = keyInfo.suggestedValue ||
+                                key.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                            // Pattern 1: {t('key')} in JSX - replace with plain text or quoted string
+                            const jsxPattern = new RegExp(`{\\s*t\\(['"\`]${escapedKey}['"\`]\\)\\s*}`, 'g');
+                            if (jsxPattern.test(content)) {
+                                content = content.replace(jsxPattern, suggestedValue);
+                                modified = true;
+                                if (!results.cleaned[file]) {
+                                    results.cleaned[file] = [];
+                                }
+                                results.cleaned[file].push(key);
+                            }
+
+                            // Pattern 2: t('key') in attributes like title={t('key')} - replace with string
+                            const attrPattern = new RegExp(`={\\s*t\\(['"\`]${escapedKey}['"\`]\\)\\s*}`, 'g');
+                            if (attrPattern.test(content)) {
+                                content = content.replace(attrPattern, `="${suggestedValue}"`);
+                                modified = true;
+                                if (!results.cleaned[file]) {
+                                    results.cleaned[file] = [];
+                                }
+                                if (!results.cleaned[file].includes(key)) {
+                                    results.cleaned[file].push(key);
+                                }
+                            }
+
+                            // Pattern 3: standalone t('key') - replace with string literal
+                            const standalonePattern = new RegExp(`\\bt\\(['"\`]${escapedKey}['"\`]\\)`, 'g');
+                            if (standalonePattern.test(content)) {
+                                content = content.replace(standalonePattern, `"${suggestedValue}"`);
+                                modified = true;
+                                if (!results.cleaned[file]) {
+                                    results.cleaned[file] = [];
+                                }
+                                if (!results.cleaned[file].includes(key)) {
                                     results.cleaned[file].push(key);
                                 }
                             }

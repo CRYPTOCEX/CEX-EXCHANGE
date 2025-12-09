@@ -5,11 +5,22 @@
         ? `http://${window.location.hostname}:5000`
         : '';
 
+    // Store directories data for filtering
+    let allDirectories = [];
+
     function initializeToolsTab() {
         setupEventListeners();
+        loadExtractionDirectories();
+        setupDirectoryFilter();
     }
 
     function setupEventListeners() {
+        // Extract Translations button (new)
+        const extractTransBtn = document.querySelector('[data-tool="extract-translations"]');
+        if (extractTransBtn) {
+            extractTransBtn.addEventListener('click', extractTranslations);
+        }
+
         // Extract Menu button
         const menuBtn = document.querySelector('[data-tool="extract-menu"]');
         if (menuBtn) {
@@ -33,7 +44,7 @@
             if (!btn.hasAttribute('data-tool')) return;
 
             const tool = btn.getAttribute('data-tool');
-            if (tool && tool !== 'duplicates' && tool !== 'missing' && tool !== 'extract-menu') {
+            if (tool && tool !== 'duplicates' && tool !== 'missing' && tool !== 'extract-menu' && tool !== 'extract-translations') {
                 btn.addEventListener('click', () => runTool(tool));
             }
         });
@@ -537,6 +548,239 @@
         UIUtils.showInfo(`Tool "${toolName}" is not yet implemented`);
     }
 
+    async function loadExtractionDirectories() {
+        const select = document.getElementById('extract-directory-select');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Loading directories...</option>';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/tools-v2/extraction-directories`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load directories');
+            }
+
+            // Store for filtering
+            allDirectories = data.directories;
+
+            // Render directories
+            renderDirectories(allDirectories);
+
+        } catch (error) {
+            console.error('Error loading extraction directories:', error);
+            select.innerHTML = '<option value="">Error loading directories</option>';
+        }
+    }
+
+    function renderDirectories(directories, filterText = '') {
+        const select = document.getElementById('extract-directory-select');
+        if (!select) return;
+
+        select.innerHTML = '';
+
+        const filter = filterText.toLowerCase().trim();
+
+        // Filter directories if search text provided
+        let filteredDirs = directories;
+        if (filter) {
+            filteredDirs = directories.filter(dir =>
+                dir.fullPath.toLowerCase().includes(filter) ||
+                dir.name.toLowerCase().includes(filter)
+            );
+        }
+
+        if (filteredDirs.length === 0) {
+            select.innerHTML = '<option value="" disabled>No matching directories</option>';
+            return;
+        }
+
+        // Render options with full path display
+        for (const dir of filteredDirs) {
+            const option = document.createElement('option');
+            option.value = dir.path;
+
+            // Show full path with tsx count
+            const tsxInfo = dir.tsxFiles > 0 ? ` (${dir.tsxFiles} tsx)` : '';
+            option.textContent = `${dir.fullPath}${tsxInfo}`;
+
+            // Add some visual styling for root directories
+            if (dir.isRoot) {
+                option.style.fontWeight = 'bold';
+            }
+
+            select.appendChild(option);
+        }
+    }
+
+    function setupDirectoryFilter() {
+        const filterInput = document.getElementById('extract-directory-filter');
+        const select = document.getElementById('extract-directory-select');
+        const refreshBtn = document.getElementById('refresh-directories-btn');
+        const infoDiv = document.getElementById('selected-directory-info');
+        const pathSpan = document.getElementById('selected-directory-path');
+        const countSpan = document.getElementById('selected-directory-count');
+
+        if (filterInput) {
+            filterInput.addEventListener('input', (e) => {
+                renderDirectories(allDirectories, e.target.value);
+            });
+        }
+
+        if (select) {
+            select.addEventListener('change', () => {
+                const selectedValue = select.value;
+                if (selectedValue && infoDiv && pathSpan && countSpan) {
+                    const selectedDir = allDirectories.find(d => d.path === selectedValue);
+                    if (selectedDir) {
+                        pathSpan.textContent = selectedDir.fullPath;
+                        countSpan.textContent = `(${selectedDir.tsxFiles} TSX files)`;
+                        infoDiv.classList.remove('hidden');
+                    }
+                } else if (infoDiv) {
+                    infoDiv.classList.add('hidden');
+                }
+            });
+        }
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                loadExtractionDirectories();
+                if (filterInput) filterInput.value = '';
+            });
+        }
+    }
+
+    async function extractTranslations() {
+        const btn = document.querySelector('[data-tool="extract-translations"]');
+        const resultsContainer = document.getElementById('tool-results');
+        const resultsContent = document.getElementById('tool-results-content');
+        const directorySelect = document.getElementById('extract-directory-select');
+        const limitSelect = document.getElementById('extract-file-limit');
+
+        if (!resultsContainer || !resultsContent) return;
+
+        const directory = directorySelect?.value;
+        const limit = limitSelect?.value;
+
+        if (!directory) {
+            UIUtils.showWarning('Please select a directory to extract translations from');
+            return;
+        }
+
+        // Confirm before running (modifies files)
+        if (!confirm(`This will modify TSX files in "frontend/${directory}". Make sure you have committed your changes.\n\nContinue?`)) {
+            return;
+        }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i> Extracting Translations...';
+
+        try {
+            const response = await fetch(`${API_BASE}/api/tools-v2/extract-translations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ directory, limit: limit || null })
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to extract translations');
+            }
+
+            // Display results
+            displayExtractionResults(data);
+            resultsContainer.classList.remove('hidden');
+            UIUtils.showSuccess('Translation extraction completed!');
+
+        } catch (error) {
+            console.error('Error extracting translations:', error);
+            UIUtils.showError('Failed to extract translations: ' + error.message);
+        } finally {
+            // Restore button state
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-wand-magic-sparkles mr-3"></i> Extract Translations';
+        }
+    }
+
+    function displayExtractionResults(data) {
+        const resultsContent = document.getElementById('tool-results-content');
+        if (!resultsContent) return;
+
+        const html = `
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-green-800">
+                            Translation Extraction Completed!
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-blue-600 mb-1">
+                                ${data.stats?.filesProcessed || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">Files Processed</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-green-600 mb-1">
+                                ${data.stats?.keysExtracted || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">New Translation Keys</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-3xl font-bold text-purple-600 mb-1">
+                                ${data.stats?.filesModified || 0}
+                            </div>
+                            <div class="text-sm text-gray-600">Files Modified</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-4 mt-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>What was done:
+                        </h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Scanned TSX files for hardcoded text in JSX</li>
+                            <li>Converted text to <code class="bg-gray-100 px-1 rounded">t("key")</code> calls</li>
+                            <li>Added <code class="bg-gray-100 px-1 rounded">useTranslations</code> import where needed</li>
+                            <li>Added translation keys to all locale message files</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>Next Steps:
+                    </h4>
+                    <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                        <li>Review the modified files with <code class="bg-blue-100 px-1 rounded">git diff</code></li>
+                        <li>Check the translation keys in <strong>frontend/messages/*.json</strong></li>
+                        <li>Use the <strong>AI Translate</strong> tab to translate new keys</li>
+                        <li>Test your application to ensure translations work correctly</li>
+                    </ol>
+                </div>
+
+                ${data.output ? `
+                    <details class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <summary class="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">
+                            <i class="fas fa-terminal mr-2"></i>View Extraction Log
+                        </summary>
+                        <pre class="mt-3 text-xs bg-gray-900 text-green-400 p-4 rounded overflow-x-auto max-h-96">${escapeHtml(data.output)}</pre>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+
+        resultsContent.innerHTML = html;
+    }
+
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -547,6 +791,8 @@
     window.toolsTab = {
         initialize: initializeToolsTab,
         extractMenuTranslations,
+        extractTranslations,
+        loadExtractionDirectories,
         findDuplicates,
         findMissingTranslations,
         runTool

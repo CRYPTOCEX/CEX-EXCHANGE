@@ -19,7 +19,7 @@ export function UnauthorizedAccess({
   description, 
   returnPath 
 }: UnauthorizedAccessProps) {
-  const t = useTranslations("components/auth/unauthorized-access");
+  const t = useTranslations("common");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleLoginSuccess = () => {

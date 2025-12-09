@@ -19,9 +19,7 @@ export function SortingField({
   sortableFields,
   onFieldChange,
 }: SortingFieldProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/sort/sorting-field"
-  );
+  const t = useTranslations("common");
   return (
     <div className="space-y-2">
       <h3 className="font-semibold">{t("sort_by")}</h3>

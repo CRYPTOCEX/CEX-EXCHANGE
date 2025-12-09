@@ -1,0 +1,353 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🏪</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">Merchant Features</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Complete Guide for Payment Gateway Merchants</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Merchant Dashboard Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            The merchant dashboard provides a complete interface for managing your payment gateway integration. Access it by navigating to <strong>Gateway</strong> from the main navigation after logging into your account.
+        </p>
+        <p class="text-zinc-600 dark:text-zinc-400">
+            From the dashboard, merchants can view real-time analytics, manage API keys, track payments, request payouts, and configure their integration settings.
+        </p>
+    </div>
+</div>
+
+<!-- Getting Started -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Getting Started as a Merchant</h2>
+
+    <div class="space-y-6">
+        <!-- Step 1 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Create Your Merchant Account</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                When you first access the Gateway section, you'll be prompted to create a merchant account:
+            </p>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li><strong>Business Name</strong> - Your company or store name (displayed to customers)</li>
+                <li><strong>Business Email</strong> - Contact email for payment notifications</li>
+                <li><strong>Website URL</strong> - Your website address for verification</li>
+                <li><strong>Description</strong> - Brief description of your business (optional)</li>
+            </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Generate API Keys</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Navigate to <strong>Gateway > API Keys</strong> to create your integration credentials:
+            </p>
+            <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li><strong>Public Key</strong> - Used for client-side operations (safe to expose)</li>
+                <li><strong>Secret Key</strong> - Used for server-side API calls (keep secure!)</li>
+                <li><strong>Webhook Secret</strong> - Used to verify webhook signatures</li>
+            </ul>
+            <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p class="text-yellow-800 dark:text-yellow-200 text-sm">
+                    <strong>Security Note:</strong> Never expose your Secret Key in client-side code. Always make API calls from your server.
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">3</div>
+                <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Configure Webhook URL</h3>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+                Set up your webhook endpoint to receive real-time payment notifications:
+            </p>
+            <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-lg overflow-x-auto"><code>https://yourwebsite.com/webhook/bicrypto-gateway</code></pre>
+            <p class="text-zinc-600 dark:text-zinc-400 mt-4">
+                Your webhook endpoint will receive POST requests with payment status updates.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Analytics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Dashboard Analytics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Overview Metrics</h3>
+            <ul class="space-y-3 text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                    <span><strong>Total Revenue</strong> - Cumulative payment volume</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                    <span><strong>Total Payments</strong> - Number of completed transactions</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-purple-500 rounded-full mr-3"></span>
+                    <span><strong>Average Order Value</strong> - Mean transaction amount</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                    <span><strong>Success Rate</strong> - Percentage of successful payments</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Balance Information</h3>
+            <ul class="space-y-3 text-zinc-600 dark:text-zinc-400">
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
+                    <span><strong>Available Balance</strong> - Ready for payout</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>
+                    <span><strong>Pending Balance</strong> - Awaiting settlement</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
+                    <span><strong>Total Fees</strong> - Platform fees deducted</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-3 h-3 bg-purple-500 rounded-full mr-3"></span>
+                    <span><strong>Total Payouts</strong> - Amount already withdrawn</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Management -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Payment Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Viewing Payments</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Navigate to <strong>Gateway > Payments</strong> to view all your transactions. The payments list shows:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Payment ID</strong> - Unique identifier for tracking</li>
+            <li><strong>Order ID</strong> - Your external order reference</li>
+            <li><strong>Amount</strong> - Transaction amount and currency</li>
+            <li><strong>Status</strong> - Current payment state (Pending, Completed, Failed, Refunded)</li>
+            <li><strong>Customer</strong> - Customer email address</li>
+            <li><strong>Date</strong> - Transaction timestamp</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Payment Details</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Click on any payment to view detailed information:
+        </p>
+        <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li><strong>Payment Wallets</strong> - Which wallet(s) the customer used</li>
+            <li><strong>Fee Breakdown</strong> - Platform fee and net amount</li>
+            <li><strong>Conversion Details</strong> - Original currency and conversion rate</li>
+            <li><strong>Timeline</strong> - Status history with timestamps</li>
+        </ul>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Issuing Refunds</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Merchants can issue full or partial refunds for completed payments:
+        </p>
+        <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Open the payment details</li>
+            <li>Click "Refund Payment"</li>
+            <li>Enter the refund amount (full or partial)</li>
+            <li>Provide a reason for the refund</li>
+            <li>Confirm the refund</li>
+        </ol>
+        <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                <strong>Note:</strong> Refunds return funds to the customer's original wallet(s) using the stored allocation data. Platform fees are also refunded proportionally.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Mode Switching -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Live Mode vs Test Mode</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-green-200 dark:border-green-800 rounded-lg p-6 bg-green-50 dark:bg-green-900/20">
+            <div class="flex items-center mb-4">
+                <span class="text-2xl mr-3">🟢</span>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Live Mode</h3>
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li>Processes real payments</li>
+                <li>Deducts from customer wallets</li>
+                <li>Updates merchant balances</li>
+                <li>Sends webhook notifications</li>
+                <li>Creates transaction records</li>
+            </ul>
+        </div>
+
+        <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 bg-yellow-50 dark:bg-yellow-900/20">
+            <div class="flex items-center mb-4">
+                <span class="text-2xl mr-3">🟡</span>
+                <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Test Mode</h3>
+            </div>
+            <ul class="text-zinc-600 dark:text-zinc-400 space-y-2">
+                <li>Simulates payment flow</li>
+                <li>No real fund transfers</li>
+                <li>Separate test payment history</li>
+                <li>Still sends webhooks (for testing)</li>
+                <li>Safe for development</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400">
+            Use the mode toggle in the top navigation bar to switch between Live and Test modes. Each mode has separate API keys - use the appropriate keys in your integration based on the environment.
+        </p>
+    </div>
+</div>
+
+<!-- Payout Requests -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Payout Management</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Understanding Payouts</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            When customers complete payments, the net amount (after platform fees) is credited to your <strong>gateway pending balance</strong>. This represents funds that are awaiting payout and is tracked separately from your regular wallet balance.
+        </p>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Automatic Payouts</h3>
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Depending on the platform configuration, payouts may be processed automatically on a schedule (daily, weekly, or monthly). When a payout is processed:
+        </p>
+        <ol class="list-decimal list-inside text-zinc-600 dark:text-zinc-400 space-y-2">
+            <li>Your gateway pending balance is checked against the minimum payout threshold</li>
+            <li>A payout request is created automatically</li>
+            <li>Admin approves the payout (if required)</li>
+            <li>Funds are transferred to your available wallet balance</li>
+        </ol>
+
+        <h3 class="text-lg font-semibold mt-6 mb-4 text-zinc-900 dark:text-zinc-100">Payout Status</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+            <div class="text-center p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <span class="font-semibold text-yellow-800 dark:text-yellow-200">PENDING</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Awaiting processing</p>
+            </div>
+            <div class="text-center p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <span class="font-semibold text-blue-800 dark:text-blue-200">PROCESSING</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Being reviewed</p>
+            </div>
+            <div class="text-center p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <span class="font-semibold text-green-800 dark:text-green-200">COMPLETED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Funds transferred</p>
+            </div>
+            <div class="text-center p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <span class="font-semibold text-red-800 dark:text-red-200">REJECTED</span>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">Payout denied</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Merchant Settings</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            Navigate to <strong>Gateway > Settings</strong> to manage your merchant configuration:
+        </p>
+
+        <div class="space-y-6">
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Business Information</h4>
+                <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                    <li>Update business name and description</li>
+                    <li>Change contact email</li>
+                    <li>Update website URL</li>
+                    <li>Upload business logo</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Checkout Customization</h4>
+                <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                    <li>Select checkout page design theme</li>
+                    <li>Preview different design options</li>
+                    <li>Customize branding colors (where supported)</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Notification Settings</h4>
+                <ul class="list-disc list-inside text-zinc-600 dark:text-zinc-400 space-y-1">
+                    <li>Configure webhook URL for payment events</li>
+                    <li>Enable/disable email notifications</li>
+                    <li>View webhook delivery logs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout Designs -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Checkout Page Designs</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3">🎯</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Starter</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Clean and minimal design suitable for any business type</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3">🌙</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Dark Premium</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Sleek dark theme with premium feel for modern brands</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3">✨</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Luxury Gold</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Elegant gold accents for luxury and premium products</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3">💜</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">Purple Glass</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Modern glassmorphism design with purple gradients</p>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <div class="text-3xl mb-3">🤖</div>
+            <h3 class="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-100">CyberTech</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-sm">Futuristic tech aesthetic for gaming and digital products</p>
+        </div>
+    </div>
+
+    <div class="mt-6 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4">
+        <p class="text-zinc-600 dark:text-zinc-400">
+            <strong>Tip:</strong> Use the design preview feature in Settings to see how each theme looks before selecting it for your checkout pages.
+        </p>
+    </div>
+</div>

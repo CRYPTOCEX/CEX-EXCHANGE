@@ -69,12 +69,12 @@ export function TradeDetailsClient({ tradeId }: TradeDetailsClientProps) {
             {t("some_trade_features_are_currently_disabled")}
             {!isTradeDisputeEnabled && (
               <span className="block mt-2">
-                {t("•_trade_dispute_resolution_is_unavailable")}
+                • {t("trade_dispute_resolution_is_unavailable")}
               </span>
             )}
             {!isEscrowEnabled && (
               <span className="block">
-                {t("•_escrow_services_are_unavailable")}
+                • {t("escrow_services_are_unavailable")}
               </span>
             )}
             <Link href="/p2p/guide" className="mt-3 inline-block">

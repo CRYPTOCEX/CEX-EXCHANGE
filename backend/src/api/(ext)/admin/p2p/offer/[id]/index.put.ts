@@ -97,7 +97,7 @@ export const metadata = {
     404: { description: "Offer not found" },
     500: { description: "Internal Server Error" },
   },
-  permission: "Access P2P Management",
+  permission: "edit.p2p.offer",
 };
 
 export default async (data: any) => {
@@ -193,6 +193,53 @@ export default async (data: any) => {
         updateData.userRequirements = userRequirements;
       } catch (e) {
         throw createError({ statusCode: 400, message: "Invalid userRequirements format" });
+      }
+    }
+
+    // Validate min/max trade amounts if being updated
+    if (updateData.amountConfig || updateData.priceConfig) {
+      const { CacheManager } = await import("@b/utils/cache");
+      const cacheManager = CacheManager.getInstance();
+
+      const minTradeAmount = await cacheManager.getSetting("p2pMinimumTradeAmount");
+      const maxTradeAmount = await cacheManager.getSetting("p2pMaximumTradeAmount");
+
+      // Use updated or existing values
+      const amountConfig = updateData.amountConfig || offer.amountConfig;
+      const priceConfig = updateData.priceConfig || offer.priceConfig;
+      const priceCurrency = priceConfig?.currency || "USD";
+
+      const offerMin = amountConfig?.min || 0;
+      const offerMax = amountConfig?.max || amountConfig?.total || 0;
+
+      if (minTradeAmount && offerMin < minTradeAmount) {
+        throw createError({
+          statusCode: 400,
+          message: `Minimum trade amount cannot be less than platform minimum of ${minTradeAmount} ${priceCurrency}`,
+        });
+      }
+
+      if (maxTradeAmount && offerMax > maxTradeAmount) {
+        throw createError({
+          statusCode: 400,
+          message: `Maximum trade amount cannot exceed platform maximum of ${maxTradeAmount} ${priceCurrency}`,
+        });
+      }
+
+      // Validate currency-specific minimum trade amounts (for crypto dust prevention)
+      const { validateMinimumTradeAmount } = await import("../../../../p2p/utils/fees");
+
+      if (amountConfig?.min && priceConfig?.finalPrice) {
+        const currency = updateData.currency || offer.currency;
+        const cryptoMinAmount = amountConfig.min / priceConfig.finalPrice;
+        const minimumValidation = await validateMinimumTradeAmount(cryptoMinAmount, currency);
+
+        if (!minimumValidation.valid && minimumValidation.minimum) {
+          throw createError({
+            statusCode: 400,
+            message: `Minimum trade amount for ${currency} is ${minimumValidation.minimum} ${currency}. Current minimum converts to ${cryptoMinAmount.toFixed(8)} ${currency}.`,
+          });
+        }
       }
     }
 

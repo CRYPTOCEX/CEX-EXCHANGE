@@ -14,9 +14,10 @@ import { useTranslations } from "next-intl";
 
 interface SellerInformationProps {
   seller: any;
+  currency?: string;
 }
 
-export function SellerInformation({ seller }: SellerInformationProps) {
+export function SellerInformation({ seller, currency }: SellerInformationProps) {
   const t = useTranslations("ext");
   if (!seller) {
     return null;
@@ -126,7 +127,7 @@ export function SellerInformation({ seller }: SellerInformationProps) {
             <div className="text-center p-3 bg-muted/30 rounded-md">
               <p className="text-2xl font-bold">{stats.volume.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground">
-                {t("volume_(btc)")}
+                {t("30d_volume")} ({currency || "USD"})
               </p>
             </div>
             <div className="text-center p-3 bg-muted/30 rounded-md">

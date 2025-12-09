@@ -85,3 +85,9 @@ TODO.md
 /updates/node_modules
 /updates
 /backend/ecosystem/smart-contracts/nft/node_modules
+
+# Plans folder (local documentation)
+/plans
+/wp
+
+/backend/data/chart

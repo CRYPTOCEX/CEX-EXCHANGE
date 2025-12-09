@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronUp, Activity as ActivityIcon, RefreshCw, ArrowLeft } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export default function NFTActivityClient() {
+  const t = useTranslations("ext");
   const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,7 +163,7 @@ export default function NFTActivityClient() {
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight">NFT Activity</h1>
                   <p className="text-sm text-muted-foreground">
-                    {totalItems} total activities
+                    {totalItems} {t("total_activities")}
                   </p>
                 </div>
               </div>
@@ -226,9 +228,9 @@ export default function NFTActivityClient() {
                     <div className="rounded-full bg-destructive/10 p-6 mb-4">
                       <ActivityIcon className="h-12 w-12 text-destructive" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Error Loading Activities</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t("error_loading_activities")}</h3>
                     <p className="text-muted-foreground max-w-sm mb-4">{error}</p>
-                    <Button onClick={handleRefresh}>Try Again</Button>
+                    <Button onClick={handleRefresh}>{t("try_again")}</Button>
                   </div>
                 ) : (
                   <ActivityList

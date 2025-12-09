@@ -18,7 +18,7 @@ export default function RegisterSuccess({
   onLoginClick,
   onClose,
 }: RegisterSuccessProps) {
-  const t = useTranslations("components/auth/register-success");
+  const t = useTranslations("common");
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center space-y-6">

@@ -1,0 +1,129 @@
+{
+  "name": "Sierra Leone",
+  "iso2": "SL",
+  "iso3": "SLE",
+  "phonecode": "232",
+  "states": [
+    {
+      "name": "Eastern",
+      "code": "E",
+      "cities": [
+        "Barma",
+        "Blama",
+        "Boajibu",
+        "Buedu",
+        "Bunumbu",
+        "Daru",
+        "Giehun",
+        "Gorahun",
+        "Hangha",
+        "Jojoima",
+        "Kailahun",
+        "Kailahun District",
+        "Kayima",
+        "Kenema",
+        "Kenema District",
+        "Koidu",
+        "Kono",
+        "Koyima",
+        "Manowa",
+        "Mobai",
+        "Motema",
+        "Panguma",
+        "Pendembu",
+        "Segbwema",
+        "Simbakoro",
+        "Tefeya",
+        "Tombodu",
+        "Tombu",
+        "Wima",
+        "Yengema"
+      ]
+    },
+    {
+      "name": "North Western",
+      "code": "NW",
+      "cities": [
+        "Kamakwie",
+        "Kambia",
+        "Lunsar",
+        "Pepel",
+        "Port Loko",
+        "Rokupr"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "N",
+      "cities": [
+        "Alikalia",
+        "Bindi",
+        "Binkolo",
+        "Bombali",
+        "Bumbuna",
+        "Gberia Fotombu",
+        "Kabala",
+        "Kassiri",
+        "Koinadugu",
+        "Konakridee",
+        "Kukuna",
+        "Loma",
+        "Magburaka",
+        "Makali",
+        "Makeni",
+        "Mambolo",
+        "Mange",
+        "Masaka",
+        "Masingbi",
+        "Masoyila",
+        "Sawkta",
+        "Seidu",
+        "Tintafor",
+        "Tonkolili",
+        "Yonibana"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "S",
+      "cities": [
+        "Baiima",
+        "Baoma",
+        "Bo",
+        "Bo District",
+        "Bomi",
+        "Bonthe",
+        "Bonthe District",
+        "Bumpe",
+        "Foindu",
+        "Gandorhun",
+        "Gbewebu",
+        "Koribundu",
+        "Largo",
+        "Mamboma",
+        "Mogbwemo",
+        "Moyamba",
+        "Moyamba District",
+        "Palima",
+        "Potoru",
+        "Pujehun",
+        "Pujehun District",
+        "Rotifunk",
+        "Serabu",
+        "Sumbuya",
+        "Tongole",
+        "Zimmi"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "W",
+      "cities": [
+        "Freetown",
+        "Hastings",
+        "Kent",
+        "Waterloo"
+      ]
+    }
+  ]
+}

@@ -50,7 +50,7 @@ export const metadata: OperationObject = {
 export default async (data: Handler) => {
   const { query } = data;
 
-  return getFiltered({
+  const ledgers = await getFiltered({
     model: models.ecosystemPrivateLedger,
     query,
     sortField: query.sortField || "createdAt",
@@ -70,9 +70,30 @@ export default async (data: Handler) => {
     ],
   });
 
-  // TODO: custom filtering
+  // Filter by network environment if the ledger has a network field
+  // Only show ledgers matching the configured network for each chain
+  if (Array.isArray(ledgers.items)) {
+    const filteredItems = ledgers.items.filter((ledger: any) => {
+      const envNetworkKey = `${ledger.chain.toUpperCase()}_NETWORK`;
+      const configuredNetwork = process.env[envNetworkKey];
 
-  // return ledgers.filter(
-  //   (ledger) => ledger.network === process.env[`${ledger.chain}_NETWORK`],
-  // ) as unknown as EcosystemPrivateLedger[]
+      // If network is configured for this chain, filter by it
+      if (configuredNetwork && ledger.network) {
+        return ledger.network === configuredNetwork;
+      }
+
+      // If no network config or ledger network, include the ledger
+      return true;
+    });
+
+    return {
+      data: filteredItems,
+      pagination: ledgers.pagination
+    };
+  }
+
+  return {
+    data: ledgers.items,
+    pagination: ledgers.pagination
+  };
 };

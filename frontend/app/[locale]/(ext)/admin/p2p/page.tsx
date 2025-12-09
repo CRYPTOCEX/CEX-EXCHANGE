@@ -45,7 +45,7 @@ export default function AdminDashboardPage() {
       )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Total Offers"
+          title={t("total_offers")}
           value={stats?.totalOffers.toLocaleString() || "0"}
           change={stats?.offerGrowth || "0"}
           changeText="from yesterday"
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
           isLoading={isLoadingStats}
         />
         <MetricCard
-          title="Active Trades"
+          title={t("active_trades")}
           value={stats?.activeTrades.toLocaleString() || "0"}
           change={stats?.tradeGrowth || "0"}
           changeText="from last week"
@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
           isLoading={isLoadingStats}
         />
         <MetricCard
-          title="Open Disputes"
+          title={t("open_disputes")}
           value={stats?.openDisputes.toLocaleString() || "0"}
           change={stats?.disputeChange || "0"}
           changeText="from yesterday"
@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
           isLoading={isLoadingStats}
         />
         <MetricCard
-          title="Platform Revenue"
+          title={t("platform_revenue")}
           value={stats?.platformRevenue || "$0"}
           change={stats?.revenueGrowth || "0"}
           changeText="from last month"

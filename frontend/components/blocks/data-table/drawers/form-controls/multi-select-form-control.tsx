@@ -45,9 +45,7 @@ export function MultiSelectFormControl({
   options: staticOptions,
   apiEndpoint,
 }: MultiSelectFormControlProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/drawers/form-controls/multi-select-form-control"
-  );
+  const t = useTranslations("common");
   const {
     options: fetchedOptions,
     loading,

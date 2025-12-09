@@ -112,7 +112,7 @@ export default function NFTVerificationSettingsSection({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                This feature requires KYC to be enabled in platform settings.
+                {t("this_feature_requires_kyc_to_be")}
               </AlertDescription>
             </Alert>
           )}
@@ -137,7 +137,7 @@ export default function NFTVerificationSettingsSection({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  This feature uses real-time cryptocurrency prices from the currency table to convert transaction values to USD for comparison against the threshold.
+                  {t("this_feature_uses_real_time_cryptocurrency")}
                 </AlertDescription>
               </Alert>
 
@@ -153,7 +153,7 @@ export default function NFTVerificationSettingsSection({
                 disabled={!kycEnabled}
               />
               <p className="text-xs text-muted-foreground">
-                Transactions above this USD value will require KYC verification. Crypto prices are automatically converted to USD using the currency table.
+                {t("transactions_above_this_usd_value_will")} {t("crypto_prices_are_automatically_converted_to")}
               </p>
               {getErrorMessage("HighValueThreshold") && (
                 <p className="text-sm text-red-500">{getErrorMessage("HighValueThreshold")}</p>

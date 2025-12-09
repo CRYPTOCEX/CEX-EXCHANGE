@@ -17,25 +17,52 @@ interface CompoundColumnProps {
   row: Record<string, any>;
 }
 
+// Helper function to get nested values using dot notation
+function getNestedValue(obj: any, path: string): any {
+  if (!path) return undefined;
+  return path
+    .split(".")
+    .reduce((acc, part) => (acc ? acc[part] : undefined), obj);
+}
+
+// Helper function to strip column key prefix from a path
+function stripPrefix(path: string, prefix: string): string {
+  if (path.startsWith(prefix + ".")) {
+    return path.substring(prefix.length + 1);
+  }
+  return path;
+}
+
 export function CompoundColumn({ column, row }: CompoundColumnProps) {
   if (!column.render || column.render.type !== "compound") return null;
   const config = column.render.config as CompoundConfig;
   if (!config) return null;
   const compoundValue = row[column.key];
-  const dataToUse =
-    compoundValue && typeof compoundValue === "object" ? compoundValue : row;
+  const isUsingCompoundValue = compoundValue && typeof compoundValue === "object";
+  const dataToUse = isUsingCompoundValue ? compoundValue : row;
+
+  // Helper to get the correct key - strip prefix if we're using the compound value
+  const getKey = (key: string) => isUsingCompoundValue ? stripPrefix(key, column.key) : key;
+
   const imageKey = config.image?.key;
-  const imageValue = imageKey ? dataToUse[imageKey] : null;
+  const imageValue = imageKey ? getNestedValue(dataToUse, getKey(imageKey)) : null;
+
   let primaryValue = "";
   if (config.primary) {
     if (Array.isArray(config.primary.key)) {
       primaryValue = config.primary.key
-        .map((k) => dataToUse[k] ?? "")
+        .map((k) => getNestedValue(dataToUse, getKey(k)) ?? "")
+        .filter(Boolean)
         .join(" ");
     } else {
-      primaryValue = dataToUse[config.primary.key] ?? "";
+      primaryValue = getNestedValue(dataToUse, getKey(config.primary.key)) ?? "";
     }
   }
+
+  const secondaryValue = config.secondary
+    ? getNestedValue(dataToUse, getKey(config.secondary.key))
+    : null;
+
   const titleText = column.expandedTitle
     ? column.expandedTitle(row)
     : column.title;
@@ -61,7 +88,7 @@ export function CompoundColumn({ column, row }: CompoundColumnProps) {
           )}
           {config.secondary && (
             <div className="text-muted-foreground">
-              {dataToUse[config.secondary.key] || ""}
+              {secondaryValue || ""}
             </div>
           )}
           {config.metadata && Array.isArray(config.metadata) && (
@@ -71,7 +98,7 @@ export function CompoundColumn({ column, row }: CompoundColumnProps) {
                   <MetadataItem
                     key={index}
                     item={item}
-                    value={dataToUse[item.key]}
+                    value={getNestedValue(dataToUse, getKey(item.key))}
                     row={row}
                   />
                 )

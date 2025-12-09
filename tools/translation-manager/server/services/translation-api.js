@@ -178,75 +178,75 @@ class TranslationAPI {
     unflattenObject(obj) {
         const result = {};
 
-        // Preserve insertion order by NOT sorting - this maintains the original key order
-        // Instead, we need to process keys in the order they appear in the object
-        // But we must ensure parent paths are created before child paths
-        const allKeys = Object.keys(obj);
-
-        // Sort ONLY by path depth (number of dots), not alphabetically
-        // This ensures parent structures are created before children
-        const keysByDepth = allKeys.sort((a, b) => {
-            const depthA = (a.match(/\./g) || []).length;
-            const depthB = (b.match(/\./g) || []).length;
-            if (depthA !== depthB) return depthA - depthB;
-            // If same depth, preserve original order by comparing indices
-            return allKeys.indexOf(a) - allKeys.indexOf(b);
-        });
-
-        for (const key of keysByDepth) {
-            const keys = key.split('.');
-            let current = result;
-            
+        // Helper to set a deeply nested property
+        const setNestedProperty = (target, keys, value) => {
+            let current = target;
             for (let i = 0; i < keys.length - 1; i++) {
-                // If current[keys[i]] is a string, we need to convert it to an object
-                // and preserve the old value as a special key
-                if (typeof current[keys[i]] === 'string') {
-                    const oldValue = current[keys[i]];
-                    current[keys[i]] = {
-                        '_value': oldValue // Preserve the old string value
-                    };
-                } else if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
-                    current[keys[i]] = {};
+                const key = keys[i];
+                if (!current[key] || typeof current[key] !== 'object') {
+                    current[key] = {};
                 }
-                current = current[keys[i]];
+                current = current[key];
             }
-            
-            current[keys[keys.length - 1]] = obj[key];
-        }
-        
-        // Post-process to handle _value keys properly
-        function cleanupValues(obj) {
-            for (const key in obj) {
-                if (typeof obj[key] === 'object' && obj[key] !== null) {
-                    // If object has both _value and title, use title as the main value
-                    if (obj[key]._value && obj[key].title) {
-                        // Keep the nested structure but remove _value
-                        delete obj[key]._value;
-                    } else if (obj[key]._value && Object.keys(obj[key]).length === 1) {
-                        // If only _value exists, replace the object with the string
-                        obj[key] = obj[key]._value;
-                    } else {
-                        cleanupValues(obj[key]);
+            current[keys[keys.length - 1]] = value;
+        };
+
+        // Translation keys have a two-level structure:
+        // 1. Namespace (e.g., "nft/details" or "dashboard")
+        // 2. Key within namespace (e.g., "Activity" or "some_key")
+        // Flattened format: "namespace.key" where we only split on the FIRST period
+        // This prevents keys containing periods from being incorrectly nested
+        //
+        // EXCEPTION: The "menu" namespace uses deeply nested keys like:
+        // menu.admin.dashboard.title -> menu: { admin: { dashboard: { title: "..." } } }
+
+        for (const fullKey of Object.keys(obj)) {
+            const firstDotIndex = fullKey.indexOf('.');
+
+            if (firstDotIndex === -1) {
+                // No dot - this is a top-level key (shouldn't happen normally but handle it)
+                result[fullKey] = obj[fullKey];
+            } else {
+                // Split only on the first dot
+                const namespace = fullKey.substring(0, firstDotIndex);
+                const key = fullKey.substring(firstDotIndex + 1);
+
+                // Special handling for "menu" namespace - use full nested structure
+                if (namespace === 'menu' && key.includes('.')) {
+                    const allParts = fullKey.split('.');
+                    setNestedProperty(result, allParts, obj[fullKey]);
+                } else {
+                    // Ensure namespace object exists
+                    if (!result[namespace] || typeof result[namespace] !== 'object') {
+                        result[namespace] = {};
                     }
+
+                    // Add the key to the namespace
+                    result[namespace][key] = obj[fullKey];
                 }
             }
         }
-        
-        cleanupValues(result);
-        
+
         return result;
     }
 
-    calculateProgress(locale) {
-        if (!locale || locale === 'en') return { progress: 100, translated: locale?.totalKeys || 0, missing: 0 };
-        
-        const enKeys = this.locales.get('en')?.keys || {};
+    calculateProgress(locale, localeCode = null) {
+        if (!locale) return { progress: 0, translated: 0, missing: 0, identical: 0, total: 0, complete: false };
+
+        const enLocale = this.locales.get('en');
+        const enKeys = enLocale?.keys || {};
         const localeKeys = locale.keys || {};
-        
+        const total = Object.keys(enKeys).length;
+
+        // If this is English locale (either by code or by comparing keys object), return 100%
+        if (localeCode === 'en' || locale === enLocale || locale.keys === enKeys) {
+            return { progress: 100, translated: total, missing: 0, identical: 0, total, complete: true };
+        }
+
         let translated = 0;
         let identical = 0;
         let missing = 0;
-        
+
         for (const key in enKeys) {
             if (key in localeKeys) {
                 // Key exists in locale
@@ -260,15 +260,14 @@ class TranslationAPI {
                 missing++;
             }
         }
-        
-        const total = Object.keys(enKeys).length;
+
         // Progress reflects actual translation progress
         // Only count keys that are actually translated (different from English)
         const progress = total > 0 ? Math.round((translated / total) * 100) : 100;
-        
+
         // Add a completion indicator (all keys exist, even if not all translated)
         const complete = missing === 0;
-        
+
         return { progress, translated, missing, identical, total, complete };
     }
 
@@ -288,34 +287,37 @@ class TranslationAPI {
         let foundIdentical = 0;
         let skippedByFilter = 0;
 
-        // Terms that are universally the same across languages (case-insensitive)
+        // Terms that are universally the same across languages - ONLY technical terms and brand names
+        // NOTE: Normal words like "Add", "Edit", "View", "Back" etc. SHOULD be translated!
         const universalTerms = [
-            'api', 'url', 'html', 'css', 'javascript', 'json', 'xml', 'http', 'https',
-            'email', 'sms', 'pdf', 'csv', 'sql', 'id', 'uuid', 'token', 'oauth',
-            'github', 'google', 'facebook', 'twitter', 'linkedin', 'youtube',
-            'wifi', 'vpn', 'ip', 'dns', 'ssl', 'tls', 'ftp', 'ssh'
+            // Technical acronyms
+            'api', 'url', 'html', 'css', 'json', 'xml', 'http', 'https', 'sql', 'uuid',
+            'wifi', 'vpn', 'ip', 'dns', 'ssl', 'tls', 'ftp', 'ssh', 'oauth', 'jwt',
+            // Brand names (always stay the same)
+            'github', 'google', 'facebook', 'twitter', 'linkedin', 'youtube', 'metamask',
+            'bitcoin', 'ethereum', 'binance', 'coinbase', 'pinata', 'ipfs'
         ];
 
-        // Patterns that suggest the term should stay the same
+        // Patterns that suggest the term should NOT be translated (truly untranslatable)
+        // IMPORTANT: This should be very restrictive - only skip things that are genuinely not translatable
         const shouldKeepIdentical = (text) => {
             const lowerText = text.toLowerCase().trim();
             const trimmedText = text.trim();
 
-            // Skip very short strings (1-2 characters only)
-            if (trimmedText.length <= 2) return true;
-
-            // Check if it's a universal technical term (exact match)
+            // Check if it's a universal technical term or brand name (exact match)
             if (universalTerms.includes(lowerText)) return true;
 
-            // Check if it's all caps AND is purely alphabetic (acronyms like BTC, ICO, P2P, ROI, APR)
-            // This excludes things like "Admin" or "Info" which have mixed case
+            // Check if it's all caps acronym (like BTC, ETH, ROI, APR, USDT)
             if (trimmedText === trimmedText.toUpperCase() &&
                 trimmedText.length >= 2 &&
                 trimmedText.length <= 6 &&
-                /^[A-Z]+$/.test(trimmedText)) return true;
+                /^[A-Z0-9]+$/.test(trimmedText)) return true;
 
             // Check if it's a number or time/size format (like "5MB", "15m", "1W", "90D")
             if (/^\d+$/.test(trimmedText) || /^\d+[a-zA-Z]{1,3}$/.test(trimmedText)) return true;
+
+            // Check if it's a time period format (1M, 1W, 1Y, 3M, 6M, 90D, etc.)
+            if (/^\d+[mwydMWYD]$/.test(trimmedText)) return true;
 
             // Check if it's a placeholder variable (like {variable})
             if (/^{[^}]+}$/.test(trimmedText) || /^%[sd]$/.test(trimmedText)) return true;
@@ -323,19 +325,28 @@ class TranslationAPI {
             // Check if it's a URL or path
             if (/^(https?:\/\/|\/|\.\/|\.\.\/|[a-z]:\/)/i.test(trimmedText)) return true;
 
-            // Check if it's an email
+            // Check if it's an email pattern
             if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedText)) return true;
 
-            // Check if it's a date format pattern (like "yyyy-MM-dd", "HH:mm:ss")
-            if (/^[yMdHhms:\s-]+$/.test(trimmedText) && trimmedText.length <= 20) return true;
+            // Check if it's a date/time format pattern (like "yyyy-MM-dd", "HH:mm:ss")
+            if (/^[yMdHhms:\s\-\/]+$/.test(trimmedText) && trimmedText.length <= 20) return true;
 
-            // Check for very short measurement units and prepositions (px, kg, m³, vs, of, pm, am)
-            if (trimmedText.length <= 4 && /^[a-z]{1,3}[²³]?$/.test(lowerText)) {
-                const veryCommon = ['px', 'kg', 'm³', 'vs', 'of', 'pm', 'am', 'no', 'id'];
-                if (veryCommon.includes(lowerText)) return true;
-            }
+            // Skip measurement units only (not words)
+            const measurementUnits = ['px', 'em', 'rem', 'vh', 'vw', '%', 'kg', 'lb', 'oz', 'g', 'mg', 'ml', 'l', 'm³', 'cm', 'mm', 'm', 'km'];
+            if (measurementUnits.includes(lowerText)) return true;
 
-            // All other identical values should be translated (including "Admin", "Loading", "Success", etc.)
+            // Skip file extensions
+            if (/^\.[a-z0-9]+$/i.test(trimmedText)) return true;
+
+            // Skip if it looks like a malformed key (contains special chars that shouldn't be there)
+            if (/^[(\[]/.test(trimmedText)) return true; // Starts with ( or [
+            if (/^\/\d+/.test(trimmedText)) return true; // Like "/5 Rating", "/500 characters"
+
+            // Skip environment/config values
+            if (['env', 'dev', 'prod', 'staging', 'localhost'].includes(lowerText)) return true;
+
+            // ALL other identical values should be translated!
+            // This includes: Add, Edit, View, Back, Done, All, Max, Min, High, Low, etc.
             return false;
         };
 
@@ -374,23 +385,27 @@ class TranslationAPI {
         const languageName = this.getLanguageName(targetLocale);
         
         // Use JSON format for more reliable parsing
-        let prompt = `You are a professional translator. Translate the following English texts to ${languageName}.
+        let prompt = `TASK: Translate English UI texts to ${languageName} (language code: ${targetLocale}).
 
-IMPORTANT RULES:
-1. Translate ALL texts, even common words like "Platform", "Volume", "Blog", "Filter", "Items"
-2. For words like "Platform" that might seem like they could stay the same, you MUST provide the proper ${languageName} translation
-3. Technical terms that are universally used (like "API", "URL", "HTML") can remain unchanged
-4. Brand names and product names should remain unchanged
-5. Preserve any placeholders like {name}, {count}, %s, %d
-6. Keep HTML tags unchanged if present
+You are translating user interface strings for a web application. The TARGET LANGUAGE is ${languageName}.
+
+RULES:
+1. Translate ALL texts to ${languageName}, including common words like "To", "From", "High", "Low", "Open", "New", "Next", "Free", "Send", "Show", "Step", "Type", "User", "Plan", "Read", "Risk", etc.
+2. Words like "To" and "From" are UI labels that MUST be translated (e.g., "To" in Vietnamese = "Đến", in French = "À", etc.)
+3. Technical acronyms (API, URL, HTML, BTC, ETH) can remain unchanged
+4. Brand names (Venmo, WhatsApp, MetaMask) should remain unchanged
+5. Preserve placeholders: {name}, {count}, %s, %d
+6. Keep HTML tags unchanged
 
 ${context ? `Context: ${context}\n` : ''}
-
-Translate each of these English texts to ${languageName} and return a JSON array with EXACTLY ${textsToTranslate.length} translations in the same order:
+INPUT: ${textsToTranslate.length} English texts to translate to ${languageName}:
 
 ${textsToTranslate.map((text, i) => `[${i}] "${text}"`).join('\n')}
 
-Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like ["translation1", "translation2", ...]. No other text or explanation:`;
+OUTPUT: Return ONLY a JSON array with EXACTLY ${textsToTranslate.length} ${languageName} translations in the same order.
+Example format: ["translation1", "translation2", "translation3"]
+
+JSON array:`;
 
         return new Promise((resolve, reject) => {
             console.log(`Translation request: ${textsToTranslate.length} texts to ${targetLocale} (${languageName})`);
@@ -405,12 +420,22 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
             }
             
             const claudeCommand = process.platform === 'win32' ? 'claude' : 'claude';
-            
+
+            // Calculate dynamic max output tokens based on batch size
+            // Each translation averages ~100 chars = ~25 tokens, plus JSON overhead
+            // Use 50 tokens per item as safe estimate + 1000 for JSON structure
+            const estimatedTokens = Math.min(128000, Math.max(32000, textsToTranslate.length * 50 + 1000));
+
             // Use claude with the prompt directly via stdin
+            // Set higher output token limit for larger batches
             const claudeProcess = spawn(claudeCommand, [], {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 shell: true,
-                windowsHide: true
+                windowsHide: true,
+                env: {
+                    ...process.env,
+                    CLAUDE_CODE_MAX_OUTPUT_TOKENS: String(estimatedTokens)
+                }
             });
 
             let output = '';
@@ -419,8 +444,8 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
             let timeoutId;
 
             // Set timeout for the command - dynamic based on batch size
-            // Allow 3 seconds per text minimum, or 90 seconds minimum
-            const dynamicTimeout = Math.max(90000, textsToTranslate.length * 3000);
+            // Allow 2 seconds per text minimum, or 120 seconds minimum, max 10 minutes
+            const dynamicTimeout = Math.min(600000, Math.max(120000, textsToTranslate.length * 2000));
             timeoutId = setTimeout(() => {
                 claudeProcess.kill();
                 console.error(`Claude command timed out after ${dynamicTimeout}ms for ${textsToTranslate.length} texts`);
@@ -482,29 +507,50 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                     try {
                         // First, clean up common formatting issues
                         let processedOutput = cleanedOutput;
-                        
-                        // Remove markdown code blocks if present
-                        if (processedOutput.includes('```json')) {
-                            processedOutput = processedOutput.replace(/```json\s*/g, '').replace(/```/g, '');
-                        } else if (processedOutput.includes('```')) {
-                            processedOutput = processedOutput.replace(/```\s*/g, '');
-                        }
-                        
+
+                        console.log(`\n--- Parsing translation response (${cleanedOutput.length} chars) ---`);
+                        console.log(`First 200 chars: ${cleanedOutput.substring(0, 200)}`);
+                        console.log(`Last 200 chars: ${cleanedOutput.substring(cleanedOutput.length - 200)}`);
+
+                        // Remove markdown code blocks if present (handle multi-line)
+                        // Match ```json or ``` at start, and ``` at end
+                        processedOutput = processedOutput.replace(/^```json\s*/i, '');
+                        processedOutput = processedOutput.replace(/^```\s*/i, '');
+                        processedOutput = processedOutput.replace(/\s*```\s*$/i, '');
+                        // Also handle case where ```json is on its own line
+                        processedOutput = processedOutput.replace(/```json\s*\n/gi, '');
+                        processedOutput = processedOutput.replace(/\n\s*```/gi, '');
+
                         // Remove any text before the JSON array
                         if (processedOutput.includes('[') && !processedOutput.trim().startsWith('[')) {
                             const arrayStart = processedOutput.indexOf('[');
+                            console.log(`Removing ${arrayStart} chars before JSON array`);
                             processedOutput = processedOutput.substring(arrayStart);
                         }
-                        
+
                         // Remove any text after the JSON array
                         if (processedOutput.includes(']')) {
                             const arrayEnd = processedOutput.lastIndexOf(']');
+                            if (arrayEnd < processedOutput.length - 1) {
+                                console.log(`Removing ${processedOutput.length - arrayEnd - 1} chars after JSON array`);
+                            }
                             processedOutput = processedOutput.substring(0, arrayEnd + 1);
                         }
-                        
+
+                        // Fix special/smart quotes that break JSON parsing
+                        // Replace German/Polish style low-high quotes: „text"
+                        processedOutput = processedOutput.replace(/„/g, '"').replace(/"/g, '"');
+                        // Replace curly/smart quotes: "text" 'text'
+                        processedOutput = processedOutput.replace(/[""]/g, '"').replace(/['']/g, "'");
+                        // Replace guillemets: «text» ‹text›
+                        processedOutput = processedOutput.replace(/[«»‹›]/g, '"');
+
+                        console.log(`Processed output length: ${processedOutput.length} chars`);
+
                         // Try to parse the cleaned output
                         const parsed = JSON.parse(processedOutput.trim());
                         if (Array.isArray(parsed)) {
+                            console.log(`Parsed JSON array with ${parsed.length} elements`);
                             // Check if it's a double-encoded JSON (array with a single JSON string)
                             if (parsed.length === 1 && typeof parsed[0] === 'string' && parsed[0].startsWith('[')) {
                                 try {
@@ -528,9 +574,15 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                         }
                     } catch (jsonError) {
                         console.warn('Failed to parse as JSON after cleanup:', jsonError.message);
-                        
-                        // Fallback: try to extract JSON array from the original text
-                        const jsonMatch = cleanedOutput.match(/\[[\s\S]*?\]/);
+
+                        // Also fix special quotes in original for fallback parsing
+                        let fixedOutput = cleanedOutput
+                            .replace(/„/g, '"').replace(/"/g, '"')
+                            .replace(/[""]/g, '"').replace(/['']/g, "'")
+                            .replace(/[«»‹›]/g, '"');
+
+                        // Fallback: try to extract JSON array from the fixed text
+                        const jsonMatch = fixedOutput.match(/\[[\s\S]*?\]/);
                         if (jsonMatch) {
                             try {
                                 // First attempt: direct parse
@@ -556,15 +608,26 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                                 } catch (e2) {
                                     // Third attempt: try to parse as comma-separated strings
                                     console.error('Failed to fix JSON, attempting CSV-style extraction');
-                                    
-                                    // Remove the array brackets
-                                    let content = cleanedOutput;
-                                    if (content.startsWith('[')) content = content.slice(1);
-                                    if (content.endsWith(']')) content = content.slice(0, -1);
-                                    
+
+                                    // Remove the array brackets (use fixedOutput which has normalized quotes)
+                                    let content = fixedOutput;
+
+                                    // Find and extract just the array content
+                                    const arrayStartIdx = content.indexOf('[');
+                                    const arrayEndIdx = content.lastIndexOf(']');
+                                    if (arrayStartIdx !== -1 && arrayEndIdx !== -1 && arrayEndIdx > arrayStartIdx) {
+                                        content = content.substring(arrayStartIdx + 1, arrayEndIdx);
+                                    } else {
+                                        if (content.startsWith('[')) content = content.slice(1);
+                                        if (content.endsWith(']')) content = content.slice(0, -1);
+                                    }
+
+                                    // Also clean up any markdown code fence markers that got through
+                                    content = content.replace(/^```json\s*/, '').replace(/```$/, '').trim();
+
                                     // Split by ", " pattern (comma followed by space and quote)
                                     const parts = content.split(/",\s*"/);
-                                    
+
                                     if (parts.length > 0) {
                                         translations = parts.map((part, index) => {
                                             // Clean up each part
@@ -573,13 +636,19 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                                             if (index === 0 && cleaned.startsWith('"')) {
                                                 cleaned = cleaned.slice(1);
                                             }
+                                            // Also clean any json prefix artifacts (like "```json\n[")
+                                            if (index === 0) {
+                                                cleaned = cleaned.replace(/^```json\s*\[?\s*"?/, '');
+                                            }
                                             if (index === parts.length - 1 && cleaned.endsWith('"')) {
                                                 cleaned = cleaned.slice(0, -1);
                                             }
                                             // Unescape escaped quotes
                                             cleaned = cleaned.replace(/\\"/g, '"');
+                                            // Remove any trailing newlines or whitespace
+                                            cleaned = cleaned.trim();
                                             return cleaned;
-                                        });
+                                        }).filter(part => part.length > 0); // Filter out empty parts
                                         console.log(`CSV extraction found ${translations.length} translations`);
                                     } else {
                                         // Last resort: split by lines
@@ -601,10 +670,64 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                     
                     // Verify we have the right number of translations
                     if (translations.length !== textsToTranslate.length) {
+                        console.error(`\n${'='.repeat(80)}`);
                         console.error(`CRITICAL: Translation count mismatch! Expected ${textsToTranslate.length}, got ${translations.length}`);
-                        console.log('Original texts:', textsToTranslate);
-                        console.log('Received translations:', translations);
-                        
+                        console.error(`${'='.repeat(80)}`);
+
+                        // Find where the mismatch occurred by comparing lengths
+                        const diff = textsToTranslate.length - translations.length;
+                        console.error(`Missing ${diff} translation(s)`);
+
+                        // Log first few and last few for debugging
+                        console.error('\n--- First 5 original texts ---');
+                        textsToTranslate.slice(0, 5).forEach((t, i) => console.error(`  [${i}] "${t.substring(0, 60)}${t.length > 60 ? '...' : ''}"`));
+
+                        console.error('\n--- First 5 translations ---');
+                        translations.slice(0, 5).forEach((t, i) => console.error(`  [${i}] "${t.substring(0, 60)}${t.length > 60 ? '...' : ''}"`));
+
+                        console.error('\n--- Last 5 original texts ---');
+                        textsToTranslate.slice(-5).forEach((t, i) => {
+                            const idx = textsToTranslate.length - 5 + i;
+                            console.error(`  [${idx}] "${t.substring(0, 60)}${t.length > 60 ? '...' : ''}"`);
+                        });
+
+                        console.error('\n--- Last 5 translations ---');
+                        translations.slice(-5).forEach((t, i) => {
+                            const idx = translations.length - 5 + i;
+                            console.error(`  [${idx}] "${t.substring(0, 60)}${t.length > 60 ? '...' : ''}"`);
+                        });
+
+                        // Try to find merged translations by looking for unusually long ones
+                        console.error('\n--- Checking for merged translations (unusually long) ---');
+                        const avgOriginalLength = textsToTranslate.reduce((sum, t) => sum + t.length, 0) / textsToTranslate.length;
+                        translations.forEach((t, i) => {
+                            if (t.length > avgOriginalLength * 2.5) {
+                                console.error(`  [${i}] POSSIBLE MERGE (len=${t.length}, avg=${Math.round(avgOriginalLength)}): "${t.substring(0, 100)}..."`);
+                            }
+                        });
+
+                        // Try to align translations with originals by finding matching patterns
+                        console.error('\n--- Attempting to find alignment issues ---');
+                        let mismatchFound = false;
+                        for (let i = 0; i < Math.min(translations.length, textsToTranslate.length); i++) {
+                            const orig = textsToTranslate[i];
+                            const trans = translations[i];
+
+                            // Check if translation is suspiciously different in structure
+                            // (e.g., original has no period but translation has multiple sentences)
+                            const origSentences = (orig.match(/[.!?]/g) || []).length;
+                            const transSentences = (trans.match(/[.!?]/g) || []).length;
+
+                            if (transSentences > origSentences + 1 && !mismatchFound) {
+                                console.error(`  [${i}] STRUCTURE MISMATCH - Original sentences: ${origSentences}, Translation sentences: ${transSentences}`);
+                                console.error(`    Original: "${orig.substring(0, 80)}..."`);
+                                console.error(`    Translation: "${trans.substring(0, 80)}..."`);
+                                mismatchFound = true;
+                            }
+                        }
+
+                        console.error(`${'='.repeat(80)}\n`);
+
                         // Create a safe array with original texts as fallback
                         const safeTranslations = [];
                         for (let i = 0; i < textsToTranslate.length; i++) {
@@ -612,10 +735,12 @@ Return ONLY a JSON array of ${textsToTranslate.length} translated strings, like 
                                 safeTranslations.push(translations[i]);
                             } else {
                                 safeTranslations.push(textsToTranslate[i]);
-                                console.warn(`Using original text for index ${i}: "${textsToTranslate[i]}"`);
+                                console.warn(`Using original text for index ${i}: "${textsToTranslate[i].substring(0, 50)}..."`);
                             }
                         }
                         translations = safeTranslations;
+                    } else {
+                        console.log(`✓ Translation count matches: ${translations.length} items`);
                     }
                     
                     // Final validation and progress updates

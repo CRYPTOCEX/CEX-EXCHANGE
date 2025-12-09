@@ -1,5 +1,6 @@
 import React from "react";
 import { Package, User, Shield, TrendingUp, Eye, Calendar } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export const columns = [
   {
@@ -110,7 +111,7 @@ export const columns = [
             <div className="min-w-0 flex-1">
               <div className="font-medium truncate" title={displayName}>{displayName}</div>
               {creator.isVerified && (
-                <div className="text-xs text-blue-600 dark:text-blue-400">✓ Verified</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">{t("verified")}</div>
               )}
             </div>
           </div>

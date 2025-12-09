@@ -256,11 +256,12 @@ function handleBodyIndicatedError<T>(
   if (parsedValidation) {
     if (!silent) {
       console.log("Showing validation error toast");
-      toast.error("Validation error");
+      // Show the actual error message instead of generic "Validation error"
+      toast.error(message);
     }
     return {
       data: null,
-      error: "Validation error",
+      error: message,
       validationErrors: parsedValidation,
     };
   }
@@ -294,25 +295,27 @@ async function handleError<T>(
     
     const parsedValidation = attemptParseValidationErrors(message);
     if (parsedValidation) {
-      if (!silent) toast.error("Validation error");
+      // Show the actual error message instead of generic "Validation error"
+      if (!silent) toast.error(message);
       return {
         data: null,
-        error: "Validation error",
+        error: message,
         validationErrors: parsedValidation,
       };
     }
     if (!silent) toast.error(message);
     return { data: null, error: message };
   }
-  
+
   // Fallback to legacy error handling
   const message = (data && data.message) || response.statusText || errorMessage;
   const parsedValidation = attemptParseValidationErrors(message);
   if (parsedValidation) {
-    if (!silent) toast.error("Validation error");
+    // Show the actual error message instead of generic "Validation error"
+    if (!silent) toast.error(message);
     return {
       data: null,
-      error: "Validation error",
+      error: message,
       validationErrors: parsedValidation,
     };
   }
@@ -387,13 +390,31 @@ function handleNetworkError(
   silent: boolean,
   toastId: string | number | null
 ): FetchResponse<any> {
-  console.error("Fetch error:", error);
+  // Check if this is a connection reset/abort error (common during navigation or server restarts)
+  // Note: fetch errors have the code on error.cause, not directly on error
+  const errorCode = error?.code || error?.cause?.code;
+  const isConnectionError =
+    errorCode === "ECONNRESET" ||
+    errorCode === "ECONNREFUSED" ||
+    error?.name === "AbortError" ||
+    error?.message?.includes("aborted") ||
+    error?.message?.includes("fetch failed") ||
+    error?.message?.includes("network");
+
+  // Only log non-connection errors to avoid log spam
+  if (!isConnectionError) {
+    console.error("Fetch error:", error);
+  }
+
   if (!silent) {
     if (toastId !== null) {
       toast.dismiss(toastId);
     }
-    const message = error instanceof Error ? error.message : "Unknown error";
-    toast.error(`Network error: ${message}. Please try again later.`);
+    // Don't show toast for connection reset errors (user navigated away or connection dropped)
+    if (!isConnectionError) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Network error: ${message}. Please try again later.`);
+    }
   }
   return {
     data: null,
@@ -414,14 +435,20 @@ export async function $serverFetch<T = any>(
     ...headers,
   };
 
+  // Use AbortController with timeout to prevent hanging connections
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout for server-side
+
   const fetchOptions: RequestInit = {
     method,
     headers: defaultHeaders,
     body: body ? JSON.stringify(body) : null,
+    signal: controller.signal,
   };
 
   try {
     const response = await fetch(fullUrl, fetchOptions);
+    clearTimeout(timeoutId);
 
     // Handle response parsing more safely
     let data: T | null = null;
@@ -451,8 +478,23 @@ export async function $serverFetch<T = any>(
     }
 
     return { data, error: null };
-  } catch (error) {
-    console.error("Server-side Fetch error:", error);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+
+    // Silently handle connection errors (ECONNRESET, ECONNREFUSED, abort)
+    // Note: fetch errors have the code on error.cause, not directly on error
+    const errorCode = error?.code || error?.cause?.code;
+    const isConnectionError =
+      errorCode === "ECONNRESET" ||
+      errorCode === "ECONNREFUSED" ||
+      error?.name === "AbortError" ||
+      error?.message?.includes("aborted") ||
+      error?.message?.includes("fetch failed");
+
+    if (!isConnectionError) {
+      console.error("Server-side Fetch error:", error);
+    }
+
     return { data: null, error: "Server Error" };
   }
 }

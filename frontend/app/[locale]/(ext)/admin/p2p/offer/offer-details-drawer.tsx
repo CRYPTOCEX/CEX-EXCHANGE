@@ -197,7 +197,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
               {isLoadingOffer ? "Loading..." : offer ? `P2P Offer #${offer.id.slice(0, 8)}` : "P2P Offer Details"}
             </SheetTitle>
             <SheetDescription id="offer-details-description" className="text-left mt-1">
-              View and manage offer information, user details, and activity logs
+              {t("view_and_manage_offer_information_user")}
             </SheetDescription>
           </SheetHeader>
 
@@ -211,7 +211,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                 <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
                 <p className="text-red-600 dark:text-red-400 mb-4">{offerError}</p>
                 <Button onClick={() => offerId && getOfferById(offerId)}>
-                  Try Again
+                  {t("try_again")}
                 </Button>
               </div>
             </div>
@@ -330,7 +330,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                     </TabsTrigger>
                     <TabsTrigger value="user" className="text-xs">
                       <User className="h-4 w-4 mr-1" />
-                      User Info
+                      {t("user_info")}
                     </TabsTrigger>
                     <TabsTrigger value="activity" className="text-xs">
                       <Activity className="h-4 w-4 mr-1" />
@@ -349,7 +349,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <DollarSign className="h-5 w-5 text-blue-500" />
-                            Offer Information
+                            {t("offer_information")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -367,7 +367,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="font-semibold">{offer.price} {offer.fiatCurrency}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Market Diff</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("market_diff")}</p>
                               <p className="font-semibold flex items-center gap-1">
                                 {offer.margin > 0 ? (
                                   <TrendingUp className="h-4 w-4 text-green-500" />
@@ -381,13 +381,13 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                           <Separator />
                           <div className="space-y-3">
                             <div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Amount Range</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("amount_range")}</p>
                               <p className="font-semibold">
                                 {offer.minAmount} - {offer.maxAmount} {offer.currency}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Available Amount</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("available_amount")}</p>
                               <div className="flex items-center gap-2">
                                 <Progress 
                                   value={(offer.availableAmount / offer.maxAmount) * 100} 
@@ -407,7 +407,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <CreditCard className="h-5 w-5 text-blue-500" />
-                            Payment Methods
+                            {t("payment_methods")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -440,22 +440,22 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         <CardHeader>
                           <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                             <FileText className="h-5 w-5 text-blue-500" />
-                            Trading Terms
+                            {t("trading_terms")}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Payment Time Limit</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("payment_time_limit")}</p>
                             <p className="font-semibold">{offer.paymentTimeLimit || 15} minutes</p>
                           </div>
                           <div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Auto-Reply Message</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("auto_reply_message")}</p>
                             <p className="text-sm p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               {offer.autoReplyMessage || "No auto-reply message set"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Terms & Conditions</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("terms_conditions")}</p>
                             <p className="text-sm p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               {offer.terms || "Standard platform terms apply"}
                             </p>
@@ -477,7 +477,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 {offer.stats?.totalTrades || 0}
                               </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Total Trades</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("total_trades")}</p>
                             </div>
                             <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -489,13 +489,13 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                                 {offer.stats?.avgCompletionTime || 0}m
                               </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Avg Time</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("avg_time")}</p>
                             </div>
                             <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                                 {offer.stats?.successRate || 0}%
                               </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">Success Rate</p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("success_rate")}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -508,7 +508,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                       <CardHeader>
                         <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <User className="h-5 w-5 text-blue-500" />
-                          User Information
+                          {t("user_information")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
@@ -529,7 +529,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                                 KYC {offer.user?.kycStatus || "PENDING"}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                Member since {new Date(offer.user?.createdAt || Date.now()).getFullYear()}
+                                {t("member_since")} {new Date(offer.user?.createdAt || Date.now()).getFullYear()}
                               </Badge>
                             </div>
                           </div>
@@ -540,13 +540,13 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                             <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                               {offer.user?.stats?.totalOffers || 0}
                             </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Total Offers</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("total_offers")}</p>
                           </div>
                           <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <p className="text-xl font-bold text-green-600 dark:text-green-400">
                               {offer.user?.stats?.completedTrades || 0}
                             </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">Completed Trades</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("completed_trades")}</p>
                           </div>
                           <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
@@ -570,7 +570,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                       <CardHeader>
                         <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <Activity className="h-5 w-5 text-blue-500" />
-                          Activity Log
+                          {t("activity_log")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -591,7 +591,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                         ))}
                         {(!offer.activityLog || offer.activityLog.length === 0) && (
                           <p className="text-center text-zinc-500 dark:text-zinc-400 py-8">
-                            No activity recorded yet
+                            {t("no_activity_recorded_yet")}
                           </p>
                         )}
                       </CardContent>
@@ -603,7 +603,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                       <CardHeader>
                         <CardTitle className="text-base text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                           <MessageSquare className="h-5 w-5 text-blue-500" />
-                          Admin Notes
+                          {t("admin_notes")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -617,7 +617,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                           <Textarea
                             value={newNote}
                             onChange={(e) => setNewNote(e.target.value)}
-                            placeholder="Add a note about this offer..."
+                            placeholder={t("add_a_note_about_this_offer_ellipsis")}
                             className="min-h-[100px]"
                           />
                           <Button
@@ -658,12 +658,12 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
           <div className="space-y-4">
             {actionDialog.type === "approve" ? (
               <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Label htmlFor="notes">{t("notes_optional")}</Label>
                 <Textarea
                   id="notes"
                   value={actionDialog.notes}
                   onChange={(e) => setActionDialog({ ...actionDialog, notes: e.target.value })}
-                  placeholder="Add any notes about the approval..."
+                  placeholder={t("add_any_notes_about_the_approval_ellipsis")}
                 />
               </div>
             ) : (
@@ -673,7 +673,7 @@ export default function OfferDetailsDrawer({ isOpen, onClose, offerId }: OfferDe
                   id="reason"
                   value={actionDialog.reason}
                   onChange={(e) => setActionDialog({ ...actionDialog, reason: e.target.value })}
-                  placeholder="Enter the reason..."
+                  placeholder={t("enter_the_reason_ellipsis")}
                   required
                 />
               </div>

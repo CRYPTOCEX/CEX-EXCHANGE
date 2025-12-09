@@ -26,7 +26,7 @@ export function ConfirmDialog({
   description = "Are you sure you want to proceed?",
   onConfirm,
 }: ConfirmDialogProps) {
-  const t = useTranslations("components/ui/confirm-dialog");
+  const t = useTranslations("common");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">

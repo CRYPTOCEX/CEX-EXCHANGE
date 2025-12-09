@@ -28,11 +28,12 @@ export const metadata = {
         schema: {
           type: "object",
           properties: {
-            reason: { 
+            reason: {
               type: "string",
               enum: [
                 "PAYMENT_NOT_RECEIVED",
-                "PAYMENT_INCORRECT_AMOUNT", 
+                "PAYMENT_INCORRECT_AMOUNT",
+                "CRYPTO_NOT_RELEASED",
                 "SELLER_UNRESPONSIVE",
                 "BUYER_UNRESPONSIVE",
                 "FRAUDULENT_ACTIVITY",
@@ -85,6 +86,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   // Import validation utilities
   const { validateDisputeReason, sanitizeInput, validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("./index.ws");
 
   // Validate reason
   const validatedReason = validateDisputeReason(reason);
@@ -99,6 +101,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
   }
 
   const transaction = await sequelize.transaction();
+  let transactionCommitted = false;
 
   try {
     // Find and lock trade
@@ -117,16 +120,14 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     });
 
     if (!trade) {
-      await transaction.rollback();
       throw createError({ statusCode: 404, message: "Trade not found" });
     }
 
     // Check if trade can be disputed
     if (!validateTradeStatusTransition(trade.status, "DISPUTED")) {
-      await transaction.rollback();
-      throw createError({ 
-        statusCode: 400, 
-        message: `Cannot dispute trade with status: ${trade.status}` 
+      throw createError({
+        statusCode: 400,
+        message: `Cannot dispute trade with status: ${trade.status}`
       });
     }
 
@@ -134,17 +135,16 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     if (trade.status === "COMPLETED" && trade.completedAt) {
       const disputeTimeLimit = 7 * 24 * 60 * 60 * 1000; // 7 days
       if (Date.now() - new Date(trade.completedAt).getTime() > disputeTimeLimit) {
-        await transaction.rollback();
-        throw createError({ 
-          statusCode: 400, 
-          message: "Dispute time limit exceeded (7 days after completion)" 
+        throw createError({
+          statusCode: 400,
+          message: "Dispute time limit exceeded (7 days after completion)"
         });
       }
     }
 
     // Check if already disputed
     const existingDispute = await models.p2pDispute.findOne({
-      where: { 
+      where: {
         tradeId: trade.id,
         status: { [Op.ne]: "RESOLVED" }
       },
@@ -152,10 +152,9 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     });
 
     if (existingDispute) {
-      await transaction.rollback();
-      throw createError({ 
-        statusCode: 409, 
-        message: "Trade is already under dispute" 
+      throw createError({
+        statusCode: 409,
+        message: "Trade is already under dispute"
       });
     }
 
@@ -165,7 +164,7 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     // Create dispute
     const dispute = await models.p2pDispute.create({
       tradeId: id,
-      amount: trade.totalAmount.toString(),
+      amount: (trade.amount || 0).toString(),
       reportedById: user.id,
       againstId,
       reason: validatedReason,
@@ -183,7 +182,22 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     }, { transaction });
 
     // Update trade status and timeline
-    const timeline = trade.timeline || [];
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === "string") {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error("Failed to parse timeline JSON:", e);
+        timeline = [];
+      }
+    }
+
+    // Ensure timeline is an array
+    if (!Array.isArray(timeline)) {
+      timeline = [];
+    }
+
     timeline.push({
       event: "DISPUTE_OPENED",
       message: `Dispute opened: ${validatedReason}`,
@@ -202,16 +216,18 @@ export default async (data: { params?: any; body: any; user?: any }) => {
     await models.p2pActivityLog.create({
       userId: user.id,
       type: "DISPUTE_CREATED",
-      entityId: dispute.id,
-      entityType: "DISPUTE",
-      metadata: {
+      action: "DISPUTE_CREATED",
+      relatedEntity: "DISPUTE",
+      relatedEntityId: dispute.id,
+      details: JSON.stringify({
         tradeId: trade.id,
         reason: validatedReason,
         againstId,
-      },
+      }),
     }, { transaction });
 
     await transaction.commit();
+    transactionCommitted = true;
 
     // Send notifications
     notifyTradeEvent(trade.id, "TRADE_DISPUTED", {
@@ -223,7 +239,19 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       disputeId: dispute.id,
     }).catch(console.error);
 
-    return { 
+    // Broadcast WebSocket event for real-time updates
+    broadcastP2PTradeEvent(trade.id, {
+      type: "DISPUTE",
+      data: {
+        status: "DISPUTED",
+        previousStatus: trade.status,
+        disputeId: dispute.id,
+        reason: validatedReason,
+        filedBy: user.id,
+      },
+    });
+
+    return {
       message: "Dispute created successfully.",
       disputeId: dispute.id,
       dispute: {
@@ -236,12 +264,14 @@ export default async (data: { params?: any; body: any; user?: any }) => {
       }
     };
   } catch (err: any) {
-    await transaction.rollback();
-    
+    if (!transactionCommitted) {
+      await transaction.rollback();
+    }
+
     if (err.statusCode) {
       throw err;
     }
-    
+
     throw createError({
       statusCode: 500,
       message: "Failed to create dispute: " + err.message,

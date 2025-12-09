@@ -139,12 +139,6 @@ export default class wallet
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
-    wallet.hasMany(models.paymentIntent, {
-      as: "paymentIntents",
-      foreignKey: "walletId",
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
-    });
     wallet.hasMany(models.transaction, {
       as: "transactions",
       foreignKey: "walletId",

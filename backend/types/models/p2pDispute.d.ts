@@ -13,6 +13,7 @@ interface p2pDisputeAttributes {
   resolvedOn?: Date;
   messages?: any;
   evidence?: any;
+  activityLog?: any;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;

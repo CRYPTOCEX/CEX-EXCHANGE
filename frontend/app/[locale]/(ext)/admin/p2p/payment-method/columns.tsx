@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const columns = [
@@ -71,14 +70,11 @@ export const columns = [
     usedInCreate: true,
     description: "Make this payment method available to all users",
     render: {
-      type: "custom",
-      render: (value: boolean) => {
-        const isGlobal = value === true;
-        return (
-          <Badge variant={isGlobal ? "default" : "outline"}>
-            {isGlobal ? "Global" : "User"}
-          </Badge>
-        );
+      type: "badge",
+      config: {
+        withDot: false,
+        variant: (value: boolean) => (value === true ? "primary" : "outline"),
+        label: (value: boolean) => (value === true ? "Global" : "User"),
       },
     },
   },
@@ -119,12 +115,12 @@ export const columns = [
     usedInCreate: true,
     description: "Whether the payment method is currently available",
     render: {
-      type: "custom",
-      render: (value: boolean) => (
-        <Badge variant={value ? "default" : "destructive"}>
-          {value ? "Active" : "Inactive"}
-        </Badge>
-      ),
+      type: "badge",
+      config: {
+        withDot: true,
+        variant: (value: boolean) => (value ? "success" : "destructive"),
+        label: (value: boolean) => (value ? "Active" : "Inactive"),
+      },
     },
   },
   {

@@ -358,7 +358,7 @@ export default function DashboardClient() {
                     >
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       {stats.revenueChange > 0 ? "+" : ""}
-                      {stats.revenueChange.toFixed(1)} {t("%_from_last_period")}
+                      {stats.revenueChange.toFixed(1)}% {t("from_last_period")}
                     </p>
                   )}
               </div>
@@ -382,7 +382,7 @@ export default function DashboardClient() {
                     >
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       {stats.ordersChange > 0 ? "+" : ""}
-                      {stats.ordersChange.toFixed(1)} {t("%_from_last_period")}
+                      {stats.ordersChange.toFixed(1)}% {t("from_last_period")}
                     </p>
                   )}
               </div>
@@ -406,8 +406,8 @@ export default function DashboardClient() {
                     >
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       {stats.newCustomersChange > 0 ? "+" : ""}
-                      {stats.newCustomersChange.toFixed(1)}{" "}
-                      {t("%_from_last_period")}
+                      {stats.newCustomersChange.toFixed(1)}%{" "}
+                      {t("from_last_period")}
                     </p>
                   )}
               </div>

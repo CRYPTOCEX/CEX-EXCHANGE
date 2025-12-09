@@ -5,7 +5,12 @@ import { X } from "lucide-react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
 
 const AddBlock = ({
@@ -19,7 +24,7 @@ const AddBlock = ({
   title?: string;
   desc?: string;
 }) => {
-  const t = useTranslations("components/partials/sidebar/add-block");
+  const t = useTranslations("common");
   const [openVideo, setOpenVideo] = useState(false);
   return (
     <>
@@ -63,6 +68,10 @@ const AddBlock = ({
       </div>
       <Dialog open={openVideo}>
         <DialogContent size="lg" className="p-0">
+          <DialogTitle className="sr-only">Video Player</DialogTitle>
+          <DialogDescription className="sr-only">
+            Watch the video about storage capacity
+          </DialogDescription>
           <Button
             size="icon"
             onClick={() => setOpenVideo(false)}

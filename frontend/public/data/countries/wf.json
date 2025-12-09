@@ -1,0 +1,29 @@
+{
+  "name": "Wallis and Futuna Islands",
+  "iso2": "WF",
+  "iso3": "WLF",
+  "phonecode": "681",
+  "states": [
+    {
+      "name": "Alo",
+      "code": "AL",
+      "cities": [
+        "Ono"
+      ]
+    },
+    {
+      "name": "Sigave",
+      "code": "SG",
+      "cities": [
+        "Leava"
+      ]
+    },
+    {
+      "name": "Uvea",
+      "code": "UV",
+      "cities": [
+        "Mata Utu"
+      ]
+    }
+  ]
+}

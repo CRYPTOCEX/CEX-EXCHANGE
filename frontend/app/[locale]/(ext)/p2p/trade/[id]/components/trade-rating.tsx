@@ -80,7 +80,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
         <CardHeader>
           <CardTitle>{t("rating_submitted")}</CardTitle>
           <CardDescription>
-            {t("thank_you_for_rating_your_experience_with")}
+            {t("thank_you_for_rating_your_experience_with")}{" "}
             {counterparty.name}
           </CardDescription>
         </CardHeader>
@@ -100,8 +100,8 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                {t("your_rating")}
-                {rating}
+                {t("your_rating")}{" "}
+                {rating}{" "}
                 {t("out_of_5_stars")}
               </p>
             </div>
@@ -116,8 +116,8 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
       <CardHeader>
         <CardTitle>{t("rate_your_experience")}</CardTitle>
         <CardDescription>
-          {t("let_us_know_how_your_trade_with")}
-          {counterparty.name}
+          {t("let_us_know_how_your_trade_with")}{" "}
+          {counterparty.name}{" "}
           {t("went")}
         </CardDescription>
       </CardHeader>
@@ -136,8 +136,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
             <div>
               <p className="font-medium">{counterparty.name}</p>
               <p className="text-sm text-muted-foreground">
-                {t("trade_#")}
-                {tradeId}
+                {t("trade_#")}{tradeId}
               </p>
             </div>
           </div>
@@ -174,7 +173,7 @@ export function TradeRating({ tradeId, counterparty }: TradeRatingProps) {
             </label>
             <Textarea
               id="feedback"
-              placeholder="Share your experience with this trader..."
+              placeholder={t("share_your_experience_with_this_trader_ellipsis")}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={4}

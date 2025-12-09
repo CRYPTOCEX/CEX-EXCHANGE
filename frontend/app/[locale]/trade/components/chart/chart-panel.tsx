@@ -16,7 +16,7 @@ interface ChartPanelProps {
 }
 
 export default function ChartPanel({ symbol, onPriceUpdate, metadata, marketType: propMarketType }: ChartPanelProps) {
-  const t = useTranslations("trade/components/chart/chart-panel");
+  const t = useTranslations("ext");
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [selectedTimeframe, setSelectedTimeframe] = useState<TimeFrame>("1h");
   const [isLayoutReady, setIsLayoutReady] = useState(false);

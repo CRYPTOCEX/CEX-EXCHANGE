@@ -3,6 +3,7 @@ interface ProfitDisplayProps {
   profitPercentage: number;
   profitAmount: number;
   amount: number;
+  symbol: string;
   darkMode?: boolean;
 }
 
@@ -10,9 +11,17 @@ export default function ProfitDisplay({
   profitPercentage,
   profitAmount,
   amount,
+  symbol,
   darkMode = true,
 }: ProfitDisplayProps) {
-  const t = useTranslations("binary/components/order/profit-display");
+  const t = useTranslations("common");
+
+  // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
+  const getCurrency = (symbol: string) => {
+    const parts = symbol.split("/");
+    return parts[1] || "USDT"; // Default to USDT if parsing fails
+  };
+
   return (
     <div
       className={`${darkMode ? "bg-zinc-900" : "bg-gray-100"} p-2 rounded-md ${darkMode ? "border border-zinc-800" : "border border-gray-200"}`}
@@ -36,8 +45,7 @@ export default function ProfitDisplay({
           {t("potential")}
         </div>
         <div className="text-[#00C896] text-sm font-bold">
-          +$
-          {profitAmount.toFixed(2)}
+          +{profitAmount.toFixed(2)} {getCurrency(symbol)}
         </div>
       </div>
       <div
@@ -49,8 +57,7 @@ export default function ProfitDisplay({
           {t("loss")}
         </div>
         <div className="text-[#FF4D4F] text-xs font-bold">
-          -$
-          {amount.toFixed(2)}
+          -{amount.toFixed(2)} {getCurrency(symbol)}
         </div>
       </div>
     </div>

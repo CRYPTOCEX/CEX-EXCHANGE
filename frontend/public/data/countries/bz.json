@@ -1,0 +1,57 @@
+{
+  "name": "Belize",
+  "iso2": "BZ",
+  "iso3": "BLZ",
+  "phonecode": "501",
+  "states": [
+    {
+      "name": "Belize",
+      "code": "BZ",
+      "cities": [
+        "Belize City",
+        "San Pedro"
+      ]
+    },
+    {
+      "name": "Cayo",
+      "code": "CY",
+      "cities": [
+        "Belmopan",
+        "Benque Viejo el Carmen",
+        "San Ignacio",
+        "Valley of Peace"
+      ]
+    },
+    {
+      "name": "Corozal",
+      "code": "CZL",
+      "cities": [
+        "Corozal"
+      ]
+    },
+    {
+      "name": "Orange Walk",
+      "code": "OW",
+      "cities": [
+        "Hopelchén",
+        "Orange Walk",
+        "Shipyard"
+      ]
+    },
+    {
+      "name": "Stann Creek",
+      "code": "SC",
+      "cities": [
+        "Dangriga",
+        "Placencia"
+      ]
+    },
+    {
+      "name": "Toledo",
+      "code": "TOL",
+      "cities": [
+        "Punta Gorda"
+      ]
+    }
+  ]
+}

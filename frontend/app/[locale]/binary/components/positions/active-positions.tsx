@@ -5,7 +5,6 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   Clock,
-  DollarSign,
   BarChart3,
   ChevronLeft,
   TrendingUp,
@@ -40,7 +39,7 @@ export default function ActivePositions({
   hasCompletedPositions = false,
   theme = "dark",
 }: ActivePositionsProps) {
-  const t = useTranslations("binary/components/positions/active-positions");
+  const t = useTranslations("common");
   
   // State management with proper initialization
   const [timeLeft, setTimeLeft] = useState<Record<string, string>>({});
@@ -86,10 +85,10 @@ export default function ActivePositions({
 
   // Memoized theme classes to prevent recreation
   const themeClasses = useMemo(() => ({
-    bgClass: theme === "dark" ? "bg-black" : "bg-white",
+    bgClass: theme === "dark" ? "bg-zinc-950" : "bg-white",
     panelBgClass: theme === "dark" ? "bg-zinc-950" : "bg-white",
     textClass: theme === "dark" ? "text-white" : "text-black",
-    secondaryTextClass: theme === "dark" ? "text-zinc-400" : "text-zinc-600",
+    secondaryTextClass: theme === "dark" ? "text-zinc-500" : "text-zinc-600",
     borderClass: theme === "dark" ? "border-zinc-800" : "border-zinc-200",
     hoverBgClass: theme === "dark" ? "hover:bg-zinc-900" : "hover:bg-zinc-100",
     riseColorClass: "text-green-500",
@@ -138,12 +137,13 @@ export default function ActivePositions({
 
   // Memoized profit/loss calculation
   const calculateProfitLoss = useCallback((order: Order, symbolPrice: number): number => {
+    const profitPercentage = order.profitPercentage || 85; // Use order's profit percentage or default to 85
     return order.side === "RISE"
       ? symbolPrice > order.entryPrice
-        ? (order.amount * 87) / 100
+        ? (order.amount * profitPercentage) / 100
         : -order.amount
       : symbolPrice < order.entryPrice
-        ? (order.amount * 87) / 100
+        ? (order.amount * profitPercentage) / 100
         : -order.amount;
   }, []);
 
@@ -377,9 +377,22 @@ export default function ActivePositions({
     setSelectedOrder(selectedOrder === orderId ? null : orderId);
   }, [selectedOrder]);
 
-  // Don't render if no active orders
+  // Extract currency from symbol (e.g., "BTC/USDT" -> "USDT")
+  const getCurrency = useCallback((symbol: string) => {
+    const parts = symbol.split("/");
+    return parts[1] || "USDT"; // Default to USDT if parsing fails
+  }, []);
+
+  // Render empty state if no active orders
   if (activeOrders.length === 0) {
-    return null;
+    return (
+      <div className={`${className} ${themeClasses.panelBgClass} flex items-center justify-center`}>
+        <div className={`text-center ${themeClasses.secondaryTextClass}`}>
+          <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">{t("no_active_positions")}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -467,19 +480,19 @@ export default function ActivePositions({
                     <div>
                       <span className={themeClasses.secondaryTextClass}>Entry:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
-                        ${order.entryPrice.toFixed(2)}
+                        {order.entryPrice.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div>
                       <span className={themeClasses.secondaryTextClass}>Current:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
-                        ${symbolPrice.toFixed(2)}
+                        {symbolPrice.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div>
                       <span className={themeClasses.secondaryTextClass}>Amount:</span>
                       <span className={`ml-1 ${themeClasses.textClass}`}>
-                        ${order.amount.toFixed(2)}
+                        {order.amount.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                     <div>
@@ -487,7 +500,7 @@ export default function ActivePositions({
                       <span className={`ml-1 font-medium ${
                         isProfitable ? themeClasses.profitColorClass : themeClasses.lossColorClass
                       }`}>
-                        {isProfitable ? '+' : ''}${profitLoss.toFixed(2)}
+                        {isProfitable ? '+' : ''}{profitLoss.toFixed(2)} {getCurrency(order.symbol)}
                       </span>
                     </div>
                   </div>

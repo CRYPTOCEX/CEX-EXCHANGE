@@ -47,7 +47,7 @@ export default function DataTable({
   keyspace = null,
 }: DataTableProps) {
   // Move useTranslations to the top level
-  const t = useTranslations("components/blocks/data-table/index");
+  const t = useTranslations("common");
 
   const {
     setModel,

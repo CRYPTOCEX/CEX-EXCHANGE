@@ -11,8 +11,8 @@ export default function GuidePage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <GuideHeader
-        title="P2P Trading Guide"
-        description="Learn how to safely trade cryptocurrencies on our P2P platform with this comprehensive guide."
+        title={t("p2p_trading_guide")}
+        description={t("learn_how_to_safely_trade_cryptocurrencies")}
       />
 
       <Tabs defaultValue="overview" className="space-y-8">

@@ -83,4 +83,53 @@ export async function getEcosystemWalletUtils(): Promise<any> {
 // Helper function to check if a service is available
 export function isServiceAvailable(service: any): boolean {
   return service !== null && service !== undefined;
+}
+
+// Cached P2P utils
+let p2pTradeTimeoutUtils: any = null;
+let p2pTradeTimeoutUtilsChecked = false;
+
+export async function getP2PTradeTimeoutUtils(): Promise<any> {
+  if (!p2pTradeTimeoutUtilsChecked) {
+    try {
+      // Import the whole module since it uses named exports (not default export)
+      const module = await import('@b/api/(ext)/p2p/utils/p2p-trade-timeout');
+      p2pTradeTimeoutUtils = module;
+    } catch (error) {
+      console.log("P2P trade timeout utils not available:", error);
+      p2pTradeTimeoutUtils = null;
+    }
+    p2pTradeTimeoutUtilsChecked = true;
+  }
+  return p2pTradeTimeoutUtils;
+}
+
+// Cached AI Market Maker Engine
+let aiMarketMakerEngine: any = null;
+let aiMarketMakerEngineChecked = false;
+
+export async function getAiMarketMakerEngine(): Promise<any> {
+  if (!aiMarketMakerEngineChecked) {
+    aiMarketMakerEngine = await safeImport('@b/api/(ext)/admin/ai/market-maker/utils/engine/MarketMakerEngine');
+    aiMarketMakerEngineChecked = true;
+  }
+  return aiMarketMakerEngine;
+}
+
+// Cached Gateway Payout Cron
+let gatewayPayoutCron: any = null;
+let gatewayPayoutCronChecked = false;
+
+export async function getGatewayPayoutCron(): Promise<any> {
+  if (!gatewayPayoutCronChecked) {
+    try {
+      const module = await import('@b/utils/crons/gatewayPayout');
+      gatewayPayoutCron = module;
+    } catch (error) {
+      console.log("Gateway payout cron not available:", error);
+      gatewayPayoutCron = null;
+    }
+    gatewayPayoutCronChecked = true;
+  }
+  return gatewayPayoutCron;
 } 

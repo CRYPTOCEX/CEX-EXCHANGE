@@ -1,0 +1,312 @@
+{
+  "name": "Afghanistan",
+  "iso2": "AF",
+  "iso3": "AFG",
+  "phonecode": "93",
+  "states": [
+    {
+      "name": "Badakhshan",
+      "code": "BDS",
+      "cities": [
+        "Ashkāsham",
+        "Fayzabad",
+        "Jurm",
+        "Khandūd",
+        "Rāghistān",
+        "Wākhān"
+      ]
+    },
+    {
+      "name": "Badghis",
+      "code": "BDG",
+      "cities": [
+        "Ghormach",
+        "Qala i Naw"
+      ]
+    },
+    {
+      "name": "Baghlan",
+      "code": "BGL",
+      "cities": [
+        "Baghlān",
+        "Ḩukūmatī Dahanah-ye Ghōrī",
+        "Nahrīn",
+        "Pul-e Khumrī"
+      ]
+    },
+    {
+      "name": "Balkh",
+      "code": "BAL",
+      "cities": [
+        "Balkh",
+        "Dowlatābād",
+        "Khulm",
+        "Lab-Sar",
+        "Mazār-e Sharīf",
+        "Qarchī Gak"
+      ]
+    },
+    {
+      "name": "Bamyan",
+      "code": "BAM",
+      "cities": [
+        "Bāmyān",
+        "Panjāb"
+      ]
+    },
+    {
+      "name": "Daykundi",
+      "code": "DAY",
+      "cities": [
+        "Nīlī"
+      ]
+    },
+    {
+      "name": "Farah",
+      "code": "FRA",
+      "cities": [
+        "Farah"
+      ]
+    },
+    {
+      "name": "Faryab",
+      "code": "FYB",
+      "cities": [
+        "Andkhoy",
+        "Maymana"
+      ]
+    },
+    {
+      "name": "Ghazni",
+      "code": "GHA",
+      "cities": [
+        "Ghazni"
+      ]
+    },
+    {
+      "name": "Ghōr",
+      "code": "GHO",
+      "cities": [
+        "Fayrōz Kōh",
+        "Shahrak"
+      ]
+    },
+    {
+      "name": "Helmand",
+      "code": "HEL",
+      "cities": [
+        "‘Alāqahdārī Dīshū",
+        "Gereshk",
+        "Lashkar Gāh",
+        "Markaz-e Ḩukūmat-e Darwēshān",
+        "Sangīn"
+      ]
+    },
+    {
+      "name": "Herat",
+      "code": "HER",
+      "cities": [
+        "Chahār Burj",
+        "Ghōriyān",
+        "Herāt",
+        "Kafir Qala",
+        "Karukh",
+        "Kuhsān",
+        "Kushk",
+        "Qarah Bāgh",
+        "Shīnḏanḏ",
+        "Tīr Pul",
+        "Zindah Jān"
+      ]
+    },
+    {
+      "name": "Jowzjan",
+      "code": "JOW",
+      "cities": [
+        "Āqchah",
+        "Darzāb",
+        "Qarqīn",
+        "Shibirghān"
+      ]
+    },
+    {
+      "name": "Kabul",
+      "code": "KAB",
+      "cities": [
+        "Kabul",
+        "Mīr Bachah Kōṯ",
+        "Paghmān"
+      ]
+    },
+    {
+      "name": "Kandahar",
+      "code": "KAN",
+      "cities": [
+        "Kandahār"
+      ]
+    },
+    {
+      "name": "Kapisa",
+      "code": "KAP",
+      "cities": [
+        "Sidqābād"
+      ]
+    },
+    {
+      "name": "Khost",
+      "code": "KHO",
+      "cities": [
+        "Khōst"
+      ]
+    },
+    {
+      "name": "Kunar",
+      "code": "KNR",
+      "cities": [
+        "Asadabad",
+        "Āsmār"
+      ]
+    },
+    {
+      "name": "Kunduz Province",
+      "code": "KDZ",
+      "cities": [
+        "Dasht-e Archī",
+        "Imām Şāḩib",
+        "Khanabad",
+        "Kunduz",
+        "Qarāwul"
+      ]
+    },
+    {
+      "name": "Laghman",
+      "code": "LAG",
+      "cities": [
+        "Mehtar Lām"
+      ]
+    },
+    {
+      "name": "Logar",
+      "code": "LOG",
+      "cities": [
+        "Baraki Barak",
+        "Ḩukūmatī Azrah",
+        "Pul-e ‘Alam"
+      ]
+    },
+    {
+      "name": "Nangarhar",
+      "code": "NAN",
+      "cities": [
+        "Bāsawul",
+        "Jalālābād"
+      ]
+    },
+    {
+      "name": "Nimruz",
+      "code": "NIM",
+      "cities": [
+        "Khāsh",
+        "Mīrābād",
+        "Rūdbār",
+        "Zaranj"
+      ]
+    },
+    {
+      "name": "Nuristan",
+      "code": "NUR",
+      "cities": [
+        "Pārūn"
+      ]
+    },
+    {
+      "name": "Paktia",
+      "code": "PIA",
+      "cities": [
+        "Gardez"
+      ]
+    },
+    {
+      "name": "Paktika",
+      "code": "PKA",
+      "cities": [
+        "Saṟōbī",
+        "Zaṟah Sharan",
+        "Zarghūn Shahr"
+      ]
+    },
+    {
+      "name": "Panjshir",
+      "code": "PAN",
+      "cities": [
+        "Bāzārak"
+      ]
+    },
+    {
+      "name": "Parwan",
+      "code": "PAR",
+      "cities": [
+        "Charikar",
+        "Jabal os Saraj"
+      ]
+    },
+    {
+      "name": "Samangan",
+      "code": "SAM",
+      "cities": [
+        "Aībak"
+      ]
+    },
+    {
+      "name": "Sar-e Pol",
+      "code": "SAR",
+      "cities": [
+        "Chīras",
+        "Larkird",
+        "Qal‘ah-ye Shahr",
+        "Sang-e Chārak",
+        "Sar-e Pul",
+        "Tagāw-Bāy",
+        "Tukzār"
+      ]
+    },
+    {
+      "name": "Takhar",
+      "code": "TAK",
+      "cities": [
+        "Ārt Khwājah",
+        "Taloqan"
+      ]
+    },
+    {
+      "name": "Urozgan",
+      "code": "URU",
+      "cities": [
+        "Tarinkot",
+        "Uruzgān"
+      ]
+    },
+    {
+      "name": "Wardak",
+      "code": "WAR",
+      "cities": [
+        "Chaki Wardak",
+        "Day Mirdad",
+        "Hisa-i-Awali Bihsud",
+        "Jaghatu",
+        "Jalrez",
+        "Maidan Shahr",
+        "Markaz-i-Bihsud",
+        "Nerkh",
+        "Sayed Abad"
+      ]
+    },
+    {
+      "name": "Zabul",
+      "code": "ZAB",
+      "cities": [
+        "Qalāt"
+      ]
+    }
+  ]
+}

@@ -2,8 +2,10 @@
 import DataTable from "@/components/blocks/data-table";
 import { columns } from "./columns";
 import { nftAuctionAnalytics } from "./analytics";
+import { useTranslations } from "next-intl";
 
 export default function NFTAuctionsPage() {
+  const t = useTranslations("ext");
   return (
     <DataTable
       apiEndpoint="/api/admin/nft/auction"
@@ -23,7 +25,7 @@ export default function NFTAuctionsPage() {
       isParanoid={false}
       title="NFT Auctions"
       itemTitle="Auction"
-      description="Monitor NFT auction activity, track bidding performance, and manage auction lifecycle"
+      description={t("monitor_nft_auction_activity_track_bidding")}
       columns={columns}
       analytics={nftAuctionAnalytics}
     />

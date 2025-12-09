@@ -1,0 +1,172 @@
+{
+  "name": "Myanmar",
+  "iso2": "MM",
+  "iso3": "MMR",
+  "phonecode": "95",
+  "states": [
+    {
+      "name": "Ayeyarwady",
+      "code": "07",
+      "cities": [
+        "Bogale",
+        "Hinthada",
+        "Kyaiklat",
+        "Maubin",
+        "Mawlamyinegyunn",
+        "Myanaung",
+        "Nyaungdon",
+        "Pathein",
+        "Pyapon",
+        "Wakema"
+      ]
+    },
+    {
+      "name": "Bago",
+      "code": "02",
+      "cities": [
+        "Bago",
+        "Letpandan",
+        "Nyaunglebin",
+        "Paungde",
+        "Pyay",
+        "Pyu",
+        "Taungoo",
+        "Thanatpin",
+        "Tharyarwady"
+      ]
+    },
+    {
+      "name": "Chin",
+      "code": "14",
+      "cities": [
+        "Falam",
+        "Hakha"
+      ]
+    },
+    {
+      "name": "Kachin",
+      "code": "11",
+      "cities": [
+        "Bhamo",
+        "Myitkyina"
+      ]
+    },
+    {
+      "name": "Kayah",
+      "code": "12",
+      "cities": [
+        "Loikaw"
+      ]
+    },
+    {
+      "name": "Kayin",
+      "code": "13",
+      "cities": [
+        "Dellok",
+        "Hpa-An",
+        "Klonhtoug",
+        "Kyain Seikgyi Township",
+        "Mikenaungea",
+        "Myawadi",
+        "Pulei",
+        "Tagondaing",
+        "Tamoowoug"
+      ]
+    },
+    {
+      "name": "Magway",
+      "code": "03",
+      "cities": [
+        "Chauk",
+        "Magway",
+        "Minbu",
+        "Myaydo",
+        "Pakokku",
+        "Taungdwingyi",
+        "Thayetmyo",
+        "Yenangyaung"
+      ]
+    },
+    {
+      "name": "Mandalay",
+      "code": "04",
+      "cities": [
+        "Kyaukse",
+        "Mandalay",
+        "Meiktila",
+        "Mogok",
+        "Myingyan",
+        "Nyaungshwe",
+        "Pyin Oo Lwin",
+        "Yamethin"
+      ]
+    },
+    {
+      "name": "Mon State",
+      "code": "15",
+      "cities": [
+        "Kyaikkami",
+        "Kyaikto",
+        "Martaban",
+        "Mawlamyine",
+        "Mudon",
+        "Thaton"
+      ]
+    },
+    {
+      "name": "Naypyidaw",
+      "code": "18",
+      "cities": [
+        "Nay Pyi Taw",
+        "Pyinmana"
+      ]
+    },
+    {
+      "name": "Rakhine",
+      "code": "16",
+      "cities": [
+        "Sittwe"
+      ]
+    },
+    {
+      "name": "Sagaing",
+      "code": "01",
+      "cities": [
+        "Mawlaik",
+        "Monywa",
+        "Sagaing",
+        "Shwebo"
+      ]
+    },
+    {
+      "name": "Shan",
+      "code": "17",
+      "cities": [
+        "Lashio",
+        "Tachilek",
+        "Taunggyi"
+      ]
+    },
+    {
+      "name": "Tanintharyi",
+      "code": "05",
+      "cities": [
+        "Dawei",
+        "Kawthoung",
+        "Myeik"
+      ]
+    },
+    {
+      "name": "Yangon",
+      "code": "06",
+      "cities": [
+        "Kanbe",
+        "Kayan",
+        "Syriam",
+        "Thongwa",
+        "Twante",
+        "Yangon"
+      ]
+    }
+  ]
+}

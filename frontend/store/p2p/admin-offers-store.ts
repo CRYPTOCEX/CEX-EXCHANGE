@@ -23,6 +23,10 @@ export interface AdminOffersState {
   flaggingOfferError: string | null;
   isDisablingOffer: boolean;
   disablingOfferError: string | null;
+  isPausingOffer: boolean;
+  pausingOfferError: string | null;
+  isActivatingOffer: boolean;
+  activatingOfferError: string | null;
   isAddingNote: boolean;
   addingNoteError: string | null;
   isUpdatingOffer: boolean;
@@ -35,6 +39,8 @@ export interface AdminOffersState {
   rejectOffer: (id: string, reason: string) => Promise<void>;
   flagOffer: (id: string, reason: string) => Promise<void>;
   disableOffer: (id: string, reason: string) => Promise<void>;
+  pauseOffer: (id: string) => Promise<void>;
+  activateOffer: (id: string) => Promise<void>;
   addNote: (id: string, note: string) => Promise<void>;
   updateOffer: (id: string, offerData: Partial<P2POffer>) => Promise<void>;
 }
@@ -56,6 +62,10 @@ export const adminOffersStore = create<AdminOffersState>((set, get) => ({
   flaggingOfferError: null,
   isDisablingOffer: false,
   disablingOfferError: null,
+  isPausingOffer: false,
+  pausingOfferError: null,
+  isActivatingOffer: false,
+  activatingOfferError: null,
   isAddingNote: false,
   addingNoteError: null,
   isUpdatingOffer: false,
@@ -187,6 +197,54 @@ export const adminOffersStore = create<AdminOffersState>((set, get) => ({
     }
 
     set({ isDisablingOffer: false });
+
+    // Refresh offers after successful action
+    await get().getOfferStats();
+
+    // If we were viewing a specific offer, refresh it
+    if (get().offer?.id === id) {
+      await get().getOfferById(id);
+    }
+  },
+
+  pauseOffer: async (id) => {
+    set({ isPausingOffer: true, pausingOfferError: null });
+
+    const { data, error } = await $fetch({
+      url: `/api/admin/p2p/offer/${id}/pause`,
+      method: "POST",
+    });
+
+    if (error) {
+      set({ pausingOfferError: error, isPausingOffer: false });
+      throw new Error(error);
+    }
+
+    set({ isPausingOffer: false });
+
+    // Refresh offers after successful action
+    await get().getOfferStats();
+
+    // If we were viewing a specific offer, refresh it
+    if (get().offer?.id === id) {
+      await get().getOfferById(id);
+    }
+  },
+
+  activateOffer: async (id) => {
+    set({ isActivatingOffer: true, activatingOfferError: null });
+
+    const { data, error } = await $fetch({
+      url: `/api/admin/p2p/offer/${id}/activate`,
+      method: "POST",
+    });
+
+    if (error) {
+      set({ activatingOfferError: error, isActivatingOffer: false });
+      throw new Error(error);
+    }
+
+    set({ isActivatingOffer: false });
 
     // Refresh offers after successful action
     await get().getOfferStats();

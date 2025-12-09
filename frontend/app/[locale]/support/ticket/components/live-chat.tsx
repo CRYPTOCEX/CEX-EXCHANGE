@@ -110,7 +110,7 @@ const parseMessages = (messagesData: any): ChatMessage[] => {
 };
 
 export default function LiveChat() {
-  const t = useTranslations("support/ticket/components/live-chat");
+  const t = useTranslations("common");
   const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);

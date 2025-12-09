@@ -1,0 +1,655 @@
+{
+  "name": "Estonia",
+  "iso2": "EE",
+  "iso3": "EST",
+  "phonecode": "372",
+  "states": [
+    {
+      "name": "Alutaguse",
+      "code": "130",
+      "cities": []
+    },
+    {
+      "name": "Anija",
+      "code": "141",
+      "cities": []
+    },
+    {
+      "name": "Antsla",
+      "code": "142",
+      "cities": []
+    },
+    {
+      "name": "Elva",
+      "code": "171",
+      "cities": []
+    },
+    {
+      "name": "Häädemeeste",
+      "code": "214",
+      "cities": []
+    },
+    {
+      "name": "Haapsalu",
+      "code": "184",
+      "cities": []
+    },
+    {
+      "name": "Haljala",
+      "code": "191",
+      "cities": []
+    },
+    {
+      "name": "Harju",
+      "code": "37",
+      "cities": [
+        "Anija vald",
+        "Aruküla",
+        "Haabneeme",
+        "Harku",
+        "Harku vald",
+        "Jõelähtme vald",
+        "Jüri",
+        "Kehra",
+        "Keila",
+        "Kiili",
+        "Kiili vald",
+        "Kose",
+        "Kuusalu",
+        "Laagri",
+        "Loksa",
+        "Loksa linn",
+        "Loo",
+        "Maardu",
+        "Maardu linn",
+        "Paldiski",
+        "Pringi",
+        "Raasiku",
+        "Rae vald",
+        "Riisipere",
+        "Rummu",
+        "Saku",
+        "Saku vald",
+        "Saue",
+        "Saue vald",
+        "Tabasalu",
+        "Tallinn",
+        "Turba",
+        "Vaida",
+        "Viimsi",
+        "Viimsi vald"
+      ]
+    },
+    {
+      "name": "Harku",
+      "code": "198",
+      "cities": []
+    },
+    {
+      "name": "Hiiu",
+      "code": "39",
+      "cities": [
+        "Kärdla"
+      ]
+    },
+    {
+      "name": "Hiiumaa",
+      "code": "205",
+      "cities": []
+    },
+    {
+      "name": "Ida-Viru",
+      "code": "45",
+      "cities": [
+        "Iisaku",
+        "Jõhvi",
+        "Jõhvi vald",
+        "Kiviõli",
+        "Kohtla-Järve",
+        "Kohtla-Nõmme",
+        "Lüganuse vald",
+        "Narva",
+        "Narva-Jõesuu",
+        "Narva-Jõesuu linn",
+        "Püssi",
+        "Sillamäe",
+        "Toila",
+        "Voka"
+      ]
+    },
+    {
+      "name": "Järva",
+      "code": "52",
+      "cities": [
+        "Järva-Jaani",
+        "Koeru",
+        "Paide",
+        "Paide linn",
+        "Särevere",
+        "Türi",
+        "Türi vald"
+      ]
+    },
+    {
+      "name": "Järva",
+      "code": "255",
+      "cities": []
+    },
+    {
+      "name": "Joelähtme",
+      "code": "245",
+      "cities": []
+    },
+    {
+      "name": "Jõgeva",
+      "code": "50",
+      "cities": [
+        "Jõgeva",
+        "Jõgeva vald",
+        "Mustvee",
+        "Põltsamaa",
+        "Põltsamaa vald"
+      ]
+    },
+    {
+      "name": "Jõgeva",
+      "code": "247",
+      "cities": []
+    },
+    {
+      "name": "Jõhvi",
+      "code": "251",
+      "cities": []
+    },
+    {
+      "name": "Kadrina",
+      "code": "272",
+      "cities": []
+    },
+    {
+      "name": "Kambja",
+      "code": "283",
+      "cities": []
+    },
+    {
+      "name": "Kanepi",
+      "code": "284",
+      "cities": []
+    },
+    {
+      "name": "Kastre",
+      "code": "291",
+      "cities": []
+    },
+    {
+      "name": "Kehtna",
+      "code": "293",
+      "cities": []
+    },
+    {
+      "name": "Keila",
+      "code": "296",
+      "cities": []
+    },
+    {
+      "name": "Kihnu",
+      "code": "303",
+      "cities": []
+    },
+    {
+      "name": "Kiili",
+      "code": "305",
+      "cities": []
+    },
+    {
+      "name": "Kohila",
+      "code": "317",
+      "cities": []
+    },
+    {
+      "name": "Kohtla-Järve",
+      "code": "321",
+      "cities": []
+    },
+    {
+      "name": "Kose",
+      "code": "338",
+      "cities": []
+    },
+    {
+      "name": "Kuusalu",
+      "code": "353",
+      "cities": []
+    },
+    {
+      "name": "Lääne",
+      "code": "56",
+      "cities": [
+        "Haapsalu",
+        "Haapsalu linn",
+        "Hullo",
+        "Lääne-Nigula vald",
+        "Taebla",
+        "Uuemõisa",
+        "Vormsi vald"
+      ]
+    },
+    {
+      "name": "Lääne-Harju",
+      "code": "430",
+      "cities": []
+    },
+    {
+      "name": "Lääne-Nigula",
+      "code": "441",
+      "cities": []
+    },
+    {
+      "name": "Lääne-Viru",
+      "code": "60",
+      "cities": [
+        "Aseri",
+        "Haljala",
+        "Haljala vald",
+        "Kadrina",
+        "Kadrina vald",
+        "Kunda",
+        "Pajusti",
+        "Rakke",
+        "Rakvere",
+        "Rakvere vald",
+        "Sõmeru",
+        "Tamsalu",
+        "Tapa",
+        "Tapa vald",
+        "Vaiatu",
+        "Väike-Maarja",
+        "Väike-Maarja vald",
+        "Vinni",
+        "Vinni vald",
+        "Viru-Nigula vald"
+      ]
+    },
+    {
+      "name": "Lääneranna",
+      "code": "431",
+      "cities": []
+    },
+    {
+      "name": "Loksa",
+      "code": "424",
+      "cities": []
+    },
+    {
+      "name": "Lüganuse",
+      "code": "442",
+      "cities": []
+    },
+    {
+      "name": "Luunja",
+      "code": "432",
+      "cities": []
+    },
+    {
+      "name": "Maardu",
+      "code": "446",
+      "cities": []
+    },
+    {
+      "name": "Märjamaa",
+      "code": "503",
+      "cities": []
+    },
+    {
+      "name": "Muhu",
+      "code": "478",
+      "cities": []
+    },
+    {
+      "name": "Mulgi",
+      "code": "480",
+      "cities": []
+    },
+    {
+      "name": "Mustvee",
+      "code": "486",
+      "cities": []
+    },
+    {
+      "name": "Narva",
+      "code": "511",
+      "cities": []
+    },
+    {
+      "name": "Narva-Jõesuu",
+      "code": "514",
+      "cities": []
+    },
+    {
+      "name": "Noo",
+      "code": "528",
+      "cities": []
+    },
+    {
+      "name": "Otepää",
+      "code": "557",
+      "cities": []
+    },
+    {
+      "name": "Paide",
+      "code": "567",
+      "cities": []
+    },
+    {
+      "name": "Pärnu",
+      "code": "68",
+      "cities": [
+        "Audru",
+        "Kihnu vald",
+        "Kilingi-Nõmme",
+        "Lihula",
+        "Linaküla",
+        "Paikuse",
+        "Pärnu",
+        "Pärnu linn",
+        "Pärnu-Jaagupi",
+        "Saarde vald",
+        "Sauga",
+        "Sindi",
+        "Tootsi",
+        "Tori vald",
+        "Uulu",
+        "Vändra"
+      ]
+    },
+    {
+      "name": "Pärnu",
+      "code": "624",
+      "cities": []
+    },
+    {
+      "name": "Peipsiääre",
+      "code": "586",
+      "cities": []
+    },
+    {
+      "name": "Põhja-Pärnu",
+      "code": "638",
+      "cities": []
+    },
+    {
+      "name": "Põhja-Sakala",
+      "code": "615",
+      "cities": []
+    },
+    {
+      "name": "Poltsamaa",
+      "code": "618",
+      "cities": []
+    },
+    {
+      "name": "Põlva",
+      "code": "622",
+      "cities": []
+    },
+    {
+      "name": "Põlva",
+      "code": "64",
+      "cities": [
+        "Kanepi",
+        "Kanepi vald",
+        "Põlva",
+        "Põlva vald",
+        "Räpina",
+        "Räpina vald"
+      ]
+    },
+    {
+      "name": "Raasiku",
+      "code": "651",
+      "cities": []
+    },
+    {
+      "name": "Rae",
+      "code": "653",
+      "cities": []
+    },
+    {
+      "name": "Rakvere",
+      "code": "663",
+      "cities": []
+    },
+    {
+      "name": "Rakvere",
+      "code": "661",
+      "cities": []
+    },
+    {
+      "name": "Räpina",
+      "code": "708",
+      "cities": []
+    },
+    {
+      "name": "Rapla",
+      "code": "668",
+      "cities": []
+    },
+    {
+      "name": "Rapla",
+      "code": "71",
+      "cities": [
+        "Järvakandi",
+        "Kehtna",
+        "Kehtna vald",
+        "Kohila",
+        "Kohila vald",
+        "Märjamaa",
+        "Märjamaa vald",
+        "Rapla",
+        "Rapla vald"
+      ]
+    },
+    {
+      "name": "Rõuge",
+      "code": "698",
+      "cities": []
+    },
+    {
+      "name": "Ruhnu",
+      "code": "689",
+      "cities": []
+    },
+    {
+      "name": "Saarde",
+      "code": "712",
+      "cities": []
+    },
+    {
+      "name": "Saare",
+      "code": "74",
+      "cities": [
+        "Kuressaare",
+        "Liiva",
+        "Muhu vald",
+        "Orissaare",
+        "Ruhnu",
+        "Ruhnu vald",
+        "Tehumardi"
+      ]
+    },
+    {
+      "name": "Saaremaa",
+      "code": "714",
+      "cities": []
+    },
+    {
+      "name": "Saku",
+      "code": "719",
+      "cities": []
+    },
+    {
+      "name": "Saue",
+      "code": "726",
+      "cities": []
+    },
+    {
+      "name": "Setomaa",
+      "code": "732",
+      "cities": []
+    },
+    {
+      "name": "Sillamäe",
+      "code": "735",
+      "cities": []
+    },
+    {
+      "name": "Tallinn",
+      "code": "784",
+      "cities": []
+    },
+    {
+      "name": "Tapa",
+      "code": "792",
+      "cities": []
+    },
+    {
+      "name": "Tartu",
+      "code": "793",
+      "cities": []
+    },
+    {
+      "name": "Tartu",
+      "code": "79",
+      "cities": [
+        "Alatskivi",
+        "Elva",
+        "Kallaste",
+        "Kambja vald",
+        "Kõrveküla",
+        "Kurepalu",
+        "Luunja",
+        "Luunja vald",
+        "Nõo",
+        "Nõo vald",
+        "Peipsiääre vald",
+        "Puhja",
+        "Tartu",
+        "Tartu linn",
+        "Tartu vald",
+        "Ülenurme"
+      ]
+    },
+    {
+      "name": "Tartu",
+      "code": "796",
+      "cities": []
+    },
+    {
+      "name": "Toila",
+      "code": "803",
+      "cities": []
+    },
+    {
+      "name": "Tori",
+      "code": "809",
+      "cities": []
+    },
+    {
+      "name": "Tõrva",
+      "code": "824",
+      "cities": []
+    },
+    {
+      "name": "Türi",
+      "code": "834",
+      "cities": []
+    },
+    {
+      "name": "Väike-Maarja",
+      "code": "928",
+      "cities": []
+    },
+    {
+      "name": "Valga",
+      "code": "855",
+      "cities": []
+    },
+    {
+      "name": "Valga",
+      "code": "81",
+      "cities": [
+        "Otepää vald",
+        "Tõrva",
+        "Valga"
+      ]
+    },
+    {
+      "name": "Viimsi",
+      "code": "890",
+      "cities": []
+    },
+    {
+      "name": "Viljandi",
+      "code": "897",
+      "cities": []
+    },
+    {
+      "name": "Viljandi",
+      "code": "84",
+      "cities": [
+        "Abja-Paluoja",
+        "Karksi-Nuia",
+        "Mõisaküla",
+        "Suure-Jaani",
+        "Viiratsi",
+        "Viljandi",
+        "Viljandi vald",
+        "Võhma"
+      ]
+    },
+    {
+      "name": "Viljandi",
+      "code": "899",
+      "cities": []
+    },
+    {
+      "name": "Vinni",
+      "code": "901",
+      "cities": []
+    },
+    {
+      "name": "Viru-Nigula",
+      "code": "903",
+      "cities": []
+    },
+    {
+      "name": "Vormsi",
+      "code": "907",
+      "cities": []
+    },
+    {
+      "name": "Võru",
+      "code": "917",
+      "cities": []
+    },
+    {
+      "name": "Võru",
+      "code": "87",
+      "cities": [
+        "Antsla",
+        "Antsla vald",
+        "Rõuge",
+        "Rõuge vald",
+        "Vana-Antsla",
+        "Värska",
+        "Võru",
+        "Võru vald"
+      ]
+    },
+    {
+      "name": "Võru",
+      "code": "919",
+      "cities": []
+    }
+  ]
+}

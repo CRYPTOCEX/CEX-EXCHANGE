@@ -36,6 +36,7 @@ import { Link } from "@/i18n/routing";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { $fetch } from "@/lib/api";
+import { useTranslations } from "next-intl";
 
 interface MatchingResultsProps {
   criteria: any;
@@ -73,6 +74,7 @@ export function MatchingResults({
   matches = [],
   onStartOver,
 }: MatchingResultsProps) {
+  const t = useTranslations("ext");
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
@@ -240,9 +242,9 @@ export function MatchingResults({
       <div className="space-y-6">
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
           <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
-          <p className="text-lg font-medium">Finding your perfect matches...</p>
+          <p className="text-lg font-medium">{t("finding_your_perfect_matches_ellipsis")}</p>
           <p className="text-sm text-muted-foreground">
-            This may take a moment as we search for the best offers
+            {t("this_may_take_a_moment_as")}
           </p>
           <Progress
             value={Math.floor(Math.random() * 60) + 40}
@@ -264,16 +266,15 @@ export function MatchingResults({
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
             <AlertCircle className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-xl font-medium">Failed to Load Offers</h3>
+          <h3 className="text-xl font-medium">{t("failed_to_load_offers")}</h3>
           <p className="text-muted-foreground text-center max-w-md">
-            We encountered an error while fetching matching offers. Please try
-            again.
+            {t("we_encountered_an_error_while_fetching")} {t("please_try_again")}
           </p>
           <div className="flex gap-2">
             <Button onClick={() => fetchMatches()} variant="outline">
-              Try Again
+              {t("try_again")}
             </Button>
-            <Button onClick={onStartOver}>Start Over</Button>
+            <Button onClick={onStartOver}>{t("start_over")}</Button>
           </div>
         </div>
       </div>
@@ -285,16 +286,15 @@ export function MatchingResults({
         <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-xl font-medium">No Matching Offers Found</h3>
+        <h3 className="text-xl font-medium">{t("no_matching_offers_found")}</h3>
         <p className="text-muted-foreground text-center max-w-md">
-          We couldn't find any offers that match your criteria. Try adjusting
-          your preferences or check back later.
+          {t("we_couldnt_find_any_offers_that")} {t("try_adjusting_your_preferences_or_check_back_later")}
         </p>
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline">
             Refresh
           </Button>
-          <Button onClick={onStartOver}>Start Over</Button>
+          <Button onClick={onStartOver}>{t("start_over")}</Button>
         </div>
       </div>
     );
@@ -304,10 +304,10 @@ export function MatchingResults({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h3 className="text-lg font-medium">
-            We found {matchingOffers.length} matching offers for you
+            {t("we_found")} {matchingOffers.length} {t("matching_offers_for_you")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Based on your preferences, here are the best{" "}
+            {t("based_on_your_preferences_here_are_the_best")}{" "}
             {criteria.tradeType === "buy" ? "sellers" : "buyers"} for{" "}
             {criteria.cryptocurrency}
           </p>
@@ -327,14 +327,14 @@ export function MatchingResults({
           </Button>
           <Select value={sortBy} onValueChange={handleSort}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort By" />
+              <SelectValue placeholder={t("sort_by")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="match_score">Best Match</SelectItem>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-              <SelectItem value="rating_desc">Highest Rating</SelectItem>
-              <SelectItem value="amount_desc">Largest Amount</SelectItem>
+              <SelectItem value="match_score">{t("best_match")}</SelectItem>
+              <SelectItem value="price_asc">{t("price_low_to_high")}</SelectItem>
+              <SelectItem value="price_desc">{t("price_high_to_low")}</SelectItem>
+              <SelectItem value="rating_desc">{t("highest_rating")}</SelectItem>
+              <SelectItem value="amount_desc">{t("largest_amount")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -344,7 +344,7 @@ export function MatchingResults({
         <div className="flex items-center justify-center py-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            Refreshing offers...
+            {t("refreshing_offers_ellipsis")}
           </div>
         </div>
       )}
@@ -396,7 +396,7 @@ export function MatchingResults({
                                   <Shield className="h-4 w-4 ml-1 text-green-500 fill-green-500/20" />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Verified Trader</p>
+                                  <p>{t("verified_trader")}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -411,14 +411,14 @@ export function MatchingResults({
                               />
                             ))}
                           </div>
-                          {offer.trader?.completedTrades || 0} trades •{" "}
+                          {offer.trader?.completedTrades || 0} {t("trades")}{" "}
                           {offer.trader?.completionRate || 0}%
                         </div>
                       </div>
                     </div>
                     <Badge className="bg-primary/10 text-primary border-primary/20 font-medium flex items-center gap-1 px-2.5 py-1">
                       <Zap className="h-3.5 w-3.5" />
-                      {offer.matchScore}% Match
+                      {offer.matchScore}{t("match")}
                     </Badge>
                   </div>
 
@@ -461,12 +461,12 @@ export function MatchingResults({
                             {method}
                           </Badge>
                         )
-                      ) || <Badge variant="outline">No payment methods</Badge>}
+                      ) || <Badge variant="outline">{t("no_payment_methods")}</Badge>}
                     </div>
 
                     <div className="pt-2">
                       <div className="text-sm font-medium mb-2">
-                        Why this is a good match:
+                        {t("why_this_is_a_good_match")}
                       </div>
                       <div className="space-y-1.5">
                         {offer.benefits?.map(
@@ -486,7 +486,7 @@ export function MatchingResults({
                             <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center mr-2">
                               <CheckCircle className="h-3 w-3 text-primary" />
                             </div>
-                            Good match for your criteria
+                            {t("good_match_for_your_criteria")}
                           </div>
                         )}
                       </div>
@@ -496,7 +496,7 @@ export function MatchingResults({
                   <div className="flex justify-between items-center mt-4 pt-4 border-t">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Clock className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                      Responds in ~{offer.trader?.responseTime || 5} min
+                      {t("responds_in")}{offer.trader?.responseTime || 5} min
                     </div>
                     <Button
                       onClick={() => handleTrade(offer.id)}
@@ -516,10 +516,10 @@ export function MatchingResults({
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={onStartOver}>
-          Start Over
+          {t("start_over")}
         </Button>
         <Link href="/p2p/offer">
-          <Button>Browse All Offers</Button>
+          <Button>{t("browse_all_offers")}</Button>
         </Link>
       </div>
     </div>

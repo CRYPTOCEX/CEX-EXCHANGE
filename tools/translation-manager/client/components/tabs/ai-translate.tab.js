@@ -177,6 +177,46 @@
                 checkboxes.forEach(cb => cb.checked = e.target.checked);
             });
         }
+
+        // Add "Select Incomplete" button functionality
+        const selectIncompleteBtn = document.getElementById('ai-select-incomplete');
+        if (selectIncompleteBtn) {
+            const newBtn = selectIncompleteBtn.cloneNode(true);
+            selectIncompleteBtn.parentNode.replaceChild(newBtn, selectIncompleteBtn);
+
+            newBtn.addEventListener('click', () => {
+                const checkboxes = container.querySelectorAll('.locale-checkbox');
+                checkboxes.forEach(cb => {
+                    const localeCode = cb.value;
+                    const localeData = availableLocales.get(localeCode);
+                    // Select only locales that are not 100% complete
+                    cb.checked = localeData && (localeData.progress || 0) < 100;
+                });
+                // Update the select all checkbox state
+                const allCheckbox = document.getElementById('ai-select-all-locales');
+                if (allCheckbox) {
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    allCheckbox.checked = allChecked;
+                }
+            });
+        }
+
+        // Add "Clear Selection" button functionality
+        const selectNoneBtn = document.getElementById('ai-select-none');
+        if (selectNoneBtn) {
+            const newBtn = selectNoneBtn.cloneNode(true);
+            selectNoneBtn.parentNode.replaceChild(newBtn, selectNoneBtn);
+
+            newBtn.addEventListener('click', () => {
+                const checkboxes = container.querySelectorAll('.locale-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                // Uncheck the select all checkbox
+                const allCheckbox = document.getElementById('ai-select-all-locales');
+                if (allCheckbox) {
+                    allCheckbox.checked = false;
+                }
+            });
+        }
     }
     
     function renderLocaleGrid() {

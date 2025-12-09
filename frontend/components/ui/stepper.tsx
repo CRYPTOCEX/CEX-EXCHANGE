@@ -778,7 +778,7 @@ export function Stepper({
   };
 
   const renderNavigation = () => {
-    const t = useTranslations("components/ui/stepper");
+    const t = useTranslations("common");
     if (isDone) return;
     const backButtonVariant = colorScheme === "default" ? "outline" : "outline";
     const nextButtonVariant = colorScheme === "default" ? "default" : "default";

@@ -59,7 +59,7 @@ export default function LimitOrderForm({
   fundingTime,
   formatPrice,
 }: LimitOrderFormProps) {
-  const t = useTranslations("trade/components/trading/futures/limit-order-form");
+  const t = useTranslations("ext");
   
   const [limitPrice, setLimitPrice] = useState("");
   const [amount, setAmount] = useState("");

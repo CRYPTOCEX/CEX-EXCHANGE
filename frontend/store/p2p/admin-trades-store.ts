@@ -48,7 +48,7 @@ export interface AdminTradesState {
     notes?: string
   ) => Promise<void>;
   cancelTrade: (id: string, reason: string) => Promise<void>;
-  addAdminNote: (id: string, note: string) => Promise<void>;
+  addAdminNote: (id: string, note: string, isMessage?: boolean) => Promise<void>;
 }
 
 export const useAdminTradesStore = create<AdminTradesState>((set, get) => ({
@@ -126,14 +126,9 @@ export const useAdminTradesStore = create<AdminTradesState>((set, get) => ({
   },
 
   // Get a specific trade by ID
+  // Always fetches fresh data to ensure up-to-date trade details
   getTradeById: async (id: string) => {
     set({ isLoadingTradeDetails: true, tradeDetailsError: null });
-
-    // Check if we already have this trade's details
-    if (get().tradeDetails[id]) {
-      set({ isLoadingTradeDetails: false });
-      return get().tradeDetails[id];
-    }
 
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/trade/${id}`,
@@ -241,14 +236,14 @@ export const useAdminTradesStore = create<AdminTradesState>((set, get) => ({
     }
   },
 
-  // Add an admin note to a trade
-  addAdminNote: async (id: string, note: string) => {
+  // Add an admin note or message to a trade
+  addAdminNote: async (id: string, note: string, isMessage: boolean = false) => {
     set({ isAddingNote: true, addingNoteError: null });
 
     const { data, error } = await $fetch({
       url: `/api/admin/p2p/trade/${id}/note`,
       method: "POST",
-      body: { note },
+      body: { note, isMessage },
     });
 
     if (error) {

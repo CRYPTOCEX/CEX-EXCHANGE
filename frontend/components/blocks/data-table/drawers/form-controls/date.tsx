@@ -28,9 +28,7 @@ export function DateFormControl({
   placeholder,
   dateTime = true,
 }: DateFormControlProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/drawers/form-controls/date"
-  );
+  const t = useTranslations("common");
   // Initialize local state from field.value (ISO string)
   const initialDate = field.value ? new Date(field.value) : null;
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(
@@ -221,8 +219,8 @@ export function DateFormControl({
                 value={ampm}
                 onChange={handleAmpmSelect}
               >
-                <option value="AM">{t("AM")}</option>
-                <option value="PM">{t("PM")}</option>
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
               </select>
             </div>
           )}

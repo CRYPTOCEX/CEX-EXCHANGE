@@ -15,7 +15,7 @@ export function ChatHeader({
   ticketStatus,
   onStatusChange,
 }: ChatHeaderProps) {
-  const t = useTranslations("components/blocks/support/chat-header");
+  const t = useTranslations("common");
   const showCloseButton =
     ticketStatus !== "CLOSED" && (isSupport || ticketStatus !== "RESOLVED");
 

@@ -33,7 +33,7 @@ export default function ResetPasswordForm({
   onLoginClick,
   preserveToken = false,
 }: ResetPasswordFormProps) {
-  const t = useTranslations("components/auth/reset-password-form");
+  const t = useTranslations("common");
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

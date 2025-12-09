@@ -127,7 +127,7 @@ const ActiveMarketTab = memo(({
   isFavorite: boolean;
   isDarkTheme: boolean;
 }) => {
-  const t = useTranslations("binary/components/header/market-selector");
+  const t = useTranslations("common");
   
   const symbol = market.symbol;
   const baseCurrency = extractBaseCurrency(symbol);
@@ -217,7 +217,7 @@ const MarketCard = memo(({
   isDarkTheme: boolean;
   index: number;
 }) => {
-  const t = useTranslations("binary/components/header/market-selector");
+  const t = useTranslations("common");
   const symbol = market.symbol || `${market.currency}${market.pair}`;
   
   const formatPrice = (price: number) => {
@@ -395,7 +395,7 @@ export default function MarketSelector({
   currentPrice,
   handleMarketSelect,
 }: MarketSelectorProps) {
-  const t = useTranslations("binary/components/header/market-selector");
+  const t = useTranslations("common");
   // Use the binary store
   const {
     activeMarkets: storeActiveMarkets,

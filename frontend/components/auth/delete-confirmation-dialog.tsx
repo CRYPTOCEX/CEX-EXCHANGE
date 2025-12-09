@@ -26,7 +26,7 @@ const DeleteConfirmationDialog = ({
   defaultToast?: boolean;
   toastMessage?: string;
 }) => {
-  const t = useTranslations("components/auth/delete-confirmation-dialog");
+  const t = useTranslations("common");
   const [isPending, startTransition] = useTransition();
 
   const handleConfirm = async () => {

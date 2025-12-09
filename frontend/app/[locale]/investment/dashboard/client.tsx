@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 
 export default function InvestmentDashboardClient() {
-  const t = useTranslations("investment/dashboard/client");
+  const t = useTranslations("common");
   const { investments, investmentsLoading, fetchUserInvestments } =
     useInvestmentStore();
   const { user } = useUserStore();

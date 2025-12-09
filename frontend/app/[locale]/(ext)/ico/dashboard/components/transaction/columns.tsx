@@ -79,7 +79,7 @@ export const columns: ColumnDefinition[] = [
       render: (value: string) => {
         const t = useTranslations("ext");
         if (!value) {
-          return <span className="text-muted-foreground">{t("N_A")}</span>;
+          return <span className="text-muted-foreground">N/A</span>;
         }
         return (
           <Link

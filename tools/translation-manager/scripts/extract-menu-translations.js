@@ -8,9 +8,41 @@
 const fs = require('fs');
 const path = require('path');
 
-const MENU_FILE = path.join(__dirname, '../frontend/config/menu.ts');
-const MESSAGES_DIR = path.join(__dirname, '../frontend/messages');
+const MENU_FILE = path.join(__dirname, '../../../frontend/config/menu.ts');
+const MESSAGES_DIR = path.join(__dirname, '../../../frontend/messages');
 const OUTPUT_FILE = path.join(__dirname, 'menu-translations.json');
+
+// Function to set nested property
+function setNestedProperty(obj, keyPath, value) {
+  const keys = keyPath.split('.');
+  let current = obj;
+
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!current[key] || typeof current[key] !== 'object') {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+
+  current[keys[keys.length - 1]] = value;
+}
+
+// Function to get nested property
+function getNestedProperty(obj, keyPath) {
+  const keys = keyPath.split('.');
+  let current = obj;
+
+  for (const key of keys) {
+    if (current && typeof current === 'object' && key in current) {
+      current = current[key];
+    } else {
+      return undefined;
+    }
+  }
+
+  return current;
+}
 
 // Function to generate a translation key from a menu key
 function generateTranslationKey(menuKey, field = 'title') {
@@ -112,7 +144,7 @@ function parseMenuFile() {
   return items;
 }
 
-// Function to update locale files
+// Function to update locale files with nested structure
 function updateLocaleFiles(translations) {
   console.log('📝 Updating locale files...');
 
@@ -132,23 +164,25 @@ function updateLocaleFiles(translations) {
       console.warn(`⚠️  Could not read ${file}, creating new`);
     }
 
-    // Add menu translations if they don't exist
+    // Ensure menu namespace exists
+    if (!localeData.menu) {
+      localeData.menu = {};
+    }
+
+    // Add menu translations with nested structure
     let added = 0;
     for (const [key, value] of Object.entries(translations)) {
-      if (!localeData[key]) {
-        localeData[key] = locale === 'en' ? value : value; // For non-English, keep English as placeholder
+      // key is like "admin.dashboard.title", we need to add under menu namespace
+      const fullPath = `menu.${key}`;
+      const existing = getNestedProperty(localeData, fullPath);
+      if (existing === undefined) {
+        setNestedProperty(localeData, fullPath, locale === 'en' ? value : value);
         added++;
       }
     }
 
     if (added > 0) {
-      // Sort keys alphabetically
-      const sorted = {};
-      Object.keys(localeData).sort().forEach(key => {
-        sorted[key] = localeData[key];
-      });
-
-      fs.writeFileSync(filePath, JSON.stringify(sorted, null, 2) + '\n', 'utf8');
+      fs.writeFileSync(filePath, JSON.stringify(localeData, null, 2) + '\n', 'utf8');
       console.log(`   ✅ ${locale}.json - Added ${added} translations`);
       updatedCount++;
     } else {
@@ -168,16 +202,17 @@ function main() {
     const menuItems = parseMenuFile();
     console.log(`✅ Found ${menuItems.length} menu items\n`);
 
-    // Extract translations
+    // Extract translations (keys WITHOUT "menu." prefix, e.g., "admin.dashboard.title")
     const translations = {};
     menuItems.forEach(item => {
       if (item.key && item.title) {
-        const titleKey = `menu.${item.key.replace(/-/g, '.')}`;
-        const descKey = `${titleKey}.description`;
+        // Convert "admin-dashboard" to "admin.dashboard"
+        const baseKey = item.key.replace(/-/g, '.');
 
-        translations[titleKey] = item.title;
+        // Always use .title suffix for consistency
+        translations[`${baseKey}.title`] = item.title;
         if (item.description) {
-          translations[descKey] = item.description;
+          translations[`${baseKey}.description`] = item.description;
         }
       }
     });

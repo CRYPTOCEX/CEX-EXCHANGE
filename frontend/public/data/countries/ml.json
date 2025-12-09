@@ -1,0 +1,119 @@
+{
+  "name": "Mali",
+  "iso2": "ML",
+  "iso3": "MLI",
+  "phonecode": "223",
+  "states": [
+    {
+      "name": "Bamako",
+      "code": "BKO",
+      "cities": [
+        "Bamako"
+      ]
+    },
+    {
+      "name": "Gao",
+      "code": "7",
+      "cities": [
+        "Ansongo",
+        "Cercle de Bourem",
+        "Gao",
+        "Gao Cercle",
+        "Inékar"
+      ]
+    },
+    {
+      "name": "Kayes",
+      "code": "1",
+      "cities": [
+        "Bafoulabé",
+        "Kayes",
+        "Kita",
+        "Kokofata",
+        "Sagalo"
+      ]
+    },
+    {
+      "name": "Kidal",
+      "code": "8",
+      "cities": [
+        "Abeïbara",
+        "Cercle d’Abeïbara",
+        "Kidal"
+      ]
+    },
+    {
+      "name": "Koulikoro",
+      "code": "2",
+      "cities": [
+        "Banamba",
+        "Kangaba",
+        "Kati",
+        "Kolokani",
+        "Koulikoro"
+      ]
+    },
+    {
+      "name": "Ménaka",
+      "code": "9",
+      "cities": []
+    },
+    {
+      "name": "Mopti",
+      "code": "5",
+      "cities": [
+        "Bandiagara",
+        "Djénné",
+        "Douentza",
+        "Douentza Cercle",
+        "Mopti",
+        "Ténenkou"
+      ]
+    },
+    {
+      "name": "Ségou",
+      "code": "4",
+      "cities": [
+        "Baroueli",
+        "Cercle de San",
+        "Ké-Macina",
+        "Kinmparana",
+        "Markala",
+        "San",
+        "Ségou",
+        "Sokolo"
+      ]
+    },
+    {
+      "name": "Sikasso",
+      "code": "3",
+      "cities": [
+        "Bougouni",
+        "Kolondiéba",
+        "Koutiala",
+        "Koutiala Cercle",
+        "Ntossoni",
+        "Sikasso",
+        "Yorosso"
+      ]
+    },
+    {
+      "name": "Taoudénit",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Tombouctou",
+      "code": "6",
+      "cities": [
+        "Araouane",
+        "Cercle de Goundam",
+        "Dire",
+        "Goundam",
+        "Gourma-Rharous Cercle",
+        "Niafunké",
+        "Timbuktu"
+      ]
+    }
+  ]
+}

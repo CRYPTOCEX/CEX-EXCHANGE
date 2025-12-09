@@ -380,7 +380,7 @@ function renderMegaMenuGroupsWithAddons(
 
 // Main dynamic menu component that renders different views depending on route and menu data.
 export function DynamicMenuView() {
-  const t = useTranslations("components/partials/dashboard/dynamic-menu");
+  const t = useTranslations("common");
   const { user } = useUserStore();
   const {
     settings,

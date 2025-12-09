@@ -19,6 +19,7 @@ export default class p2pDispute
   resolvedOn?: Date;
   messages?: any;
   evidence?: any;
+  activityLog?: any;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -111,6 +112,10 @@ export default class p2pDispute
           allowNull: true,
         },
         evidence: {
+          type: DataTypes.JSON,
+          allowNull: true,
+        },
+        activityLog: {
           type: DataTypes.JSON,
           allowNull: true,
         },

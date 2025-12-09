@@ -27,7 +27,7 @@ export default function TradingFormPanel({
   isEco = false,
   onOrderSubmit,
 }: TradingFormPanelProps) {
-  const t = useTranslations("trade/components/trading/spot/index");
+  const t = useTranslations("ext");
   const [buyMode, setBuyMode] = useState(true);
   const [orderType, setOrderType] = useState<"limit" | "market" | "stop">(
     "limit"

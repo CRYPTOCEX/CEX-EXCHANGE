@@ -188,10 +188,10 @@ export default function UpgradeHelperPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm space-y-2">
-            <p>{t("•_always_create_migration_tools")}</p>
-            <p>{t("•_migration_operations_once_completed")}</p>
-            <p>{t("•_monitor_system_data_migrations")}</p>
-            <p>{t("•_some_operations_maintenance_mode")}</p>
+            <p>• {t("always_create_migration_tools")}</p>
+            <p>• {t("migration_operations_once_completed")}</p>
+            <p>• {t("monitor_system_data_migrations")}</p>
+            <p>• {t("some_operations_maintenance_mode")}</p>
           </div>
         </CardContent>
       </Card>

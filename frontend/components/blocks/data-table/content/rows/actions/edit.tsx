@@ -17,9 +17,7 @@ interface EditActionProps {
 }
 
 export function EditAction({ row, onSelect, canEditAction }: EditActionProps) {
-  const t = useTranslations(
-    "components/blocks/data-table/content/rows/actions/edit"
-  );
+  const t = useTranslations("common");
   const handleEdit = useTableStore((state) => state.handleEdit);
   const tableConfig = useTableStore((state) => state.tableConfig);
   const router = useRouter();

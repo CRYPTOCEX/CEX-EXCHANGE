@@ -1,0 +1,52 @@
+{
+  "name": "Guadeloupe",
+  "iso2": "GP",
+  "iso3": "GLP",
+  "phonecode": "590",
+  "states": [
+    {
+      "name": "Basse-Terre",
+      "code": "01",
+      "cities": [
+        "Baie-Mahault",
+        "Baillif",
+        "Basse-Terre",
+        "Bouillante",
+        "Capesterre-Belle-Eau",
+        "Deshaies",
+        "Gourbeyre",
+        "Goyave",
+        "Lamentin",
+        "Petit-Bourg",
+        "Pointe-Noire",
+        "Saint-Claude",
+        "Sainte-Rose",
+        "Terre-de-Bas",
+        "Terre-de-Haut",
+        "Trois-Rivières",
+        "Vieux-Fort",
+        "Vieux-Habitants"
+      ]
+    },
+    {
+      "name": "Pointe-à-Pitre",
+      "code": "02",
+      "cities": [
+        "Anse-Bertrand",
+        "Capesterre-de-Marie-Galante",
+        "Grand-Bourg",
+        "La Désirade",
+        "Le Gosier",
+        "Le Moule",
+        "Les Abymes",
+        "Morne-à-l'Eau",
+        "Petit-Canal",
+        "Pointe-à-Pitre",
+        "Port-Louis",
+        "Saint-François",
+        "Saint-Louis",
+        "Sainte-Anne"
+      ]
+    }
+  ]
+}

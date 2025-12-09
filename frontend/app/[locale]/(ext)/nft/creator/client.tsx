@@ -46,8 +46,8 @@ import { useUserStore } from "@/store/user";
 import { $fetch } from "@/lib/api";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { CreatorOnboarding } from "@/components/nft/shared/creator-onboarding";
-import { DeployCollectionModal } from "@/components/nft/shared/deploy-collection-modal";
+import { CreatorOnboarding } from "@/app/[locale]/(ext)/nft/components/shared/creator-onboarding";
+import { DeployCollectionModal } from "@/app/[locale]/(ext)/nft/components/shared/deploy-collection-modal";
 import { toast } from "sonner";
 import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
@@ -68,7 +68,7 @@ interface CreatorDashboardData {
 }
 
 export default function NFTDashboardClient() {
-  const t = useTranslations("nft/dashboard");
+  const t = useTranslations("ext");
   const { user } = useUserStore();
   const searchParams = useSearchParams();
 
@@ -758,9 +758,21 @@ export default function NFTDashboardClient() {
                           >
                             {collection.status || 'PENDING'}
                           </Badge>
+
+                          {/* Logo overlay - positioned at bottom left overlapping banner */}
+                          {collection.logoImage && collection.bannerImage && (
+                            <div className="absolute -bottom-8 left-4 w-16 h-16 rounded-xl border-4 border-card bg-card overflow-hidden shadow-lg">
+                              <Image
+                                src={collection.logoImage}
+                                alt={`${collection.name} logo`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )}
                         </div>
 
-                        <div className="p-5">
+                        <div className={cn("p-5", collection.logoImage && collection.bannerImage && "pt-10")}>
                           {/* Title */}
                           <h3 className="font-bold text-lg mb-1 truncate group-hover:text-primary transition-colors">{collection.name}</h3>
                           {collection.symbol && (

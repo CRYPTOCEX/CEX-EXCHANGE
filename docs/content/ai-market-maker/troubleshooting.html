@@ -1,0 +1,434 @@
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-4">
+            <span class="text-2xl">🔧</span>
+        </div>
+        <div>
+            <h1 class="text-4xl font-bold text-zinc-900 dark:text-zinc-100">AI Market Maker Troubleshooting</h1>
+            <p class="text-zinc-600 dark:text-zinc-400">Common Issues & Solutions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Overview -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🎯 Overview</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 mb-4">
+            This guide covers common issues you may encounter with the AI Market Maker extension and how to resolve them. If you can't find a solution here, check the system logs or contact support.
+        </p>
+    </div>
+</div>
+
+<!-- Quick Diagnostics -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🔍 Quick Diagnostics</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">Before troubleshooting, check these common issues:</p>
+
+        <div class="space-y-4">
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Is the extension enabled?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Check System → Extensions → AI Market Maker status</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Is the Ecosystem extension active?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">AI Market Maker depends on Ecosystem - ensure it's installed and enabled</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Is global trading enabled?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Check AI Market Maker → Settings → Enable Trading</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Are cron jobs running?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Verify the backend scheduler is active with: <code class="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">pm2 list</code></p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Are markets set to ACTIVE?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Markets must be ACTIVE for bots to trade</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <input type="checkbox" class="mt-1 mr-3 h-4 w-4" disabled>
+                <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">Are bots set to ACTIVE?</div>
+                    <p class="text-zinc-600 dark:text-zinc-400 text-sm">Bots must be ACTIVE and assigned to an active market</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Common Issues -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚠️ Common Issues & Solutions</h2>
+
+    <div class="space-y-6">
+        <!-- Issue 1: Extension Not Showing -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Extension not showing in admin menu</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> AI Market Maker doesn't appear in the admin navigation after installation.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Ensure Ecosystem extension is installed first</li>
+                        <li>2. Run <code class="bg-green-100 dark:bg-green-800 px-1 rounded">pnpm updator</code> after activation</li>
+                        <li>3. Clear browser cache and refresh</li>
+                        <li>4. Check if extension is enabled in System → Extensions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 2: Bots Not Trading -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Bots are not executing trades</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Markets and bots are active but no trades are being executed.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Verify cron jobs are running: <code class="bg-green-100 dark:bg-green-800 px-1 rounded">pm2 list</code></li>
+                        <li>2. Check global "Enable Trading" setting is ON</li>
+                        <li>3. Verify market status is ACTIVE (not PAUSED or INACTIVE)</li>
+                        <li>4. Ensure bot status is ACTIVE</li>
+                        <li>5. Check if daily trade limit has been reached</li>
+                        <li>6. Review logs for error messages</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 3: Market Auto-Paused -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Market automatically paused</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Market status changed to PAUSED without manual intervention.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Causes & Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li><strong>Volatility exceeded:</strong> Wait for volatility to normalize or increase threshold</li>
+                        <li><strong>Daily loss limit hit:</strong> Market will resume at daily reset (midnight UTC)</li>
+                        <li><strong>Circuit breaker triggered:</strong> Wait for cooldown period</li>
+                        <li>Check history logs for the specific reason</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 4: No Markets Available -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">No ecosystem markets available to select</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Dropdown shows no markets when creating an AI market.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Create markets in Ecosystem extension first</li>
+                        <li>2. Ensure ecosystem markets are enabled/active</li>
+                        <li>3. Markets already used in AI Market Maker won't appear (one-to-one mapping)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 5: License Activation Failed -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">License activation fails</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Unable to activate the extension with CodeCanyon license.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Verify internet connection is stable</li>
+                        <li>2. Double-check CodeCanyon username (case-sensitive)</li>
+                        <li>3. Ensure license code is correct (copy-paste without extra spaces)</li>
+                        <li>4. Check if license is already used on another domain</li>
+                        <li>5. Try disabling any firewall/proxy temporarily</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 6: Database Errors -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Database or migration errors</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Errors about missing tables or columns.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Run <code class="bg-green-100 dark:bg-green-800 px-1 rounded">pnpm updator</code> to apply migrations</li>
+                        <li>2. Check database user has ALTER and CREATE permissions</li>
+                        <li>3. Verify database connection in .env file</li>
+                        <li>4. Try running backend build: <code class="bg-green-100 dark:bg-green-800 px-1 rounded">pnpm build:backend</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 7: High Resource Usage -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">High CPU or memory usage</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> Server performance degraded after enabling AI Market Maker.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Reduce number of active markets</li>
+                        <li>2. Reduce number of bots per market</li>
+                        <li>3. Increase trading interval (e.g., 5 minutes instead of 1)</li>
+                        <li>4. Reduce daily trade limits</li>
+                        <li>5. Enable history cleanup to reduce database size</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 8: Trades Not Appearing -->
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Trades not appearing in order book</h3>
+            <div class="space-y-3">
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                    <p class="text-red-800 dark:text-red-200 text-sm"><strong>Symptom:</strong> AI trades execute but don't show in the trading interface.</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                    <p class="text-green-800 dark:text-green-200 text-sm"><strong>Solutions:</strong></p>
+                    <ul class="text-green-800 dark:text-green-200 text-sm ml-4 mt-2 space-y-1">
+                        <li>1. Check realLiquidityPercent setting - 0% means AI-only (simulated)</li>
+                        <li>2. Increase realLiquidityPercent to create real orders</li>
+                        <li>3. Verify the ecosystem market has trading enabled</li>
+                        <li>4. Check frontend WebSocket connection is active</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Analysis -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">📋 Analyzing Logs</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            Check system logs for detailed error information:
+        </p>
+
+        <div class="space-y-4">
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4">
+                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">View PM2 logs:</div>
+                <code class="text-sm text-zinc-600 dark:text-zinc-400">pm2 logs backend --lines 100</code>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4">
+                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Filter for AI Market Maker errors:</div>
+                <code class="text-sm text-zinc-600 dark:text-zinc-400">pm2 logs backend --lines 500 | grep -i "ai.*trading\|market.*maker"</code>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 rounded p-4">
+                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">View trade history in admin:</div>
+                <code class="text-sm text-zinc-600 dark:text-zinc-400">/admin/ai/market-maker/history</code>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+                <strong>💡 Tip:</strong> Enable Debug Mode in settings for verbose logging during troubleshooting. Remember to disable it in production.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Error Messages -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">🚨 Error Message Reference</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-zinc-50 dark:bg-zinc-800">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Error</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Meaning</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Solution</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">TRADING_DISABLED</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Global trading switch is off</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Enable in Settings</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">MARKET_PAUSED</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Market status is PAUSED</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Reactivate market or wait for auto-resume</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">DAILY_LIMIT_REACHED</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Max daily trades exceeded</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Wait for daily reset or increase limit</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">VOLATILITY_EXCEEDED</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Price volatility too high</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Increase threshold or wait</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">LOSS_LIMIT_HIT</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Daily loss limit reached</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Wait for daily reset</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">CIRCUIT_BREAKER</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Emergency stop triggered</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Wait for cooldown period</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">INSUFFICIENT_BALANCE</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Bot lacks funds to trade</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Add funds to bot or pool</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 text-sm font-mono text-red-600 dark:text-red-400">NO_ACTIVE_BOTS</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">No bots active for market</td>
+                    <td class="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Activate or create bots</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Performance Tips -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">⚡ Performance Optimization</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Database Optimization</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Set reasonable history retention (30-90 days)</li>
+                <li>• Run weekly cleanup cron job</li>
+                <li>• Index frequently queried columns</li>
+                <li>• Monitor database size growth</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Resource Management</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Limit concurrent active markets</li>
+                <li>• Use appropriate bot counts (5-10 per market)</li>
+                <li>• Adjust trading interval based on server capacity</li>
+                <li>• Monitor memory usage with PM2</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Trading Efficiency</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Start with lower activity settings</li>
+                <li>• Scale up gradually based on performance</li>
+                <li>• Use appropriate bot personalities for goals</li>
+                <li>• Monitor PnL and adjust strategies</li>
+            </ul>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-3 text-zinc-900 dark:text-zinc-100">Monitoring</h3>
+            <ul class="text-zinc-600 dark:text-zinc-400 text-sm space-y-2">
+                <li>• Check dashboard metrics regularly</li>
+                <li>• Set up alerts for circuit breaker triggers</li>
+                <li>• Review trade history for anomalies</li>
+                <li>• Track daily trade volumes and PnL</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Getting Help -->
+<div class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">💬 Getting Help</h2>
+
+    <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-6">
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+            If you can't resolve your issue using this guide:
+        </p>
+
+        <div class="space-y-4">
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">1. Check Documentation</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Review the other documentation pages for detailed feature explanations.</p>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">2. Collect Information</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Gather relevant information before contacting support:</p>
+                <ul class="text-zinc-600 dark:text-zinc-400 text-sm ml-4 mt-2">
+                    <li>• Error messages from logs</li>
+                    <li>• Screenshots of the issue</li>
+                    <li>• Steps to reproduce the problem</li>
+                    <li>• Your configuration settings</li>
+                </ul>
+            </div>
+
+            <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4">
+                <h4 class="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">3. Contact Support</h4>
+                <p class="text-zinc-600 dark:text-zinc-400 text-sm">Reach out through the official support channels with your collected information.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Docs -->
+<div class="mb-12">
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-3 text-blue-900 dark:text-blue-100">📚 Related Documentation</h3>
+        <div class="flex gap-3 flex-wrap">
+            <a href="#ai-market-maker-installation" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                Installation Guide
+            </a>
+            <a href="#ai-market-maker-markets" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Markets Configuration
+            </a>
+            <a href="#ai-market-maker-bots" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Bot Management
+            </a>
+            <a href="#ai-market-maker-settings" class="inline-flex items-center px-4 py-2 bg-zinc-600 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                Global Settings
+            </a>
+        </div>
+    </div>
+</div>

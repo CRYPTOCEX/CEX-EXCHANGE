@@ -65,11 +65,14 @@ export default async (data: Handler) => {
       throw createError(403, "You don't have permission to delete this offer");
     }
 
-    // Check if offer has active trades
+    // Check if offer has active trades (exclude completed, cancelled, disputed, and expired)
     const activeTrades = await models.p2pTrade.count({
       where: {
         offerId: id,
-        status: { [Op.in]: ["PENDING", "ACTIVE", "ESCROW", "PAID", "PAYMENT_SENT"] },
+        status: {
+          [Op.in]: ["PENDING", "ACTIVE", "ESCROW", "PAID", "PAYMENT_SENT", "ESCROW_RELEASED"],
+          [Op.notIn]: ["COMPLETED", "CANCELLED", "DISPUTED", "EXPIRED"]
+        },
       },
       transaction,
     });
@@ -78,7 +81,7 @@ export default async (data: Handler) => {
       await transaction.rollback();
       throw createError(
         400,
-        "Cannot delete offer with active trades. Please wait for all trades to complete or cancel them first."
+        "Cannot delete offer with active trades. Please wait for all trades to complete, expire, or cancel them first."
       );
     }
 

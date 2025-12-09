@@ -33,15 +33,19 @@ export const metadata = {
               type: "string",
               description: "Instructions for using this payment method"
             },
-            processingTime: { 
+            metadata: {
+              type: "object",
+              description: "Flexible key-value pairs for payment details"
+            },
+            processingTime: {
               type: "string",
               description: "Expected processing time"
             },
-            fees: { 
+            fees: {
               type: "string",
               description: "Fee information"
             },
-            available: { 
+            available: {
               type: "boolean",
               description: "Whether the payment method is currently available"
             },
@@ -96,6 +100,20 @@ export default async (data: { body: any; user?: any }) => {
       });
     }
 
+    // Handle metadata - sanitize and store only string key-value pairs
+    let sanitizedMetadata: Record<string, string> | null = null;
+    if (body.metadata && typeof body.metadata === "object") {
+      sanitizedMetadata = {};
+      for (const [key, value] of Object.entries(body.metadata)) {
+        if (typeof key === "string" && key.trim()) {
+          sanitizedMetadata[key.trim()] = String(value);
+        }
+      }
+      if (Object.keys(sanitizedMetadata).length === 0) {
+        sanitizedMetadata = null;
+      }
+    }
+
     // Create the global payment method
     const paymentMethod = await models.p2pPaymentMethod.create({
       userId: null, // null for admin-created methods
@@ -103,6 +121,7 @@ export default async (data: { body: any; user?: any }) => {
       icon: body.icon,
       description: body.description || null,
       instructions: body.instructions || null,
+      metadata: sanitizedMetadata,
       processingTime: body.processingTime || null,
       fees: body.fees || null,
       available: body.available !== false, // Default to true
@@ -138,6 +157,7 @@ export default async (data: { body: any; user?: any }) => {
         icon: paymentMethod.icon,
         description: paymentMethod.description,
         instructions: paymentMethod.instructions,
+        metadata: paymentMethod.metadata,
         processingTime: paymentMethod.processingTime,
         fees: paymentMethod.fees,
         available: paymentMethod.available,

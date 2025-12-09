@@ -12,9 +12,7 @@ export default function OrderTypeSelector({
   orderType,
   setOrderType,
 }: OrderTypeSelectorProps) {
-  const t = useTranslations(
-    "trade/components/trading/futures/order-type-selector"
-  );
+  const t = useTranslations("ext");
   return (
     <div className="flex mb-4">
       <button

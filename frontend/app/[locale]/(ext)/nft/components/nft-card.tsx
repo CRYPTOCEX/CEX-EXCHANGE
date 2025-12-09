@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { NFTCardImage } from "@/components/nft/shared/optimized-image";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { getNftImageUrl } from "@/lib/nft-utils";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ export default function NFTCard({
   showActions = true, 
   size = "md" 
 }: NFTCardProps) {
-  const t = useTranslations("nft/components/nft-card");
+  const t = useTranslations("ext");
   const { addToFavorites, removeFromFavorites } = useNftStore();
   const [isLiked, setIsLiked] = useState(token.isFavorited || false);
   const [likesCount, setLikesCount] = useState(token.likes || 0);
@@ -69,19 +70,15 @@ export default function NFTCard({
   return (
     <Card className={`${cardSizes[size]} group hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
       <div className="relative overflow-hidden rounded-t-lg">
-        {/* NFT Image */}
+        {/* NFT Image - uses token ID to serve local image */}
         <div className="aspect-square relative bg-muted">
-          {token.image ? (
-            <NFTCardImage
-              src={token.image}
-              alt={token.name}
-              className="group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-              <span className="text-4xl">🖼️</span>
-            </div>
-          )}
+          <Image
+            src={getNftImageUrl(token.id)}
+            alt={token.name}
+            fill
+            sizes="(max-width: 640px) 256px, 320px"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         </div>
 
         {/* Overlay Actions */}

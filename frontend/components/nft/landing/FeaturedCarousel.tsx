@@ -8,6 +8,7 @@ import { Link } from "@/i18n/routing";
 import { useInView } from "react-intersection-observer";
 import { useNftStore } from "@/store/nft/nft-store";
 import { formatCurrency } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface FeaturedNFT {
   id: string;
@@ -18,6 +19,7 @@ interface FeaturedNFT {
 }
 
 export default function FeaturedCarousel() {
+  const t = useTranslations("nft");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { ref, inView } = useInView({
     triggerOnce: true,
@@ -111,10 +113,10 @@ export default function FeaturedCarousel() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
                 <Flame className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold">Hot Drops</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">{t("hot_drops")}</h2>
             </div>
             <p className="text-muted-foreground text-sm">
-              Trending NFTs making waves right now
+              {t("trending_nfts_making_waves_right_now")}
             </p>
           </motion.div>
         </div>
@@ -130,13 +132,13 @@ export default function FeaturedCarousel() {
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mx-auto mb-6">
               <Flame className="w-10 h-10 text-orange-500/60" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No Hot Drops Yet</h3>
+            <h3 className="text-xl font-semibold mb-2">{t("no_hot_drops_yet")}</h3>
             <p className="text-muted-foreground mb-6">
-              Featured NFTs will appear here once they're available
+              {t("featured_nfts_will_appear_here_once")}
             </p>
             <Link href="/nft/marketplace">
               <Button variant="outline" className="gap-2">
-                Explore Marketplace
+                {t("explore_marketplace_1")}
                 <Sparkles className="w-4 h-4" />
               </Button>
             </Link>

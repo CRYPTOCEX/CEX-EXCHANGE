@@ -1,0 +1,112 @@
+{
+  "name": "Micronesia",
+  "iso2": "FM",
+  "iso3": "FSM",
+  "phonecode": "691",
+  "states": [
+    {
+      "name": "Chuuk",
+      "code": "TRK",
+      "cities": [
+        "Eot",
+        "Ettal",
+        "Fananu",
+        "Fanapanges",
+        "Fefen",
+        "Fonoton",
+        "Houk",
+        "Kuttu",
+        "Lekinioch",
+        "Losap",
+        "Makur",
+        "Moch",
+        "Murilo",
+        "Murilo Municipality",
+        "Namoluk",
+        "Nema",
+        "Nema Municipality",
+        "Nomwin",
+        "Oneop",
+        "Onou",
+        "Onoun",
+        "Paata-Tupunion",
+        "Parem",
+        "Piherarh",
+        "Piis-Emwar",
+        "Piis-Panewu",
+        "Pollap",
+        "Polowat",
+        "Pwene",
+        "Ramanum",
+        "Ruo",
+        "Satowan",
+        "Siis",
+        "Ta",
+        "Tamatam",
+        "Tolensom",
+        "Tonoas",
+        "Udot-Fonuweisom",
+        "Uman-Fonuweisom",
+        "Unanu",
+        "Weno",
+        "Weno Municipality",
+        "Wonei"
+      ]
+    },
+    {
+      "name": "Kosrae",
+      "code": "KSA",
+      "cities": [
+        "Lelu",
+        "Malem",
+        "Tafunsak",
+        "Tofol",
+        "Utwe"
+      ]
+    },
+    {
+      "name": "Pohnpei",
+      "code": "PNI",
+      "cities": [
+        "Kitti",
+        "Kolonia",
+        "Kolonia Municipality",
+        "Madolenihm",
+        "Mokil",
+        "Nett",
+        "Ngatik",
+        "Nukuoro",
+        "Palikir - National Government Center",
+        "Pingelap",
+        "Sapwuahfik",
+        "Sokehs",
+        "U"
+      ]
+    },
+    {
+      "name": "Yap",
+      "code": "YAP",
+      "cities": [
+        "Colonia",
+        "Dalipebinaw",
+        "Fais",
+        "Fais Municipality",
+        "Fanif",
+        "Faraulep",
+        "Gagil",
+        "Gilman",
+        "Kanifay",
+        "Lamotrek",
+        "Maap",
+        "Ngulu",
+        "Rull",
+        "Rumung",
+        "Satawal",
+        "Tomil",
+        "Ulithi",
+        "Weloy",
+        "Woleai"
+      ]
+    }
+  ]
+}

@@ -66,7 +66,10 @@ class WebSocketManager {
       };
 
       this.ws.onclose = () => {
-        console.log("WebSocket connection closed");
+        // Only log if not a manual disconnect
+        if (!this.manualDisconnect) {
+          console.log("WebSocket connection closed");
+        }
         this.listeners["close"]?.forEach((cb) => cb());
         this.stopPing();
         if (!this.manualDisconnect) {
@@ -75,7 +78,11 @@ class WebSocketManager {
       };
 
       this.ws.onerror = (error: Event) => {
-        console.error("WebSocket error:", error);
+        // Only log errors if not manually disconnecting
+        // This prevents spurious errors when navigating away
+        if (!this.manualDisconnect) {
+          console.error("WebSocket error:", error);
+        }
       };
     }
   }
@@ -83,7 +90,14 @@ class WebSocketManager {
   disconnect() {
     if (this.ws) {
       this.manualDisconnect = true;
-      this.ws.close();
+      // Only close if not already closing/closed
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        try {
+          this.ws.close();
+        } catch (e) {
+          // Ignore close errors during cleanup
+        }
+      }
       this.ws = null;
       this.stopPing();
     }

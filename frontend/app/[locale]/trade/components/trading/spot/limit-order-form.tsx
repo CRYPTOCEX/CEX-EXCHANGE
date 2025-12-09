@@ -29,7 +29,7 @@ export default function LimitOrderForm({
   takerFee = 0.001,
   makerFee = 0.001,
 }: OrderFormProps) {
-  const t = useTranslations("trade/components/trading/spot/limit-order-form");
+  const t = useTranslations("ext");
   const [price, setPrice] = useState(marketPrice);
   const [amount, setAmount] = useState("");
   const [total, setTotal] = useState("");
@@ -416,7 +416,7 @@ export default function LimitOrderForm({
       {/* Fee Display */}
       {amount && price && Number(amount) > 0 && (
         <div className="flex items-center justify-between px-1 py-0.5 text-[10px] text-muted-foreground dark:text-zinc-500">
-          <span>{t("Est. Fee")} ({(takerFee * 100).toFixed(2)}%):</span>
+          <span>{t("est_fee")} ({(takerFee * 100).toFixed(2)}%):</span>
           <span>
             {(Number(price.replace(/,/g, "")) * Number(amount) * takerFee).toFixed(pricePrecision)} {pair}
           </span>

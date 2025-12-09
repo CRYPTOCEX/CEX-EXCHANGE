@@ -16,9 +16,7 @@ export default function LimitPriceInput({
   setLimitPrice,
   userSetLimitPrice,
 }: LimitPriceInputProps) {
-  const t = useTranslations(
-    "trade/components/trading/futures/limit-price-input"
-  );
+  const t = useTranslations("ext");
   // Handle limit price change
   const handleLimitPriceChange = (value: string) => {
     userSetLimitPrice.current = true;

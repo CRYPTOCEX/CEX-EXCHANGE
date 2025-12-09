@@ -1,0 +1,230 @@
+{
+  "name": "Democratic Republic of the Congo",
+  "iso2": "CD",
+  "iso3": "COD",
+  "phonecode": "243",
+  "states": [
+    {
+      "name": "Bas-Uélé",
+      "code": "BU",
+      "cities": [
+        "Aketi",
+        "Bondo",
+        "Buta"
+      ]
+    },
+    {
+      "name": "Équateur",
+      "code": "EQ",
+      "cities": [
+        "Gemena",
+        "Lisala",
+        "Lukolela",
+        "Mbandaka"
+      ]
+    },
+    {
+      "name": "Haut-Katanga",
+      "code": "HK",
+      "cities": [
+        "Likasi",
+        "Lubumbashi"
+      ]
+    },
+    {
+      "name": "Haut-Lomami",
+      "code": "HL",
+      "cities": [
+        "Bukama",
+        "Kamina"
+      ]
+    },
+    {
+      "name": "Haut-Uélé",
+      "code": "HU",
+      "cities": [
+        "Isiro",
+        "Wamba",
+        "Watsa"
+      ]
+    },
+    {
+      "name": "Ituri",
+      "code": "IT",
+      "cities": [
+        "Bunia"
+      ]
+    },
+    {
+      "name": "Kasaï",
+      "code": "KS",
+      "cities": [
+        "Ilebo",
+        "Luebo",
+        "Mweka",
+        "Tshikapa"
+      ]
+    },
+    {
+      "name": "Kasaï Central",
+      "code": "KC",
+      "cities": []
+    },
+    {
+      "name": "Kasaï Oriental",
+      "code": "KE",
+      "cities": [
+        "Gandajika",
+        "Kabinda",
+        "Mbuji-Mayi"
+      ]
+    },
+    {
+      "name": "Kinshasa",
+      "code": "KN",
+      "cities": [
+        "Kinshasa"
+      ]
+    },
+    {
+      "name": "Kongo Central",
+      "code": "BC",
+      "cities": [
+        "Boma",
+        "Kasangulu",
+        "Matadi",
+        "Mbanza-Ngungu",
+        "Moanda",
+        "Tshela"
+      ]
+    },
+    {
+      "name": "Kwango",
+      "code": "KG",
+      "cities": [
+        "Kasongo-Lunda"
+      ]
+    },
+    {
+      "name": "Kwilu",
+      "code": "KL",
+      "cities": [
+        "Bandundu",
+        "Bulungu",
+        "Kikwit",
+        "Mangai"
+      ]
+    },
+    {
+      "name": "Lomami",
+      "code": "LO",
+      "cities": [
+        "Lubao",
+        "Mwene-Ditu"
+      ]
+    },
+    {
+      "name": "Lualaba",
+      "code": "LU",
+      "cities": [
+        "Kasaji",
+        "Kolwezi"
+      ]
+    },
+    {
+      "name": "Mai-Ndombe",
+      "code": "MN",
+      "cities": [
+        "Bolobo",
+        "Inongo",
+        "Mushie",
+        "Nioki"
+      ]
+    },
+    {
+      "name": "Maniema",
+      "code": "MA",
+      "cities": [
+        "Kampene",
+        "Kasongo",
+        "Kindu"
+      ]
+    },
+    {
+      "name": "Mongala",
+      "code": "MO",
+      "cities": [
+        "Bumba"
+      ]
+    },
+    {
+      "name": "Nord-Kivu",
+      "code": "NK",
+      "cities": [
+        "Beni",
+        "Butembo",
+        "Goma",
+        "Sake"
+      ]
+    },
+    {
+      "name": "Nord-Ubangi",
+      "code": "NU",
+      "cities": [
+        "Bosobolo",
+        "Businga",
+        "Gbadolite"
+      ]
+    },
+    {
+      "name": "Sankuru",
+      "code": "SA",
+      "cities": [
+        "Lodja",
+        "Lusambo"
+      ]
+    },
+    {
+      "name": "Sud-Kivu",
+      "code": "SK",
+      "cities": [
+        "Bukavu",
+        "Kabare",
+        "Uvira"
+      ]
+    },
+    {
+      "name": "Sud-Ubangi",
+      "code": "SU",
+      "cities": [
+        "Bongandanga",
+        "Libenge"
+      ]
+    },
+    {
+      "name": "Tanganyika",
+      "code": "TA",
+      "cities": [
+        "Kabalo",
+        "Kalemie",
+        "Kongolo"
+      ]
+    },
+    {
+      "name": "Tshopo",
+      "code": "TO",
+      "cities": [
+        "Basoko",
+        "Kisangani",
+        "Yangambi"
+      ]
+    },
+    {
+      "name": "Tshuapa",
+      "code": "TU",
+      "cities": [
+        "Boende"
+      ]
+    }
+  ]
+}

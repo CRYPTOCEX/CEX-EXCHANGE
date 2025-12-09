@@ -85,7 +85,7 @@ export const columns: ColumnDefinition[] = [
         const t = useTranslations("ext");
         if (!value) {
           return (
-            <span className="text-sm text-muted-foreground">{t("N_A")}</span>
+            <span className="text-sm text-muted-foreground">N/A</span>
           );
         }
 

@@ -596,6 +596,62 @@ export const adminMenu: MenuItem[] = [
             description:
               "Peer-to-peer trading platform with escrow services, dispute resolution, and multi-payment gateway support.",
           },
+          {
+            key: "admin-ai-market-maker-platform",
+            title: "AI Market Maker",
+            icon: "ph:robot-duotone",
+            extension: "ai_market_maker",
+            permission: "access.ai.market-maker",
+            description:
+              "AI-powered market making system with automated trading bots, liquidity management, and intelligent price discovery.",
+            child: [
+              {
+                key: "admin-ai-market-maker-dashboard",
+                title: "Dashboard",
+                href: "/admin/ai/market-maker",
+                permission: "access.ai.market-maker",
+                icon: "ph:gauge-duotone",
+                description:
+                  "Real-time monitoring dashboard for AI market maker operations with performance metrics and system health.",
+              },
+              {
+                key: "admin-ai-market-maker-markets",
+                title: "Markets",
+                href: "/admin/ai/market-maker/market",
+                permission: "access.ai.market-maker.market",
+                icon: "ph:chart-line-duotone",
+                description:
+                  "Manage AI-powered market makers with configuration, pool management, and bot control.",
+              },
+              {
+                key: "admin-ai-market-maker-analytics",
+                title: "Analytics",
+                href: "/admin/ai/market-maker/analytics",
+                permission: "access.ai.market-maker.analytics",
+                icon: "ph:chart-bar-duotone",
+                description:
+                  "Comprehensive analytics with P&L reports, performance tracking, and market insights.",
+              },
+              {
+                key: "admin-ai-market-maker-settings",
+                title: "Settings",
+                href: "/admin/ai/market-maker/settings",
+                permission: "access.ai.market-maker.settings",
+                icon: "ph:gear-duotone",
+                description:
+                  "Global settings for AI market maker including risk parameters, bot limits, and emergency controls.",
+              },
+              {
+                key: "admin-ai-market-maker-guide",
+                title: "Guide",
+                href: "/admin/ai/market-maker/guide",
+                permission: "access.ai.market-maker",
+                icon: "ph:book-open-duotone",
+                description:
+                  "Comprehensive documentation with bot types, configuration guides, best practices, and troubleshooting.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -752,6 +808,16 @@ export const adminMenu: MenuItem[] = [
                   "Professional email template library with responsive design and brand customization options.",
               },
             ],
+          },
+          {
+            key: "admin-payment-gateway",
+            title: "Payment Gateway",
+            icon: "ph:credit-card-duotone",
+            extension: "gateway",
+            permission: "access.gateway.merchant",
+            href: "/admin/gateway",
+            description:
+              "Payment gateway system allowing merchants to accept payments through the platform."
           },
         ],
       },
@@ -1066,6 +1132,16 @@ export const userMenu: MenuItem[] = [
         auth: true,
         description:
           "Monetize your network through our comprehensive affiliate program with competitive commissions, real-time tracking, and marketing tools.",
+      },
+      {
+        key: "user-services-merchant",
+        title: "Merchant Gateway",
+        href: "/gateway/dashboard",
+        icon: "ph:storefront-duotone",
+        extension: "gateway",
+        auth: true,
+        description:
+          "Accept payments from customers through our secure payment gateway with API integration and real-time transaction tracking.",
       },
       {
         key: "user-services-support",

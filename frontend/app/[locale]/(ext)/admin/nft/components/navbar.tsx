@@ -311,7 +311,7 @@ export default function NFTAdminNavbar() {
             <Link href="/nft">
               <Button variant="outline" size="sm">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Visit Marketplace
+                {t("visit_marketplace")}
               </Button>
             </Link>
           </nav>

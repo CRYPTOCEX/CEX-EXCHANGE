@@ -151,17 +151,35 @@ export const createGuidedMatchingSlice = (
           isLoadingPaymentMethods: false,
         });
       } else {
+        // Handle new API response format: { global: [...], custom: [...] }
+        let allMethods: P2PPaymentMethod[] = [];
+        const responseData = paymentResponse.data;
+
+        if (responseData && typeof responseData === "object" && "global" in responseData) {
+          // New format with separated global and custom methods
+          allMethods = [
+            ...(responseData.global || []),
+            ...(responseData.custom || []),
+          ];
+        } else if (responseData?.paymentMethods) {
+          // Legacy format with paymentMethods wrapper
+          allMethods = responseData.paymentMethods;
+        } else if (Array.isArray(responseData)) {
+          // Legacy format: flat array
+          allMethods = responseData;
+        }
+
         set({
-          paymentMethods: paymentResponse.data.paymentMethods || [],
+          paymentMethods: allMethods,
           isLoadingPaymentMethods: false,
         });
 
         // Set default payment method if available
-        if (paymentResponse.data.paymentMethods?.length > 0) {
+        if (allMethods.length > 0) {
           set((state: any) => ({
             matchingCriteria: {
               ...state.matchingCriteria,
-              paymentMethods: [paymentResponse.data.paymentMethods[0].id],
+              paymentMethods: [allMethods[0].id],
             },
           }));
         }

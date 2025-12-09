@@ -3,14 +3,22 @@
 import { useState, useEffect } from "react";
 import { Link, usePathname } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import ThemeButton from "@/components/partials/header/theme-button";
 import Language from "@/components/partials/header/language";
 import ProfileInfo from "@/components/partials/header/profile-info";
 import NavbarLogo from "@/components/elements/navbar-logo";
-import { Menu, X } from "lucide-react";
+import { Menu, ChevronLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserStore } from "@/store/user";
 
 export interface NavItem {
   title: string;
@@ -25,17 +33,22 @@ export interface ExtNavbarProps {
   navItems: NavItem[];
   showTools?: boolean;
   isAdmin?: boolean;
+  backHref?: string; // Link for back button (shows chevron if provided)
+  rightSlot?: React.ReactNode; // Custom slot for right side of navbar (before tools)
 }
 
 export function ExtNavbar({
   navItems,
   showTools = true,
   isAdmin = false,
+  backHref,
+  rightSlot,
 }: ExtNavbarProps) {
   const t = useTranslations("ext");
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1280px)");
+  const { user } = useUserStore();
 
   // Close mobile menu on navigation or when switching to desktop
   useEffect(() => {
@@ -56,6 +69,20 @@ export function ExtNavbar({
     } catch {
       return item.title;
     }
+  };
+
+  // Helper function to get user initials
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (user?.firstName) {
+      return user.firstName.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
   };
 
   const renderNavItems = (items: NavItem[]) =>
@@ -86,13 +113,25 @@ export function ExtNavbar({
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
-          <NavbarLogo isInAdmin={isAdmin} />
+          <div className="flex items-center gap-2">
+            {backHref && (
+              <Link
+                href={backHref}
+                className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors"
+                aria-label="Go back"
+              >
+                <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+              </Link>
+            )}
+            <NavbarLogo isInAdmin={isAdmin} />
+          </div>
           {isDesktop && (
             <nav className="flex items-center">{renderNavItems(navItems)}</nav>
           )}
         </div>
         {showTools && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {rightSlot}
             {isDesktop ? (
               <div className="flex items-center gap-2">
                 <Language />
@@ -106,26 +145,62 @@ export function ExtNavbar({
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[80%] sm:w-[350px]">
-                  <div className="flex flex-col gap-6 pt-6">
-                    <div className="flex items-center justify-between px-4">
-                      <NavbarLogo isInAdmin={isAdmin} />
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                <SheetContent
+                  side="left"
+                  className="w-[80%] sm:w-[350px] flex flex-col p-0"
+                >
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Main navigation menu
+                  </SheetDescription>
+
+                  {/* Header with Logo */}
+                  <div className="flex items-center justify-between p-4 border-b">
+                    <NavbarLogo isInAdmin={isAdmin} />
+                  </div>
+
+                  {/* Navigation Items */}
+                  <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+                    {renderNavItems(navItems)}
+                  </nav>
+
+                  {/* Footer with User Profile */}
+                  <div className="mt-auto border-t p-4">
+                    <div className="flex items-center justify-between">
+                      {/* User Info - Left Side */}
+                      <Link
+                        href="/user/profile"
                         onClick={() => setIsOpen(false)}
-                        aria-label="Close menu"
+                        className="flex items-center gap-3 flex-1 min-w-0"
                       >
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </div>
-                    <nav className="flex flex-col gap-2 px-4">
-                      {renderNavItems(navItems)}
-                    </nav>
-                    <div className="flex items-center gap-2 px-4">
-                      <Language />
-                      <ThemeButton />
-                      <ProfileInfo />
+                        <Avatar className="h-10 w-10 border-2 border-primary/20">
+                          <AvatarImage
+                            src={user?.avatar || "/img/avatars/placeholder.webp"}
+                            alt={user ? `${user.firstName} ${user.lastName}` : "User"}
+                          />
+                          <AvatarFallback className="bg-primary text-primary-foreground font-medium text-sm">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium truncate">
+                            {user
+                              ? `${user.firstName} ${user.lastName}`
+                              : "Guest User"}
+                          </span>
+                          {user?.email && (
+                            <span className="text-xs text-muted-foreground truncate">
+                              {user.email}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+
+                      {/* Actions - Right Side */}
+                      <div className="flex items-center gap-1">
+                        <Language />
+                        <ThemeButton />
+                      </div>
                     </div>
                   </div>
                 </SheetContent>

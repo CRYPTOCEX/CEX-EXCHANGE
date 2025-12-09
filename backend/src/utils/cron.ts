@@ -30,6 +30,61 @@ import { processAiInvestments } from "./crons/aiInvestment";
 import { processPendingOrders } from "./crons/order";
 import { processExpiredUserBlocks } from "./crons/userBlock";
 
+// Safe import for AI Market Maker cron functions
+async function processAiMarketMakerEngine() {
+  try {
+    const module = await import("./crons/aiMarketMakerEngine");
+    return module.processAiMarketMakerEngine();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping engine processing");
+  }
+}
+
+async function processAiRiskMonitor() {
+  try {
+    const module = await import("./crons/aiRiskMonitor");
+    return module.processAiRiskMonitor();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping risk monitoring");
+  }
+}
+
+async function processAiPoolRebalancer() {
+  try {
+    const module = await import("./crons/aiPoolRebalancer");
+    return module.processAiPoolRebalancer();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping pool rebalancing");
+  }
+}
+
+async function processAiDailyReset() {
+  try {
+    const module = await import("./crons/aiDailyReset");
+    return module.processAiDailyReset();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping daily reset");
+  }
+}
+
+async function processAiAnalyticsAggregator() {
+  try {
+    const module = await import("./crons/aiAnalyticsAggregator");
+    return module.processAiAnalyticsAggregator();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping analytics aggregation");
+  }
+}
+
+async function processAiPriceSync() {
+  try {
+    const module = await import("./crons/aiPriceSync");
+    return module.processAiPriceSync();
+  } catch (error) {
+    console.log("AI Market Maker extension not available, skipping price sync");
+  }
+}
+
 // Safe import for ecosystem cron functions
 async function processPendingEcoWithdrawals() {
   try {
@@ -38,6 +93,17 @@ async function processPendingEcoWithdrawals() {
     return module.processPendingEcoWithdrawals();
   } catch (error) {
     console.log("Ecosystem cron extension not available, skipping eco withdrawals processing");
+  }
+}
+
+// Safe import for P2P cron functions
+async function p2pTradeTimeout() {
+  try {
+    // @ts-ignore - Dynamic import for optional extension
+    const module = await import("./crons/p2pTradeTimeout");
+    return module.p2pTradeTimeout();
+  } catch (error) {
+    console.log("P2P extension not available, skipping trade timeout processing");
   }
 }
 
@@ -59,6 +125,16 @@ async function settleAuctions() {
     return module.settleAuctions();
   } catch (error) {
     console.log("NFT extension not available, skipping auction settlement");
+  }
+}
+
+// Safe import for Gateway payout cron functions
+async function processGatewayPayouts() {
+  try {
+    const module = await import("./crons/gatewayPayout");
+    return module.processGatewayPayouts();
+  } catch (error) {
+    console.log("Gateway extension not available, skipping payout processing");
   }
 }
 import { broadcastLog, broadcastStatus } from "./crons/broadcast";
@@ -396,6 +472,132 @@ class CronJobManager {
           lastRun: null,
           lastRunError: null,
           category: "mailwizard",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+      ],
+      p2p: [
+        {
+          name: "p2pTradeTimeout",
+          title: "P2P Trade Timeout Handler",
+          period: 5 * 60 * 1000, // Run every 5 minutes
+          description: "Automatically expires P2P trades that have passed their expiration date and releases escrowed funds.",
+          function: "p2pTradeTimeout",
+          handler: p2pTradeTimeout,
+          lastRun: null,
+          lastRunError: null,
+          category: "p2p",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+      ],
+      gateway: [
+        {
+          name: "processGatewayPayouts",
+          title: "Process Gateway Payouts",
+          period: 60 * 60 * 1000, // Run every hour
+          description: "Automatically creates payout records for merchants based on their payout schedule (Daily, Weekly, Monthly).",
+          function: "processGatewayPayouts",
+          handler: processGatewayPayouts,
+          lastRun: null,
+          lastRunError: null,
+          category: "gateway",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+      ],
+      ai_market_maker: [
+        {
+          name: "processAiMarketMakerEngine",
+          title: "AI Market Maker Engine",
+          period: 5 * 1000, // Run every 5 seconds
+          description: "Main AI market maker engine loop that processes active markets and coordinates bot trading activities.",
+          function: "processAiMarketMakerEngine",
+          handler: processAiMarketMakerEngine,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+        {
+          name: "processAiRiskMonitor",
+          title: "AI Risk Monitor",
+          period: 10 * 1000, // Run every 10 seconds
+          description: "Monitors risk metrics for AI market makers including volatility, loss limits, and trading patterns.",
+          function: "processAiRiskMonitor",
+          handler: processAiRiskMonitor,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+        {
+          name: "processAiPoolRebalancer",
+          title: "AI Pool Rebalancer",
+          period: 60 * 60 * 1000, // Run every hour
+          description: "Automatically rebalances AI market maker pools when asset ratios become too skewed.",
+          function: "processAiPoolRebalancer",
+          handler: processAiPoolRebalancer,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+        {
+          name: "processAiDailyReset",
+          title: "AI Daily Reset",
+          period: 24 * 60 * 60 * 1000, // Run once per day
+          description: "Resets daily volume counters, trade counts, and generates daily summary reports for AI markets.",
+          function: "processAiDailyReset",
+          handler: processAiDailyReset,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+        {
+          name: "processAiAnalyticsAggregator",
+          title: "AI Analytics Aggregator",
+          period: 15 * 60 * 1000, // Run every 15 minutes
+          description: "Aggregates trading statistics and performance metrics for AI market makers.",
+          function: "processAiAnalyticsAggregator",
+          handler: processAiAnalyticsAggregator,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
+          status: "idle",
+          progress: 0,
+          lastExecutions: [],
+          nextScheduledRun: null,
+        },
+        {
+          name: "processAiPriceSync",
+          title: "AI Price Sync",
+          period: 30 * 1000, // Run every 30 seconds
+          description: "Syncs external price feeds for AI market makers and alerts on major deviations.",
+          function: "processAiPriceSync",
+          handler: processAiPriceSync,
+          lastRun: null,
+          lastRunError: null,
+          category: "ai_market_maker",
           status: "idle",
           progress: 0,
           lastExecutions: [],

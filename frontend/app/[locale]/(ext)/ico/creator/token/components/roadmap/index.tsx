@@ -237,8 +237,7 @@ export default function TokenRoadmap({ tokenId }: TokenRoadmapProps) {
               <div className="flex items-center gap-1">
                 <BarChart className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">
-                  {completionPercentage}
-                  {t("%_complete")}
+                  {completionPercentage}% {t("complete")}
                 </span>
               </div>
               <Progress value={completionPercentage} className="w-24 h-2" />

@@ -3,9 +3,7 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function PaginationInfo() {
-  const t = useTranslations(
-    "components/blocks/data-table/pagination/pagination-info"
-  );
+  const t = useTranslations("common");
   const page = useTableStore((state) => state.page);
   const totalPages = useTableStore((state) => state.totalPages);
 

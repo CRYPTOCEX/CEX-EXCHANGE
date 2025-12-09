@@ -1,6 +1,6 @@
 import { messageBroker } from "@b/handler/Websocket";
 import { MatchingEngine } from "@b/api/(ext)/ecosystem/utils/matchingEngine";
-import { getOrderBook } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
+import { getOrderBook, getRecentTrades, getOHLCV } from "@b/api/(ext)/ecosystem/utils/scylla/queries";
 import { models } from "@b/db";
 
 export const metadata = {};
@@ -56,9 +56,21 @@ class UnifiedEcosystemMarketDataHandler {
               }
               break;
             case "trades":
-              // TODO: Implement trades fetching from database
-              // For now, don't broadcast empty trades data to reduce noise
-              // Only broadcast when there are actual trades to send
+              try {
+                const limit = payload.limit || 50;
+                const trades = await getRecentTrades(symbol, limit);
+
+                // Only broadcast if there are actual trades
+                if (trades && trades.length > 0) {
+                  messageBroker.broadcastToSubscribedClients(
+                    `/api/ecosystem/market`,
+                    payload,
+                    { stream: "trades", data: trades }
+                  );
+                }
+              } catch (tradesError) {
+                console.error(`Error fetching trades for ${symbol}:`, tradesError);
+              }
               break;
             case "ticker":
               const ticker = await this.engine.getTicker(symbol);
@@ -81,7 +93,22 @@ class UnifiedEcosystemMarketDataHandler {
               }
               break;
             case "ohlcv":
-              // TODO: Implement OHLCV fetching
+              try {
+                const interval = payload.interval || "1m";
+                const limit = payload.limit || 100;
+                const ohlcv = await getOHLCV(symbol, interval, limit);
+
+                // Only broadcast if there's OHLCV data
+                if (ohlcv && ohlcv.length > 0) {
+                  messageBroker.broadcastToSubscribedClients(
+                    `/api/ecosystem/market`,
+                    payload,
+                    { stream: "ohlcv", data: ohlcv }
+                  );
+                }
+              } catch (ohlcvError) {
+                console.error(`Error fetching OHLCV for ${symbol}:`, ohlcvError);
+              }
               break;
           }
         } catch (error) {
@@ -181,6 +208,62 @@ class UnifiedEcosystemMarketDataHandler {
     this.intervalMap.clear();
     this.activeSubscriptions.clear();
   }
+
+  /**
+   * Clear the cached orderbook data for a symbol
+   * This forces the next fetch to broadcast fresh data
+   */
+  public clearOrderbookCache(symbol: string): void {
+    this.lastOrderbookData.delete(symbol);
+    console.info(`[WS] Cleared orderbook cache for ${symbol}`);
+  }
+
+  /**
+   * Force an immediate orderbook broadcast for a symbol
+   * Bypasses the hash comparison cache
+   */
+  public async forceOrderbookBroadcast(symbol: string): Promise<void> {
+    try {
+      // Clear the cache first
+      this.clearOrderbookCache(symbol);
+
+      // Get the subscription map for this symbol
+      const subscriptionMap = this.activeSubscriptions.get(symbol);
+      if (!subscriptionMap) {
+        console.info(`[WS] No active subscriptions for ${symbol}, skipping forced broadcast`);
+        return;
+      }
+
+      // Create a minimal subscription map with just orderbook
+      const orderbookPayload = subscriptionMap.get("orderbook");
+      if (orderbookPayload) {
+        const orderbook = await getOrderBook(symbol);
+        const orderbookHash = JSON.stringify(orderbook);
+        this.lastOrderbookData.set(symbol, orderbookHash);
+
+        const streamKey = orderbookPayload.limit ? `orderbook:${orderbookPayload.limit}` : 'orderbook';
+
+        messageBroker.broadcastToSubscribedClients(
+          `/api/ecosystem/market`,
+          orderbookPayload,
+          { stream: streamKey, data: orderbook }
+        );
+
+        console.info(`[WS] Forced orderbook broadcast for ${symbol}`);
+      }
+    } catch (error) {
+      console.error(`[WS] Failed to force orderbook broadcast for ${symbol}:`, error);
+    }
+  }
+}
+
+// Export helper functions for external use
+export function clearOrderbookCache(symbol: string): void {
+  UnifiedEcosystemMarketDataHandler.getInstance().clearOrderbookCache(symbol);
+}
+
+export async function forceOrderbookBroadcast(symbol: string): Promise<void> {
+  await UnifiedEcosystemMarketDataHandler.getInstance().forceOrderbookBroadcast(symbol);
 }
 
 export default async (data: Handler, message: any) => {

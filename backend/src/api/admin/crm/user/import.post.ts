@@ -429,10 +429,23 @@ export default async (data: Handler) => {
         });
         importedCount++;
 
-        // Send welcome email if requested (you would implement this based on your email service)
+        // Send welcome notification if requested
         if (sendWelcomeEmail && newUser.email) {
-          // TODO: Implement email sending logic here
-          // await sendWelcomeEmail(newUser);
+          try {
+            await models.notification.create({
+              userId: newUser.id,
+              type: "alert",
+              title: "Welcome to the Platform",
+              message: `Welcome ${newUser.firstName}! Your account has been created successfully. Please complete your profile and explore our features.`,
+              link: "/user/profile",
+              read: false,
+            });
+
+            // TODO: Email service integration - when email service is configured, send welcome email here
+            console.log(`Welcome notification queued for imported user: ${newUser.email}`);
+          } catch (notifError) {
+            console.error(`Failed to send welcome notification to ${newUser.email}:`, notifError);
+          }
         }
 
       } catch (error: any) {

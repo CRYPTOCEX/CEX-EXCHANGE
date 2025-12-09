@@ -26,8 +26,7 @@ export const tradeColumns: ColumnDefinition[] = [
       type: "compound",
       config: {
         image: {
-          key: "buyer.avatar",
-          // expects row.buyer.avatar
+          key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
           title: "Buyer Avatar",
@@ -36,7 +35,7 @@ export const tradeColumns: ColumnDefinition[] = [
           usedInCreate: false,
         },
         primary: {
-          key: ["buyer.firstName", "buyer.lastName"],
+          key: ["firstName", "lastName"],
           title: ["First Name", "Last Name"],
           description: ["Buyer first name", "Buyer last name"],
           editable: false,
@@ -44,7 +43,7 @@ export const tradeColumns: ColumnDefinition[] = [
           icon: User,
         },
         secondary: {
-          key: "buyer.email",
+          key: "email",
           title: "Email",
           icon: Mail,
           editable: false,
@@ -66,8 +65,7 @@ export const tradeColumns: ColumnDefinition[] = [
       type: "compound",
       config: {
         image: {
-          key: "seller.avatar",
-          // expects row.seller.avatar
+          key: "avatar",
           fallback: "/img/placeholder.svg",
           type: "image",
           title: "Seller Avatar",
@@ -76,7 +74,7 @@ export const tradeColumns: ColumnDefinition[] = [
           usedInCreate: false,
         },
         primary: {
-          key: ["seller.firstName", "seller.lastName"],
+          key: ["firstName", "lastName"],
           title: ["First Name", "Last Name"],
           description: ["Seller first name", "Seller last name"],
           editable: false,
@@ -84,7 +82,7 @@ export const tradeColumns: ColumnDefinition[] = [
           icon: User,
         },
         secondary: {
-          key: "seller.email",
+          key: "email",
           title: "Email",
           icon: Mail,
           editable: false,

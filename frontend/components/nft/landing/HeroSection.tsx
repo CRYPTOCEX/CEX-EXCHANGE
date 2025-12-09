@@ -16,8 +16,10 @@ import {
 import { Link } from "@/i18n/routing";
 import { useNftStore } from "@/store/nft/nft-store";
 import CountUp from "react-countup";
+import { useTranslations } from "next-intl";
 
 export default function HeroSection() {
+  const t = useTranslations("nft");
   const { marketplaceStats, fetchMarketplaceStats } = useNftStore();
   const [mounted, setMounted] = useState(false);
   const [heroSearchQuery, setHeroSearchQuery] = useState("");
@@ -94,7 +96,7 @@ export default function HeroSection() {
           >
             <Badge className="px-4 py-2 text-sm bg-primary/20 text-primary hover:bg-primary/30 border border-primary/30">
               <Sparkles className="w-4 h-4 mr-2 text-primary" />
-              Discover the Future of Digital Art
+              {t("discover_the_future_of_digital_art")}
             </Badge>
           </motion.div>
 
@@ -106,10 +108,10 @@ export default function HeroSection() {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-center mb-6 leading-tight"
           >
             <span className="bg-gradient-to-r from-primary via-purple-600 to-primary bg-clip-text text-transparent">
-              Discover, Collect
+              {t("discover_collect")}
             </span>
             <br />
-            <span className="text-foreground">& Sell Extraordinary NFTs</span>
+            <span className="text-foreground">{t("sell_extraordinary_nfts")}</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -119,9 +121,7 @@ export default function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg sm:text-xl text-muted-foreground text-center max-w-3xl mx-auto mb-10"
           >
-            The world's first and largest digital marketplace for crypto
-            collectibles and non-fungible tokens. Buy, sell, and discover
-            exclusive digital items.
+            {t("the_worlds_first_and_largest_digital")} {t("buy_sell_and_discover_exclusive_digital_items")}
           </motion.p>
 
           {/* Search Bar */}
@@ -138,7 +138,7 @@ export default function HeroSection() {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search NFTs, collections, or creators..."
+                    placeholder={t("search_nfts_collections_or_creators_ellipsis")}
                     className="pl-12 h-12 border-0 bg-transparent focus-visible:ring-0 text-base"
                     value={heroSearchQuery}
                     onChange={(e) => setHeroSearchQuery(e.target.value)}
@@ -169,14 +169,14 @@ export default function HeroSection() {
                 className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg shadow-primary/25"
               >
                 <TrendingUp className="w-5 h-5" />
-                Explore Marketplace
+                {t("explore_marketplace_1")}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
             <Link href="/nft/create">
               <Button size="lg" variant="outline" className="gap-2 shadow-lg">
                 <Zap className="w-5 h-5" />
-                Create NFT
+                {t("create_nft_1")}
               </Button>
             </Link>
           </motion.div>

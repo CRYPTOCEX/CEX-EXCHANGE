@@ -52,7 +52,7 @@ const getNotificationColor = (type: string) => {
 };
 
 export function NotificationBell() {
-  const t = useTranslations("components/partials/header/notification-bell");
+  const t = useTranslations("common");
   const {
     notifications,
     stats,

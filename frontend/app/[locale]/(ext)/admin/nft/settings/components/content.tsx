@@ -71,7 +71,7 @@ export default function NFTContentSettingsSection({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                When enabled, the system will fetch and validate IPFS metadata when users create listings. This ensures metadata is accessible and contains required NFT fields (name, image).
+                {t("when_enabled_the_system_will_fetch")} {t("this_ensures_metadata_is_accessible_and")}
               </AlertDescription>
             </Alert>
           )}
@@ -79,7 +79,7 @@ export default function NFTContentSettingsSection({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              {t("This marketplace uses IPFS for decentralized NFT storage. Users provide IPFS URLs for their NFT assets and metadata. File size and format restrictions are enforced by IPFS, not by the platform.")}
+              {t("marketplace_uses_ipfs_decentralized_storage")}
             </AlertDescription>
           </Alert>
         </CardContent>

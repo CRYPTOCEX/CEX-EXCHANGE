@@ -7,9 +7,7 @@ import { useChart } from "../../../context/chart-context";
 import { useTranslations } from "next-intl";
 
 const ErrorDisplay: React.FC = () => {
-  const t = useTranslations(
-    "components/blocks/advanced-chart/canvas/render/footer/error-display"
-  );
+  const t = useTranslations("common");
   const { error, refreshData, apiStatus, wsStatus } = useChart();
 
   if (!error) return null;

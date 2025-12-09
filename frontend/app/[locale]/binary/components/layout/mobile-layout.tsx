@@ -91,6 +91,7 @@ export default function MobileLayout({
   priceMovements,
   balance,
   tradingMode,
+  handleTradingModeChange,
   setChartContextRef,
   isMarketSwitching,
   timeFrame,
@@ -102,7 +103,7 @@ export default function MobileLayout({
   onDarkModeChange = () => {},
   handleMarketSelect,
 }: MobileLayoutProps) {
-  const t = useTranslations("binary/components/layout/mobile-layout");
+  const t = useTranslations("common");
 
   // Handle viewport height changes for mobile browsers
   useEffect(() => {

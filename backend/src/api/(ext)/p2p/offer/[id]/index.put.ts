@@ -301,18 +301,29 @@ export default async (data: { user?: any; params: any; body: any }) => {
     }
 
     // Merge with existing priceConfig and ensure finalPrice is updated
-    // Only keep essential fields to prevent "max_allowed_packet" errors
+    // IMPORTANT: Only keep fields relevant to the current model to prevent data inconsistencies
+    const targetModel = priceConfig.model || existingPriceConfig.model || "fixed";
     const mergedPriceConfig: any = {
-      model: priceConfig.model || existingPriceConfig.model || "fixed",
+      model: targetModel,
       currency: priceConfig.currency || existingPriceConfig.currency,
     };
 
-    // Add only the relevant fields based on model to minimize JSON size
+    // Add only the relevant fields based on model to minimize JSON size and prevent conflicts
     if (mergedPriceConfig.model === "fixed") {
-      mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined ? priceConfig.fixedPrice : existingPriceConfig.fixedPrice;
+      // For fixed price model, ONLY keep fixedPrice - remove any dynamic fields
+      mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined
+        ? priceConfig.fixedPrice
+        : (existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0);
+
+      // Explicitly DO NOT include dynamicOffset or marketPrice when in fixed mode
     } else {
-      mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined ? priceConfig.dynamicOffset : existingPriceConfig.dynamicOffset;
-      mergedPriceConfig.marketPrice = existingPriceConfig.marketPrice;
+      // For dynamic model, ONLY keep dynamicOffset and marketPrice - remove fixedPrice
+      mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined
+        ? priceConfig.dynamicOffset
+        : (existingPriceConfig.dynamicOffset || 0);
+      mergedPriceConfig.marketPrice = priceConfig.marketPrice || existingPriceConfig.marketPrice;
+
+      // Explicitly DO NOT include fixedPrice when in dynamic mode
     }
 
     // Calculate finalPrice based on model
@@ -544,12 +555,19 @@ export default async (data: { user?: any; params: any; body: any }) => {
     // Only rollback if transaction exists and hasn't been committed/rolled back
     if (transaction) {
       try {
+        // Check if transaction is still active before attempting rollback
         if (!transaction.finished) {
           await transaction.rollback();
         }
       } catch (rollbackError: any) {
-        // Ignore rollback errors if transaction is already finished
-        if (!rollbackError.message?.includes("already been finished")) {
+        // Silently ignore common rollback errors that occur after connection issues
+        const errorMessage = rollbackError.message || "";
+        const isIgnorableError =
+          errorMessage.includes("already been finished") ||
+          errorMessage.includes("closed state") ||
+          errorMessage.includes("ECONNRESET");
+
+        if (!isIgnorableError) {
           console.error("Transaction rollback failed:", rollbackError.message || rollbackError);
         }
       }
@@ -567,6 +585,14 @@ export default async (data: { user?: any; params: any; body: any }) => {
       throw createError({
         statusCode: 500,
         message: `Database error: ${error.message}`,
+      });
+    }
+
+    // Handle connection errors specifically
+    if (error.code === 'ECONNRESET' || error.message?.includes('ECONNRESET')) {
+      throw createError({
+        statusCode: 500,
+        message: "Database connection error. Please try again.",
       });
     }
 

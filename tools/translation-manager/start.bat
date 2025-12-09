@@ -72,18 +72,19 @@ if not exist "node_modules" (
 echo Dependencies OK
 echo.
 
-:: Start the server
+:: Start the server in dev mode with nodemon for live reload
 echo =========================================
-echo [INFO] Starting Translation Management System...
+echo [INFO] Starting Translation Management System (DEV MODE)
 echo.
 echo Server will be available at: http://localhost:5000
 echo.
+echo [DEV] Using nodemon for auto-restart on file changes
 echo Press Ctrl+C to stop the server
 echo =========================================
 echo.
 
-:: Start the server and keep window open
-node server.js
+:: Start the server with nodemon for live reload
+npx nodemon server.js
 
 :: If we get here, the server has stopped
 echo.

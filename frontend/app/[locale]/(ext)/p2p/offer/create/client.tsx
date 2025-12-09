@@ -66,8 +66,8 @@ export default function CreateOfferClient() {
     return (
       <div className="container max-w-4xl mx-auto py-12 px-4" style={{ minHeight: 'calc(100vh - 232px)' }}>
         <FeatureRestrictedBanner
-          title="New Offers Temporarily Disabled"
-          description="Creating new offers is temporarily disabled. Please check back later."
+          title={t("new_offers_temporarily_disabled")}
+          description={t("creating_new_offers_is_temporarily_disabled")}
         />
         <Link href="/p2p/offer" className="mt-6">
           <Button variant="outline">{t("browse_existing_offers")}</Button>

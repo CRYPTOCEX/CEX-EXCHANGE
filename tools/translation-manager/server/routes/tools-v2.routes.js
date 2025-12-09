@@ -56,81 +56,118 @@ function createToolsRoutes() {
             });
             
             console.log(`Scanning ${files.length} files for translation usage...`);
-            
-            for (const file of files) {
+
+            // Process files in parallel batches for better performance
+            const BATCH_SIZE = 50;
+            const processFile = async (file) => {
                 const filePath = path.join(frontendDir, file);
                 try {
                     const content = await fs.readFile(filePath, 'utf8');
-                    
-                    // Find ALL namespace declarations in the file (there might be multiple)
-                    const namespacePattern = /(?:const|let|var)\s+(\w+)\s*=\s*useTranslations\(['"]([a-zA-Z_][a-zA-Z0-9_]*)['"]\)/g;
-                    const namespaceMap = new Map(); // variable name -> namespace
-                    
+
+                    // Quick check - skip files without useTranslations
+                    if (!content.includes('useTranslations')) {
+                        return [];
+                    }
+
+                    const results = [];
+
+                    // Find ALL namespace declarations in the file
+                    const namespacePattern = /(?:const|let|var)\s+(\w+)\s*=\s*useTranslations\(['"]([a-zA-Z_][a-zA-Z0-9_.]*)['"]\)/g;
+                    const namespaceMap = new Map();
+
                     let nsMatch;
                     while ((nsMatch = namespacePattern.exec(content)) !== null) {
-                        const varName = nsMatch[1]; // e.g., 't'
-                        const namespace = nsMatch[2]; // e.g., 'ext'
-                        namespaceMap.set(varName, namespace);
+                        namespaceMap.set(nsMatch[1], nsMatch[2]);
                     }
-                    
-                    // Pattern to match translation calls with variable name
-                    // This will match t('key'), t2('key'), etc.
-                    const translationPattern = /\b(\w+)\(['"]([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)['"](?:,\s*[^)]*)?\)/g;
-                    
+
+                    if (namespaceMap.size === 0) return [];
+
+                    // Simpler pattern - just match t("key") or t('key')
+                    const translationPattern = /\bt\(['"]([^'"]+)['"]/g;
+
                     let match;
                     while ((match = translationPattern.exec(content)) !== null) {
-                        const varName = match[1]; // e.g., 't'
-                        let key = match[2]; // e.g., 'payment_activities'
-                        
-                        // Check if this variable is a translation function
-                        if (namespaceMap.has(varName)) {
-                            const namespace = namespaceMap.get(varName);
-                            // If key doesn't already contain the namespace, prepend it
-                            if (!key.startsWith(namespace + '.')) {
-                                key = `${namespace}.${key}`;
-                            }
-                            
-                            // Validate key format
-                            if (key && /^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(key)) {
-                                usedKeys.add(key);
-                                
-                                if (!keyUsageMap.has(key)) {
-                                    keyUsageMap.set(key, { 
-                                        files: new Set(), 
-                                        count: 0,
-                                        examples: []
-                                    });
-                                }
-                                
-                                const usage = keyUsageMap.get(key);
-                                usage.files.add(file);
-                                usage.count++;
-                                
-                                // Store first 3 examples
-                                if (usage.examples.length < 3) {
-                                    const lineNum = content.substring(0, match.index).split('\n').length;
-                                    usage.examples.push({
-                                        file,
-                                        line: lineNum,
-                                        context: match[0]
-                                    });
-                                }
-                            }
-                        } else if (varName === 't') {
-                            // Handle cases where t might be used without explicit useTranslations in the file
-                            // This could be from props or context
-                            // For now, we'll skip these or you could add logic to infer namespace
+                        let key = match[1];
+                        const namespace = namespaceMap.get('t');
+
+                        if (namespace && !key.startsWith(namespace + '.')) {
+                            key = `${namespace}.${key}`;
+                        }
+
+                        // Validate key format - must be valid identifier parts separated by dots
+                        // Skip keys with special characters like "...", consecutive dots, or trailing dots
+                        if (key && /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(key)) {
+                            results.push({ file, key, context: match[0] });
                         }
                     }
+
+                    return results;
                 } catch (error) {
-                    console.error(`Error reading ${file}:`, error);
+                    return [];
+                }
+            };
+
+            // Process in batches
+            for (let i = 0; i < files.length; i += BATCH_SIZE) {
+                const batch = files.slice(i, i + BATCH_SIZE);
+                const batchResults = await Promise.all(batch.map(processFile));
+
+                for (const results of batchResults) {
+                    for (const { file, key, context } of results) {
+                        usedKeys.add(key);
+
+                        if (!keyUsageMap.has(key)) {
+                            keyUsageMap.set(key, { files: new Set(), count: 0, examples: [] });
+                        }
+
+                        const usage = keyUsageMap.get(key);
+                        usage.files.add(file);
+                        usage.count++;
+
+                        if (usage.examples.length < 3) {
+                            usage.examples.push({ file, line: 0, context });
+                        }
+                    }
                 }
             }
+
+            console.log(`Found ${usedKeys.size} used translation keys`);
             
+            // Keys to skip in missing detection (abbreviations, short codes, etc.)
+            const skipMissingKeys = new Set([
+                'N_A', 'n_a', 'TBD', 'TBA', 'TODO', 'FIXME', 'WIP',
+                'OK', 'ID', 'URL', 'URI', 'API', 'UI', 'UX',
+                'vs', 'etc', 'AM', 'PM', 'UTC', 'GMT',
+                'USD', 'EUR', 'GBP', 'BTC', 'ETH',
+                'KB', 'MB', 'GB', 'TB',
+                'px', 'em', 'rem',
+            ]);
+
+            // Patterns for keys that should be skipped
+            const skipMissingPatterns = [
+                /^[A-Z]{1,3}$/,           // 1-3 uppercase letters (abbreviations)
+                /^[a-z]_[a-z]$/i,         // Single letter underscore single letter (like N_A)
+                /^_?\d+$/,                // Just numbers
+                /^\w{1,2}$/,              // Very short keys (1-2 chars)
+            ];
+
             // Find missing keys (used in code but not in translations)
             const missingKeys = [];
             for (const key of usedKeys) {
                 if (!existingKeys.has(key)) {
+                    // Get the actual key part (after namespace)
+                    const keyPart = key.split('.').pop();
+
+                    // Skip if it's in the skip list
+                    if (skipMissingKeys.has(keyPart) || skipMissingKeys.has(keyPart.toUpperCase())) {
+                        continue;
+                    }
+
+                    // Skip if it matches any skip pattern
+                    if (skipMissingPatterns.some(pattern => pattern.test(keyPart))) {
+                        continue;
+                    }
+
                     const usage = keyUsageMap.get(key);
                     missingKeys.push({
                         key,
@@ -146,10 +183,41 @@ function createToolsRoutes() {
             missingKeys.sort((a, b) => b.count - a.count);
             
             // Find orphaned keys (in translations but not used)
+            // Skip all top-level namespaces - the detection isn't reliable enough
+            // Many keys are used dynamically via t(variableKey) or computed keys
+            const skipOrphanedPatterns = [
+                /^menu\./,                    // Menu translations are used dynamically via menu-translator
+                /^common\./,                  // Common translations may be used in many places
+                /^utility\./,                 // Utility translations
+                /^dashboard\./,               // Dashboard translations
+                /^home\./,                    // Home page translations
+                /^market\./,                  // Market translations
+                /^support\./,                 // Support translations
+                /^nft\./,                     // NFT translations
+                /^ext\./,                     // Extension translations (heavily used)
+                /^admin\./,                   // Admin translations
+                /^blog\./,                    // Blog translations
+            ];
+
+            // Also skip keys that look like they're used dynamically (e.g., single words, status codes)
+            const skipDynamicPatterns = [
+                /\.(Active|Inactive|Pending|Completed|Failed|Success|Error|Warning|Info)$/i,
+                /\.(yes|no|ok|cancel|submit|save|delete|edit|view|create|update|close|open)$/i,
+                /\.(enabled|disabled|on|off|true|false)$/i,
+                /\.(asc|desc|A-Z|Z-A|All|None)$/i,
+                /\.(loading|processing|saving|deleting|updating)$/i,
+            ];
+
             const orphanedKeys = [];
             for (const key of existingKeys) {
                 if (!usedKeys.has(key)) {
-                    orphanedKeys.push(key);
+                    // Check if this key should be skipped
+                    const shouldSkip = skipOrphanedPatterns.some(pattern => pattern.test(key)) ||
+                                       skipDynamicPatterns.some(pattern => pattern.test(key));
+
+                    if (!shouldSkip) {
+                        orphanedKeys.push(key);
+                    }
                 }
             }
             
@@ -202,26 +270,48 @@ function createToolsRoutes() {
                     const data = JSON.parse(content);
                     
                     // Add each key to the translation file
-                    for (const { key, value } of keys) {
-                        const keyParts = key.split('.');
+                    for (const item of keys) {
+                        // Handle both { key, value } objects and plain strings
+                        const key = typeof item === 'string' ? item : item.key;
+                        const value = typeof item === 'string' ? item : (item.value || item.suggestedValue || key);
+
+                        if (!key) continue;
+
+                        // Split key and filter out empty parts (handles keys like "ext.Submitting...")
+                        const keyParts = key.split('.').filter(part => part && part.trim());
+
+                        // Skip invalid keys (less than 2 parts after filtering, or contains invalid characters)
+                        if (keyParts.length < 2) {
+                            console.log(`Skipping invalid key (too few parts): ${key}`);
+                            continue;
+                        }
+
+                        // Validate all parts are valid identifiers
+                        const isValidKey = keyParts.every(part => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(part));
+                        if (!isValidKey) {
+                            console.log(`Skipping invalid key (invalid characters): ${key}`);
+                            continue;
+                        }
+
                         let current = data;
-                        
+
                         // Navigate/create the nested structure
                         for (let i = 0; i < keyParts.length - 1; i++) {
                             const part = keyParts[i];
-                            if (!current[part]) {
+                            // Ensure current is an object and part exists as an object
+                            if (!current || typeof current !== 'object') {
+                                break;
+                            }
+                            if (!current[part] || typeof current[part] !== 'object') {
                                 current[part] = {};
                             }
                             current = current[part];
                         }
-                        
-                        // Set the value (use provided value for English, key as placeholder for others)
-                        const finalKey = keyParts[keyParts.length - 1];
-                        if (locale === 'en') {
+
+                        // Set the value if we have a valid current object
+                        if (current && typeof current === 'object') {
+                            const finalKey = keyParts[keyParts.length - 1];
                             current[finalKey] = value;
-                        } else {
-                            // For other locales, use the English value as placeholder
-                            current[finalKey] = value; // You might want to prefix with [TRANSLATE] or similar
                         }
                     }
                     
@@ -432,6 +522,150 @@ function createToolsRoutes() {
         } catch (error) {
             console.error('Error getting menu status:', error);
             res.status(500).json({ error: error.message });
+        }
+    });
+
+    // Get available directories for extraction
+    router.get('/extraction-directories', async (req, res) => {
+        try {
+            const frontendDir = path.join(__dirname, '../../../../frontend');
+            const appDir = path.join(frontendDir, 'app');
+            const componentsDir = path.join(frontendDir, 'components');
+
+            const directories = [];
+
+            // Helper to count TSX files recursively in a directory
+            async function countTsxFilesRecursive(dir) {
+                let count = 0;
+                try {
+                    const items = await fs.readdir(dir, { withFileTypes: true });
+                    for (const item of items) {
+                        if (item.isDirectory() && !item.name.startsWith('.') && item.name !== 'node_modules') {
+                            count += await countTsxFilesRecursive(path.join(dir, item.name));
+                        } else if (item.isFile() && item.name.endsWith('.tsx')) {
+                            count++;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors
+                }
+                return count;
+            }
+
+            // Helper to recursively get directories with full path display
+            async function getDirectories(dir, relativePath = '', depth = 0) {
+                try {
+                    const items = await fs.readdir(dir, { withFileTypes: true });
+                    const sortedItems = items.sort((a, b) => a.name.localeCompare(b.name));
+
+                    for (const item of sortedItems) {
+                        if (item.isDirectory() && !item.name.startsWith('.') && item.name !== 'node_modules') {
+                            const fullPath = relativePath ? `${relativePath}/${item.name}` : item.name;
+                            const absolutePath = path.join(dir, item.name);
+
+                            const tsxCount = await countTsxFilesRecursive(absolutePath);
+
+                            if (tsxCount > 0) {
+                                directories.push({
+                                    path: fullPath,
+                                    name: item.name,
+                                    fullPath: fullPath,
+                                    tsxFiles: tsxCount,
+                                    depth: depth,
+                                    type: fullPath.startsWith('app') ? 'app' : 'components'
+                                });
+
+                                // Recursively get subdirectories (limit depth to 8)
+                                if (depth < 8) {
+                                    await getDirectories(absolutePath, fullPath, depth + 1);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors reading directories
+                }
+            }
+
+            // Add root options with recursive counts
+            const appTsxCount = await countTsxFilesRecursive(appDir);
+            const componentsTsxCount = await countTsxFilesRecursive(componentsDir);
+
+            directories.push({
+                path: 'app',
+                name: 'app',
+                fullPath: 'app',
+                tsxFiles: appTsxCount,
+                depth: 0,
+                type: 'app',
+                isRoot: true
+            });
+
+            await getDirectories(appDir, 'app', 1);
+
+            directories.push({
+                path: 'components',
+                name: 'components',
+                fullPath: 'components',
+                tsxFiles: componentsTsxCount,
+                depth: 0,
+                type: 'components',
+                isRoot: true
+            });
+
+            await getDirectories(componentsDir, 'components', 1);
+
+            res.json({
+                success: true,
+                directories: directories
+            });
+
+        } catch (error) {
+            console.error('Error getting extraction directories:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // Extract translations from text to translatable strings
+    router.post('/extract-translations', async (req, res) => {
+        try {
+            const { directory, limit } = req.body;
+
+            if (!directory) {
+                return res.status(400).json({ error: 'Directory is required' });
+            }
+
+            console.log(`Running translation extraction for directory: ${directory}`);
+
+            // Clear require cache to always load fresh code (for dev mode)
+            const servicePath = require.resolve('../services/extract-translations.service');
+            delete require.cache[servicePath];
+
+            // Use the extraction service
+            const { TranslationExtractor } = require('../services/extract-translations.service');
+            const extractor = new TranslationExtractor({
+                frontendDir: path.join(__dirname, '../../../../frontend')
+            });
+
+            const result = await extractor.extract({
+                directory,
+                limit: limit ? parseInt(limit) : null
+            });
+
+            res.json({
+                success: true,
+                message: 'Translation extraction completed',
+                stats: result.stats,
+                output: result.logs.join('\n'),
+                modifiedFiles: result.modifiedFiles
+            });
+
+        } catch (error) {
+            console.error('Error extracting translations:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
         }
     });
 

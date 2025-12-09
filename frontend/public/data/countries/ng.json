@@ -1,0 +1,694 @@
+{
+  "name": "Nigeria",
+  "iso2": "NG",
+  "iso3": "NGA",
+  "phonecode": "234",
+  "states": [
+    {
+      "name": "Abia",
+      "code": "AB",
+      "cities": [
+        "Aba",
+        "Amaigbo",
+        "Arochukwu",
+        "Bende",
+        "Ohafia-Ifigh",
+        "Umuahia"
+      ]
+    },
+    {
+      "name": "Abuja Federal Capital Territory",
+      "code": "FC",
+      "cities": [
+        "Abuja",
+        "Asokoro",
+        "Bamburu",
+        "Bwari",
+        "Garki",
+        "Gwagwalada",
+        "Gwarinpa",
+        "Jikwoyi",
+        "Karu",
+        "Kubwa",
+        "Kuje",
+        "Kurunduma",
+        "Kwali",
+        "Madala",
+        "Maitama",
+        "Wuse",
+        "Zuba"
+      ]
+    },
+    {
+      "name": "Adamawa",
+      "code": "AD",
+      "cities": [
+        "Ganye",
+        "Gombi",
+        "Holma",
+        "Jimeta",
+        "Madagali",
+        "Mayo-Belwa",
+        "Mubi",
+        "Ngurore",
+        "Numan",
+        "Toungo",
+        "Yola"
+      ]
+    },
+    {
+      "name": "Akwa Ibom",
+      "code": "AK",
+      "cities": [
+        "Eket",
+        "Esuk Oron",
+        "Ikot Ekpene",
+        "Itu",
+        "Uyo"
+      ]
+    },
+    {
+      "name": "Anambra",
+      "code": "AN",
+      "cities": [
+        "Agulu",
+        "Atani",
+        "Awka",
+        "Enugu-Ukwu",
+        "Igbo-Ukwu",
+        "Ihiala",
+        "Nkpor",
+        "Nnewi",
+        "Onitsha",
+        "Ozubulu",
+        "Uga",
+        "Uruobo-Okija"
+      ]
+    },
+    {
+      "name": "Bauchi",
+      "code": "BA",
+      "cities": [
+        "Azare",
+        "Bauchi",
+        "Boi",
+        "Bununu",
+        "Darazo",
+        "Dass",
+        "Dindima",
+        "Disina",
+        "Gabarin",
+        "Gwaram",
+        "Kari",
+        "Lame",
+        "Madara",
+        "Misau",
+        "Sade",
+        "Yamrat",
+        "Yanda Bayo",
+        "Yuli",
+        "Zadawa",
+        "Zalanga"
+      ]
+    },
+    {
+      "name": "Bayelsa",
+      "code": "BY",
+      "cities": [
+        "Amassoma",
+        "Twon-Brass",
+        "Yenagoa"
+      ]
+    },
+    {
+      "name": "Benue",
+      "code": "BE",
+      "cities": [
+        "Aliade",
+        "Boju",
+        "Gboko",
+        "Igbor",
+        "Makurdi",
+        "Ochobo",
+        "Otukpa",
+        "Takum",
+        "Ugbokpo",
+        "Yandev",
+        "Zaki Biam"
+      ]
+    },
+    {
+      "name": "Borno",
+      "code": "BO",
+      "cities": [
+        "Bama",
+        "Benisheikh",
+        "Biu",
+        "Bornu Yassu",
+        "Damasak",
+        "Damboa",
+        "Dikwa",
+        "Gamboru",
+        "Gwoza",
+        "Kukawa",
+        "Magumeri",
+        "Maiduguri",
+        "Marte",
+        "Miringa",
+        "Monguno",
+        "Ngala",
+        "Shaffa",
+        "Shani",
+        "Tokombere",
+        "Uba",
+        "Wuyo",
+        "Yajiwa"
+      ]
+    },
+    {
+      "name": "Cross River",
+      "code": "CR",
+      "cities": [
+        "Akankpa",
+        "Calabar",
+        "Gakem",
+        "Ikang",
+        "Ugep"
+      ]
+    },
+    {
+      "name": "Delta",
+      "code": "DE",
+      "cities": [
+        "Abraka",
+        "Agbor",
+        "Asaba",
+        "Bomadi",
+        "Burutu",
+        "Kwale",
+        "Obiaruku",
+        "Ogwashi-Uku",
+        "Orerokpe",
+        "Patani",
+        "Sapele",
+        "Ughelli",
+        "Umunede",
+        "Warri"
+      ]
+    },
+    {
+      "name": "Ebonyi",
+      "code": "EB",
+      "cities": [
+        "Abakaliki",
+        "Afikpo",
+        "Effium",
+        "Ezza-Ohu",
+        "Isieke"
+      ]
+    },
+    {
+      "name": "Edo",
+      "code": "ED",
+      "cities": [
+        "Agenebode",
+        "Auchi",
+        "Benin City",
+        "Ekpoma",
+        "Igarra",
+        "Illushi",
+        "Siluko",
+        "Ubiaja",
+        "Uromi"
+      ]
+    },
+    {
+      "name": "Ekiti",
+      "code": "EK",
+      "cities": [
+        "Ado-Ekiti",
+        "Aramoko-Ekiti",
+        "Efon-Alaaye",
+        "Emure-Ekiti",
+        "Ifaki",
+        "Igbara-Odo",
+        "Igede-Ekiti",
+        "Ijero-Ekiti",
+        "Ikere-Ekiti",
+        "Ilawe-Ekiti",
+        "Ipoti",
+        "Ise-Ekiti",
+        "Oke Ila",
+        "Omuo-Ekiti",
+        "Oye-Ekiti"
+      ]
+    },
+    {
+      "name": "Enugu",
+      "code": "EN",
+      "cities": [
+        "Adani",
+        "Ake-Eze",
+        "Aku",
+        "Amagunze",
+        "Awgu",
+        "Eha Amufu",
+        "Enugu",
+        "Enugu-Ezike",
+        "Ete",
+        "Ikem",
+        "Mberubu",
+        "Nsukka",
+        "Obolo-Eke (1)",
+        "Opi",
+        "Udi"
+      ]
+    },
+    {
+      "name": "Gombe",
+      "code": "GO",
+      "cities": [
+        "Akko",
+        "Bara",
+        "Billiri",
+        "Dadiya",
+        "Deba",
+        "Dukku",
+        "Garko",
+        "Gombe",
+        "Hinna",
+        "Kafarati",
+        "Kaltungo",
+        "Kumo",
+        "Nafada",
+        "Pindiga"
+      ]
+    },
+    {
+      "name": "Imo",
+      "code": "IM",
+      "cities": [
+        "Iho",
+        "Oguta",
+        "Okigwe",
+        "Orlu",
+        "Orodo",
+        "Owerri"
+      ]
+    },
+    {
+      "name": "Jigawa",
+      "code": "JI",
+      "cities": [
+        "Babura",
+        "Birnin Kudu",
+        "Birniwa",
+        "Dutse",
+        "Gagarawa",
+        "Gumel",
+        "Hadejia",
+        "Kafin Hausa",
+        "Kazaure",
+        "Kiyawa",
+        "Mallammaduri",
+        "Ringim",
+        "Samamiya"
+      ]
+    },
+    {
+      "name": "Kaduna",
+      "code": "KD",
+      "cities": [
+        "Anchau",
+        "Burumburum",
+        "Dutsen Wai",
+        "Hunkuyi",
+        "Kachia",
+        "Kaduna",
+        "Kafanchan",
+        "Kagoro",
+        "Kajuru",
+        "Kujama",
+        "Lere",
+        "Mando",
+        "Saminaka",
+        "Soba",
+        "Sofo-Birnin-Gwari",
+        "Zaria"
+      ]
+    },
+    {
+      "name": "Kano",
+      "code": "KN",
+      "cities": [
+        "Dan Gora",
+        "Gaya",
+        "Kano"
+      ]
+    },
+    {
+      "name": "Katsina",
+      "code": "KT",
+      "cities": [
+        "Danja",
+        "Dankama",
+        "Daura",
+        "Dutsin-Ma",
+        "Funtua",
+        "Gora",
+        "Jibia",
+        "Jikamshi",
+        "Kankara",
+        "Katsina",
+        "Mashi",
+        "Ruma",
+        "Runka",
+        "Wagini"
+      ]
+    },
+    {
+      "name": "Kebbi",
+      "code": "KE",
+      "cities": [
+        "Argungu",
+        "Bagudo",
+        "Bena",
+        "Bin Yauri",
+        "Birnin Kebbi",
+        "Dabai",
+        "Dakingari",
+        "Gulma",
+        "Gwandu",
+        "Jega",
+        "Kamba",
+        "Kangiwa",
+        "Kende",
+        "Mahuta",
+        "Maiyama",
+        "Shanga",
+        "Wasagu",
+        "Zuru"
+      ]
+    },
+    {
+      "name": "Kogi",
+      "code": "KO",
+      "cities": [
+        "Abocho",
+        "Adoru",
+        "Ankpa",
+        "Bugana",
+        "Dekina",
+        "Egbe",
+        "Icheu",
+        "Idah",
+        "Isanlu-Itedoijowa",
+        "Kabba",
+        "Koton-Karfe",
+        "Lokoja",
+        "Ogaminana",
+        "Ogurugu",
+        "Okene"
+      ]
+    },
+    {
+      "name": "Kwara",
+      "code": "KW",
+      "cities": [
+        "Ajasse Ipo",
+        "Bode Saadu",
+        "Gwasero",
+        "Ilorin",
+        "Jebba",
+        "Kaiama",
+        "Lafiagi",
+        "Offa",
+        "Okuta",
+        "Omu-Aran",
+        "Patigi",
+        "Suya",
+        "Yashikera"
+      ]
+    },
+    {
+      "name": "Lagos",
+      "code": "LA",
+      "cities": [
+        "Abule Egba",
+        "Agege",
+        "Alimosho",
+        "Amuwo-Odofin",
+        "Apapa",
+        "Badagry",
+        "Bariga",
+        "Ebute Ikorodu",
+        "Ebute Metta",
+        "Ejirin",
+        "Epe",
+        "Eti-Osa",
+        "Festac",
+        "Ibeju-Lekki",
+        "Idimu",
+        "Ifako-Ijaiye",
+        "Igando",
+        "Ijora",
+        "Ikeja",
+        "Ikorodu",
+        "Ipaja",
+        "Isheri-Olofin",
+        "Lagos",
+        "Lagos Island",
+        "Lekki",
+        "Makoko",
+        "Mushin",
+        "Ogba",
+        "Ojo",
+        "Ojodu Berger",
+        "Ojota",
+        "Oshodi-Isolo",
+        "Shomolu",
+        "Surulere",
+        "Victoria Island",
+        "Yaba"
+      ]
+    },
+    {
+      "name": "Nasarawa",
+      "code": "NA",
+      "cities": [
+        "Buga",
+        "Doma",
+        "Keffi",
+        "Lafia",
+        "Nasarawa",
+        "Wamba"
+      ]
+    },
+    {
+      "name": "Niger",
+      "code": "NI",
+      "cities": [
+        "Auna",
+        "Babana",
+        "Badeggi",
+        "Baro",
+        "Bokani",
+        "Duku",
+        "Ibeto",
+        "Konkwesso",
+        "Kontagora",
+        "Kusheriki",
+        "Kuta",
+        "Lapai",
+        "Minna",
+        "New Shagunnu",
+        "Suleja",
+        "Tegina",
+        "Ukata",
+        "Wawa",
+        "Zungeru"
+      ]
+    },
+    {
+      "name": "Ogun",
+      "code": "OG",
+      "cities": [
+        "Abeokuta",
+        "Ado Odo",
+        "Idi Iroko",
+        "Ifo",
+        "Ijebu-Ife",
+        "Ijebu-Igbo",
+        "Ijebu-Ode",
+        "Ilaro",
+        "Imeko",
+        "Iperu",
+        "Isara",
+        "Owode"
+      ]
+    },
+    {
+      "name": "Ondo",
+      "code": "ON",
+      "cities": [
+        "Agbabu",
+        "Akure",
+        "Idanre",
+        "Ifon",
+        "Ilare",
+        "Ode",
+        "Ondo",
+        "Ore",
+        "Owo"
+      ]
+    },
+    {
+      "name": "Osun",
+      "code": "OS",
+      "cities": [
+        "Apomu",
+        "Ejigbo",
+        "Gbongan",
+        "Ijebu-Jesa",
+        "Ikire",
+        "Ikirun",
+        "Ila Orangun",
+        "Ile-Ife",
+        "Ilesa",
+        "Ilobu",
+        "Inisa",
+        "Iwo",
+        "Modakeke",
+        "Oke Mesi",
+        "Olupona",
+        "Osogbo",
+        "Otan Ayegbaju",
+        "Oyan"
+      ]
+    },
+    {
+      "name": "Oyo",
+      "code": "OY",
+      "cities": [
+        "Ago Are",
+        "Alapa",
+        "Fiditi",
+        "Ibadan",
+        "Igbeti",
+        "Igbo-Ora",
+        "Igboho",
+        "Kisi",
+        "Lalupon",
+        "Ogbomoso",
+        "Okeho",
+        "Orita Eruwa",
+        "Oyo",
+        "Saki"
+      ]
+    },
+    {
+      "name": "Plateau",
+      "code": "PL",
+      "cities": [
+        "Amper",
+        "Bukuru",
+        "Dengi",
+        "Jos",
+        "Kwolla",
+        "Langtang",
+        "Pankshin",
+        "Panyam",
+        "Vom",
+        "Yelwa"
+      ]
+    },
+    {
+      "name": "Rivers",
+      "code": "RI",
+      "cities": [
+        "Abalama",
+        "Abonnema",
+        "Ahoada",
+        "Bori",
+        "Buguma",
+        "Chokocho",
+        "Elele",
+        "Obonoma",
+        "Omoku",
+        "Onne",
+        "Opobo",
+        "Port Harcourt",
+        "Rumuokoro"
+      ]
+    },
+    {
+      "name": "Sokoto",
+      "code": "SO",
+      "cities": [
+        "Binji",
+        "Dange",
+        "Gandi",
+        "Goronyo",
+        "Gwadabawa",
+        "Illela",
+        "Rabah",
+        "Sokoto",
+        "Tambuwal",
+        "Wurno"
+      ]
+    },
+    {
+      "name": "Taraba",
+      "code": "TA",
+      "cities": [
+        "Baissa",
+        "Beli",
+        "Gassol",
+        "Gembu",
+        "Ibi",
+        "Jalingo",
+        "Lau",
+        "Mutum Biyu",
+        "Riti",
+        "Wukari"
+      ]
+    },
+    {
+      "name": "Yobe",
+      "code": "YO",
+      "cities": [
+        "Damaturu",
+        "Dankalwa",
+        "Dapchi",
+        "Fika",
+        "Gashua",
+        "Geidam",
+        "Goniri",
+        "Gorgoram",
+        "Gujba",
+        "Gwio Kura",
+        "Kumagunnam",
+        "Lajere",
+        "Machina",
+        "Nguru",
+        "Potiskum"
+      ]
+    },
+    {
+      "name": "Zamfara",
+      "code": "ZA",
+      "cities": [
+        "Anka",
+        "Dan Sadau",
+        "Gummi",
+        "Gusau",
+        "Kaura Namoda",
+        "Kwatarkwashi",
+        "Maru",
+        "Moriki",
+        "Sauri",
+        "Tsafe"
+      ]
+    }
+  ]
+}

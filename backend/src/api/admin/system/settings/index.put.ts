@@ -62,21 +62,18 @@ export default async (data: { body: { [key: string]: unknown } }) => {
       console.warn(`Skipping problematic setting key: ${key}`);
       return;
     }
-    
+
     // Convert value to string and validate
     let stringValue = "";
     if (value === null || value === "null" || value === undefined) {
       stringValue = "";
+    } else if (typeof value === "object") {
+      // Serialize objects/arrays to JSON string
+      stringValue = JSON.stringify(value);
     } else {
       stringValue = String(value);
-      
-      // Check for invalid serialized objects
-      if (stringValue.includes('[object Object]')) {
-        console.warn(`Skipping setting ${key} with invalid serialized value: ${stringValue}`);
-        return;
-      }
     }
-    
+
     validUpdates[key] = stringValue;
   });
 

@@ -5,11 +5,7 @@ import { MiddlewareFactory } from "../types/MiddlewareFactory";
 import permissions from "@/middlewares/permissions.json";
 
 const dev = process.env.NODE_ENV !== "production";
-const frontendPort = process.env.NEXT_PUBLIC_FRONTEND_PORT || 3000;
 const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || 4000;
-const siteUrl = dev
-  ? `http://localhost:${frontendPort}`
-  : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost";
 const apiUrl = dev
   ? `http://localhost:${backendPort}`
   : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost";
@@ -26,13 +22,21 @@ let rolesCache: RolesCache | null = null;
 async function fetchRolesAndPermissions() {
   try {
     const endpoint = `${apiUrl}/api/auth/role`;
+
+    // Use AbortController with timeout to prevent hanging connections
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(endpoint, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
       cache: "no-store", // Prevent caching issues
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.error(
@@ -68,14 +72,31 @@ async function fetchRolesAndPermissions() {
       console.error("Invalid roles data format received");
       rolesCache = {};
     }
-  } catch (error) {
-    console.error("Error fetching roles and permissions:", error);
+  } catch (error: any) {
+    // Silently handle connection errors (ECONNRESET, ECONNREFUSED, abort)
+    // These are common during server restarts or high load
+    // Note: fetch errors have the code on error.cause, not directly on error
+    const errorCode = error?.code || error?.cause?.code;
+    const isConnectionError =
+      errorCode === "ECONNRESET" ||
+      errorCode === "ECONNREFUSED" ||
+      error?.name === "AbortError" ||
+      error?.message?.includes("aborted") ||
+      error?.message?.includes("fetch failed");
+
+    if (!isConnectionError) {
+      console.error("Error fetching roles and permissions:", error);
+    }
     rolesCache = {};
   }
 }
 
 async function refreshToken(request: NextRequest) {
   try {
+    // Use AbortController with timeout to prevent hanging connections
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const res = await fetch(`${apiUrl}/api/auth/session`, {
       method: "GET",
       credentials: "include",
@@ -84,8 +105,11 @@ async function refreshToken(request: NextRequest) {
         cookie: request.headers.get("cookie") || "",
       },
       cache: "no-store", // Prevent caching issues
+      signal: controller.signal,
     });
-    
+
+    clearTimeout(timeoutId);
+
     if (res.ok) {
       const setCookie = res.headers.get("set-cookie");
       if (setCookie) {
@@ -97,8 +121,20 @@ async function refreshToken(request: NextRequest) {
     } else {
       console.error("Failed to refresh token:", res.status, res.statusText);
     }
-  } catch (error) {
-    console.error("Error refreshing token:", error);
+  } catch (error: any) {
+    // Silently handle connection errors (ECONNRESET, ECONNREFUSED, abort)
+    // Note: fetch errors have the code on error.cause, not directly on error
+    const errorCode = error?.code || error?.cause?.code;
+    const isConnectionError =
+      errorCode === "ECONNRESET" ||
+      errorCode === "ECONNREFUSED" ||
+      error?.name === "AbortError" ||
+      error?.message?.includes("aborted") ||
+      error?.message?.includes("fetch failed");
+
+    if (!isConnectionError) {
+      console.error("Error refreshing token:", error);
+    }
   }
   return null;
 }

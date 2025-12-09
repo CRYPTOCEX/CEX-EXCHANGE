@@ -1,0 +1,179 @@
+{
+  "name": "Mongolia",
+  "iso2": "MN",
+  "iso3": "MNG",
+  "phonecode": "976",
+  "states": [
+    {
+      "name": "Arkhangai",
+      "code": "073",
+      "cities": [
+        "Tsetserleg"
+      ]
+    },
+    {
+      "name": "Bayan-Ölgii",
+      "code": "071",
+      "cities": [
+        "Altay",
+        "Ölgii",
+        "Tsengel"
+      ]
+    },
+    {
+      "name": "Bayankhongor",
+      "code": "069",
+      "cities": [
+        "Bayanhongor"
+      ]
+    },
+    {
+      "name": "Bulgan",
+      "code": "067",
+      "cities": [
+        "Bulgan"
+      ]
+    },
+    {
+      "name": "Darkhan-Uul",
+      "code": "037",
+      "cities": [
+        "Darhan"
+      ]
+    },
+    {
+      "name": "Dornod",
+      "code": "061",
+      "cities": [
+        "Choibalsan",
+        "Ereencav"
+      ]
+    },
+    {
+      "name": "Dornogovi",
+      "code": "063",
+      "cities": []
+    },
+    {
+      "name": "Dundgovi",
+      "code": "059",
+      "cities": [
+        "Mandalgovi"
+      ]
+    },
+    {
+      "name": "Govi-Altai",
+      "code": "065",
+      "cities": [
+        "Altai"
+      ]
+    },
+    {
+      "name": "Govisümber",
+      "code": "064",
+      "cities": [
+        "Choyr"
+      ]
+    },
+    {
+      "name": "Khentii",
+      "code": "039",
+      "cities": [
+        "Undurkhaan"
+      ]
+    },
+    {
+      "name": "Khovd",
+      "code": "043",
+      "cities": [
+        "Khovd",
+        "Möst",
+        "Üyönch"
+      ]
+    },
+    {
+      "name": "Khövsgöl",
+      "code": "041",
+      "cities": [
+        "Hanh",
+        "Murun-kuren",
+        "Tsengel",
+        "Turt"
+      ]
+    },
+    {
+      "name": "Ömnögovi",
+      "code": "053",
+      "cities": [
+        "Dalandzadgad",
+        "Hanhongor",
+        "Nomgon Sum"
+      ]
+    },
+    {
+      "name": "Orkhon",
+      "code": "035",
+      "cities": [
+        "Erdenet"
+      ]
+    },
+    {
+      "name": "Övörkhangai",
+      "code": "055",
+      "cities": [
+        "Arvayheer",
+        "Harhorin",
+        "Hovd",
+        "Kharkhorin",
+        "Nariynteel"
+      ]
+    },
+    {
+      "name": "Selenge",
+      "code": "049",
+      "cities": [
+        "Dzüünharaa",
+        "Sühbaatar"
+      ]
+    },
+    {
+      "name": "Sükhbaatar",
+      "code": "051",
+      "cities": [
+        "Baruun-Urt"
+      ]
+    },
+    {
+      "name": "Töv",
+      "code": "047",
+      "cities": [
+        "Centipede",
+        "Dzuunmod",
+        "Möngönmorĭt",
+        "Ulaanhudag",
+        "Ulan Bator"
+      ]
+    },
+    {
+      "name": "Ulaanbaatar",
+      "code": "001",
+      "cities": [
+        "Ulaanbaatar"
+      ]
+    },
+    {
+      "name": "Uvs",
+      "code": "046",
+      "cities": [
+        "Ulaangom"
+      ]
+    },
+    {
+      "name": "Zavkhan",
+      "code": "057",
+      "cities": [
+        "Uliastay"
+      ]
+    }
+  ]
+}

@@ -437,8 +437,7 @@ export function KycApplicationClient() {
                     {steps.length}
                   </span>
                   <span className="text-primary font-semibold dark:text-primary-400">
-                    {Math.round(progress)}
-                    {t("%_complete")}
+                    {Math.round(progress)}% {t("complete")}
                   </span>
                 </div>
                 <Progress value={progress} className="h-2.5 bg-background" />

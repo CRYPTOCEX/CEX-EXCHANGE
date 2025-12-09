@@ -10,7 +10,7 @@ import { useConfigStore } from "@/store/config";
 import { useTranslations } from "next-intl";
 
 export default function Page() {
-  const t = useTranslations("[pageId]");
+  const t = useTranslations("common");
   const { pageId } = useParams();
   const { settings } = useConfigStore();
   const [pageData, setPageData] = useState<any>(null);

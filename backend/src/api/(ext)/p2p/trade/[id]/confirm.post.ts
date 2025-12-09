@@ -37,6 +37,7 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
   // Import validation utilities
   const { validateTradeStatusTransition } = await import("../../utils/validation");
   const { notifyTradeEvent } = await import("../../utils/notifications");
+  const { broadcastP2PTradeEvent } = await import("./index.ws");
 
   const trade = await models.p2pTrade.findOne({
     where: { id, buyerId: user.id },
@@ -68,8 +69,22 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
   }
 
   try {
-    // Update status and add to timeline
-    const timeline = trade.timeline || [];
+    // Parse timeline if it's a string
+    let timeline = trade.timeline || [];
+    if (typeof timeline === "string") {
+      try {
+        timeline = JSON.parse(timeline);
+      } catch (e) {
+        console.error("Failed to parse timeline JSON:", e);
+        timeline = [];
+      }
+    }
+
+    // Ensure timeline is an array
+    if (!Array.isArray(timeline)) {
+      timeline = [];
+    }
+
     timeline.push({
       event: "PAYMENT_CONFIRMED",
       message: "Buyer confirmed payment sent",
@@ -78,31 +93,59 @@ export default async (data: { params?: any; user?: any; body?: any }) => {
       paymentReference: body?.paymentReference,
     });
 
-    await trade.update({ 
+    const previousStatus = trade.status;
+
+    await trade.update({
       status: "PAYMENT_SENT",
       timeline,
       paymentConfirmedAt: new Date(),
     });
 
+    // Reload to verify update was successful
+    await trade.reload();
+
+    if (trade.status !== "PAYMENT_SENT") {
+      console.error(`[P2P Confirm] Status update failed! Expected PAYMENT_SENT, got ${trade.status}`);
+      throw createError({
+        statusCode: 500,
+        message: "Failed to update trade status"
+      });
+    }
+
+    console.log(`[P2P Confirm] Trade ${trade.id} status updated: ${previousStatus} -> ${trade.status}`);
+
     // Log activity
     await models.p2pActivityLog.create({
       userId: user.id,
       type: "PAYMENT_CONFIRMED",
-      entityId: trade.id,
-      entityType: "TRADE",
-      metadata: {
-        previousStatus: trade.status,
+      action: "PAYMENT_CONFIRMED",
+      relatedEntity: "TRADE",
+      relatedEntityId: trade.id,
+      details: JSON.stringify({
+        previousStatus,
+        newStatus: trade.status,
         paymentReference: body?.paymentReference,
-      },
+      }),
     });
 
-    // Send notifications
-    notifyTradeEvent(trade.id, "PAYMENT_SENT", {
+    // Send notifications (use PAYMENT_CONFIRMED to match the notification handler)
+    notifyTradeEvent(trade.id, "PAYMENT_CONFIRMED", {
       buyerId: trade.buyerId,
       sellerId: trade.sellerId,
       amount: trade.amount,
       currency: trade.offer.currency,
     }).catch(console.error);
+
+    // Broadcast WebSocket event for real-time updates
+    broadcastP2PTradeEvent(trade.id, {
+      type: "STATUS_CHANGE",
+      data: {
+        status: "PAYMENT_SENT",
+        previousStatus: "PENDING",
+        paymentConfirmedAt: trade.paymentConfirmedAt,
+        timeline,
+      },
+    });
 
     return { 
       message: "Payment confirmed successfully.",

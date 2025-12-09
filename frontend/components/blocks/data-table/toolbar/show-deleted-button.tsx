@@ -12,9 +12,7 @@ import { useTableStore } from "../store";
 import { useTranslations } from "next-intl";
 
 export function ShowDeletedButton() {
-  const t = useTranslations(
-    "components/blocks/data-table/toolbar/show-deleted-button"
-  );
+  const t = useTranslations("common");
   const isParanoid = useTableStore((state) => state.tableConfig.isParanoid);
 
   const showDeleted = useTableStore((state) => state.showDeleted);

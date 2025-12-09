@@ -1,0 +1,77 @@
+{
+  "name": "Guernsey",
+  "iso2": "GG",
+  "iso3": "GGY",
+  "phonecode": "44",
+  "states": [
+    {
+      "name": "Alderney",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Castel",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Forest",
+      "code": "02",
+      "cities": [
+        "Forest Parish"
+      ]
+    },
+    {
+      "name": "Sark",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "St Andrew",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "St Martin",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "St Peter Port",
+      "code": "06",
+      "cities": [
+        "Saint Peter Port"
+      ]
+    },
+    {
+      "name": "St Pierre du Bois",
+      "code": "08",
+      "cities": [
+        "Saint Pierre du Bois Parish",
+        "Vale Parish"
+      ]
+    },
+    {
+      "name": "St Sampson",
+      "code": "09",
+      "cities": [
+        "Saint Sampson"
+      ]
+    },
+    {
+      "name": "St Saviour",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Torteval",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Vale",
+      "code": "12",
+      "cities": []
+    }
+  ]
+}

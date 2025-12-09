@@ -61,7 +61,7 @@ export function ImageUpload({
   maxSize = 5,
   acceptedFormats = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
 }: ImageUploadProps) {
-  const t = useTranslations("components/ui/image-upload");
+  const t = useTranslations("common");
   const [internalLoading, setInternalLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);

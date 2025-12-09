@@ -133,17 +133,18 @@ module.exports = (translationApi) => {
             }
 
             let keysAdded = 0;
+            let keysRemoved = 0;
             let localesUpdated = 0;
 
             // Sync each locale
             for (const localeCode of locales) {
                 if (localeCode === 'en') continue;
-                
+
                 const locale = translationApi.locales.get(localeCode);
                 if (!locale) continue;
 
                 let localeUpdated = false;
-                
+
                 // Add missing keys from English
                 for (const [key, value] of Object.entries(englishLocale.keys)) {
                     if (!locale.keys[key]) {
@@ -153,15 +154,31 @@ module.exports = (translationApi) => {
                     }
                 }
 
+                // Also remove keys that don't exist in English (orphaned keys in locale)
+                const keysToRemoveList = [];
+                for (const key of Object.keys(locale.keys)) {
+                    if (!englishLocale.keys[key]) {
+                        keysToRemoveList.push(key);
+                    }
+                }
+                for (const key of keysToRemoveList) {
+                    delete locale.keys[key];
+                    keysRemoved++;
+                    localeUpdated = true;
+                }
+
                 if (localeUpdated) {
+                    // Update totalKeys count after modifying keys
+                    locale.totalKeys = Object.keys(locale.keys).length;
                     await translationApi.saveLocale(localeCode);
                     localesUpdated++;
                 }
             }
-            
+
             res.json({
                 success: true,
                 keysAdded,
+                keysRemoved,
                 localesUpdated
             });
         } catch (error) {
@@ -229,10 +246,13 @@ module.exports = (translationApi) => {
                     if (typeof value === 'string') {
                         const cleaned = value
                             .trim() // Remove leading/trailing spaces
-                            .replace(/[""]/g, '"') // Replace smart quotes
+                            .replace(/„/g, '"').replace(/"/g, '"') // German/Polish low-high quotes
+                            .replace(/[""]/g, '"') // Replace curly/smart quotes
                             .replace(/['']/g, "'") // Replace smart apostrophes
-                            .replace(/\u200B/g, ''); // Remove zero-width spaces
-                        
+                            .replace(/[«»‹›]/g, '"') // Replace guillemets
+                            .replace(/\u200B/g, '') // Remove zero-width spaces
+                            .replace(/\u00A0/g, ' '); // Replace non-breaking spaces with regular spaces
+
                         if (cleaned !== value) {
                             locale.keys[key] = cleaned;
                             valuesFixed++;
@@ -320,7 +340,7 @@ module.exports = (translationApi) => {
                 if (!locale) continue;
 
                 let localeUpdated = false;
-                
+
                 for (const key of keys) {
                     if (locale.keys[key] !== undefined) {
                         delete locale.keys[key];
@@ -330,11 +350,13 @@ module.exports = (translationApi) => {
                 }
 
                 if (localeUpdated) {
+                    // Update totalKeys count after removing keys
+                    locale.totalKeys = Object.keys(locale.keys).length;
                     await translationApi.saveLocale(localeCode);
                     localesUpdated++;
                 }
             }
-            
+
             res.json({
                 success: true,
                 keysRemoved,

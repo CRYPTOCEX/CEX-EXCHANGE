@@ -182,8 +182,7 @@ export default function AnimatedPoolCard({ pool, index = 0 }: PoolCardProps) {
                     {pool.symbol}
                   </span>
                   <span className="font-medium">
-                    {Math.round(percentageStaked)}
-                    {t("%_filled")}
+                    {Math.round(percentageStaked)}% {t("filled")}
                   </span>
                   <span>
                     {totalAvailable.toLocaleString()} {pool.symbol}

@@ -108,7 +108,7 @@ const additionalFeatures = [
 ];
 
 export function FeaturesSection() {
-  const t = useTranslations("investment/components/features-section");
+  const t = useTranslations("common");
   return (
     <section className="py-24 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-950 dark:to-zinc-900">
       <div className="container mx-auto px-4">

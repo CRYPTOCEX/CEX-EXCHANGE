@@ -67,8 +67,7 @@ export function CronHealth() {
         </div>
         <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
           <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
-            {healthPercentage}
-            {t("%_health")}
+            {healthPercentage}% {t("health")}
           </span>
           <div className="w-16 sm:w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex-shrink-0">
             <div

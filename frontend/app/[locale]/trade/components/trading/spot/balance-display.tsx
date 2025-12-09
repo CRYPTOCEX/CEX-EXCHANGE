@@ -21,7 +21,7 @@ export default function BalanceDisplay({
   pricePrecision = 2,
   amountPrecision = 4,
 }: BalanceDisplayProps) {
-  const t = useTranslations("trade/components/trading/spot/balance-display");
+  const t = useTranslations("ext");
 
   // Format balance based on market precision
   const formatBalance = (value: number, precision: number) => {

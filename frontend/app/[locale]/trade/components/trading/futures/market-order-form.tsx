@@ -57,7 +57,7 @@ export default function MarketOrderForm({
   fundingTime,
   formatPrice,
 }: MarketOrderFormProps) {
-  const t = useTranslations("trade/components/trading/futures/market-order-form");
+  const t = useTranslations("ext");
   
   const [amount, setAmount] = useState("");
   const [leverage, setLeverage] = useState(10);

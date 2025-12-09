@@ -129,7 +129,7 @@ export const DashboardTab = memo(function DashboardTab({
                 <span className="text-green-600 dark:text-green-400 font-medium">
                   {user.status || "Active"}
                 </span>{" "}
-                {t("•_member_since")}
+                • {t("member_since")}
                 {formatDate(user.createdAt)}
               </p>
             </div>

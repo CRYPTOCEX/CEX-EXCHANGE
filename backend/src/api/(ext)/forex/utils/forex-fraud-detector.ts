@@ -1,4 +1,5 @@
 import { models } from "@b/db";
+import { Op } from "sequelize";
 
 interface FraudCheckResult {
   isValid: boolean;
@@ -14,12 +15,12 @@ export class ForexFraudDetector {
   ): Promise<FraudCheckResult> {
     try {
       // Check recent deposit history
-      const recentDeposits = await models.forexLog.count({
+      const recentDeposits = await models.transaction.count({
         where: {
           userId,
-          action: 'DEPOSIT',
+          type: 'FOREX_DEPOSIT',
           createdAt: {
-            $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+            [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
           }
         }
       });
@@ -62,12 +63,12 @@ export class ForexFraudDetector {
   ): Promise<FraudCheckResult> {
     try {
       // Check recent withdrawal history
-      const recentWithdrawals = await models.forexLog.count({
+      const recentWithdrawals = await models.transaction.count({
         where: {
           userId,
-          action: 'WITHDRAWAL',
+          type: 'FOREX_WITHDRAW',
           createdAt: {
-            $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+            [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
           }
         }
       });

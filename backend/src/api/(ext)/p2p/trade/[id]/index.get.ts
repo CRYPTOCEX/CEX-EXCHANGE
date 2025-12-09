@@ -64,7 +64,7 @@ export default async (data: { params?: any; user?: any }) => {
         },
         {
           association: "offer",
-          attributes: ["id", "currency", "priceCurrency", "walletType", "type"],
+          attributes: ["id", "currency", "priceCurrency", "walletType", "type", "tradeSettings"],
           required: false
         },
       ],
@@ -74,14 +74,75 @@ export default async (data: { params?: any; user?: any }) => {
       throw new Error("Trade not found");
     }
 
-    // Transform the trade data to include formatted names
+    // Transform the trade data to include formatted names and stats
     const tradeData = trade.toJSON();
+
+    // Get counterparty stats for both buyer and seller
+    const getCounterpartyStats = async (userId: string) => {
+      const totalTrades = await models.p2pTrade.count({
+        where: {
+          [Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+          status: { [Op.in]: ["COMPLETED", "DISPUTE_RESOLVED", "CANCELLED", "EXPIRED"] },
+        },
+      });
+
+      const completedTrades = await models.p2pTrade.count({
+        where: {
+          [Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+          status: "COMPLETED",
+        },
+      });
+
+      const completionRate = totalTrades > 0 ? Math.round((completedTrades / totalTrades) * 100) : 100;
+
+      return { completedTrades, completionRate };
+    };
+
     if (tradeData.buyer) {
       tradeData.buyer.name = `${tradeData.buyer.firstName || ''} ${tradeData.buyer.lastName || ''}`.trim();
+      const buyerStats = await getCounterpartyStats(tradeData.buyer.id);
+      tradeData.buyer.completedTrades = buyerStats.completedTrades;
+      tradeData.buyer.completionRate = buyerStats.completionRate;
     }
     if (tradeData.seller) {
       tradeData.seller.name = `${tradeData.seller.firstName || ''} ${tradeData.seller.lastName || ''}`.trim();
+      const sellerStats = await getCounterpartyStats(tradeData.seller.id);
+      tradeData.seller.completedTrades = sellerStats.completedTrades;
+      tradeData.seller.completionRate = sellerStats.completionRate;
     }
+
+    // Parse JSON fields that may come as strings
+    if (tradeData.paymentDetails && typeof tradeData.paymentDetails === "string") {
+      try {
+        tradeData.paymentDetails = JSON.parse(tradeData.paymentDetails);
+      } catch {
+        // Keep as is if parsing fails
+      }
+    }
+
+    if (tradeData.timeline && typeof tradeData.timeline === "string") {
+      try {
+        tradeData.timeline = JSON.parse(tradeData.timeline);
+      } catch {
+        // Keep as is if parsing fails
+      }
+    }
+
+    if (tradeData.offer?.tradeSettings && typeof tradeData.offer.tradeSettings === "string") {
+      try {
+        tradeData.offer.tradeSettings = JSON.parse(tradeData.offer.tradeSettings);
+      } catch {
+        // Keep as is if parsing fails
+      }
+    }
+
+    // Add payment window from offer settings or platform default
+    const { CacheManager } = await import("@b/utils/cache");
+    const cacheManager = CacheManager.getInstance();
+    const defaultPaymentWindow = await cacheManager.getSetting("p2pDefaultPaymentWindow") || 240;
+    tradeData.paymentWindow = tradeData.offer?.tradeSettings?.autoCancel ||
+      tradeData.offer?.tradeSettings?.paymentWindow ||
+      defaultPaymentWindow;
 
     return tradeData;
   } catch (err: any) {

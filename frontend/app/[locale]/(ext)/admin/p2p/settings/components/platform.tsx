@@ -165,7 +165,7 @@ export default function P2PPlatformSettingsSection({
               onChange={(e) =>
                 onUpdate("MaxActiveOffersPerUser", Number(e.target.value))
               }
-              placeholder="Enter maximum number of offers"
+              placeholder={t("enter_maximum_number_of_offers")}
               min="1"
               max="100"
             />
@@ -184,7 +184,7 @@ export default function P2PPlatformSettingsSection({
               onChange={(e) =>
                 onUpdate("MaxActiveTrades", Number(e.target.value))
               }
-              placeholder="Enter maximum number of trades"
+              placeholder={t("enter_maximum_number_of_trades")}
               min="1"
               max="100"
             />

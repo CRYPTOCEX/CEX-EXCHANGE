@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { XCircle as XCircleIcon, CheckCircle2, ThumbsDown, Eye, Edit } from "lucide-react";
+import { XCircle as XCircleIcon, CheckCircle2, Play, Pause, AlertTriangle } from "lucide-react";
 import DataTable from "@/components/blocks/data-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,6 @@ import { columns } from "./columns";
 import { offersAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 import OfferDetailsDrawer from "./offer-details-drawer";
-import OfferEditDrawer from "./offer-edit-drawer";
 
 export default function AdminOffersPage() {
   const t = useTranslations("ext");
@@ -33,18 +32,16 @@ export default function AdminOffersPage() {
     offerId: "",
     offerName: "",
   });
-  
+
   // Drawer states for view
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  
-  // Drawer states for edit
-  const [editOfferId, setEditOfferId] = useState<string | null>(null);
-  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+
+  // Refresh callback for actions
   const [refreshCallback, setRefreshCallback] = useState<(() => void) | undefined>(undefined);
 
   // Get action functions from your admin offers store.
-  const { approveOffer, rejectOffer, flagOffer, disableOffer } =
+  const { approveOffer, rejectOffer, flagOffer, disableOffer, pauseOffer, activateOffer } =
     adminOffersStore();
 
   // Open offer details in drawer
@@ -57,31 +54,22 @@ export default function AdminOffersPage() {
     setIsDrawerOpen(false);
     setSelectedOfferId(null);
   };
-  
-  // Open edit drawer
-  const openEditDrawer = (offerId: string, refresh?: () => void) => {
-    setEditOfferId(offerId);
-    setIsEditDrawerOpen(true);
-    setRefreshCallback(() => refresh);
-  };
-  
-  const closeEditDrawer = () => {
-    setIsEditDrawerOpen(false);
-    setEditOfferId(null);
-    setRefreshCallback(undefined);
-  };
 
   // Action handler: sets up the confirmation dialog.
   const handleAction = (
-    type: "disable" | "flag" | "approve" | "reject",
-    offer: any
+    type: "disable" | "flag" | "approve" | "reject" | "pause" | "activate",
+    offer: any,
+    refresh?: () => void
   ) => {
     setConfirmDialog({
       open: true,
       type,
       offerId: offer.id,
-      offerName: `${offer.type} ${offer.crypto} at ${offer.price}`,
+      offerName: `${offer.type} ${offer.currency} offer`,
     });
+    if (refresh) {
+      setRefreshCallback(() => refresh);
+    }
   };
 
   // Returns a descriptive verb.
@@ -95,6 +83,10 @@ export default function AdminOffersPage() {
         return "approved";
       case "reject":
         return "rejected";
+      case "pause":
+        return "paused";
+      case "activate":
+        return "activated";
       default:
         return "updated";
     }
@@ -122,11 +114,21 @@ export default function AdminOffersPage() {
         case "disable":
           await disableOffer(confirmDialog.offerId, "Violates platform terms");
           break;
+        case "pause":
+          await pauseOffer(confirmDialog.offerId);
+          break;
+        case "activate":
+          await activateOffer(confirmDialog.offerId);
+          break;
       }
       toast({
         title: "Action completed",
-        description: `Successfully ${getActionVerb(confirmDialog.type)} offer ${confirmDialog.offerId}`,
+        description: `Successfully ${getActionVerb(confirmDialog.type)} offer`,
       });
+      // Refresh the table if callback is available
+      if (refreshCallback) {
+        refreshCallback();
+      }
     } catch (err) {
       toast({
         title: "Error",
@@ -140,37 +142,60 @@ export default function AdminOffersPage() {
   };
 
   // Extra row actions for each offer row in the DataTable.
-  const extraRowActions = (row: any) => {
+  const extraRowActions = (row: any, refresh?: () => void) => {
+    const status = row.status?.toUpperCase();
     return (
       <>
-        {/* If offer is pending, show approve and reject */}
-        {row.status === "pending" && (
+        {/* If offer is pending approval, show approve and reject */}
+        {(status === "PENDING_APPROVAL" || status === "PENDING") && (
           <>
-            <DropdownMenuItem onClick={() => handleAction("approve", row)}>
+            <DropdownMenuItem onClick={() => handleAction("approve", row, refresh)}>
               <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
               {t("approve_offer")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAction("reject", row)}>
+            <DropdownMenuItem onClick={() => handleAction("reject", row, refresh)}>
               <XCircleIcon className="mr-2 h-4 w-4 text-red-500" />
               {t("reject_offer")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}
-        {/* For other statuses, allow flagging */}
-        {row.status !== "pending" && (
-          <DropdownMenuItem onClick={() => handleAction("flag", row)}>
-            <ThumbsDown className="mr-2 h-4 w-4 text-orange-500" />
+
+        {/* Quick status actions */}
+        {status === "ACTIVE" && (
+          <DropdownMenuItem onClick={() => handleAction("pause", row, refresh)}>
+            <Pause className="mr-2 h-4 w-4 text-yellow-500" />
+            {t("pause_offer")}
+          </DropdownMenuItem>
+        )}
+
+        {(status === "PAUSED" || status === "DISABLED" || status === "REJECTED") && (
+          <DropdownMenuItem onClick={() => handleAction("activate", row, refresh)}>
+            <Play className="mr-2 h-4 w-4 text-green-500" />
+            {t("activate_offer")}
+          </DropdownMenuItem>
+        )}
+
+        {/* Flag action - for non-pending offers */}
+        {status !== "PENDING_APPROVAL" && status !== "PENDING" && status !== "FLAGGED" && (
+          <DropdownMenuItem onClick={() => handleAction("flag", row, refresh)}>
+            <AlertTriangle className="mr-2 h-4 w-4 text-orange-500" />
             {t("flag_offer")}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          onClick={() => handleAction("disable", row)}
-          className="text-red-600"
-        >
-          <XCircleIcon className="mr-2 h-4 w-4" />
-          {t("disable_offer")}
-        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        {/* Disable action */}
+        {status !== "DISABLED" && (
+          <DropdownMenuItem
+            onClick={() => handleAction("disable", row, refresh)}
+            className="text-red-600"
+          >
+            <XCircleIcon className="mr-2 h-4 w-4" />
+            {t("disable_offer")}
+          </DropdownMenuItem>
+        )}
       </>
     );
   };
@@ -189,35 +214,17 @@ export default function AdminOffersPage() {
         }}
         pageSize={10}
         canCreate={false}
-        canEdit={false}
+        canEdit={true}
+        editLink="/admin/p2p/offer/[id]"
         canDelete={true}
         canView={true}
+        onViewClick={(row) => openOfferDrawer(row.id)}
         title="Offers"
         itemTitle="Offer"
         columns={columns}
         analytics={offersAnalytics}
         isParanoid={true}
         extraRowActions={extraRowActions}
-        expandedButtons={(row, refresh) => (
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => openOfferDrawer(row.id)}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              {t("view_details")}
-            </Button>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => openEditDrawer(row.id, refresh)}
-            >
-              <Edit className="h-4 w-4 mr-1" />
-              {t("Edit")}
-            </Button>
-          </div>
-        )}
       />
 
       {/* Confirmation Dialog for extra action */}
@@ -241,6 +248,10 @@ export default function AdminOffersPage() {
                 "This will make the offer visible on the platform."}
               {confirmDialog.type === "reject" &&
                 "This will reject the offer and notify the user."}
+              {confirmDialog.type === "pause" &&
+                "This will temporarily pause the offer. It can be reactivated later."}
+              {confirmDialog.type === "activate" &&
+                "This will activate the offer and make it visible on the platform."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -269,19 +280,6 @@ export default function AdminOffersPage() {
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
         offerId={selectedOfferId}
-      />
-      
-      {/* Offer Edit Drawer */}
-      <OfferEditDrawer
-        isOpen={isEditDrawerOpen}
-        onClose={closeEditDrawer}
-        offerId={editOfferId}
-        onSuccess={() => {
-          if (refreshCallback) {
-            refreshCallback();
-          }
-          closeEditDrawer();
-        }}
       />
     </>
   );
