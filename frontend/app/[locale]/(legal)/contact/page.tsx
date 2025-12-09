@@ -3,8 +3,9 @@ import { generatePageMetadata, getPageContent, DefaultPage } from "../components
 export async function generateMetadata() {
   return generatePageMetadata(
     "contact",
-    "Contact Us",
-    "Get in touch with our support team for assistance with your account or any questions."
+
+    "Contact us",
+    "Get in touch with our support team for assistance with your account or any questions - Cryptox-cex"
   );
 }
 
